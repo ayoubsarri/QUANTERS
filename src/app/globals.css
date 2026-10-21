@@ -1,0 +1,286 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-canvas: #F4F7FB;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #EDF3FA;
+  --ink-primary: #09192F;
+  --ink-secondary: #334155;
+  --ink-muted: #64748B;
+  --line-border: #DCE7F5;
+  --color-primary: #1D63EB;
+  --color-cyan-glow: #29D2FF;
+  --color-accent-gold: #FFE500;
+
+  /* Motion Easing Curves (60fps Compositor System) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Completely suppress Next.js Dev Indicator Badge ("N" circle) */
+nextjs-portal,
+#__next-build-watcher,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html {
+  /* Fluid root sizing: comfortable reading on 375px phones and crisp scaling on 1440px+ PC */
+  font-size: clamp(15px, 0.25vw + 14.5px, 16.5px);
+}
+
+html,
+body {
+  background-color: var(--bg-canvas);
+  color: var(--ink-primary);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Enforce Space Grotesk Display Hierarchy on Headings */
+h1,
+h2,
+h3,
+.font-heading {
+  font-family: var(--font-display), var(--font-jakarta), var(--font-arabic), sans-serif;
+  letter-spacing: -0.022em;
+}
+
+/* Prevent microscopic text across all devices — enforce readable minimum floors */
+.text-\[8px\],
+.text-\[9px\],
+.text-\[9\.5px\] {
+  font-size: clamp(0.7rem, 0.15vw + 0.68rem, 0.76rem) !important;
+  line-height: 1.35 !important;
+}
+
+.text-\[10px\],
+.text-\[10\.5px\] {
+  font-size: clamp(0.74rem, 0.18vw + 0.71rem, 0.8rem) !important;
+  line-height: 1.4 !important;
+}
+
+.text-\[11px\] {
+  font-size: clamp(0.79rem, 0.2vw + 0.75rem, 0.85rem) !important;
+  line-height: 1.45 !important;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ============================================================================
+   QUANTERS COBALT-COSMIC SURFACES & SCIENTIFIC EDITORIAL THEME
+   ============================================================================ */
+
+.bg-cosmic-space {
+  background-color: #041022;
+  background-image:
+    radial-gradient(circle at 82% 14%, rgba(41, 210, 255, 0.22) 0%, transparent 42%),
+    radial-gradient(circle at 14% 84%, rgba(29, 99, 235, 0.28) 0%, transparent 48%),
+    radial-gradient(circle at 50% 48%, rgba(255, 229, 0, 0.06) 0%, transparent 55%),
+    linear-gradient(165deg, #030C1A 0%, #071B38 52%, #041022 100%);
+}
+
+.bg-hero-cobalt {
+  background-color: #082354;
+  background-image:
+    radial-gradient(circle at 88% 18%, rgba(56, 228, 255, 0.28) 0%, transparent 46%),
+    radial-gradient(circle at 12% 92%, rgba(251, 176, 59, 0.14) 0%, transparent 42%),
+    linear-gradient(135deg, #051636 0%, #0B357D 48%, #1D63EB 100%);
+}
+
+/* Architectural Dot Grid Texture Overlay */
+.bg-quanta-grid,
+.bg-vox-grid {
+  background-image: radial-gradient(rgba(29, 99, 235, 0.13) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.bg-quanta-grid-dark,
+.bg-vox-grid-dark {
+  background-image: radial-gradient(rgba(56, 228, 255, 0.16) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Editorial Highlighter Badge */
+.quanta-highlighter,
+.vox-highlighter {
+  background: linear-gradient(104deg, #FFE500 0%, #FDE047 100%);
+  color: #09192F;
+  padding: 0.08em 0.42em;
+  border-radius: 5px;
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: 0 2px 10px rgba(255, 229, 0, 0.28);
+}
+
+.quanta-highlighter-cyan,
+.vox-highlighter-cyan {
+  background: linear-gradient(104deg, #38E4FF 0%, #7DD3FC 100%);
+  color: #041022;
+  padding: 0.08em 0.42em;
+  border-radius: 5px;
+  font-weight: 800;
+}
+
+/* Editorial Card with Crisp Structural Border & Hover Lift */
+.quanta-card,
+.vox-card {
+  background: #FFFFFF;
+  border: 1.5px solid #DCE7F5;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px -6px rgba(9, 25, 47, 0.06), 0 2px 6px rgba(9, 25, 47, 0.03);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+
+.quanta-card:hover,
+.vox-card:hover {
+  border-color: rgba(29, 99, 235, 0.38);
+  box-shadow: 0 14px 32px -8px rgba(29, 99, 235, 0.12), 0 4px 10px rgba(9, 25, 47, 0.04);
+}
+
+.bg-xp-progress {
+  background: linear-gradient(90deg, #1D63EB 0%, #29D2FF 100%);
+}
+
+.clip-hexagon {
+  clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+}
+
+/* ============================================================================
+   CREATIVE 60FPS CHOREOGRAPHED ANIMATIONS
+   ============================================================================ */
+
+@keyframes riseIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes floatSubtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes orbitPulse {
+  0%, 100% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+@keyframes scanLaser {
+  0%, 100% {
+    transform: translateY(0%);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(210px);
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: riseIn 260ms var(--ease-out) backwards;
+}
+
+.animate-float-subtle {
+  animation: floatSubtle 4.2s ease-in-out infinite;
+}
+
+.animate-orbit-pulse {
+  animation: orbitPulse 3.4s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 14s linear infinite;
+}
+
+.animate-scan-laser {
+  animation: scanLaser 2.6s ease-in-out infinite;
+}
+
+/* Interactive Tactile States */
+button,
+a {
+  transition: transform 150ms var(--ease-out), background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out), color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out), opacity 160ms var(--ease-out);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #1D63EB;
+  outline-offset: 2px;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,459 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Bell,
+  Check,
+  CheckCircle2,
+  Mail,
+  Send,
+  Users,
+  X,
+} from "lucide-react";
+import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { NotificationPriority } from "@/lib/types/erp";
+import { handleMemberSelectKeyDown, sortMembersByName } from "@/lib/utils/memberKeyboardJump";
+
+export default function AdminMessagesPage() {
+  const messages = useQuantersStore((s) => s.messages);
+  const departments = useQuantersStore((s) => s.departments);
+  const teams = useQuantersStore((s) => s.teams);
+  const members = useQuantersStore((s) => s.members);
+  const sendClubMessage = useQuantersStore((s) => s.sendClubMessage);
+
+  const [recipientType, setRecipientType] = useState<
+    "Everyone" | "Department" | "Scientific Team" | "All Trainees" | "Specific Member"
+  >("Everyone");
+  const [selectedTarget, setSelectedTarget] = useState<string>("All Active & Trainee Members");
+  const [priority, setPriority] = useState<NotificationPriority>("Official notice");
+  const [inApp, setInApp] = useState<boolean>(true);
+  const [email, setEmail] = useState<boolean>(true);
+  const [title, setTitle] = useState<string>("");
+  const [body, setBody] = useState<string>("");
+  const [banner, setBanner] = useState<string | null>(null);
+
+  const handleRecipientTypeChange = (
+    next: "Everyone" | "Department" | "Scientific Team" | "All Trainees" | "Specific Member"
+  ) => {
+    setRecipientType(next);
+    if (next === "Everyone") setSelectedTarget("Everyone (Whole Club)");
+    if (next === "Department") setSelectedTarget(departments[0]?.name || "IT and Technical Solutions");
+    if (next === "Scientific Team") setSelectedTarget(teams[0]?.name || "Astronomy & Astrophysics");
+    if (next === "All Trainees") setSelectedTarget("All Trainees (Qualification Cohort)");
+    if (next === "Specific Member") setSelectedTarget(members[0]?.fullName || "Ayoub Sarri");
+  };
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) return;
+    if (!inApp && !email) return;
+
+    sendClubMessage({
+      recipientScope: selectedTarget,
+      priority,
+      title: title.trim(),
+      body: body.trim(),
+      inApp,
+      email,
+    });
+
+    setBanner(
+      `Dispatched '${title.trim()}' to ${selectedTarget} via ${[
+        inApp ? "In-App Notification" : "",
+        email ? "University Email SMTP" : "",
+      ]
+        .filter(Boolean)
+        .join(" + ")}!`
+    );
+    setTitle("");
+    setBody("");
+  };
+
+  const sortedMembers = sortMembersByName(members);
+
+  return (
+    <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        <div>
+          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            Messages &amp; Announcements
+          </h1>
+          <p className="text-xs font-medium text-slate-500 mt-0.5">
+            Broadcast messages via in-app push and university email
+          </p>
+        </div>
+      </div>
+
+      {banner && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{banner}</span>
+          </div>
+          <button type="button" onClick={() => setBanner(null)} className="cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        {/* LEFT: DUAL-CHANNEL COMPOSER */}
+        <div className="xl:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 bg-[#061E47] text-white">
+            <h2 className="text-base font-extrabold">Dual-Channel Message Composer</h2>
+            <p className="text-xs text-sky-200">
+              Simultaneously delivers to Member Mobile App and University Email
+            </p>
+          </div>
+
+          <form onSubmit={handleSend} className="p-6 space-y-4">
+            {/* Recipient Scope Selector */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                1. Recipient Group Type
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {(
+                  [
+                    "Everyone",
+                    "Department",
+                    "Scientific Team",
+                    "All Trainees",
+                    "Specific Member",
+                  ] as const
+                ).map((rt) => (
+                  <button
+                    key={rt}
+                    type="button"
+                    onClick={() => handleRecipientTypeChange(rt)}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-bold border transition ${
+                      recipientType === rt
+                        ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    {rt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Specific Target Dropdown */}
+            {recipientType === "Department" && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Select Department
+                </label>
+                <select
+                  value={selectedTarget}
+                  onChange={(e) => setSelectedTarget(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                >
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {recipientType === "Scientific Team" && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Select Scientific Team
+                </label>
+                <select
+                  value={selectedTarget}
+                  onChange={(e) => setSelectedTarget(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                >
+                  {teams.map((t) => (
+                    <option key={t.id} value={t.name}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {recipientType === "Specific Member" && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Select Member
+                  </label>
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    Press A–Z to jump to name
+                  </span>
+                </div>
+                <select
+                  value={selectedTarget}
+                  onChange={(e) => setSelectedTarget(e.target.value)}
+                  onKeyDown={(e) =>
+                    handleMemberSelectKeyDown(e, sortedMembers, (memberId: string) => {
+                      const found = sortedMembers.find((m) => m.id === memberId);
+                      if (found) setSelectedTarget(found.fullName);
+                    })
+                  }
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                >
+                  {sortedMembers.map((m) => (
+                    <option key={m.id} value={m.fullName}>
+                      {m.fullName} ({m.quanterId})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Priority Selector */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                2. Priority Level
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["Info", "Action needed", "Official notice"] as NotificationPriority[]).map(
+                  (p) => {
+                    const isSelected = priority === p;
+                    const pillClasses =
+                      p === "Official notice"
+                        ? "bg-amber-50 text-amber-800 border-amber-200/90"
+                        : p === "Action needed"
+                        ? "bg-rose-50 text-rose-700 border-rose-200/90"
+                        : "bg-sky-50 text-sky-700 border-sky-200/90";
+                    const dotClasses =
+                      p === "Official notice"
+                        ? "bg-amber-500"
+                        : p === "Action needed"
+                        ? "bg-rose-500"
+                        : "bg-sky-500";
+
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPriority(p)}
+                        className={`inline-flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${pillClasses} ${
+                          isSelected
+                            ? "ring-2 ring-slate-900/80 shadow-xs"
+                            : "opacity-75 hover:opacity-100"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotClasses}`} />
+                        <span className="truncate">{p}</span>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            {/* Dual Delivery Channels */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                3. Delivery Channels
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label
+                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-extrabold cursor-pointer ${
+                    inApp
+                      ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                      : "bg-slate-50 border-slate-200 text-slate-600"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={inApp}
+                    onChange={(e) => setInApp(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#1D63EB]"
+                  />
+                  <Bell className="w-4 h-4" />
+                  <span>In-App Notification</span>
+                </label>
+
+                <label
+                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-extrabold cursor-pointer ${
+                    email
+                      ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                      : "bg-slate-50 border-slate-200 text-slate-600"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={email}
+                    onChange={(e) => setEmail(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#1D63EB]"
+                  />
+                  <Mail className="w-4 h-4" />
+                  <span>Send via Email</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Title & Body */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Subject / Title *
+              </label>
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Mandatory General Assembly — This Saturday 10:00"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Message Body *
+              </label>
+              <textarea
+                rows={4}
+                required
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write official club message or action instructions..."
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-sm font-extrabold shadow-sm transition"
+            >
+              <Send className="w-4 h-4" />
+              Send Message ({selectedTarget})
+            </button>
+          </form>
+        </div>
+
+        {/* RIGHT: SENT MESSAGES & DELIVERY TRACKER TABLE */}
+        <div className="xl:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+          <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                Sent Messages & Real-Time Delivery Tracker ({messages.length})
+              </h3>
+              <p className="text-xs text-slate-500">
+                Tracks In-App Read / Total progress bar and Email Sent / Failed counters
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th className="py-3.5 px-4">Message & Priority</th>
+                  <th className="py-3.5 px-4">Recipient Scope</th>
+                  <th className="py-3.5 px-4">Channels</th>
+                  <th className="py-3.5 px-4">In-App Read / Total</th>
+                  <th className="py-3.5 px-4 text-right">Email Sent / Failed</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/70">
+                {messages.map((msg) => {
+                  const readPct = Math.min(
+                    100,
+                    Math.round(
+                      (msg.stats.inAppReadCount / Math.max(1, msg.stats.totalRecipients)) * 100
+                    )
+                  );
+                  return (
+                    <tr key={msg.id} className="hover:bg-slate-50/60">
+                      <td className="py-3.5 px-4 align-top min-w-[230px]">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold border whitespace-nowrap shrink-0 ${
+                              msg.priority === "Action needed"
+                                ? "bg-rose-50 text-rose-700 border-rose-200/90"
+                                : msg.priority === "Official notice"
+                                ? "bg-amber-50 text-amber-800 border-amber-200/90"
+                                : "bg-sky-50 text-sky-700 border-sky-200/90"
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                msg.priority === "Action needed"
+                                  ? "bg-rose-500"
+                                  : msg.priority === "Official notice"
+                                  ? "bg-amber-500"
+                                  : "bg-sky-500"
+                              }`}
+                            />
+                            <span>{msg.priority}</span>
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-400 whitespace-nowrap shrink-0">{msg.timeAgo}</span>
+                        </div>
+                        <div className="text-xs font-bold text-slate-900 mt-1.5">{msg.title}</div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 max-w-xs mt-0.5">
+                          {msg.body}
+                        </p>
+                      </td>
+
+                      <td className="py-3.5 px-4 align-top text-xs font-bold text-slate-700">
+                        {msg.recipientScope}
+                        <div className="text-[11px] font-normal text-slate-400">
+                          by {msg.senderLabel}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 align-top">
+                        <div className="flex flex-col gap-1 text-[11px] font-bold">
+                          {msg.channels.inApp && (
+                            <span className="inline-flex items-center gap-1 text-[#1D63EB]">
+                              <Check className="w-3 h-3" /> In-App
+                            </span>
+                          )}
+                          {msg.channels.email && (
+                            <span className="inline-flex items-center gap-1 text-emerald-700">
+                              <Check className="w-3 h-3" /> Email
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 align-top tabular-nums">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                          <span>
+                            {msg.stats.inAppReadCount} / {msg.stats.totalRecipients} Read
+                          </span>
+                          <span className="text-[#1D63EB]">{readPct}%</span>
+                        </div>
+                        <div className="w-32 h-2 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full bg-xp-progress rounded-full"
+                            style={{ width: `${readPct}%` }}
+                          />
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 align-top text-right tabular-nums text-xs">
+                        {msg.channels.email ? (
+                          <div>
+                            <div className="font-extrabold text-emerald-700">
+                              {msg.stats.emailSentCount} Sent
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              {msg.stats.emailFailedCount} Failed
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">In-App Only</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
