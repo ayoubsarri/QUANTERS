@@ -120,20 +120,11 @@ export default function MobileHomeHubPage() {
   if (isAlumni) {
     return (
       <MobileAppShell>
-        <div className="px-4 pt-2.5 pb-6 sm:px-6 space-y-3.5">
-          {/* Top Brand Bar */}
-          <div className="flex items-center justify-between pb-0.5 animate-rise">
-            <QuantaLogo size={28} showWordmark variant="light" showSubtitle />
-            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 font-display inline-flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Faculty of Sciences
-            </span>
-          </div>
-
+        <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
           {/* Alumni Top Greeting Header */}
           <div
             className="flex items-center justify-between gap-2 animate-rise"
-            style={{ animationDelay: "40ms" }}
+            style={{ animationDelay: "0ms" }}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Link href="/profile" className="relative shrink-0">
@@ -454,20 +445,11 @@ export default function MobileHomeHubPage() {
   // ============================================================================
   return (
     <MobileAppShell>
-      <div className="px-4 pt-2.5 pb-6 sm:px-6 space-y-3.5">
-        {/* Top Brand Bar */}
-        <div className="flex items-center justify-between pb-0.5 animate-rise">
-          <QuantaLogo size={28} showWordmark variant="light" showSubtitle />
-          <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 font-display inline-flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Faculty of Sciences
-          </span>
-        </div>
-
+      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
         {/* Top Greeting Header */}
         <div
           className="flex items-center justify-between gap-2 animate-rise"
-          style={{ animationDelay: "40ms" }}
+          style={{ animationDelay: "0ms" }}
         >
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/profile" className="relative shrink-0">
@@ -605,69 +587,57 @@ export default function MobileHomeHubPage() {
           </div>
         </div>
 
-        {/* Unified Bento Metric Capsule */}
+        {/* Smart Activity & Progression Strip */}
         <div
-          className="rounded-3xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_6px_24px_rgba(9,25,47,0.06)] p-1.5 sm:p-2 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
+          className="rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(9,25,47,0.04)] p-2.5 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
           style={{ animationDelay: "120ms" }}
         >
           <Link
             href="/badges"
-            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
-            <div className="flex items-center gap-1 text-slate-400 group-hover:text-amber-600 transition-colors">
-              <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            </div>
-            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
-              {member.badgeIds.length.toLocaleString()}
-            </div>
-            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+              {member.badgeIds.length}
+            </span>
+            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
               Badges
-            </div>
+            </span>
           </Link>
 
           <Link
             href="/workshops"
-            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
-            <div className="flex items-center gap-1 text-slate-400 group-hover:text-blue-600 transition-colors">
-              <BookOpen className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
-            </div>
-            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
-              {member.workshopsCompletedCount.toLocaleString()}
-            </div>
-            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+              {member.workshopsCompletedCount}
+            </span>
+            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
               Workshops
-            </div>
+            </span>
           </Link>
 
           <Link
             href="/projects/submit"
-            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
-            <div className="flex items-center gap-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
-              <FolderGit2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-            </div>
-            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
-              {member.projectsCompletedCount.toLocaleString()}
-            </div>
-            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+              {member.projectsCompletedCount}
+            </span>
+            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
               Projects
-            </div>
+            </span>
           </Link>
 
           <Link
             href="/profile"
-            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
-            <div className="flex items-center gap-1 text-slate-400 group-hover:text-emerald-600 transition-colors">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            </div>
-            <div className="text-lg sm:text-xl font-black font-display text-emerald-700 tabular-nums leading-tight mt-1">
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
               {member.xpTotal.toLocaleString()}
-            </div>
-            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
+            </span>
+            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
               Total XP
-            </div>
+            </span>
           </Link>
         </div>
 
