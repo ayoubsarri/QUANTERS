@@ -524,48 +524,24 @@ export default function MobileManagerWorkspacePage() {
           </div>
         </div>
 
-        {/* Workspace Role Switcher: Test Manager, Co-Manager, Team Leader & Dept Member Permissions */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-4 space-y-2.5 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
+        {/* Department Operational Clearance & Identity Card */}
+        <div className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-4.5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] font-mono font-extrabold uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5">
+            <span className="text-[10.5px] font-mono font-black uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5" />
-              <span>Workspace Access Role</span>
+              <span>{roleMode} Clearance</span>
             </span>
-            <span className="text-[10px] font-bold text-sky-200">
-              {roleMode === "Dept Manager" || roleMode === "Co-Manager"
-                ? "Sees All Tasks · Assigns Own Dept Only"
-                : roleMode === "Team Leader"
-                ? "Assigns Own Scientific Team Only"
-                : "Sees Dept Peers & Cross-Dept Member Tasks"}
+            <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-bold border border-white/20">
+              {currentDept.shortName}
             </span>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {(
-              [
-                "Dept Manager",
-                "Co-Manager",
-                "Team Leader",
-                "Department Member",
-              ] as WorkspaceRoleMode[]
-            ).map((mode) => {
-              const active = roleMode === mode;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => handleRoleModeChange(mode)}
-                  className={`py-2 px-2.5 rounded-full text-[10.5px] font-black transition cursor-pointer ${
-                    active
-                      ? "bg-[#38E4FF] text-[#061E47] shadow-xs"
-                      : "bg-white/10 text-sky-100 hover:bg-white/20"
-                  }`}
-                >
-                  {mode}
-                </button>
-              );
-            })}
-          </div>
+          <p className="text-xs text-sky-100/90 font-medium leading-relaxed">
+            {roleMode === "Dept Manager" || roleMode === "Co-Manager"
+              ? `Operational management authority for ${currentDept.name} tasks, member assignments, and check-in rosters.`
+              : roleMode === "Team Leader"
+              ? `Scientific leadership for ${currentTeam.name} — reviewing peer research deliverables and team assignments.`
+              : `Department peer transparency for ${currentDept.name} member tasks and collaborative projects.`}
+          </p>
         </div>
 
         {/* Department & Scientific Team Selectors */}

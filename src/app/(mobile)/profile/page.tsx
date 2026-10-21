@@ -71,7 +71,6 @@ export default function MobileProfilePage() {
   const router = useRouter();
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
-  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
   const departments = useQuantersStore((s) => s.departments);
   const teams = useQuantersStore((s) => s.teams);
   const ledger = useQuantersStore((s) => s.ledger);
@@ -190,28 +189,18 @@ export default function MobileProfilePage() {
       <div className="px-4 pt-2 pb-6 space-y-3.5 animate-rise">
         {/* Top Title & Quick Actions */}
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-lg font-extrabold text-slate-900">Profile</h1>
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
-            <select
-              value={currentMemberId}
-              onChange={(e) => setCurrentMemberId(e.target.value)}
-              className="text-[10.5px] font-bold bg-white border border-[#E2EDF8] text-slate-700 rounded-full px-2.5 py-1 shadow-xs cursor-pointer hover:border-[#1D63EB] transition"
-              title="Switch Member Persona"
-            >
-              <option value="mem-ayoub">Ayoub Sarri (Lead)</option>
-              <option value="mem-lina">Lina Benali (Member)</option>
-              <option value="mem-walid">Walid Meziani (Trainee)</option>
-              <option value="mem-alumni-1">Dr. Amine Cherif (Alumni)</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => setLedgerModalOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#E2EDF8] text-[11px] font-bold text-slate-700 hover:bg-slate-50 active:scale-[0.98] shadow-sm cursor-pointer transition"
-            >
-              <History className="w-3.5 h-3.5 text-[#1D63EB]" />
-              <span>Points Ledger</span>
-            </button>
+          <div>
+            <h1 className="text-[20px] font-black text-slate-900 tracking-tight">Profile</h1>
+            <p className="text-[11px] font-medium text-slate-500">Official Membership Credentials &amp; KYC</p>
           </div>
+          <button
+            type="button"
+            onClick={() => setLedgerModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 text-[11px] font-bold text-slate-700 hover:bg-white active:scale-[0.98] shadow-2xs cursor-pointer transition"
+          >
+            <History className="w-3.5 h-3.5 text-[#1D63EB]" />
+            <span>Points Ledger</span>
+          </button>
         </div>
 
         {/* Member Identity Card */}

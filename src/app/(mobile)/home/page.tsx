@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Archive,
+  ArrowRight,
   Award,
   Bell,
   BookOpen,
@@ -38,7 +39,6 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 export default function MobileHomeHubPage() {
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
-  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
   const workshops = useQuantersStore((s) => s.workshops);
   const tasks = useQuantersStore((s) => s.tasks);
   const explorePosts = useQuantersStore((s) => s.explorePosts);
@@ -120,9 +120,9 @@ export default function MobileHomeHubPage() {
     return (
       <MobileAppShell>
         <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
-          {/* Alumni Top Greeting Header + 1-Tap Switch to Active Member */}
+          {/* Alumni Top Greeting Header */}
           <div
-            className="flex items-start justify-between gap-2 animate-rise"
+            className="flex items-center justify-between gap-2 animate-rise"
             style={{ animationDelay: "0ms" }}
           >
             <div className="flex items-center gap-2.5 min-w-0">
@@ -130,46 +130,34 @@ export default function MobileHomeHubPage() {
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
-                  className="w-11 h-11 rounded-full object-cover border-2 border-[#FBB03B] shadow-sm"
+                  className="w-11 h-11 rounded-full object-cover border-2 border-amber-300/80 shadow-2xs"
                 />
                 <span className="absolute -bottom-0.5 -right-0.5 px-1 py-0.2 rounded-full bg-[#FBB03B] text-[#061E47] text-[8px] font-black">
                   ’{member.graduationYear?.slice(-2) || "26"}
                 </span>
               </Link>
               <div className="min-w-0">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[9.5px] font-extrabold">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200/80 text-[10px] font-black tracking-wide">
                   <GraduationCap className="w-3 h-3 text-amber-700 shrink-0" />
                   <span>
-                    QUANTA Alumni · Class of {member.graduationYear || "2026"}
+                    QUANTA Alumni Fellow · Class of {member.graduationYear || "2026"}
                   </span>
                 </span>
-                <h1 className="text-[15px] font-extrabold text-slate-900 truncate mt-0.5 flex items-center gap-1.5">
-                  <span>Welcome back, {firstName}</span>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <h1 className="text-[17px] font-black text-slate-900 truncate mt-0.5">
+                  Welcome back, {firstName}
                 </h1>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
-              <select
-                value={currentMemberId}
-                onChange={(e) => setCurrentMemberId(e.target.value)}
-                className="text-[10.5px] font-bold bg-white border border-[#E2EDF8] text-slate-700 rounded-full px-2 py-1 shadow-xs cursor-pointer hover:border-[#1D63EB] transition"
-                title="Switch Member Persona"
-              >
-                <option value="mem-ayoub">Ayoub (Lead)</option>
-                <option value="mem-lina">Lina (Simple Member)</option>
-                <option value="mem-walid">Walid (Trainee)</option>
-                <option value="mem-alumni-1">Dr. Amine (Alumni)</option>
-              </select>
               <Link
                 href="/notifications"
-                className="relative w-9 h-9 rounded-full bg-white border border-[#E2EDF8] flex items-center justify-center text-slate-700 hover:bg-slate-50 shadow-sm active:scale-[0.98] transition"
+                className="relative w-9 h-9 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-extrabold flex items-center justify-center tabular-nums">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-black flex items-center justify-center tabular-nums shadow-xs">
                     {unreadCount}
                   </span>
                 )}
@@ -177,179 +165,189 @@ export default function MobileHomeHubPage() {
             </div>
           </div>
 
-          {/* Gold/Cobalt Alumni Honors 2.5D Hero Card */}
+          {/* Prestige Alumni Fellowship Honors Card */}
           <div
-            className="rounded-[32px] p-5 sm:p-6 text-white overflow-hidden border border-amber-300/40 border-t-amber-200/80 shadow-[0_24px_50px_-10px_rgba(30,20,5,0.5),0_8px_20px_rgba(30,20,5,0.25),inset_0_1.5px_2px_rgba(255,255,255,0.4),inset_0_-2px_6px_rgba(0,0,0,0.5)] animate-rise relative"
-            style={{
-              animationDelay: "60ms",
-              background:
-                "radial-gradient(ellipse at 20% 0%, #1E3A8A 0%, #0F172A 60%, #080B14 100%)",
-            }}
+            className="rounded-3xl bg-gradient-to-br from-[#061E47] via-[#092B66] to-[#0E3A85] text-white p-5 sm:p-6 border border-white/20 shadow-[0_12px_36px_rgba(6,30,71,0.2)] relative overflow-hidden animate-rise"
+            style={{ animationDelay: "60ms" }}
           >
-            <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
-            <div className="flex items-start justify-between gap-3 relative z-10">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/50 text-[#FBB03B] text-[10.5px] font-extrabold uppercase tracking-wider shadow-[0_0_12px_rgba(251,176,59,0.25)]">
-                  <Trophy className="w-3.5 h-3.5" />
-                  <span>Honoris Causa · Former President</span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-black tracking-tight font-display drop-shadow-[0_2px_8px_rgba(251,191,36,0.35)]">
-                    {member.levelTitle || "Quanta Laureate"}
-                  </span>
-                </div>
-                <p className="text-xs text-sky-100/90 font-medium max-w-[340px]">
-                  {member.alumniPosition ||
-                    "Doctoral Researcher in Quantum Photonics · USTHB / Paris-Saclay"}
-                </p>
-              </div>
-              <div className="animate-float-subtle shrink-0 filter drop-shadow-[0_8px_16px_rgba(251,191,36,0.3)]">
-                <PlanetEmblem size={56} />
-              </div>
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
+            <div className="flex items-center justify-between gap-2 relative z-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-[10px] font-black tracking-wider uppercase">
+                <Sparkles className="w-3 h-3" />
+                <span>Honorary Fellowship</span>
+              </span>
+              <span className="text-[11px] font-mono font-bold text-amber-300">
+                Class of {member.graduationYear || "2026"}
+              </span>
             </div>
 
-            <div className="mt-4 pt-3.5 border-t border-white/15 space-y-2 relative z-10">
-              <div className="flex items-center justify-between gap-2 text-[11px] font-bold">
-                <span className="text-sky-100 font-extrabold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]" />
-                  <span>Level {member.level} · {member.levelTitle}</span>
+            <div className="mt-3 relative z-10">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                {member.fullName}
+              </h2>
+              <p className="text-xs font-medium text-sky-200/90 mt-1 max-w-[380px] leading-relaxed">
+                {member.alumniPosition ||
+                  "Doctoral Researcher in Quantum Photonics · Faculty of Sciences"}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
+              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-sm font-black text-amber-300 block leading-tight tabular-nums">
+                  3,450 XP
                 </span>
-                <span className="text-[#38E4FF] font-mono tabular-nums font-black">
-                  {member.xpSeason} / 1,000 XP
+                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
+                  Lifetime Legacy
                 </span>
               </div>
-              <div className="h-3 w-full rounded-full bg-slate-950/80 border border-white/15 overflow-hidden p-[2px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-500 via-[#FBB03B] to-[#FEF08A] transition-all duration-700 shadow-[0_0_12px_rgba(251,176,59,0.8)]"
-                  style={{ width: `${xpProgressPct}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-[11px] pt-0.5">
-                <span className="text-emerald-300 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Full App Access · Zero Attendance Quotas</span>
+              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-sm font-black text-white block leading-tight truncate">
+                  Former President
                 </span>
-                <span className="font-extrabold text-[#FBB03B] tabular-nums">
-                  {member.xpTotal.toLocaleString()} Lifetime XP
+                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
+                  Club Distinction
+                </span>
+              </div>
+              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-sm font-black text-[#38E4FF] block leading-tight">
+                  Advisory
+                </span>
+                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
+                  Scientific Council
                 </span>
               </div>
             </div>
           </div>
 
-          {/* 4 Quick Action Tiles for Alumni */}
-          <div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-2 animate-rise"
-            style={{ animationDelay: "120ms" }}
-          >
-            <Link
-              href="/workshops"
-              className="rounded-2xl bg-[#1D63EB] text-white p-3 flex flex-col items-center justify-center text-center shadow-sm hover:opacity-95 active:scale-[0.98] transition"
-            >
-              <BookOpen className="w-5 h-5 mb-1.5" />
-              <span className="text-[10.5px] font-extrabold leading-tight">
-                Workshops & Activities
-              </span>
-            </Link>
-
-            <Link
-              href="/badges"
-              className="rounded-2xl bg-[#FEF3C7] text-[#92400E] p-3 flex flex-col items-center justify-center text-center shadow-sm hover:opacity-95 active:scale-[0.98] transition border border-amber-200"
-            >
-              <Award className="w-5 h-5 mb-1.5" />
-              <span className="text-[10.5px] font-extrabold leading-tight">
-                My Badges
-              </span>
-            </Link>
-
+          {/* Creative Action Modules for Alumni */}
+          <div className="space-y-3 animate-rise" style={{ animationDelay: "120ms" }}>
+            {/* Module 1: Propose an Alumni Keynote or Workshop */}
             <Link
               href="/proposals"
-              className="rounded-2xl bg-[#BBF7D0] text-[#15803D] p-3 flex flex-col items-center justify-center text-center shadow-sm hover:opacity-95 active:scale-[0.98] transition"
+              className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition flex items-start justify-between gap-3 group cursor-pointer"
             >
-              <Lightbulb className="w-5 h-5 mb-1.5" />
-              <span className="text-[10.5px] font-extrabold leading-tight">
-                Propose Guest Session
-              </span>
-            </Link>
-
-            <Link
-              href="/exams"
-              className="rounded-2xl bg-[#D6ECFA] text-[#1D63B8] p-3 flex flex-col items-center justify-center text-center shadow-sm hover:opacity-95 active:scale-[0.98] transition"
-            >
-              <FileCheck2 className="w-5 h-5 mb-1.5" />
-              <span className="text-[10.5px] font-extrabold leading-tight">
-                Badge Exams
-              </span>
-            </Link>
-          </div>
-
-          {/* Alumni Mentorship & Gathering Card */}
-          <div
-            className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-card space-y-3 animate-rise"
-            style={{ animationDelay: "180ms" }}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
-                  <CalendarCheck2 className="w-3 h-3" /> Annual Alumni Gathering
-                </span>
-                <h2 className="text-sm font-extrabold text-slate-900 mt-1">
-                  QSSC’ 2026 Alumni Keynote & Mentorship Circle
-                </h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Saturday, 14 Nov 2026 · 15:00 · Faculty of Sciences Main
-                  Auditorium
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+                    Speaker Series
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-400">Open Channel</span>
+                </div>
+                <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1D63EB] transition-colors">
+                  Host an Alumni Keynote or Masterclass
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  Share your scientific research, PhD insights, or industry expertise with active club researchers.
                 </p>
               </div>
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#1D63EB] flex items-center justify-center shrink-0 group-hover:bg-[#1D63EB] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+
+            {/* Module 2: 2-Column Bento for Project Advisory & Club Labs */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <Link
+                href="/projects/submit"
+                className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                    Advisory &amp; Jury
+                  </h4>
+                  <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium leading-tight">
+                    Review student capstone projects &amp; badges.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                href="/workshops"
+                className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-full bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 group-hover:text-[#1D63EB] transition-colors">
+                    Club Labs &amp; Sessions
+                  </h4>
+                  <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium leading-tight">
+                    Drop in as guest mentor in active club labs.
+                  </p>
+                </div>
+              </Link>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setRsvpConfirmed((v) => !v)}
-              className={`w-full h-9 rounded-xl text-xs font-extrabold active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                rsvpConfirmed
-                  ? "bg-emerald-600 text-white"
-                  : "bg-[#1D63EB] hover:bg-blue-700 text-white"
-              }`}
-            >
-              {rsvpConfirmed ? (
-                <Check className="w-3.5 h-3.5" />
-              ) : (
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              )}
-              <span>
-                {rsvpConfirmed
-                  ? "RSVP Confirmed — VIP Alumni Seat Reserved"
-                  : "RSVP for Annual Alumni Gathering"}
-              </span>
-            </button>
-
-            <label className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs cursor-pointer">
-              <div>
-                <span className="font-extrabold text-slate-800 block">
-                  Mentor a Scientific Team
-                </span>
-                <span className="text-[10.5px] text-slate-500">
-                  Available for guest lectures and research review
-                </span>
+            {/* Module 3: Annual Alumni Gathering VIP Invitation Card */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    <CalendarCheck2 className="w-3 h-3 text-amber-700" />
+                    <span>Annual Alumni Gala · Nov 2026</span>
+                  </span>
+                  <h3 className="text-sm font-black text-slate-900 mt-1.5">
+                    QSSC’ 2026 Alumni Keynote &amp; Mentorship Circle
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+                    Saturday, 14 Nov 2026 · 15:00 · Faculty of Sciences Main Auditorium
+                  </p>
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={mentorTeamOptIn}
-                onChange={(e) => setMentorTeamOptIn(e.target.checked)}
-                className="w-4 h-4 rounded text-[#1D63EB] focus:ring-[#1D63EB]"
-              />
-            </label>
+
+              <button
+                type="button"
+                onClick={() => setRsvpConfirmed((v) => !v)}
+                className={`w-full h-10 rounded-full text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                  rsvpConfirmed
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)]"
+                    : "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
+                }`}
+              >
+                {rsvpConfirmed ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                )}
+                <span>
+                  {rsvpConfirmed
+                    ? "RSVP Confirmed — VIP Alumni Seat Reserved"
+                    : "Reserve VIP Alumni Seat"}
+                </span>
+              </button>
+
+              <label className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs cursor-pointer">
+                <div>
+                  <span className="font-black text-slate-800 block text-[11px]">
+                    Mentor a Scientific Team
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    Available for technical office hours and research feedback
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={mentorTeamOptIn}
+                  onChange={(e) => setMentorTeamOptIn(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#1D63EB] focus:ring-[#1D63EB] cursor-pointer"
+                />
+              </label>
+            </div>
           </div>
 
           {/* Open Workshops & Activities Card */}
           {alumniFeaturedWorkshop && (
             <div
-              className="animate-rise"
-              style={{ animationDelay: "240ms" }}
+              className="animate-rise space-y-1.5"
+              style={{ animationDelay: "180ms" }}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  Open Workshops & Activities
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  Open Scientific Labs
                 </h2>
                 <Link
                   href="/workshops"
@@ -359,39 +357,36 @@ export default function MobileHomeHubPage() {
                 </Link>
               </div>
 
-              <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card">
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-start gap-3">
-                    <FieldIcon
-                      field={alumniFeaturedWorkshop.iconType}
-                      size={24}
-                      boxed
-                    />
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold bg-amber-100 text-amber-800">
-                          {alumniFeaturedWorkshop.activityType || "Lab Session"}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
-                          {alumniFeaturedWorkshop.level}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-extrabold text-slate-900 mt-1">
-                        {alumniFeaturedWorkshop.title}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {alumniFeaturedWorkshop.dateLabel} ·{" "}
-                        {alumniFeaturedWorkshop.location}
-                      </p>
+              <div className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FieldIcon
+                    field={alumniFeaturedWorkshop.iconType}
+                    size={26}
+                    boxed
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black bg-amber-50 text-amber-900 border border-amber-200">
+                        {alumniFeaturedWorkshop.activityType || "Lab Session"}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
+                        {alumniFeaturedWorkshop.level}
+                      </span>
                     </div>
+                    <h3 className="text-xs font-black text-slate-900 mt-1 truncate">
+                      {alumniFeaturedWorkshop.title}
+                    </h3>
+                    <p className="text-[10.5px] text-slate-500 font-medium">
+                      {alumniFeaturedWorkshop.dateLabel} · {alumniFeaturedWorkshop.location}
+                    </p>
                   </div>
-                  <Link
-                    href="/workshops"
-                    className="h-8 px-3 rounded-xl bg-[#061E47] text-white text-[11px] font-extrabold flex items-center shrink-0 active:scale-[0.98] transition"
-                  >
-                    Open
-                  </Link>
                 </div>
+                <Link
+                  href="/workshops"
+                  className="h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black flex items-center shrink-0 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                >
+                  View
+                </Link>
               </div>
             </div>
           )}
@@ -399,23 +394,23 @@ export default function MobileHomeHubPage() {
           {/* Latest QUANTA News */}
           {featuredNews && (
             <div
-              className="animate-rise"
-              style={{ animationDelay: "300ms" }}
+              className="animate-rise space-y-1.5"
+              style={{ animationDelay: "240ms" }}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  Latest QUANTA News
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  Latest Scientific News
                 </h2>
                 <Link
                   href="/explore"
                   className="text-xs font-bold text-[#1D63EB] hover:underline"
                 >
-                  See all
+                  Explore Feed
                 </Link>
               </div>
               <Link
                 href="/explore"
-                className="block bg-white rounded-2xl border border-[#E2EDF8] overflow-hidden shadow-card hover:border-sky-300 active:scale-[0.99] transition"
+                className="block rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 overflow-hidden shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-sky-300 active:scale-[0.99] transition"
               >
                 <div className="relative h-32 w-full">
                   <img
@@ -423,15 +418,15 @@ export default function MobileHomeHubPage() {
                     alt={featuredNews.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent" />
-                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+                  <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
                     {featuredNews.tagLabel}
                   </span>
-                  <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                    <h3 className="text-xs font-extrabold leading-snug line-clamp-2">
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <h3 className="text-xs font-black leading-snug line-clamp-2">
                       {featuredNews.title}
                     </h3>
-                    <p className="text-[10px] text-sky-200 mt-0.5">
+                    <p className="text-[10px] text-sky-200 mt-0.5 font-medium">
                       {featuredNews.source} · {featuredNews.readTime}
                     </p>
                   </div>
@@ -478,17 +473,6 @@ export default function MobileHomeHubPage() {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <select
-              value={currentMemberId}
-              onChange={(e) => setCurrentMemberId(e.target.value)}
-              className="text-[10.5px] font-bold bg-white border border-[#E2EDF8] text-slate-700 rounded-full px-2 py-1 shadow-xs cursor-pointer hover:border-[#1D63EB] transition max-w-[112px] sm:max-w-none truncate"
-              title="Switch Member Persona"
-            >
-              <option value="mem-ayoub">Ayoub (Lead)</option>
-              <option value="mem-lina">Lina (Member)</option>
-              <option value="mem-walid">Walid (Trainee)</option>
-              <option value="mem-alumni-1">Dr. Amine (Alumni)</option>
-            </select>
             {(member.isBureauMember ||
               member.roles.some((r) =>
                 [
@@ -502,22 +486,22 @@ export default function MobileHomeHubPage() {
               )) && (
               <Link
                 href="/manager"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#E0F0FF] text-[#094C9C] text-[10.5px] font-extrabold border border-sky-200 hover:bg-sky-100 active:scale-[0.98] transition"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10.5px] font-black border border-blue-200/80 hover:bg-blue-100 active:scale-[0.98] transition shadow-2xs cursor-pointer"
                 title="Department & Team Operations"
               >
-                <Shield className="w-3 h-3 text-[#1D63EB] shrink-0" />
+                <Shield className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
                 <span className="hidden sm:inline">Department</span>
                 <span>Desk</span>
               </Link>
             )}
             <Link
               href="/notifications"
-              className="relative w-9 h-9 rounded-full bg-white border border-[#E2EDF8] flex items-center justify-center text-slate-700 hover:bg-slate-50 shadow-sm active:scale-[0.98] transition"
+              className="relative w-9 h-9 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-extrabold flex items-center justify-center tabular-nums">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-black flex items-center justify-center tabular-nums shadow-xs">
                   {unreadCount}
                 </span>
               )}
