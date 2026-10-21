@@ -1128,7 +1128,7 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 1: QUICK TASK VALIDATION & SCORING */}
       {activeTaskModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
           <form
             onSubmit={handleValidateTaskSubmit}
             className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
@@ -1225,7 +1225,7 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 2: ASSIGN DEPARTMENT OR SCIENTIFIC TEAM TASK */}
       {createTaskOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
           <form
             onSubmit={handleCreateTaskSubmit}
             className="w-full max-w-[440px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
@@ -1409,7 +1409,7 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 3: QUICK MESSAGE TO DEPARTMENT MEMBER */}
       {quickMessageTarget && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
           <form
             onSubmit={handleSendQuickMessage}
             className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
@@ -1453,7 +1453,7 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 4: ORGANIZER SCAN MEMBER QR */}
       {scanModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
           <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise">
             <div className="flex items-center justify-between">
               <div>

@@ -349,70 +349,70 @@ export default function MobileProfilePage() {
           </p>
         </div>
 
-        {/* Glassify Rounded Hero Card */}
+        {/* Unboxed Architectural Hero Card */}
         <div className="relative rounded-3xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)]">
           <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full bg-[#29D2FF]/20 blur-3xl pointer-events-none" />
+          <div className="absolute -left-8 -bottom-8 w-36 h-36 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="inline-flex items-center gap-1 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-black text-xs font-display tracking-wider shadow-sm">
-                  <span>Lv. {member.level}</span>
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-sky-200 uppercase tracking-wider font-display">
+            {/* Top Row: Unboxed Typographic Rank & Live Status Indicator */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-black tracking-widest font-mono text-[#38E4FF] uppercase">
+                  RANK 0{member.level}
+                </span>
+                <span className="text-white/30 text-xs">/</span>
+                <span className="text-xs sm:text-sm font-extrabold tracking-wide text-white/95 font-display">
                   {member.levelTitle}
                 </span>
               </div>
 
-              <span
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold font-display backdrop-blur-md ${
-                  member.status === "Trainee"
-                    ? "bg-amber-400/20 border border-amber-300/40 text-amber-200"
-                    : "bg-emerald-400/20 border border-emerald-300/40 text-emerald-200"
-                }`}
-              >
+              <div className="flex items-center gap-1.5 text-xs font-extrabold font-display">
                 <span
                   className={`w-2 h-2 rounded-full ${
                     member.status === "Trainee"
-                      ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]"
-                      : "bg-emerald-400 shadow-[0_0_6px_#34d399]"
+                      ? "bg-amber-400 shadow-[0_0_8px_#fbbf24]"
+                      : "bg-emerald-400 shadow-[0_0_8px_#34d399]"
                   }`}
                 />
-                <span>
+                <span
+                  className={
+                    member.status === "Trainee"
+                      ? "text-amber-200"
+                      : "text-emerald-300"
+                  }
+                >
                   {member.status === "Trainee" ? "Trainee" : "Active Member"}
                 </span>
-              </span>
+              </div>
             </div>
 
-            {/* Central Metric Block */}
+            {/* Central Metric Block (Unboxed XP) */}
             <div className="mt-4 flex items-center justify-between gap-4">
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-baseline gap-2.5 flex-wrap">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-baseline gap-2">
                   <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums drop-shadow-sm">
                     {member.xpSeason.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[11px] font-black font-display uppercase tracking-wider text-[#38E4FF]">
-                    XP Earned
+                  <span className="text-xs font-black font-mono tracking-widest text-[#38E4FF] uppercase">
+                    XP
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-sky-200/90 font-display flex-wrap">
-                  <span className="text-white tabular-nums font-black">
+                <p className="text-xs font-semibold text-sky-200/90 font-sans">
+                  <span className="text-white font-bold tabular-nums">
                     {Math.round((member.xpSeason / 1000) * 100)}%
-                  </span>
-                  <span className="text-sky-300/50">·</span>
-                  <span>
-                    {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Level {member.level + 1}
-                  </span>
-                </div>
+                  </span>{" "}
+                  season target · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Rank 0{member.level + 1}
+                </p>
               </div>
 
               <div className="shrink-0">
-                <PlanetEmblem size={60} />
+                <PlanetEmblem size={58} />
               </div>
             </div>
 
             {/* Frosted Architectural Progress Bar */}
-            <div className="mt-3.5 h-2.5 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
+            <div className="mt-3.5 h-2 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.65)] transition-all duration-500"
                 style={{ width: `${xpProgressPct}%` }}
@@ -779,7 +779,7 @@ export default function MobileProfilePage() {
 
       {/* Edit Residence & Professional Links Modal */}
       {editHrModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-extrabold text-slate-900">
@@ -914,7 +914,7 @@ export default function MobileProfilePage() {
 
       {/* Avatar Upload Modal */}
       {avatarModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-[350px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-extrabold text-slate-900">
@@ -940,7 +940,7 @@ export default function MobileProfilePage() {
 
       {/* Weekly Availability Schedule Modal */}
       {scheduleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4">
           <div className="w-full max-w-[440px] max-h-[88dvh] rounded-3xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-rise">
             {/* Header */}
             <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
@@ -1083,8 +1083,8 @@ export default function MobileProfilePage() {
 
       {/* Trainee Qualification Roadmap Modal */}
       {traineeTrackerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4">
-          <div className="w-full max-w-[430px] max-h-[88dvh] rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
+          <div className="w-full max-w-[420px] max-h-[80dvh] sm:max-h-[85dvh] rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200/80 flex flex-col animate-rise">
             {/* Header */}
             <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
               <button
@@ -1109,15 +1109,15 @@ export default function MobileProfilePage() {
             </div>
 
             {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs overscroll-contain">
               {/* Status Header Badge */}
-              <div className="p-3 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-display font-black text-sm">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-display font-black text-xs">
                     {member.status === "Active" ? "✓" : "T"}
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block font-display">
                       Current Standing
                     </span>
                     <p className="text-xs font-black font-display text-slate-900">
@@ -1132,132 +1132,89 @@ export default function MobileProfilePage() {
                 </span>
               </div>
 
-              {/* Tri-Metric Hub: 3 Modern Metric Cards */}
+              {/* Core Confirmation Metrics: Unified Segmented Strip */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1.5">
                   <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
-                    Core Confirmation Metrics
+                    Core Confirmation Targets
                   </h4>
                   <span className="text-[10px] font-bold text-slate-400">
-                    3/3 Required
+                    3/3 Criteria
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {/* Tenure Card */}
-                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-tight">
-                        Tenure
-                      </span>
-                      <Clock className="w-3 h-3 text-blue-500" />
-                    </div>
-                    <div>
-                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
-                        {member.traineeDaysElapsed}
-                        <span className="text-[10px] font-medium text-slate-400">
-                          d
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
-                        <div
-                          className="h-full rounded-full bg-[#1D63EB] transition-all duration-500"
-                          style={{ width: `${daysPct}%` }}
-                        />
-                      </div>
+                <div className="p-3 rounded-2xl bg-slate-50/90 border border-slate-200/80 grid grid-cols-3 divide-x divide-slate-200/80">
+                  {/* Metric 1: Tenure */}
+                  <div className="px-2 text-center space-y-0.5">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
+                      Tenure
+                    </span>
+                    <div className="text-base sm:text-lg font-black font-display text-blue-600 tabular-nums">
+                      {member.traineeDaysElapsed}
+                      <span className="text-[10px] text-slate-400 font-medium">/</span>
+                      <span className="text-[11px] text-slate-600 font-medium">{targetDays}d</span>
                     </div>
                     <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Goal: {targetDays}d
+                      Month {Math.min(3, Math.floor(member.traineeDaysElapsed / 30) + 1)}/3
                     </span>
                   </div>
 
-                  {/* Attendance Card */}
-                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-tight">
-                        Presence
-                      </span>
-                      <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                    </div>
-                    <div>
-                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
-                        {attPct}
-                        <span className="text-[10px] font-medium text-slate-400">
-                          %
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
-                        <div
-                          className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                          style={{ width: `${attPct}%` }}
-                        />
-                      </div>
+                  {/* Metric 2: Attendance */}
+                  <div className="px-2 text-center space-y-0.5">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
+                      Presence
+                    </span>
+                    <div className="text-base sm:text-lg font-black font-display text-emerald-600 tabular-nums">
+                      {attPct}%
                     </div>
                     <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Goal: ≥{settings.confirmationAttendanceThreshold}%
+                      Target ≥{settings.confirmationAttendanceThreshold}%
                     </span>
                   </div>
 
-                  {/* XP Threshold Card */}
-                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-tight">
-                        XP Total
-                      </span>
-                      <Award className="w-3 h-3 text-amber-500" />
-                    </div>
-                    <div>
-                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
-                        {member.xpTotal}
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
-                        <div
-                          className="h-full rounded-full bg-amber-500 transition-all duration-500"
-                          style={{ width: `${Math.min(100, xpQualPct)}%` }}
-                        />
-                      </div>
+                  {/* Metric 3: XP Target */}
+                  <div className="px-2 text-center space-y-0.5">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
+                      Total XP
+                    </span>
+                    <div className="text-base sm:text-lg font-black font-display text-amber-600 tabular-nums">
+                      {member.xpTotal}
                     </div>
                     <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Goal: {settings.confirmationXpThreshold} XP
+                      Target {settings.confirmationXpThreshold} XP
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* 4 Onboarding Milestones Roadmap */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+              {/* 4 Onboarding Milestones Roadmap: Clean Unified Card */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
-                    4-Tick Onboarding Milestones
+                    Onboarding Milestones
                   </h4>
-                  <span className="text-[10px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2 py-0.5 rounded-full">
-                    {
-                      Object.values(member.onboardingTicks).filter(Boolean)
-                        .length
-                    }
-                    /4 Done
+                  <span className="text-[10.5px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2 py-0.5 rounded-full">
+                    {Object.values(member.onboardingTicks).filter(Boolean).length}/4 Complete
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="rounded-2xl border border-slate-200/80 bg-white divide-y divide-slate-100 overflow-hidden shadow-2xs">
                   {[
                     {
                       num: "1",
-                      title: "First-Time Profile & Availability Complete",
+                      title: "Profile & Availability Complete",
                       desc: "Identity KYC, academic major & 7-day schedule verified",
                       done: member.onboardingTicks.profileComplete,
                     },
                     {
                       num: "2",
-                      title: `Dedicated Mentor Pairing`,
-                      desc: `Paired with ${
-                        buddy?.fullName || "Senior Mentor"
-                      } for guidance`,
+                      title: "Dedicated Mentor Pairing",
+                      desc: `Paired with ${buddy?.fullName || "Senior Mentor"} for guidance`,
                       done: member.onboardingTicks.buddyAssigned,
                     },
                     {
                       num: "3",
-                      title: "First Operational Task Delivered",
-                      desc: "Completed before Day 30 and validated by Manager",
+                      title: "First Task Delivered Before Day 30",
+                      desc: "Completed on schedule and validated by Department Head",
                       done: member.onboardingTicks.firstTaskBeforeDay30,
                     },
                     {
@@ -1267,40 +1224,25 @@ export default function MobileProfilePage() {
                       done: member.onboardingTicks.firstWorkshopAttended,
                     },
                   ].map((item) => (
-                    <div
-                      key={item.num}
-                      className={`flex items-start gap-2.5 p-2.5 rounded-2xl border transition-all ${
-                        item.done
-                          ? "bg-emerald-50/60 border-emerald-200/80 text-slate-900"
-                          : "bg-slate-50 border-slate-200/80 text-slate-500"
-                      }`}
-                    >
+                    <div key={item.num} className="p-2.5 sm:p-3 flex items-start gap-2.5 hover:bg-slate-50/50 transition">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black ${
-                          item.done
-                            ? "bg-emerald-600 text-white"
-                            : "bg-slate-200 text-slate-600"
+                          item.done ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
                         }`}
                       >
                         {item.done ? "✓" : item.num}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-[11.5px] font-bold font-display ${
-                            item.done ? "text-slate-900" : "text-slate-600"
-                          }`}
-                        >
+                        <p className={`text-xs font-bold font-display ${item.done ? "text-slate-900" : "text-slate-600"}`}>
                           {item.title}
                         </p>
-                        <p className="text-[10px] text-slate-500 mt-0.5 font-sans leading-tight">
+                        <p className="text-[10.5px] text-slate-500 font-sans mt-0.5 leading-snug">
                           {item.desc}
                         </p>
                       </div>
                       <span
-                        className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
-                          item.done
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-slate-200/80 text-slate-500"
+                        className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide ${
+                          item.done ? "text-emerald-700 bg-emerald-50" : "text-slate-400 bg-slate-100"
                         }`}
                       >
                         {item.done ? "Verified" : "Pending"}
@@ -1310,8 +1252,8 @@ export default function MobileProfilePage() {
                 </div>
               </div>
 
-              {/* Department Head & Co-Manager Endorsement Seal */}
-              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
+              {/* Department Leadership Endorsements (Spacious, No Truncation) */}
+              <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 font-display">
                     Department Leadership Endorsement
@@ -1321,66 +1263,76 @@ export default function MobileProfilePage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div
-                    className={`p-2 rounded-xl border flex items-center gap-2 ${
-                      member.traineeEvaluation.headEndorsed
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                        : "bg-amber-50 border-amber-200 text-amber-900"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                <div className="space-y-1.5">
+                  <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/70 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                          member.traineeEvaluation.headEndorsed
+                            ? "bg-emerald-600 text-white"
+                            : "bg-amber-500 text-white"
+                        }`}
+                      >
+                        {member.traineeEvaluation.headEndorsed ? "✓" : "•"}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-extrabold text-slate-900 block">
+                          Department Head Endorsement
+                        </span>
+                        <span className="text-[10px] text-slate-500 block font-sans">
+                          {member.traineeEvaluation.headEndorsed
+                            ? "Verified & approved for confirmation"
+                            : "Evaluation review pending"}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
                         member.traineeEvaluation.headEndorsed
-                          ? "bg-emerald-600 text-white"
-                          : "bg-amber-500 text-white"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {member.traineeEvaluation.headEndorsed ? "✓" : "•"}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] font-extrabold block truncate">
-                        Department Head
-                      </span>
-                      <span className="text-[9px] font-medium text-slate-500 block">
-                        {member.traineeEvaluation.headEndorsed
-                          ? "Approved"
-                          : "Review Pending"}
-                      </span>
-                    </div>
+                      {member.traineeEvaluation.headEndorsed ? "Approved" : "In Review"}
+                    </span>
                   </div>
 
-                  <div
-                    className={`p-2 rounded-xl border flex items-center gap-2 ${
-                      member.traineeEvaluation.coManagerEndorsed
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                        : "bg-amber-50 border-amber-200 text-amber-900"
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                  <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/70 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                          member.traineeEvaluation.coManagerEndorsed
+                            ? "bg-emerald-600 text-white"
+                            : "bg-amber-500 text-white"
+                        }`}
+                      >
+                        {member.traineeEvaluation.coManagerEndorsed ? "✓" : "•"}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-extrabold text-slate-900 block">
+                          Co-Manager Endorsement
+                        </span>
+                        <span className="text-[10px] text-slate-500 block font-sans">
+                          {member.traineeEvaluation.coManagerEndorsed
+                            ? "Verified & approved for confirmation"
+                            : "Co-management review pending"}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
                         member.traineeEvaluation.coManagerEndorsed
-                          ? "bg-emerald-600 text-white"
-                          : "bg-amber-500 text-white"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {member.traineeEvaluation.coManagerEndorsed ? "✓" : "•"}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] font-extrabold block truncate">
-                        Co-Manager
-                      </span>
-                      <span className="text-[9px] font-medium text-slate-500 block">
-                        {member.traineeEvaluation.coManagerEndorsed
-                          ? "Approved"
-                          : "Review Pending"}
-                      </span>
-                    </div>
+                      {member.traineeEvaluation.coManagerEndorsed ? "Approved" : "In Review"}
+                    </span>
                   </div>
                 </div>
 
                 {member.traineeEvaluation.notes && (
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-[10.5px] text-slate-600 italic">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[10.5px] text-slate-600 italic leading-relaxed">
                     &ldquo;{member.traineeEvaluation.notes}&rdquo;
                   </div>
                 )}
@@ -1399,7 +1351,7 @@ export default function MobileProfilePage() {
 
             {/* Footer */}
             <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-              <span className="text-[10.5px] font-bold text-slate-400">
+              <span className="text-[10.5px] font-bold text-slate-400 font-display">
                 QUANTA Club ERP
               </span>
               <button
@@ -1416,8 +1368,8 @@ export default function MobileProfilePage() {
 
       {/* Points Ledger & 48h Appeal Modal */}
       {ledgerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm p-0 sm:p-4">
-          <div className="w-full max-w-[400px] max-h-[85vh] rounded-t-3xl sm:rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4 pb-12 sm:pb-4">
+          <div className="w-full max-w-[420px] max-h-[82dvh] rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise">
             <div className="bg-hero-cobalt text-white p-5 relative">
               <button
                 type="button"

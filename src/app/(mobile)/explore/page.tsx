@@ -472,7 +472,7 @@ export default function MobileExplorePage() {
 
       {/* Article Reader Modal with 01/02/03 Stepped Breakdown */}
       {activeArticle && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/75 backdrop-blur-sm p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
           <div className="w-full max-w-[480px] max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise">
             <div className="relative h-52 w-full shrink-0">
               <img

@@ -249,7 +249,7 @@ export default function MobileWorkshopsPage() {
 
       {/* Workshop Detail Modal */}
       {activeWorkshop && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
           <div className="w-full max-w-[440px] max-h-[86vh] rounded-t-3xl sm:rounded-3xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise">
             <div className="bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 relative border-b border-white/10">
               <button

@@ -141,7 +141,7 @@ export function BottomNavBar() {
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="fixed bottom-3.5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[500px] z-50 select-none pointer-events-none"
+      className="fixed bottom-3.5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[500px] z-40 select-none pointer-events-none"
     >
       {/* Glassify Floating Pill Capsule */}
       <div className="pointer-events-auto bg-white/85 backdrop-blur-2xl border border-white/80 shadow-[0_12px_36px_rgba(9,25,47,0.12),0_4px_12px_rgba(9,25,47,0.04)] rounded-full p-1.5 flex items-center justify-between">

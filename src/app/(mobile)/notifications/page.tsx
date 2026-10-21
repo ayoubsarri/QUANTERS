@@ -369,7 +369,7 @@ export default function NotificationsPage() {
 
       {/* Detail Bottom Sheet Modal */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
           <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">

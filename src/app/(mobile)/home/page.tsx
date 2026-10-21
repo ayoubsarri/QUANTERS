@@ -13,6 +13,7 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   ClipboardCheck,
   Clock,
@@ -477,9 +478,31 @@ export default function MobileHomeHubPage() {
                   <span>{dept?.shortName || "Logistics"}</span>
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate mt-0.5">
-                {firstName}
-              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate">
+                  {firstName}
+                </h1>
+                {(member.isBureauMember ||
+                  member.roles.some((r) =>
+                    [
+                      "Super Admin",
+                      "Executive",
+                      "HR Head",
+                      "Department Head",
+                      "Co-Manager",
+                      "Team Leader",
+                    ].includes(r)
+                  )) && (
+                  <Link
+                    href="/manager"
+                    className="inline-flex items-center gap-0.5 text-xs font-black font-display text-[#1D63EB] hover:text-blue-800 transition group"
+                    title="Department & Team Operations"
+                  >
+                    <span>· Desk</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-[#1D63EB] group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                )}
+              </div>
               <p className="text-xs font-semibold text-slate-500 truncate mt-0.5 font-sans">
                 Keep exploring. Science needs you.
               </p>
@@ -487,43 +510,20 @@ export default function MobileHomeHubPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {(member.isBureauMember ||
-              member.roles.some((r) =>
-                [
-                  "Super Admin",
-                  "Executive",
-                  "HR Head",
-                  "Department Head",
-                  "Co-Manager",
-                  "Team Leader",
-                ].includes(r)
-              )) && (
-              <Link
-                href="/manager"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold font-display border border-blue-200/90 shadow-[0_2px_10px_rgba(29,99,235,0.08)] hover:bg-blue-50/80 hover:border-blue-300 active:scale-[0.97] transition cursor-pointer"
-                title="Department & Team Operations"
-              >
-                <Shield className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
-                <span className="hidden xs:inline">Department</span>
-                <span>Desk</span>
-              </Link>
-            )}
             <Link
               href="/notifications"
-              className="relative w-10.5 h-10.5 rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 flex items-center justify-center text-slate-700 hover:text-[#1D63EB] hover:bg-white shadow-[0_2px_10px_rgba(9,25,47,0.04)] active:scale-[0.97] transition cursor-pointer"
+              className="relative w-10 h-10 rounded-full text-slate-700 hover:text-[#1D63EB] hover:bg-slate-100 flex items-center justify-center transition active:scale-95"
               aria-label="Notifications"
             >
-              <Bell className="w-4.5 h-4.5" />
+              <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-[10px] font-black flex items-center justify-center tabular-nums shadow-xs">
-                  {unreadCount}
-                </span>
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#ED1C24] ring-2 ring-white" />
               )}
             </Link>
           </div>
         </div>
 
-        {/* Glassify Rounded Hero Card */}
+        {/* Unboxed Architectural Hero Card */}
         <div
           className="relative rounded-3xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] animate-rise"
           style={{ animationDelay: "60ms" }}
@@ -532,66 +532,64 @@ export default function MobileHomeHubPage() {
           <div className="absolute -left-8 -bottom-8 w-36 h-36 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
 
           <div className="relative z-10">
-            {/* Top Row: Frosted Level Pill + Title + Status */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="inline-flex items-center gap-1 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-black text-xs font-display tracking-wider shadow-sm">
-                  <span>Lv. {member.level}</span>
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-sky-200 uppercase tracking-wider font-display">
+            {/* Top Row: Unboxed Typographic Rank & Live Status Indicator */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-black tracking-widest font-mono text-[#38E4FF] uppercase">
+                  RANK 0{member.level}
+                </span>
+                <span className="text-white/30 text-xs">/</span>
+                <span className="text-xs sm:text-sm font-extrabold tracking-wide text-white/95 font-display">
                   {member.levelTitle}
                 </span>
               </div>
 
-              <span
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold font-display backdrop-blur-md ${
-                  member.status === "Trainee"
-                    ? "bg-amber-400/20 border border-amber-300/40 text-amber-200"
-                    : "bg-emerald-400/20 border border-emerald-300/40 text-emerald-200"
-                }`}
-              >
+              <div className="flex items-center gap-1.5 text-xs font-extrabold font-display">
                 <span
                   className={`w-2 h-2 rounded-full ${
                     member.status === "Trainee"
-                      ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]"
-                      : "bg-emerald-400 shadow-[0_0_6px_#34d399]"
+                      ? "bg-amber-400 shadow-[0_0_8px_#fbbf24]"
+                      : "bg-emerald-400 shadow-[0_0_8px_#34d399]"
                   }`}
                 />
-                <span>
+                <span
+                  className={
+                    member.status === "Trainee"
+                      ? "text-amber-200"
+                      : "text-emerald-300"
+                  }
+                >
                   {member.status === "Trainee" ? "Trainee" : "Active Member"}
                 </span>
-              </span>
+              </div>
             </div>
 
-            {/* Central Metric Block */}
+            {/* Central Metric Block (Unboxed XP) */}
             <div className="mt-4 flex items-center justify-between gap-4">
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-baseline gap-2.5 flex-wrap">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-baseline gap-2">
                   <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums drop-shadow-sm">
                     {member.xpSeason.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[11px] font-black font-display uppercase tracking-wider text-[#38E4FF]">
-                    XP Earned
+                  <span className="text-xs font-black font-mono tracking-widest text-[#38E4FF] uppercase">
+                    XP
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-sky-200/90 font-display flex-wrap">
-                  <span className="text-white tabular-nums font-black">
+                <p className="text-xs font-semibold text-sky-200/90 font-sans">
+                  <span className="text-white font-bold tabular-nums">
                     {Math.round((member.xpSeason / 1000) * 100)}%
-                  </span>
-                  <span className="text-sky-300/50">·</span>
-                  <span>
-                    {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Level {member.level + 1}
-                  </span>
-                </div>
+                  </span>{" "}
+                  season target · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Rank 0{member.level + 1}
+                </p>
               </div>
 
               <div className="shrink-0">
-                <PlanetEmblem size={60} />
+                <PlanetEmblem size={58} />
               </div>
             </div>
 
             {/* Frosted Architectural Progress Bar */}
-            <div className="mt-3.5 h-2.5 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
+            <div className="mt-3.5 h-2 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.65)] transition-all duration-500"
                 style={{ width: `${xpProgressPct}%` }}
@@ -790,50 +788,82 @@ export default function MobileHomeHubPage() {
           </div>
         )}
 
-        {/* 4 Colored Quick-Action Tiles */}
+        {/* Intentional Asymmetric Quick Actions: Primary Check-In + Tool Trio */}
         <div
-          className="grid grid-cols-4 gap-2 sm:gap-2.5 animate-rise"
+          className="space-y-2 animate-rise"
           style={{ animationDelay: "300ms" }}
         >
+          {/* Primary Action Banner: Scan QR */}
           <Link
             href="/checkin"
-            className="rounded-2xl bg-[#1D63EB] text-white py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-sm hover:bg-blue-700 active:scale-[0.98] transition group"
+            className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white flex items-center justify-between shadow-sm hover:shadow-md active:scale-[0.98] transition group cursor-pointer"
           >
-            <QrCode className="w-5 h-5 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-black font-display tracking-tight leading-tight">
-              Scan QR
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                <QrCode className="w-5 h-5 text-[#38E4FF]" />
+              </div>
+              <div className="text-left">
+                <span className="text-xs sm:text-sm font-black font-display tracking-tight block">
+                  Live Session Check-In
+                </span>
+                <span className="text-[11px] text-blue-100 font-sans block">
+                  Scan amphitheatre or lab projector QR code
+                </span>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/15 text-xs font-black font-display text-white group-hover:bg-white/25 transition shrink-0">
+              <span>Scan QR</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#38E4FF]" />
             </span>
           </Link>
 
-          <Link
-            href="/exams"
-            className="rounded-2xl bg-[#D6ECFA] text-[#094C9C] border border-sky-200 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-sky-200/80 active:scale-[0.98] transition group"
-          >
-            <FileCheck2 className="w-5 h-5 mb-1.5 text-[#1D63EB] group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-black font-display tracking-tight leading-tight">
-              Exams
-            </span>
-          </Link>
+          {/* Secondary Coordinated Tool Trio */}
+          <div className="grid grid-cols-3 gap-2">
+            <Link
+              href="/exams"
+              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+            >
+              <FileCheck2 className="w-5 h-5 text-[#1D63EB] mb-2 group-hover:scale-105 transition-transform" />
+              <div>
+                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
+                  Skill Exams
+                </span>
+                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
+                  6 MCQ Tests
+                </span>
+              </div>
+            </Link>
 
-          <Link
-            href="/projects/submit"
-            className="rounded-2xl bg-[#FDE68A] text-[#92400E] border border-amber-300/80 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-amber-200 active:scale-[0.98] transition group"
-          >
-            <FolderGit2 className="w-5 h-5 mb-1.5 text-[#92400E] group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-black font-display tracking-tight leading-tight">
-              Submit Project
-            </span>
-          </Link>
+            <Link
+              href="/projects/submit"
+              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+            >
+              <FolderGit2 className="w-5 h-5 text-amber-600 mb-2 group-hover:scale-105 transition-transform" />
+              <div>
+                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
+                  Submit Project
+                </span>
+                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
+                  Track A Badges
+                </span>
+              </div>
+            </Link>
 
-          <Link
-            href="/proposals"
-            className="rounded-2xl bg-[#BBF7D0] text-[#15803D] border border-emerald-300/80 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-emerald-200 active:scale-[0.98] transition group"
-          >
-            <Lightbulb className="w-5 h-5 mb-1.5 text-[#15803D] group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-black font-display tracking-tight leading-tight">
-              Proposals
-            </span>
-          </Link>
+            <Link
+              href="/proposals"
+              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+            >
+              <Lightbulb className="w-5 h-5 text-emerald-600 mb-2 group-hover:scale-105 transition-transform" />
+              <div>
+                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
+                  Proposals
+                </span>
+                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
+                  Submit Ideas
+                </span>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* My Assigned Tasks Card with Active | Done & History Segmented Pill Toggle */}
@@ -1087,7 +1117,7 @@ export default function MobileHomeHubPage() {
 
       {/* 1-Tap Deliver Task Proof Modal */}
       {deliverModalTaskId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4">
           <div className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-extrabold text-slate-900">
