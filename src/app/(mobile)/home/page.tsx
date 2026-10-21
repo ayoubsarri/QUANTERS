@@ -44,6 +44,7 @@ export default function MobileHomeHubPage() {
   const tasks = useQuantersStore((s) => s.tasks);
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const messages = useQuantersStore((s) => s.messages);
+  const departments = useQuantersStore((s) => s.departments);
   const registerForWorkshop = useQuantersStore((s) => s.registerForWorkshop);
   const confirmTaskReceipt = useQuantersStore((s) => s.confirmTaskReceipt);
   const deliverTask = useQuantersStore((s) => s.deliverTask);
@@ -57,6 +58,7 @@ export default function MobileHomeHubPage() {
     member.fullName.startsWith("Dr.")
       ? "Dr. Amine"
       : member.fullName.split(" ")[0] || "Ayoub";
+  const dept = departments.find((d) => d.id === member.departmentId);
 
   const motmMember =
     members.find((m) => m.recognitionLabels.includes("Member of the Month")) ||
@@ -446,25 +448,36 @@ export default function MobileHomeHubPage() {
   return (
     <MobileAppShell>
       <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
-        {/* Top Greeting Header */}
+        {/* Top Creative Greeting Header */}
         <div
-          className="flex items-center justify-between gap-2 animate-rise"
+          className="flex items-center justify-between gap-3 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <Link href="/profile" className="relative shrink-0">
-              <img
-                src={member.avatarUrl}
-                alt={member.fullName}
-                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-              />
-              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" />
+          <div className="flex items-center gap-3.5 min-w-0">
+            <Link href="/profile" className="relative shrink-0 group">
+              <div className="relative w-12 h-12 rounded-2xl p-0.5 bg-gradient-to-tr from-[#1D63EB] to-[#38E4FF] shadow-[0_4px_14px_rgba(29,99,235,0.22)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
+                <img
+                  src={member.avatarUrl}
+                  alt={member.fullName}
+                  className="w-full h-full rounded-[14px] object-cover bg-white"
+                />
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs flex items-center justify-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-subtle" />
+              </span>
             </Link>
+
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider font-display">
-                Good evening,
-              </p>
-              <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-display">
+                  Good evening
+                </span>
+                <span className="w-1 h-1 rounded-full bg-slate-300" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#1D63EB] font-display">
+                  <span>{dept?.shortName || "Logistics"}</span>
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate mt-0.5">
                 {firstName}
               </h1>
               <p className="text-xs font-semibold text-slate-500 truncate mt-0.5 font-sans">
@@ -473,7 +486,7 @@ export default function MobileHomeHubPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {(member.isBureauMember ||
               member.roles.some((r) =>
                 [
@@ -487,22 +500,22 @@ export default function MobileHomeHubPage() {
               )) && (
               <Link
                 href="/manager"
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-blue-50 text-[#1D63EB] text-xs font-extrabold font-display border border-blue-200/80 hover:bg-blue-100 active:scale-[0.98] transition shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold font-display border border-blue-200/90 shadow-[0_2px_10px_rgba(29,99,235,0.08)] hover:bg-blue-50/80 hover:border-blue-300 active:scale-[0.97] transition cursor-pointer"
                 title="Department & Team Operations"
               >
                 <Shield className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
-                <span className="hidden sm:inline">Department</span>
+                <span className="hidden xs:inline">Department</span>
                 <span>Desk</span>
               </Link>
             )}
             <Link
               href="/notifications"
-              className="relative w-10 h-10 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
+              className="relative w-10.5 h-10.5 rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 flex items-center justify-center text-slate-700 hover:text-[#1D63EB] hover:bg-white shadow-[0_2px_10px_rgba(9,25,47,0.04)] active:scale-[0.97] transition cursor-pointer"
               aria-label="Notifications"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-4.5 h-4.5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-xs font-black flex items-center justify-center tabular-nums shadow-xs">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-[10px] font-black flex items-center justify-center tabular-nums shadow-xs">
                   {unreadCount}
                 </span>
               )}

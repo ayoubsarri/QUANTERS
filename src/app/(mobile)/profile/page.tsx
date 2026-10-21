@@ -7,6 +7,7 @@ import {
   Award,
   BookOpen,
   Building2,
+  CalendarDays,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -24,10 +25,12 @@ import {
   Pencil,
   Plus,
   QrCode,
+  RotateCcw,
   Scale,
   ShieldCheck,
   Sparkles,
   Star,
+  Users,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
@@ -36,7 +39,24 @@ import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { AvatarUploader } from "@/components/shared/AvatarUploader";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { CommuteDuration, HousingType } from "@/lib/types/erp";
+import {
+  AvailabilityGrid,
+  CommuteDuration,
+  DayOfWeek,
+  HousingType,
+  TimeSlot,
+} from "@/lib/types/erp";
+
+const DAYS: DayOfWeek[] = [
+  "Saturday",
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+];
+const SLOTS: TimeSlot[] = ["Morning", "Afternoon", "Evening"];
 
 function ProgressRing({
   percent,
@@ -101,6 +121,8 @@ export default function MobileProfilePage() {
   const [appealReason, setAppealReason] = useState("");
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleToast, setScheduleToast] = useState<string | null>(null);
 
   // HR & Residence / Links Edit State
   const [editCommune, setEditCommune] = useState(
@@ -123,6 +145,66 @@ export default function MobileProfilePage() {
   );
   const [editPortfolio, setEditPortfolio] = useState(
     member.portfolioUrl || "https://quanta-algiers.dz/members/ayoub"
+  );
+
+  // Weekly Schedule Edit State
+  const [editAvailability, setEditAvailability] = useState<AvailabilityGrid>(
+    member.availability || {
+      Saturday: ["Morning", "Afternoon"],
+      Sunday: ["Morning"],
+      Monday: [],
+      Tuesday: ["Afternoon"],
+      Wednesday: [],
+      Thursday: ["Afternoon", "Evening"],
+      Friday: ["Morning"],
+    }
+  );
+
+  const toggleSlot = (day: DayOfWeek, slot: TimeSlot) => {
+    setEditAvailability((prev) => {
+      const current = prev[day] || [];
+      const updated = current.includes(slot)
+        ? current.filter((s) => s !== slot)
+        : [...current, slot];
+      return { ...prev, [day]: updated };
+    });
+  };
+
+  const handleSaveSchedule = async () => {
+    updateMemberProfileSelf(member.id, { availability: editAvailability });
+    await syncWithServer();
+    setScheduleToast("Weekly availability schedule updated successfully!");
+    setScheduleModalOpen(false);
+    setTimeout(() => setScheduleToast(null), 3500);
+  };
+
+  const handleSelectWeekends = () => {
+    setEditAvailability((prev) => ({
+      ...prev,
+      Saturday: Array.from(new Set([...(prev.Saturday || []), "Morning", "Afternoon"] as TimeSlot[])),
+      Friday: Array.from(new Set([...(prev.Friday || []), "Morning", "Afternoon"] as TimeSlot[])),
+    }));
+  };
+
+  const handleClearAllSchedule = () => {
+    setEditAvailability({
+      Saturday: [],
+      Sunday: [],
+      Monday: [],
+      Tuesday: [],
+      Wednesday: [],
+      Thursday: [],
+      Friday: [],
+    });
+  };
+
+  const totalFreeSlots = Object.values(member.availability || {}).reduce(
+    (acc, slots) => acc + slots.length,
+    0
+  );
+  const editingFreeSlots = Object.values(editAvailability).reduce(
+    (acc, slots) => acc + slots.length,
+    0
   );
 
   const memberLedger = ledger.filter((l) => l.memberId === member.id);
@@ -190,6 +272,14 @@ export default function MobileProfilePage() {
 
   return (
     <MobileAppShell>
+      {/* Floating Schedule Updated Toast */}
+      {scheduleToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] max-w-[92vw] px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs font-bold font-display shadow-2xl border border-white/20 flex items-center gap-2 backdrop-blur-md animate-rise">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{scheduleToast}</span>
+        </div>
+      )}
+
       <div className="px-4 pt-2 pb-6 space-y-3.5 animate-rise">
         {/* Top Title & Quick Actions */}
         <div className="flex items-center justify-between gap-2">
@@ -444,7 +534,7 @@ export default function MobileProfilePage() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 text-xs font-extrabold font-display text-[#1D63EB] shrink-0">
-              <span>3-Ring Tracker</span>
+              <span>Qualification Roadmap</span>
               <ChevronRight className="w-4 h-4" />
             </div>
           </button>
@@ -531,6 +621,67 @@ export default function MobileProfilePage() {
               <span>Portfolio</span>
               <ExternalLink className="w-2.5 h-2.5 opacity-75" />
             </a>
+          </div>
+
+          {/* Weekly Availability Schedule Section */}
+          <div className="p-3 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 font-display">
+                <CalendarDays className="w-3.5 h-3.5 text-[#1D63EB]" />
+                <span>Weekly Club Availability</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditAvailability(member.availability || {});
+                  setScheduleModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-blue-200/90 text-[#1D63EB] text-[10.5px] font-extrabold font-display hover:bg-blue-50 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+              >
+                <Pencil className="w-3 h-3" />
+                <span>Edit Schedule</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-[#1D63EB] border border-blue-200 text-xs font-black font-display tabular-nums">
+                {totalFreeSlots} slots free
+              </span>
+              <span className="text-[11px] font-medium text-slate-500 font-sans">
+                {totalFreeSlots >= 8
+                  ? "Optimal for weekend labs & team missions"
+                  : "Part-time availability registered"}
+              </span>
+            </div>
+
+            {/* Quick Micro-Badge Strip of Active Days */}
+            <div className="grid grid-cols-7 gap-1 pt-0.5">
+              {DAYS.map((day) => {
+                const slots = (member.availability || {})[day] || [];
+                const hasSlots = slots.length > 0;
+                return (
+                  <div
+                    key={day}
+                    className={`py-1.5 px-0.5 rounded-xl text-center border transition-all ${
+                      hasSlots
+                        ? "bg-white text-slate-900 border-slate-200 shadow-2xs"
+                        : "bg-slate-100/60 text-slate-400 border-transparent"
+                    }`}
+                  >
+                    <span className="block text-[9px] font-black uppercase text-slate-400">
+                      {day.slice(0, 3)}
+                    </span>
+                    <span
+                      className={`block text-[10px] font-black font-display mt-0.5 ${
+                        hasSlots ? "text-[#1D63EB]" : "text-slate-300"
+                      }`}
+                    >
+                      {slots.length > 0 ? `${slots.length}s` : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -787,139 +938,477 @@ export default function MobileProfilePage() {
         </div>
       )}
 
-      {/* Trainee 3-Ring Qualification Tracker Modal */}
-      {traineeTrackerOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm p-0 sm:p-4">
-          <div className="w-full max-w-[400px] rounded-t-3xl sm:rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 animate-rise">
-            <div className="bg-hero-cobalt text-white p-5 relative">
+      {/* Weekly Availability Schedule Modal */}
+      {scheduleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4">
+          <div className="w-full max-w-[440px] max-h-[88dvh] rounded-3xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-rise">
+            {/* Header */}
+            <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
               <button
                 type="button"
-                onClick={() => setTraineeTrackerOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"
+                onClick={() => setScheduleModalOpen(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
               >
                 <X className="w-4 h-4" />
               </button>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
-                3-Month Trainee Qualification
-              </span>
-              <h3 className="text-base font-extrabold mt-0.5">
-                Confirmation &amp; Onboarding Tracker
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full bg-[#38E4FF] animate-pulse" />
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
+                  Registration KYC · Schedule
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black font-display tracking-tight">
+                Weekly Club Availability
               </h3>
+              <p className="text-xs text-blue-100 font-sans mt-0.5">
+                Set your free time slots across the 7-day academic cycle
+              </p>
             </div>
 
-            <div className="p-5 space-y-4 text-xs">
-              {/* 3 Progress Rings */}
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2.5 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-1">
-                  <div className="relative">
-                    <ProgressRing percent={daysPct} strokeColor="#1D63EB" />
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-[#1D63EB] tabular-nums">
-                      {daysPct}%
-                    </span>
-                  </div>
-                  <div className="text-[10px] font-extrabold text-slate-800">
-                    {member.traineeDaysElapsed} / {targetDays}d
-                  </div>
-                  <div className="text-[9.5px] text-slate-500">
-                    3-Month Tenure
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-1">
-                  <div className="relative">
-                    <ProgressRing percent={attPct} strokeColor="#059669" />
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-emerald-600 tabular-nums">
-                      {attPct}%
-                    </span>
-                  </div>
-                  <div className="text-[10px] font-extrabold text-slate-800">
-                    Target ≥{settings.confirmationAttendanceThreshold}%
-                  </div>
-                  <div className="text-[9.5px] text-slate-500">Attendance</div>
-                </div>
-                <div className="p-2.5 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-1">
-                  <div className="relative">
-                    <ProgressRing percent={xpQualPct} strokeColor="#D97706" />
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-amber-600 tabular-nums">
-                      {xpQualPct}%
-                    </span>
-                  </div>
-                  <div className="text-[10px] font-extrabold text-slate-800">
-                    {member.xpTotal} / {settings.confirmationXpThreshold} XP
-                  </div>
-                  <div className="text-[9.5px] text-slate-500">XP Target</div>
-                </div>
+            {/* Quick Action Toolbar */}
+            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#E0F0FF] text-[#1D63EB] text-[11px] font-black font-display tabular-nums">
+                  {editingFreeSlots} slots selected
+                </span>
               </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleSelectWeekends}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[10.5px] font-bold text-slate-700 cursor-pointer active:scale-95 transition"
+                >
+                  + Weekends
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearAllSchedule}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[10.5px] font-bold text-rose-600 cursor-pointer active:scale-95 transition"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
 
-              {/* 4 Onboarding Checkpoints */}
-              <div className="space-y-1.5">
-                <h4 className="font-extrabold text-slate-900">
-                  4-Tick Onboarding Checklist
-                </h4>
-                {[
-                  {
-                    label: "First-Time Profile & Availability Complete",
-                    done: member.onboardingTicks.profileComplete,
-                  },
-                  {
-                    label: `Buddy Assigned (${buddy?.fullName || "Lotfi Benali"})`,
-                    done: member.onboardingTicks.buddyAssigned,
-                  },
-                  {
-                    label: "First Task Completed Before Day 30",
-                    done: member.onboardingTicks.firstTaskBeforeDay30,
-                  },
-                  {
-                    label: "First Workshop Attended via Live QR",
-                    done: member.onboardingTicks.firstWorkshopAttended,
-                  },
-                ].map((item, i) => (
+            {/* 7-Day Matrix Scroll Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 text-xs">
+              {DAYS.map((day) => {
+                const activeSlots = editAvailability[day] || [];
+                const isWeekend = day === "Friday" || day === "Saturday";
+                return (
                   <div
-                    key={i}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80"
+                    key={day}
+                    className="p-2.5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5"
                   >
-                    <span className="text-[11px] font-semibold text-slate-700">
-                      {item.label}
-                    </span>
-                    <CheckCircle2
-                      className={`w-4 h-4 ${
-                        item.done ? "text-emerald-600" : "text-slate-300"
-                      }`}
-                    />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-slate-900 font-display text-xs">
+                          {day}
+                        </span>
+                        {isWeekend && (
+                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200/80">
+                            Weekend
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {activeSlots.length > 0
+                          ? `${activeSlots.length} active`
+                          : "Busy"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {SLOTS.map((slot) => {
+                        const isSelected = activeSlots.includes(slot);
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() => toggleSlot(day, slot)}
+                            className={`py-2 px-1 rounded-xl text-[11px] font-extrabold font-display transition active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                              isSelected
+                                ? "bg-[#1D63EB] text-white shadow-sm ring-1 ring-blue-600"
+                                : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span className="leading-tight">{slot}</span>
+                            <span
+                              className={`text-[9px] font-medium ${
+                                isSelected ? "text-blue-100" : "text-slate-400"
+                              }`}
+                            >
+                              {slot === "Morning"
+                                ? "08–12h"
+                                : slot === "Afternoon"
+                                ? "12–16h"
+                                : "16–20h"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                ))}
+                );
+              })}
+
+              <p className="text-[10.5px] font-medium text-slate-500 pt-1 leading-relaxed">
+                Your schedule helps Department Leads and Scientific Mentors
+                assign workshops, project meetings, and lab shifts when you are
+                actually free.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setScheduleModalOpen(false)}
+                className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSchedule}
+                className="h-9 px-5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-black font-display flex items-center gap-1.5 active:scale-95 transition shadow-sm cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Save Schedule</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trainee Qualification Roadmap Modal */}
+      {traineeTrackerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-4">
+          <div className="w-full max-w-[430px] max-h-[88dvh] rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise">
+            {/* Header */}
+            <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setTraineeTrackerOpen(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full bg-[#38E4FF] animate-pulse" />
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
+                  Internal Law Arts. 8 &amp; 9
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black font-display tracking-tight">
+                3-Month Trainee Qualification
+              </h3>
+              <p className="text-xs text-blue-100 font-sans mt-0.5">
+                Official progression &amp; confirmation toward Full Active Membership
+              </p>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
+              {/* Status Header Badge */}
+              <div className="p-3 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-display font-black text-sm">
+                    {member.status === "Active" ? "✓" : "T"}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                      Current Standing
+                    </span>
+                    <p className="text-xs font-black font-display text-slate-900">
+                      {member.status === "Active"
+                        ? "Active Member (Confirmed)"
+                        : "Trainee Member in Onboarding"}
+                    </p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[10.5px] font-bold text-slate-600 font-display">
+                  Since {member.statusSince}
+                </span>
               </div>
 
-              {/* Department Head & Co-Manager Endorsement */}
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-950 space-y-1.5">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="font-extrabold text-emerald-900">
-                    Leadership Endorsements
+              {/* Tri-Metric Hub: 3 Modern Metric Cards */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
+                    Core Confirmation Metrics
+                  </h4>
+                  <span className="text-[10px] font-bold text-slate-400">
+                    3/3 Required
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-emerald-200 text-[10px] font-bold text-emerald-800">
-                      {member.traineeEvaluation.headEndorsed ? (
-                        <Check className="w-3 h-3 text-emerald-600" />
-                      ) : (
-                        <Clock className="w-3 h-3 text-amber-600" />
-                      )}
-                      <span>Head</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Tenure Card */}
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-tight">
+                        Tenure
+                      </span>
+                      <Clock className="w-3 h-3 text-blue-500" />
+                    </div>
+                    <div>
+                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
+                        {member.traineeDaysElapsed}
+                        <span className="text-[10px] font-medium text-slate-400">
+                          d
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
+                        <div
+                          className="h-full rounded-full bg-[#1D63EB] transition-all duration-500"
+                          style={{ width: `${daysPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[9.5px] font-bold text-slate-500 block">
+                      Goal: {targetDays}d
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-emerald-200 text-[10px] font-bold text-emerald-800">
-                      {member.traineeEvaluation.coManagerEndorsed ? (
-                        <Check className="w-3 h-3 text-emerald-600" />
-                      ) : (
-                        <Clock className="w-3 h-3 text-amber-600" />
-                      )}
-                      <span>Co-Manager</span>
+                  </div>
+
+                  {/* Attendance Card */}
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-tight">
+                        Presence
+                      </span>
+                      <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                    </div>
+                    <div>
+                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
+                        {attPct}
+                        <span className="text-[10px] font-medium text-slate-400">
+                          %
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
+                        <div
+                          className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                          style={{ width: `${attPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[9.5px] font-bold text-slate-500 block">
+                      Goal: ≥{settings.confirmationAttendanceThreshold}%
+                    </span>
+                  </div>
+
+                  {/* XP Threshold Card */}
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs space-y-1.5 flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-tight">
+                        XP Total
+                      </span>
+                      <Award className="w-3 h-3 text-amber-500" />
+                    </div>
+                    <div>
+                      <div className="text-base sm:text-lg font-black font-display text-slate-900 tabular-nums">
+                        {member.xpTotal}
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden mt-1">
+                        <div
+                          className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                          style={{ width: `${Math.min(100, xpQualPct)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[9.5px] font-bold text-slate-500 block">
+                      Goal: {settings.confirmationXpThreshold} XP
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* 4 Onboarding Milestones Roadmap */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
+                    4-Tick Onboarding Milestones
+                  </h4>
+                  <span className="text-[10px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2 py-0.5 rounded-full">
+                    {
+                      Object.values(member.onboardingTicks).filter(Boolean)
+                        .length
+                    }
+                    /4 Done
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  {[
+                    {
+                      num: "1",
+                      title: "First-Time Profile & Availability Complete",
+                      desc: "Identity KYC, academic major & 7-day schedule verified",
+                      done: member.onboardingTicks.profileComplete,
+                    },
+                    {
+                      num: "2",
+                      title: `Dedicated Mentor Pairing`,
+                      desc: `Paired with ${
+                        buddy?.fullName || "Senior Mentor"
+                      } for guidance`,
+                      done: member.onboardingTicks.buddyAssigned,
+                    },
+                    {
+                      num: "3",
+                      title: "First Operational Task Delivered",
+                      desc: "Completed before Day 30 and validated by Manager",
+                      done: member.onboardingTicks.firstTaskBeforeDay30,
+                    },
+                    {
+                      num: "4",
+                      title: "Hands-on Workshop Attended",
+                      desc: "Attended laboratory or club session via live QR scan",
+                      done: member.onboardingTicks.firstWorkshopAttended,
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.num}
+                      className={`flex items-start gap-2.5 p-2.5 rounded-2xl border transition-all ${
+                        item.done
+                          ? "bg-emerald-50/60 border-emerald-200/80 text-slate-900"
+                          : "bg-slate-50 border-slate-200/80 text-slate-500"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black ${
+                          item.done
+                            ? "bg-emerald-600 text-white"
+                            : "bg-slate-200 text-slate-600"
+                        }`}
+                      >
+                        {item.done ? "✓" : item.num}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-[11.5px] font-bold font-display ${
+                            item.done ? "text-slate-900" : "text-slate-600"
+                          }`}
+                        >
+                          {item.title}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-0.5 font-sans leading-tight">
+                          {item.desc}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
+                          item.done
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-slate-200/80 text-slate-500"
+                        }`}
+                      >
+                        {item.done ? "Verified" : "Pending"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Department Head & Co-Manager Endorsement Seal */}
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 font-display">
+                    Department Leadership Endorsement
+                  </span>
+                  <span className="text-[9.5px] font-bold text-slate-400">
+                    Dual Approval
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className={`p-2 rounded-xl border flex items-center gap-2 ${
+                      member.traineeEvaluation.headEndorsed
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                        : "bg-amber-50 border-amber-200 text-amber-900"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                        member.traineeEvaluation.headEndorsed
+                          ? "bg-emerald-600 text-white"
+                          : "bg-amber-500 text-white"
+                      }`}
+                    >
+                      {member.traineeEvaluation.headEndorsed ? "✓" : "•"}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-extrabold block truncate">
+                        Department Head
+                      </span>
+                      <span className="text-[9px] font-medium text-slate-500 block">
+                        {member.traineeEvaluation.headEndorsed
+                          ? "Approved"
+                          : "Review Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`p-2 rounded-xl border flex items-center gap-2 ${
+                      member.traineeEvaluation.coManagerEndorsed
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                        : "bg-amber-50 border-amber-200 text-amber-900"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
+                        member.traineeEvaluation.coManagerEndorsed
+                          ? "bg-emerald-600 text-white"
+                          : "bg-amber-500 text-white"
+                      }`}
+                    >
+                      {member.traineeEvaluation.coManagerEndorsed ? "✓" : "•"}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-extrabold block truncate">
+                        Co-Manager
+                      </span>
+                      <span className="text-[9px] font-medium text-slate-500 block">
+                        {member.traineeEvaluation.coManagerEndorsed
+                          ? "Approved"
+                          : "Review Pending"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {member.traineeEvaluation.notes && (
-                  <p className="text-emerald-800 italic">
+                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-[10.5px] text-slate-600 italic">
                     &ldquo;{member.traineeEvaluation.notes}&rdquo;
-                  </p>
+                  </div>
                 )}
               </div>
+
+              {/* Final Ratification Callout */}
+              <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 text-[11px] text-blue-950 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-[#1D63EB] shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  Full confirmation to Active Member status is ratified by the
+                  Executive Bureau upon completing the 90-day cycle, meeting the
+                  75% attendance threshold, and receiving dual department endorsement.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
+              <span className="text-[10.5px] font-bold text-slate-400">
+                QUANTA Club ERP
+              </span>
+              <button
+                type="button"
+                onClick={() => setTraineeTrackerOpen(false)}
+                className="h-9 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black font-display active:scale-95 transition cursor-pointer"
+              >
+                Close Roadmap
+              </button>
             </div>
           </div>
         </div>
