@@ -630,32 +630,32 @@ export default function MobileManagerWorkspacePage() {
         {/* 4-Column KPI Strip */}
         <div className="grid grid-cols-4 gap-2">
           <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-syne text-slate-900 block leading-tight tabular-nums">
-              {deptMembers.length}
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-tight tabular-nums">
+              {deptMembers.length.toLocaleString()}
             </span>
             <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
               Members
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-syne text-[#1D63EB] block leading-tight tabular-nums">
-              {activeTasks.length}
+            <span className="text-xl sm:text-2xl font-black font-display text-[#1D63EB] block leading-tight tabular-nums">
+              {activeTasks.length.toLocaleString()}
             </span>
             <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
               Active
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-syne text-indigo-700 block leading-tight tabular-nums">
-              {crossDeptTasksForDeptMembers.length}
+            <span className="text-xl sm:text-2xl font-black font-display text-indigo-700 block leading-tight tabular-nums">
+              {crossDeptTasksForDeptMembers.length.toLocaleString()}
             </span>
             <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
               Cross-Dept
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-syne text-emerald-700 block leading-tight tabular-nums">
-              {isManagerOrCoManager ? allClubTasks.length : deptTasks.length}
+            <span className="text-xl sm:text-2xl font-black font-display text-emerald-700 block leading-tight tabular-nums">
+              {(isManagerOrCoManager ? allClubTasks.length : deptTasks.length).toLocaleString()}
             </span>
             <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
               {isManagerOrCoManager ? "All Club" : "Total"}

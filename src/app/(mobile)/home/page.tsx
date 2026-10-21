@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
+import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
@@ -119,11 +120,20 @@ export default function MobileHomeHubPage() {
   if (isAlumni) {
     return (
       <MobileAppShell>
-        <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
+        <div className="px-4 pt-2.5 pb-6 sm:px-6 space-y-3.5">
+          {/* Top Brand Bar */}
+          <div className="flex items-center justify-between pb-0.5 animate-rise">
+            <QuantaLogo size={28} showWordmark variant="light" showSubtitle />
+            <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 font-display inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Faculty of Sciences
+            </span>
+          </div>
+
           {/* Alumni Top Greeting Header */}
           <div
             className="flex items-center justify-between gap-2 animate-rise"
-            style={{ animationDelay: "0ms" }}
+            style={{ animationDelay: "40ms" }}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Link href="/profile" className="relative shrink-0">
@@ -193,7 +203,7 @@ export default function MobileHomeHubPage() {
 
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
               <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-base sm:text-lg font-black font-syne text-amber-300 block leading-tight tabular-nums">
+                <span className="text-base sm:text-lg font-black font-display text-amber-300 block leading-tight tabular-nums">
                   3,450 XP
                 </span>
                 <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
@@ -201,7 +211,7 @@ export default function MobileHomeHubPage() {
                 </span>
               </div>
               <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-base sm:text-lg font-black font-syne text-white block leading-tight truncate">
+                <span className="text-base sm:text-lg font-black font-display text-white block leading-tight truncate">
                   Former President
                 </span>
                 <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
@@ -209,7 +219,7 @@ export default function MobileHomeHubPage() {
                 </span>
               </div>
               <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-base sm:text-lg font-black font-syne text-[#38E4FF] block leading-tight">
+                <span className="text-base sm:text-lg font-black font-display text-[#38E4FF] block leading-tight">
                   Advisory
                 </span>
                 <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
@@ -444,11 +454,20 @@ export default function MobileHomeHubPage() {
   // ============================================================================
   return (
     <MobileAppShell>
-      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
+      <div className="px-4 pt-2.5 pb-6 sm:px-6 space-y-3.5">
+        {/* Top Brand Bar */}
+        <div className="flex items-center justify-between pb-0.5 animate-rise">
+          <QuantaLogo size={28} showWordmark variant="light" showSubtitle />
+          <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 font-display inline-flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Faculty of Sciences
+          </span>
+        </div>
+
         {/* Top Greeting Header */}
         <div
           className="flex items-center justify-between gap-2 animate-rise"
-          style={{ animationDelay: "0ms" }}
+          style={{ animationDelay: "40ms" }}
         >
           <div className="flex items-center gap-3 min-w-0">
             <Link href="/profile" className="relative shrink-0">
@@ -550,80 +569,103 @@ export default function MobileHomeHubPage() {
             </div>
 
             {/* Central Metric Block */}
-            <div className="mt-4 flex items-end justify-between gap-3">
-              <div>
-                <div className="text-4xl sm:text-5xl font-black font-syne text-white tracking-tight tabular-nums">
-                  {member.xpSeason}{" "}
-                  <span className="text-base font-semibold text-sky-200 tracking-normal font-sans">
-                    / 1,000 XP
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums drop-shadow-sm">
+                    {member.xpSeason.toLocaleString()}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[11px] font-black font-display uppercase tracking-wider text-[#38E4FF]">
+                    XP Earned
                   </span>
                 </div>
-                <p className="text-xs font-medium text-sky-200/90 mt-1 font-sans">
-                  {Math.max(0, 1000 - member.xpSeason)} XP to reach Level {member.level + 1}
-                </p>
+                <div className="flex items-center gap-2 text-xs font-bold text-sky-200/90 font-display flex-wrap">
+                  <span className="text-white tabular-nums font-black">
+                    {Math.round((member.xpSeason / 1000) * 100)}%
+                  </span>
+                  <span className="text-sky-300/50">·</span>
+                  <span>
+                    {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Level {member.level + 1}
+                  </span>
+                </div>
               </div>
 
-              <div className="animate-float-subtle shrink-0">
-                <PlanetEmblem size={56} />
+              <div className="shrink-0">
+                <PlanetEmblem size={60} />
               </div>
             </div>
 
-            {/* Frosted Progress Bar */}
-            <div className="mt-4 h-3 w-full rounded-full bg-black/25 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
+            {/* Frosted Architectural Progress Bar */}
+            <div className="mt-3.5 h-2.5 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.7)] transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.65)] transition-all duration-500"
                 style={{ width: `${xpProgressPct}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* 4-Column Glassify Stat Cards */}
+        {/* Unified Bento Metric Capsule */}
         <div
-          className="grid grid-cols-4 gap-2 sm:gap-2.5 animate-rise"
+          className="rounded-3xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_6px_24px_rgba(9,25,47,0.06)] p-1.5 sm:p-2 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
           style={{ animationDelay: "120ms" }}
         >
           <Link
             href="/badges"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
           >
-            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
-              {member.badgeIds.length}
+            <div className="flex items-center gap-1 text-slate-400 group-hover:text-amber-600 transition-colors">
+              <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             </div>
-            <div className="text-xs font-bold font-display text-slate-500 mt-1">
+            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
+              {member.badgeIds.length.toLocaleString()}
+            </div>
+            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
               Badges
             </div>
           </Link>
+
           <Link
             href="/workshops"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
           >
-            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
-              {member.workshopsCompletedCount}
+            <div className="flex items-center gap-1 text-slate-400 group-hover:text-blue-600 transition-colors">
+              <BookOpen className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
             </div>
-            <div className="text-xs font-bold font-display text-slate-500 mt-1">
+            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
+              {member.workshopsCompletedCount.toLocaleString()}
+            </div>
+            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
               Workshops
             </div>
           </Link>
+
           <Link
             href="/projects/submit"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
           >
-            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
-              {member.projectsCompletedCount}
+            <div className="flex items-center gap-1 text-slate-400 group-hover:text-indigo-600 transition-colors">
+              <FolderGit2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             </div>
-            <div className="text-xs font-bold font-display text-slate-500 mt-1">
+            <div className="text-lg sm:text-xl font-black font-display text-slate-900 tabular-nums leading-tight mt-1">
+              {member.projectsCompletedCount.toLocaleString()}
+            </div>
+            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
               Projects
             </div>
           </Link>
+
           <Link
             href="/profile"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="group flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-slate-50/90 active:scale-[0.97] transition-all cursor-pointer text-center"
           >
-            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
-              {member.xpTotal}
+            <div className="flex items-center gap-1 text-slate-400 group-hover:text-emerald-600 transition-colors">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             </div>
-            <div className="text-xs font-bold font-display text-slate-500 mt-1">
+            <div className="text-lg sm:text-xl font-black font-display text-emerald-700 tabular-nums leading-tight mt-1">
+              {member.xpTotal.toLocaleString()}
+            </div>
+            <div className="text-[10px] sm:text-[11px] font-extrabold font-display uppercase tracking-wider text-slate-500 mt-0.5 group-hover:text-slate-700 transition-colors">
               Total XP
             </div>
           </Link>

@@ -3,7 +3,7 @@
 import React from "react";
 
 interface QuantaLogoProps {
-  size?: number; // Approximate height scaling
+  size?: number; // Icon / base height in px
   showWordmark?: boolean;
   variant?: "light" | "dark" | "hero";
   className?: string;
@@ -13,11 +13,12 @@ interface QuantaLogoProps {
 }
 
 /**
- * Official QUANTERS Pure Typographic Wordmark
- * Tight geometric sans-serif with two-tone blue/cyan Λ ('A') and 'BY QUANTA' subtitle.
+ * Authentic QUANTERS Brand Identity System
+ * Integrates the official 3-orbit QUANTA scientific emblem with a high-contrast geometric wordmark.
  */
 export function QuantaLogo({
-  size = 32,
+  size = 36,
+  showWordmark = true,
   variant = "dark",
   className = "",
   showSubtitle = true,
@@ -26,92 +27,67 @@ export function QuantaLogo({
 }: QuantaLogoProps) {
   const isLight = variant === "light";
   const textColor = isLight ? "text-[#09192F]" : "text-white";
-  const subColor = isLight ? "text-slate-500" : "text-slate-300/90";
+  const subColor = isLight ? "text-slate-500" : "text-sky-200/90";
 
-  const fontSize = Math.max(18, Math.round(size * 0.78));
-  const subSize = Math.max(9, Math.round(fontSize * 0.34));
-  const chevronHeight = Math.max(14, Math.round(fontSize * 0.76));
-  const chevronWidth = Math.max(14, Math.round(chevronHeight * 0.92));
+  const iconSize = Math.max(26, size);
+  const fontSize = Math.max(16, Math.round(iconSize * 0.72));
+  const subFontSize = Math.max(9, Math.round(fontSize * 0.36));
+
+  const emblem = (
+    <div
+      className="relative shrink-0 flex items-center justify-center select-none"
+      style={{ width: `${iconSize}px`, height: `${iconSize}px` }}
+    >
+      {/* Subtle ambient particle glow behind official mark */}
+      <div
+        className="absolute inset-0 rounded-full bg-cyan-400/20 blur-md pointer-events-none scale-110"
+      />
+      <img
+        src="/brand/logo_quanta.png"
+        alt="QUANTA"
+        className="w-full h-full object-contain relative z-10 drop-shadow-[0_2px_10px_rgba(29,99,235,0.35)]"
+      />
+    </div>
+  );
+
+  if (!showWordmark) {
+    return <div className={`inline-flex shrink-0 ${className}`}>{emblem}</div>;
+  }
 
   return (
     <div
-      className={`inline-flex flex-col ${
-        centered ? "items-center text-center" : "items-start"
-      } select-none leading-none ${className}`}
+      className={`inline-flex ${
+        centered ? "flex-col items-center text-center gap-2" : "flex-row items-center gap-2.5"
+      } select-none ${className}`}
     >
-      <div
-        className="inline-flex items-baseline font-display font-black tracking-[-0.02em]"
-        style={{ fontSize: `${fontSize}px`, lineHeight: 1 }}
-      >
-        <span className={textColor}>QU</span>
-        {/* Two-Tone Blue/Cyan Lambda 'A' matching official brand mark */}
-        <span
-          className="relative inline-flex items-end justify-center shrink-0 mx-[0.01em] translate-y-[0.03em]"
-          style={{ width: `${chevronWidth}px`, height: `${chevronHeight}px` }}
-        >
-          <svg
-            viewBox="0 0 26 26"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full overflow-visible"
-          >
-            <defs>
-              <linearGradient
-                id="quanta-lambda-left"
-                x1="2"
-                y1="25"
-                x2="13"
-                y2="1"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop offset="0%" stopColor="#29D2FF" />
-                <stop offset="55%" stopColor="#0E6EFF" />
-                <stop offset="100%" stopColor="#0051E6" />
-              </linearGradient>
-              <linearGradient
-                id="quanta-lambda-right"
-                x1="13"
-                y1="1"
-                x2="24"
-                y2="25"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop offset="0%" stopColor="#1488FF" />
-                <stop offset="45%" stopColor="#29D2FF" />
-                <stop offset="100%" stopColor="#5CEBFF" />
-              </linearGradient>
-            </defs>
-            {/* Left leg */}
-            <path
-              d="M13 1.2L1.4 25H8.2L13 13.4V1.2Z"
-              fill="url(#quanta-lambda-left)"
-            />
-            {/* Right leg */}
-            <path
-              d="M13 1.2L24.6 25H17.8L13 13.4V1.2Z"
-              fill="url(#quanta-lambda-right)"
-            />
-          </svg>
-        </span>
-        <span className={textColor}>NTERS</span>
+      {emblem}
 
-        {showBadge && (
-          <span className="ml-2.5 px-2 py-0.5 rounded-md text-[9px] font-mono font-semibold uppercase tracking-wider bg-white/10 text-sky-200 border border-white/15 self-center">
-            ERP
+      <div className={`flex flex-col ${centered ? "items-center" : "items-start"} leading-none`}>
+        <div className="inline-flex items-center gap-1.5">
+          <span
+            className={`font-display font-black tracking-[-0.03em] ${textColor} drop-shadow-xs flex items-center`}
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            QUANTERS
+            <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] ml-1 shrink-0 drop-shadow-[0_0_4px_#38E4FF]" />
+          </span>
+
+          {showBadge && (
+            <span className="px-1.5 py-0.5 rounded-md text-[9.5px] font-mono font-bold uppercase tracking-wider bg-[#1D63EB]/15 text-[#38E4FF] border border-[#38E4FF]/30">
+              ERP
+            </span>
+          )}
+        </div>
+
+        {showSubtitle && (
+          <span
+            className={`mt-1 tracking-[0.24em] font-display font-bold uppercase ${subColor} pl-[0.24em]`}
+            style={{ fontSize: `${subFontSize}px` }}
+          >
+            BY QUANTA
           </span>
         )}
       </div>
-
-      {showSubtitle && (
-        <div
-          className={`mt-1.5 tracking-[0.36em] font-display uppercase font-bold ${subColor} ${
-            centered ? "pl-[0.36em]" : ""
-          }`}
-          style={{ fontSize: `${subSize}px` }}
-        >
-          BY QUANTA
-        </div>
-      )}
     </div>
   );
 }
