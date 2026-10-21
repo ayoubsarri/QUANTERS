@@ -190,23 +190,23 @@ export default function MobileProfilePage() {
         {/* Top Title & Quick Actions */}
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h1 className="text-[20px] font-black text-slate-900 tracking-tight">Profile</h1>
-            <p className="text-[11px] font-medium text-slate-500">Official Membership Credentials &amp; KYC</p>
+            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight">Profile</h1>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 font-sans mt-0.5">Official Membership Credentials &amp; KYC</p>
           </div>
           <button
             type="button"
             onClick={() => setLedgerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 text-[11px] font-bold text-slate-700 hover:bg-white active:scale-[0.98] shadow-2xs cursor-pointer transition"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white/80 text-xs font-bold font-display text-slate-700 hover:bg-white active:scale-[0.98] shadow-2xs cursor-pointer transition"
           >
-            <History className="w-3.5 h-3.5 text-[#1D63EB]" />
+            <History className="w-4 h-4 text-[#1D63EB]" />
             <span>Points Ledger</span>
           </button>
         </div>
 
         {/* Member Identity Card */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-card">
+        <div className="bg-white rounded-3xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0">
               <button
                 type="button"
                 onClick={() => setAvatarModalOpen(true)}
@@ -222,18 +222,18 @@ export default function MobileProfilePage() {
               </button>
 
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h2 className="text-base font-extrabold text-slate-900 truncate">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg sm:text-xl font-black font-display text-slate-900 truncate">
                     {member.fullName}
                   </h2>
                 </div>
-                <p className="text-xs font-bold text-[#1D63EB]">
+                <p className="text-xs sm:text-sm font-bold text-[#1D63EB] font-display">
                   {member.handle}{" "}
-                  <span className="text-slate-400 font-mono text-[10.5px]">
+                  <span className="text-slate-400 font-mono text-xs">
                     ({member.quanterId})
                   </span>
                 </p>
-                <p className="text-[11px] font-semibold text-slate-600 mt-0.5 truncate">
+                <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5 truncate font-sans">
                   {member.major} · {member.university}
                 </p>
               </div>
@@ -244,41 +244,41 @@ export default function MobileProfilePage() {
               type="button"
               onClick={() => setQrOpen(true)}
               aria-label="Show Personal Digital ID QR"
-              className="w-10 h-10 rounded-xl bg-[#EBF3FC] hover:bg-[#E0F0FF] active:scale-[0.98] border border-[#E2EDF8] flex items-center justify-center text-[#094C9C] shrink-0 shadow-sm transition cursor-pointer"
+              className="w-11 h-11 rounded-2xl bg-[#EBF3FC] hover:bg-[#E0F0FF] active:scale-[0.98] border border-[#E2EDF8] flex items-center justify-center text-[#094C9C] shrink-0 shadow-sm transition cursor-pointer"
             >
               <QrCode className="w-5 h-5" />
             </button>
           </div>
 
-          <p className="mt-2.5 pt-2.5 border-t border-slate-100 text-xs italic text-slate-600">
+          <p className="mt-3 pt-3 border-t border-slate-100 text-xs sm:text-sm italic text-slate-600 font-editorial">
             &ldquo;{member.bio}&rdquo;
           </p>
         </div>
 
         {/* Glassify Rounded Hero Card */}
-        <div className="relative rounded-3xl p-5 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)]">
+        <div className="relative rounded-3xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)]">
           <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full bg-[#29D2FF]/20 blur-3xl pointer-events-none" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-xs tracking-wider shadow-sm">
+                <div className="inline-flex items-center gap-1 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-black text-xs font-display tracking-wider shadow-sm">
                   <span>Lv. {member.level}</span>
                 </div>
-                <span className="text-xs font-bold text-sky-200 uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-bold text-sky-200 uppercase tracking-wider font-display">
                   {member.levelTitle}
                 </span>
               </div>
 
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold font-display backdrop-blur-md ${
                   member.status === "Trainee"
                     ? "bg-amber-400/20 border border-amber-300/40 text-amber-200"
                     : "bg-emerald-400/20 border border-emerald-300/40 text-emerald-200"
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
+                  className={`w-2 h-2 rounded-full ${
                     member.status === "Trainee"
                       ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]"
                       : "bg-emerald-400 shadow-[0_0_6px_#34d399]"
@@ -292,23 +292,23 @@ export default function MobileProfilePage() {
 
             <div className="mt-4 flex items-end justify-between gap-3">
               <div>
-                <div className="text-3xl sm:text-4xl font-black text-white tracking-tight tabular-nums">
+                <div className="text-4xl sm:text-5xl font-black font-syne text-white tracking-tight tabular-nums">
                   {member.xpSeason}{" "}
-                  <span className="text-sm font-semibold text-sky-200 tracking-normal font-sans">
+                  <span className="text-base font-semibold text-sky-200 tracking-normal font-sans">
                     / 1,000 XP
                   </span>
                 </div>
-                <p className="text-[11px] font-medium text-sky-200/90 mt-0.5">
+                <p className="text-xs font-medium text-sky-200/90 mt-1 font-sans">
                   {Math.max(0, 1000 - member.xpSeason)} XP to reach Level {member.level + 1}
                 </p>
               </div>
 
               <div className="animate-float-subtle shrink-0">
-                <PlanetEmblem size={52} />
+                <PlanetEmblem size={56} />
               </div>
             </div>
 
-            <div className="mt-3.5 h-3 w-full rounded-full bg-black/25 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
+            <div className="mt-4 h-3 w-full rounded-full bg-black/25 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.7)] transition-all duration-500"
                 style={{ width: `${xpProgressPct}%` }}
@@ -319,78 +319,78 @@ export default function MobileProfilePage() {
 
         {/* 4-Column Glassify Stat Cards */}
         <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center">
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.badgeIds.length}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Badges
             </div>
           </div>
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center">
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.workshopsCompletedCount}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Workshops
             </div>
           </div>
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center">
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.projectsCompletedCount}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Projects
             </div>
           </div>
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center">
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.xpTotal}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Total XP
             </div>
           </div>
         </div>
 
         {/* 3 Club Governance Rows */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] divide-y divide-slate-100 shadow-card overflow-hidden">
+        <div className="bg-white rounded-3xl border border-[#E2EDF8] divide-y divide-slate-100 shadow-card overflow-hidden">
           {/* Row 1: Department */}
-          <div className="p-3.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-[#E0F0FF] text-[#1D63EB] flex items-center justify-center shrink-0">
-                <Building2 className="w-4 h-4" />
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-[#E0F0FF] text-[#1D63EB] flex items-center justify-center shrink-0">
+                <Building2 className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block font-display">
                   Department
                 </span>
-                <p className="text-xs font-extrabold text-slate-900 truncate">
+                <p className="text-sm sm:text-base font-extrabold font-display text-slate-900 truncate">
                   {dept?.name || "IT and Technical Solutions"}
                 </p>
               </div>
             </div>
-            <span className="text-[10px] font-bold text-slate-400 shrink-0">
+            <span className="text-xs font-bold font-display text-slate-400 shrink-0">
               Single Dept
             </span>
           </div>
 
           {/* Row 2: Scientific Team */}
-          <div className="p-3.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
-                <Orbit className="w-4 h-4" />
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+                <Orbit className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block font-display">
                   Scientific Team
                 </span>
-                <p className="text-xs font-extrabold text-slate-900 truncate">
+                <p className="text-sm sm:text-base font-extrabold font-display text-slate-900 truncate">
                   {team?.name || "Astronomy & Astrophysics"}
                 </p>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold shrink-0">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold font-display shrink-0">
               {member.roles[0] || "Member"}
             </span>
           </div>
@@ -399,17 +399,17 @@ export default function MobileProfilePage() {
           <button
             type="button"
             onClick={() => setTraineeTrackerOpen(true)}
-            className="w-full p-3.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50 active:scale-[0.99] transition cursor-pointer"
+            className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50 active:scale-[0.99] transition cursor-pointer"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block font-display">
                   Member Status
                 </span>
-                <p className="text-xs font-extrabold text-emerald-700 truncate">
+                <p className="text-sm sm:text-base font-extrabold font-display text-emerald-700 truncate">
                   {member.status === "Active"
                     ? "Active Member"
                     : `${member.status} Member`}{" "}
@@ -417,7 +417,7 @@ export default function MobileProfilePage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#1D63EB] shrink-0">
+            <div className="flex items-center gap-1.5 text-xs font-extrabold font-display text-[#1D63EB] shrink-0">
               <span>3-Ring Tracker</span>
               <ChevronRight className="w-4 h-4" />
             </div>

@@ -130,20 +130,20 @@ export default function MobileHomeHubPage() {
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
-                  className="w-11 h-11 rounded-full object-cover border-2 border-amber-300/80 shadow-2xs"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-amber-300/80 shadow-2xs"
                 />
-                <span className="absolute -bottom-0.5 -right-0.5 px-1 py-0.2 rounded-full bg-[#FBB03B] text-[#061E47] text-[8px] font-black">
+                <span className="absolute -bottom-0.5 -right-0.5 px-1.5 py-0.5 rounded-full bg-[#FBB03B] text-[#061E47] text-[10px] font-black font-mono">
                   ’{member.graduationYear?.slice(-2) || "26"}
                 </span>
               </Link>
               <div className="min-w-0">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200/80 text-[10px] font-black tracking-wide">
-                  <GraduationCap className="w-3 h-3 text-amber-700 shrink-0" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-black tracking-wide font-display">
+                  <GraduationCap className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                   <span>
                     QUANTA Alumni Fellow · Class of {member.graduationYear || "2026"}
                   </span>
                 </span>
-                <h1 className="text-[17px] font-black text-slate-900 truncate mt-0.5">
+                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 truncate mt-0.5">
                   Welcome back, {firstName}
                 </h1>
               </div>
@@ -152,12 +152,12 @@ export default function MobileHomeHubPage() {
             <div className="flex items-center gap-1.5 shrink-0">
               <Link
                 href="/notifications"
-                className="relative w-9 h-9 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
+                className="relative w-10 h-10 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-black flex items-center justify-center tabular-nums shadow-xs">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-xs font-black flex items-center justify-center tabular-nums shadow-xs">
                     {unreadCount}
                   </span>
                 )}
@@ -172,47 +172,47 @@ export default function MobileHomeHubPage() {
           >
             <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-[10px] font-black tracking-wider uppercase">
-                <Sparkles className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>Honorary Fellowship</span>
               </span>
-              <span className="text-[11px] font-mono font-bold text-amber-300">
+              <span className="text-xs font-mono font-bold text-amber-300">
                 Class of {member.graduationYear || "2026"}
               </span>
             </div>
 
-            <div className="mt-3 relative z-10">
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+            <div className="mt-3.5 relative z-10">
+              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
                 {member.fullName}
               </h2>
-              <p className="text-xs font-medium text-sky-200/90 mt-1 max-w-[380px] leading-relaxed">
+              <p className="text-xs sm:text-sm font-medium text-sky-200/90 mt-1 max-w-[420px] leading-relaxed font-sans">
                 {member.alumniPosition ||
                   "Doctoral Researcher in Quantum Photonics · Faculty of Sciences"}
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
-              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-sm font-black text-amber-300 block leading-tight tabular-nums">
+              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-base sm:text-lg font-black font-syne text-amber-300 block leading-tight tabular-nums">
                   3,450 XP
                 </span>
-                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
                   Lifetime Legacy
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-sm font-black text-white block leading-tight truncate">
+              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-base sm:text-lg font-black font-syne text-white block leading-tight truncate">
                   Former President
                 </span>
-                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
-                  Club Distinction
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
+                  Distinction
                 </span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-                <span className="text-sm font-black text-[#38E4FF] block leading-tight">
+              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+                <span className="text-base sm:text-lg font-black font-syne text-[#38E4FF] block leading-tight">
                   Advisory
                 </span>
-                <span className="text-[9.5px] font-bold text-sky-200/80 block mt-0.5">
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
                   Scientific Council
                 </span>
               </div>
@@ -226,22 +226,22 @@ export default function MobileHomeHubPage() {
               href="/proposals"
               className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition flex items-start justify-between gap-3 group cursor-pointer"
             >
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10px] font-black uppercase tracking-wider border border-blue-200/60">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-xs font-black uppercase tracking-wider border border-blue-200/60 font-display">
                     Speaker Series
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">Open Channel</span>
+                  <span className="text-xs font-bold text-slate-400 font-display">Open Channel</span>
                 </div>
-                <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1D63EB] transition-colors">
+                <h3 className="text-base font-extrabold font-display text-slate-900 group-hover:text-[#1D63EB] transition-colors">
                   Host an Alumni Keynote or Masterclass
                 </h3>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed font-sans">
                   Share your scientific research, PhD insights, or industry expertise with active club researchers.
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#1D63EB] flex items-center justify-center shrink-0 group-hover:bg-[#1D63EB] group-hover:text-white transition-all shadow-2xs">
-                <ArrowRight className="w-4 h-4" />
+              <div className="w-11 h-11 rounded-full bg-blue-50 text-[#1D63EB] flex items-center justify-center shrink-0 group-hover:bg-[#1D63EB] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-5 h-5" />
               </div>
             </Link>
 
@@ -249,16 +249,16 @@ export default function MobileHomeHubPage() {
             <div className="grid grid-cols-2 gap-2.5">
               <Link
                 href="/projects/submit"
-                className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+                className="p-4 sm:p-4.5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
               >
-                <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
-                  <Award className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
+                  <Award className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <h4 className="text-sm font-extrabold font-display text-slate-900 group-hover:text-emerald-700 transition-colors">
                     Advisory &amp; Jury
                   </h4>
-                  <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium leading-tight">
+                  <p className="text-xs text-slate-500 mt-1 font-medium leading-normal font-sans">
                     Review student capstone projects &amp; badges.
                   </p>
                 </div>
@@ -266,16 +266,16 @@ export default function MobileHomeHubPage() {
 
               <Link
                 href="/workshops"
-                className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+                className="p-4 sm:p-4.5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
               >
-                <div className="w-9 h-9 rounded-full bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-full bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 group-hover:text-[#1D63EB] transition-colors">
+                  <h4 className="text-sm font-extrabold font-display text-slate-900 group-hover:text-[#1D63EB] transition-colors">
                     Club Labs &amp; Sessions
                   </h4>
-                  <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium leading-tight">
+                  <p className="text-xs text-slate-500 mt-1 font-medium leading-normal font-sans">
                     Drop in as guest mentor in active club labs.
                   </p>
                 </div>
@@ -286,14 +286,14 @@ export default function MobileHomeHubPage() {
             <div className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
-                    <CalendarCheck2 className="w-3 h-3 text-amber-700" />
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 font-display">
+                    <CalendarCheck2 className="w-3.5 h-3.5 text-amber-700" />
                     <span>Annual Alumni Gala · Nov 2026</span>
                   </span>
-                  <h3 className="text-sm font-black text-slate-900 mt-1.5">
+                  <h3 className="text-base font-extrabold font-display text-slate-900 mt-2">
                     QSSC’ 2026 Alumni Keynote &amp; Mentorship Circle
                   </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium font-sans">
                     Saturday, 14 Nov 2026 · 15:00 · Faculty of Sciences Main Auditorium
                   </p>
                 </div>
@@ -450,23 +450,23 @@ export default function MobileHomeHubPage() {
           className="flex items-center justify-between gap-2 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Link href="/profile" className="relative shrink-0">
               <img
                 src={member.avatarUrl}
                 alt={member.fullName}
-                className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"
+                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
               />
-              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" />
             </Link>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-slate-500 leading-tight">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider font-display">
                 Good evening,
               </p>
-              <h1 className="text-base font-extrabold text-slate-900 leading-tight truncate">
+              <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate">
                 {firstName}
               </h1>
-              <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
+              <p className="text-xs font-semibold text-slate-500 truncate mt-0.5 font-sans">
                 Keep exploring. Science needs you.
               </p>
             </div>
@@ -486,7 +486,7 @@ export default function MobileHomeHubPage() {
               )) && (
               <Link
                 href="/manager"
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10.5px] font-black border border-blue-200/80 hover:bg-blue-100 active:scale-[0.98] transition shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-blue-50 text-[#1D63EB] text-xs font-extrabold font-display border border-blue-200/80 hover:bg-blue-100 active:scale-[0.98] transition shadow-2xs cursor-pointer"
                 title="Department & Team Operations"
               >
                 <Shield className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
@@ -496,12 +496,12 @@ export default function MobileHomeHubPage() {
             )}
             <Link
               href="/notifications"
-              className="relative w-9 h-9 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
+              className="relative w-10 h-10 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ED1C24] text-white text-[9px] font-black flex items-center justify-center tabular-nums shadow-xs">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-xs font-black flex items-center justify-center tabular-nums shadow-xs">
                   {unreadCount}
                 </span>
               )}
@@ -521,23 +521,23 @@ export default function MobileHomeHubPage() {
             {/* Top Row: Frosted Level Pill + Title + Status */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-xs tracking-wider shadow-sm">
+                <div className="inline-flex items-center gap-1 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-black text-xs font-display tracking-wider shadow-sm">
                   <span>Lv. {member.level}</span>
                 </div>
-                <span className="text-xs font-bold text-sky-200 uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-bold text-sky-200 uppercase tracking-wider font-display">
                   {member.levelTitle}
                 </span>
               </div>
 
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-md ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold font-display backdrop-blur-md ${
                   member.status === "Trainee"
                     ? "bg-amber-400/20 border border-amber-300/40 text-amber-200"
                     : "bg-emerald-400/20 border border-emerald-300/40 text-emerald-200"
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
+                  className={`w-2 h-2 rounded-full ${
                     member.status === "Trainee"
                       ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]"
                       : "bg-emerald-400 shadow-[0_0_6px_#34d399]"
@@ -552,24 +552,24 @@ export default function MobileHomeHubPage() {
             {/* Central Metric Block */}
             <div className="mt-4 flex items-end justify-between gap-3">
               <div>
-                <div className="text-3xl sm:text-4xl font-black text-white tracking-tight tabular-nums">
+                <div className="text-4xl sm:text-5xl font-black font-syne text-white tracking-tight tabular-nums">
                   {member.xpSeason}{" "}
-                  <span className="text-sm font-semibold text-sky-200 tracking-normal font-sans">
+                  <span className="text-base font-semibold text-sky-200 tracking-normal font-sans">
                     / 1,000 XP
                   </span>
                 </div>
-                <p className="text-[11px] font-medium text-sky-200/90 mt-0.5">
+                <p className="text-xs font-medium text-sky-200/90 mt-1 font-sans">
                   {Math.max(0, 1000 - member.xpSeason)} XP to reach Level {member.level + 1}
                 </p>
               </div>
 
               <div className="animate-float-subtle shrink-0">
-                <PlanetEmblem size={52} />
+                <PlanetEmblem size={56} />
               </div>
             </div>
 
             {/* Frosted Progress Bar */}
-            <div className="mt-3.5 h-3 w-full rounded-full bg-black/25 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
+            <div className="mt-4 h-3 w-full rounded-full bg-black/25 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.7)] transition-all duration-500"
                 style={{ width: `${xpProgressPct}%` }}
@@ -585,45 +585,45 @@ export default function MobileHomeHubPage() {
         >
           <Link
             href="/badges"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.badgeIds.length}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Badges
             </div>
           </Link>
           <Link
             href="/workshops"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.workshopsCompletedCount}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Workshops
             </div>
           </Link>
           <Link
             href="/projects/submit"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.projectsCompletedCount}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Projects
             </div>
           </Link>
           <Link
             href="/profile"
-            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
+            className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] py-3.5 px-1.5 text-center hover:bg-white hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums leading-tight">
+            <div className="text-xl sm:text-2xl font-black font-syne text-slate-900 tabular-nums leading-tight">
               {member.xpTotal}
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+            <div className="text-xs font-bold font-display text-slate-500 mt-1">
               Total XP
             </div>
           </Link>
@@ -697,22 +697,22 @@ export default function MobileHomeHubPage() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card">
-              <div className="flex items-start justify-between gap-2.5">
-                <div className="flex items-start gap-3">
-                  <FieldIcon field={nextWorkshop.iconType} size={24} boxed />
+            <div className="bg-white rounded-3xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3.5">
+                  <FieldIcon field={nextWorkshop.iconType} size={28} boxed />
                   <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="text-sm font-extrabold text-slate-900">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-black font-display text-slate-900">
                         {nextWorkshop.title}
                       </h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-[#1D63EB] border border-sky-200 font-display">
                         {nextWorkshop.level}
                       </span>
                     </div>
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                    <div className="mt-1.5 space-y-1 text-xs sm:text-sm text-slate-600 font-sans">
                       <p className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        <Calendar className="w-3.5 h-3.5 text-[#1D63EB]" />
                         <span>
                           {nextWorkshop.dateLabel} · {nextWorkshop.timeRange}
                         </span>
@@ -725,14 +725,14 @@ export default function MobileHomeHubPage() {
                   </div>
                 </div>
 
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 tabular-nums">
+                <span className="px-3 py-1 rounded-full text-xs font-black font-mono bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 tabular-nums">
                   +{nextWorkshop.xpReward} XP
                 </span>
               </div>
 
-              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 tabular-nums">
-                  <Users className="w-3.5 h-3.5 text-[#1D63EB]" />
+              <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 tabular-nums font-sans">
+                  <Users className="w-4 h-4 text-[#1D63EB]" />
                   {nextWorkshop.seatsLeft} seats left
                 </span>
 
@@ -743,20 +743,20 @@ export default function MobileHomeHubPage() {
                       onClick={() =>
                         registerForWorkshop(nextWorkshop.id, member.id)
                       }
-                      className="h-8 px-3.5 rounded-xl bg-[#1D63EB] text-white text-xs font-extrabold hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer"
+                      className="h-9 px-4 rounded-xl bg-[#1D63EB] text-white text-xs font-black font-display hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer shadow-2xs"
                     >
                       Join
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                      <Check className="w-3.5 h-3.5" /> Registered
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80">
+                      <Check className="w-4 h-4" /> Registered
                     </span>
                   )}
                   <Link
                     href="/checkin"
-                    className="h-8 px-3.5 rounded-xl bg-[#061E47] text-white text-xs font-extrabold hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1"
+                    className="h-9 px-4 rounded-xl bg-[#061E47] text-white text-xs font-black font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 shadow-2xs"
                   >
-                    <QrCode className="w-3.5 h-3.5 text-[#38E4FF]" />
+                    <QrCode className="w-4 h-4 text-[#38E4FF]" />
                     <span>Check-in</span>
                   </Link>
                 </div>
@@ -772,40 +772,40 @@ export default function MobileHomeHubPage() {
         >
           <Link
             href="/checkin"
-            className="rounded-2xl bg-[#1D63EB] text-white py-3 px-1.5 flex flex-col items-center justify-center text-center shadow-sm hover:bg-blue-700 active:scale-[0.98] transition"
+            className="rounded-2xl bg-[#1D63EB] text-white py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-sm hover:bg-blue-700 active:scale-[0.98] transition group"
           >
-            <QrCode className="w-5 h-5 mb-1.5" />
-            <span className="text-[10.5px] font-extrabold leading-tight">
+            <QrCode className="w-5 h-5 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black font-display tracking-tight leading-tight">
               Scan QR
             </span>
           </Link>
 
           <Link
             href="/exams"
-            className="rounded-2xl bg-[#D6ECFA] text-[#094C9C] border border-sky-200 py-3 px-1.5 flex flex-col items-center justify-center text-center shadow-xs hover:bg-sky-200/80 active:scale-[0.98] transition"
+            className="rounded-2xl bg-[#D6ECFA] text-[#094C9C] border border-sky-200 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-sky-200/80 active:scale-[0.98] transition group"
           >
-            <FileCheck2 className="w-5 h-5 mb-1.5 text-[#1D63EB]" />
-            <span className="text-[10.5px] font-extrabold leading-tight">
+            <FileCheck2 className="w-5 h-5 mb-1.5 text-[#1D63EB] group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black font-display tracking-tight leading-tight">
               Exams
             </span>
           </Link>
 
           <Link
             href="/projects/submit"
-            className="rounded-2xl bg-[#FDE68A] text-[#92400E] border border-amber-300/80 py-3 px-1.5 flex flex-col items-center justify-center text-center shadow-xs hover:bg-amber-200 active:scale-[0.98] transition"
+            className="rounded-2xl bg-[#FDE68A] text-[#92400E] border border-amber-300/80 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-amber-200 active:scale-[0.98] transition group"
           >
-            <FolderGit2 className="w-5 h-5 mb-1.5 text-[#92400E]" />
-            <span className="text-[10.5px] font-extrabold leading-tight">
+            <FolderGit2 className="w-5 h-5 mb-1.5 text-[#92400E] group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black font-display tracking-tight leading-tight">
               Submit Project
             </span>
           </Link>
 
           <Link
             href="/proposals"
-            className="rounded-2xl bg-[#BBF7D0] text-[#15803D] border border-emerald-300/80 py-3 px-1.5 flex flex-col items-center justify-center text-center shadow-xs hover:bg-emerald-200 active:scale-[0.98] transition"
+            className="rounded-2xl bg-[#BBF7D0] text-[#15803D] border border-emerald-300/80 py-3.5 px-2 flex flex-col items-center justify-center text-center shadow-xs hover:bg-emerald-200 active:scale-[0.98] transition group"
           >
-            <Lightbulb className="w-5 h-5 mb-1.5 text-[#15803D]" />
-            <span className="text-[10.5px] font-extrabold leading-tight">
+            <Lightbulb className="w-5 h-5 mb-1.5 text-[#15803D] group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black font-display tracking-tight leading-tight">
               Proposals
             </span>
           </Link>
@@ -813,11 +813,11 @@ export default function MobileHomeHubPage() {
 
         {/* My Assigned Tasks Card with Active | Done & History Segmented Pill Toggle */}
         <div
-          className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card animate-rise"
+          className="bg-white rounded-3xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card animate-rise"
           style={{ animationDelay: "360ms" }}
         >
-          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
+            <h2 className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 font-display">
               <ClipboardCheck className="w-4 h-4 text-[#1D63EB]" />
               <span>My Assigned Tasks</span>
             </h2>
@@ -827,7 +827,7 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={() => setTaskTab("active")}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold active:scale-[0.98] transition cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "active"
                     ? "bg-[#1D63EB] text-white shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -838,7 +838,7 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={() => setTaskTab("done")}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold active:scale-[0.98] transition cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "done"
                     ? "bg-[#061E47] text-white shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -850,7 +850,7 @@ export default function MobileHomeHubPage() {
           </div>
 
           {taskTab === "active" ? (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {activeTasks.map((task) => {
                 const line = task.assignees.find(
                   (a) => a.memberId === member.id
@@ -859,32 +859,32 @@ export default function MobileHomeHubPage() {
                 return (
                   <div
                     key={task.id}
-                    className="p-2.5 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2"
+                    className="p-3.5 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#1D63EB]">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#1D63EB] font-display">
                           {task.category} · {line.roleInTask}
                         </span>
-                        <h3 className="text-xs font-extrabold text-slate-900">
+                        <h3 className="text-sm sm:text-base font-extrabold font-display text-slate-900 mt-0.5">
                           {task.title}
                         </h3>
-                        <p className="text-[10.5px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3" />
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-sans">
+                          <Clock className="w-3.5 h-3.5" />
                           <span>
                             Due: {task.deadline} · {task.locationOrShift}
                           </span>
                         </p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 shrink-0 tabular-nums">
+                      <span className="px-2.5 py-1 rounded-full text-xs font-black font-mono bg-emerald-100 text-emerald-800 shrink-0 tabular-nums">
                         +{line.proposedScore} XP
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-200/70 flex-wrap">
-                      <span className="text-[10px] font-bold text-slate-600">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 flex-wrap">
+                      <span className="text-xs font-semibold text-slate-600 font-sans">
                         Status:{" "}
-                        <strong className="text-slate-900">{line.status}</strong>
+                        <strong className="text-slate-900 font-bold">{line.status}</strong>
                       </span>
 
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -894,13 +894,13 @@ export default function MobileHomeHubPage() {
                             onClick={() =>
                               confirmTaskReceipt(task.id, member.id)
                             }
-                            className="h-7 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-extrabold active:scale-[0.98] transition cursor-pointer"
+                            className="h-8 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
                           >
                             Confirm Receipt
                           </button>
                         ) : (
-                          <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-0.5">
-                            <Check className="w-3 h-3" /> Confirmed
+                          <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 font-sans">
+                            <Check className="w-3.5 h-3.5" /> Confirmed
                           </span>
                         )}
 
@@ -912,9 +912,9 @@ export default function MobileHomeHubPage() {
                                 setDeliverModalTaskId(task.id);
                                 setProofText(line.proofUrlOrNote || "");
                               }}
-                              className="h-7 px-2.5 rounded-lg bg-[#1D63EB] hover:bg-blue-700 text-white text-[10px] font-extrabold active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
+                              className="h-8 px-3 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold font-display active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
                             >
-                              <Send className="w-2.5 h-2.5" />
+                              <Send className="w-3 h-3" />
                               <span>Deliver Proof</span>
                             </button>
                           )}
@@ -922,10 +922,10 @@ export default function MobileHomeHubPage() {
                         <button
                           type="button"
                           onClick={() => archiveTask(task.id)}
-                          className="h-7 px-2.5 rounded-lg bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-[10px] font-extrabold active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
+                          className="h-8 px-3 rounded-xl bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold font-display active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
                           title="Archive to Done & History"
                         >
-                          <Archive className="w-2.5 h-2.5" />
+                          <Archive className="w-3 h-3" />
                           <span>Archive</span>
                         </button>
                       </div>

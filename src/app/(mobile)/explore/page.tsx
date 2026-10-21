@@ -144,25 +144,25 @@ export default function MobileExplorePage() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 Explore{" "}
-                <span className="font-serif italic font-normal text-[#1D63EB]">
+                <span className="font-editorial text-[#1D63EB]">
                   The Dispatch
                 </span>
               </h1>
             </div>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 font-sans">
               Scientific journalism, fellowships, club dispatches & visual explainers
             </p>
           </div>
-          <div className="relative w-full sm:w-60">
+          <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search articles, topics..."
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-[0_2px_10px_rgba(9,25,47,0.04)] transition-all"
+              className="w-full h-10.5 pl-10 pr-4 rounded-full bg-white/80 backdrop-blur-md border border-white/90 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-[0_2px_10px_rgba(9,25,47,0.04)] transition-all font-sans"
             />
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function MobileExplorePage() {
                 key={tab}
                 type="button"
                 onClick={() => setSelectedCategory(tab)}
-                className={`px-4 py-2 rounded-full text-xs font-extrabold whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
                   active
                     ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
                     : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
@@ -200,7 +200,7 @@ export default function MobileExplorePage() {
             <button
               type="button"
               onClick={() => setActiveArticle(heroPost)}
-              className="relative w-full h-[220px] sm:h-[250px] rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(6,25,75,0.18)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-white/30"
+              className="relative w-full h-[220px] sm:h-[260px] rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(6,25,75,0.18)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-white/30"
             >
               <img
                 src={heroPost.imageUrl}
@@ -212,31 +212,31 @@ export default function MobileExplorePage() {
               {/* Top Tag Pill */}
               <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-600 text-white shadow-sm flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm flex items-center gap-1 font-display">
+                    <AlertCircle className="w-3.5 h-3.5" />
                     <span>IMPORTANT</span>
                   </span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm">
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm font-display">
                     {heroPost.tagLabel}
                   </span>
                 </div>
-                <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-950/70 text-sky-100 backdrop-blur-md border border-white/20 shrink-0">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-950/70 text-sky-100 backdrop-blur-md border border-white/20 shrink-0 font-mono">
                   {heroPost.readTime}
                 </span>
               </div>
 
               {/* Bottom Headline & Meta */}
               <div className="absolute bottom-4 left-4 right-4 text-white">
-                <h2 className="font-display text-base sm:text-lg font-extrabold leading-snug line-clamp-2">
+                <h2 className="font-display text-base sm:text-xl font-black leading-snug line-clamp-2 text-white">
                   {heroPost.title}
                 </h2>
-                <div className="mt-2 flex items-center justify-between text-xs text-sky-200/90 font-medium">
+                <div className="mt-2 flex items-center justify-between text-xs sm:text-sm text-sky-200/90 font-medium font-sans">
                   <span>
                     {heroPost.source} · {heroPost.date}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-[11px]">
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-xs font-display">
                     <span>Read Breakdown</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
               </div>
@@ -271,11 +271,11 @@ export default function MobileExplorePage() {
         <div className="space-y-2.5">
           <div className="flex items-center justify-between px-0.5 gap-2 flex-wrap">
             <div className="flex items-center gap-2">
-              <h2 className="font-display text-sm font-extrabold text-slate-900">
+              <h2 className="font-display text-base sm:text-lg font-black text-slate-900">
                 Latest &amp; Featured Dispatches
               </h2>
             </div>
-            <span className="font-mono text-[11px] font-bold text-slate-400">
+            <span className="font-mono text-xs font-bold text-slate-400">
               {filteredPosts.length} STORIES
             </span>
           </div>
@@ -289,7 +289,7 @@ export default function MobileExplorePage() {
                 key={post.id}
                 onClick={() => setActiveArticle(post)}
                 style={{ animationDelay: `${100 + idx * 40}ms` }}
-                className={`bg-white/85 backdrop-blur-xl rounded-3xl border p-3.5 sm:p-4 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/50 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
+                className={`bg-white/85 backdrop-blur-xl rounded-3xl border p-4 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/50 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
                   isTopPriority
                     ? "border-[#1D63EB]/45 ring-2 ring-[#1D63EB]/15"
                     : "border-white/80"
@@ -301,7 +301,7 @@ export default function MobileExplorePage() {
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-slate-950/80 text-[#FFE500] font-mono text-[9px] font-extrabold backdrop-blur-xs">
+                  <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-slate-950/80 text-[#FFE500] font-mono text-[10px] font-extrabold backdrop-blur-xs">
                     0{idx + 1}
                   </span>
                 </div>
@@ -310,19 +310,19 @@ export default function MobileExplorePage() {
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {priorityBadge === "IMPORTANT" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-mono text-[9.5px] font-extrabold uppercase tracking-wider shadow-2xs">
-                          <AlertCircle className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-rose-600 text-white font-display text-xs font-extrabold uppercase tracking-wider shadow-2xs">
+                          <AlertCircle className="w-3 h-3" />
                           <span>IMPORTANT</span>
                         </span>
                       )}
                       {priorityBadge === "NEW" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#061E47] text-[#38E4FF] font-mono text-[9.5px] font-extrabold uppercase tracking-wider">
-                          <Sparkles className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#061E47] text-[#38E4FF] font-display text-xs font-extrabold uppercase tracking-wider">
+                          <Sparkles className="w-3 h-3" />
                           <span>NEW</span>
                         </span>
                       )}
                       <span
-                        className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-extrabold uppercase tracking-wider border ${getTagBadgeStyle(
+                        className={`px-3 py-0.5 rounded-full font-display text-xs font-extrabold uppercase tracking-wider border ${getTagBadgeStyle(
                           post
                         )}`}
                       >
@@ -348,11 +348,11 @@ export default function MobileExplorePage() {
                     </button>
                   </div>
 
-                  <h3 className="font-display mt-1 text-sm sm:text-[15px] font-extrabold text-slate-900 leading-snug line-clamp-2">
+                  <h3 className="font-display mt-1.5 text-base sm:text-lg font-black text-slate-900 leading-snug line-clamp-2">
                     {post.title}
                   </h3>
 
-                  <div className="mt-1.5 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+                  <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans">
                     <span className="text-[#094C9C] font-bold">
                       {post.source}
                     </span>

@@ -99,18 +99,18 @@ export default function MobileWorkshopsPage() {
           style={{ animationDelay: "0ms" }}
         >
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight">
               Workshops &amp; Activities
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 font-sans">
               Hands-on labs, scientific sessions &amp; club activities
             </p>
           </div>
           <Link
             href="/checkin"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#062456] to-[#0A3882] text-white text-[11px] font-extrabold shadow-sm hover:shadow-md active:scale-[0.98] transition border border-white/20 shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#062456] to-[#0A3882] text-white text-xs font-extrabold font-display shadow-sm hover:shadow-md active:scale-[0.98] transition border border-white/20 shrink-0"
           >
-            <QrCode className="w-3.5 h-3.5 text-[#38E4FF]" />
+            <QrCode className="w-4 h-4 text-[#38E4FF]" />
             <span>Check-in</span>
           </Link>
         </div>
@@ -127,7 +127,7 @@ export default function MobileWorkshopsPage() {
                 key={tab}
                 type="button"
                 onClick={() => setFilter(tab)}
-                className={`px-4 py-2 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold font-display active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap ${
                   active
                     ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
                     : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
@@ -157,48 +157,48 @@ export default function MobileWorkshopsPage() {
                 className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 p-4 sm:p-5 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer animate-rise"
               >
                 <div className="flex items-start gap-3.5">
-                  <FieldIcon field={ws.iconType} size={28} boxed />
+                  <FieldIcon field={ws.iconType} size={30} boxed />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-sm font-black text-slate-900 leading-snug">
+                      <h2 className="text-base sm:text-lg font-black font-display text-slate-900 leading-snug">
                         {ws.title}
                       </h2>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0 tabular-nums shadow-2xs">
+                      <span className="px-3 py-1 rounded-full text-xs font-black font-mono bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0 tabular-nums shadow-2xs">
                         +{ws.xpReward} XP
                       </span>
                     </div>
 
                     <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${getActivityChipClass(
+                        className={`px-3 py-0.5 rounded-full text-xs font-bold font-display border ${getActivityChipClass(
                           actKind
                         )}`}
                       >
                         {actKind}
                       </span>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getLevelChipClass(
+                        className={`px-3 py-0.5 rounded-full text-xs font-bold font-display border ${getLevelChipClass(
                           ws.level
                         )}`}
                       >
                         {ws.level}
                       </span>
                       {ws.status === "Running" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-700 border border-emerald-300">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold font-display bg-emerald-500/15 text-emerald-700 border border-emerald-300">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                           <span>Live Now</span>
                         </span>
                       )}
                       {isAttended && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-100 text-[#094C9C] border border-sky-200/60">
-                          <CheckCircle2 className="w-3 h-3 text-[#1D63EB]" />
+                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-bold font-display bg-sky-100 text-[#094C9C] border border-sky-200/60">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#1D63EB]" />
                           <span>Attended</span>
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-2.5 space-y-1 text-xs text-slate-600 sm:flex sm:items-center sm:gap-4 sm:space-y-0">
+                    <div className="mt-2.5 space-y-1 text-xs sm:text-sm text-slate-600 sm:flex sm:items-center sm:gap-4 sm:space-y-0 font-sans">
                       <p className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
                         <span>
@@ -212,7 +212,7 @@ export default function MobileWorkshopsPage() {
                     </div>
 
                     <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 tabular-nums">
+                      <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 tabular-nums font-sans">
                         <Users className="w-3.5 h-3.5 text-[#1D63EB]" />
                         {ws.seatsLeft} seats left
                       </span>

@@ -160,8 +160,8 @@ export function BottomNavBar() {
                 {item.icon(item.active)}
               </div>
               <span
-                className={`text-[10.5px] leading-none mt-1 tracking-tight font-display ${
-                  item.active ? "font-bold text-white" : "font-semibold"
+                className={`text-xs leading-none mt-1 tracking-tight font-display ${
+                  item.active ? "font-extrabold text-white" : "font-semibold text-slate-600"
                 }`}
               >
                 {item.label}

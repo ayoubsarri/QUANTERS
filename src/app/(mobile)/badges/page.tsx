@@ -79,19 +79,19 @@ export default function MobileBadgesPage() {
         <div className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] text-white animate-rise">
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-[11px] font-bold text-sky-100 mb-2">
-                <Sparkles className="w-3 h-3 text-[#38E4FF]" />
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold font-display text-sky-100 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#38E4FF]" />
                 <span>Skill Badges &amp; Credentials</span>
               </div>
-              <h1 className="font-display text-xl sm:text-2xl font-black tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white">
                 My Skill Badges
               </h1>
-              <p className="text-xs text-sky-200/90 font-medium mt-0.5">
+              <p className="text-xs sm:text-sm text-sky-200/90 font-medium mt-1 font-sans">
                 {unlockedCount} Unlocked · {lockedCount} Locked · {CATEGORY_PILLS.length - 1} Categories
               </p>
             </div>
-            <div className="shrink-0 w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
-              <PlanetEmblem size={44} />
+            <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
+              <PlanetEmblem size={48} />
             </div>
           </div>
         </div>
@@ -102,15 +102,15 @@ export default function MobileBadgesPage() {
           style={{ animationDelay: "20ms" }}
         >
           <div>
-            <h2 className="text-sm font-extrabold text-slate-800">
+            <h2 className="text-sm sm:text-base font-extrabold font-display text-slate-800">
               Filter Credentials
             </h2>
           </div>
           <Link
             href="/exams"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold border border-white/80 shadow-2xs hover:bg-white active:scale-[0.98] transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold font-display border border-white/80 shadow-2xs hover:bg-white active:scale-[0.98] transition cursor-pointer"
           >
-            <FileCheck2 className="w-3.5 h-3.5" />
+            <FileCheck2 className="w-4 h-4" />
             <span>Exams Hub</span>
           </Link>
         </div>
@@ -127,7 +127,7 @@ export default function MobileBadgesPage() {
                 key={pill.key}
                 type="button"
                 onClick={() => setStatusFilter(pill.key)}
-                className={`px-3.5 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
                   active
                     ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
                     : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
@@ -151,7 +151,7 @@ export default function MobileBadgesPage() {
                 key={cat}
                 type="button"
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
                   active
                     ? "bg-gradient-to-r from-[#062456] to-[#0A3882] text-white border border-transparent shadow-xs"
                     : "bg-white/70 backdrop-blur-md text-[#094C9C] border border-white/80 hover:bg-white"

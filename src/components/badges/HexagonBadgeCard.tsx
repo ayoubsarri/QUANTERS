@@ -125,7 +125,7 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
 
       {/* Badge Title */}
       <span
-        className={`text-[11px] font-bold leading-tight line-clamp-2 min-h-[26px] flex items-center justify-center px-0.5 ${
+        className={`text-xs sm:text-[13px] font-extrabold font-display leading-snug line-clamp-2 min-h-[32px] flex items-center justify-center px-1 ${
           isLocked ? "text-[#94A3B8]" : "text-[#0B2545]"
         }`}
       >
@@ -135,15 +135,15 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
       {/* Bottom Gold XP Pill or Progress */}
       <div className="mt-1.5">
         {isLocked ? (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-semibold bg-[#F1F5F9] text-[#64748B]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-[#F1F5F9] text-[#64748B]">
             +{badge.xpReward} XP
           </span>
         ) : isInProgress ? (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-[#E0F0FF] text-[#1D63EB]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-[#E0F0FF] text-[#1D63EB]">
             {badge.progressPercent}% · +{badge.xpReward} XP
           </span>
         ) : (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-extrabold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black font-mono bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
             +{badge.xpReward} XP
           </span>
         )}

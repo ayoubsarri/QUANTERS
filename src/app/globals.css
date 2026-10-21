@@ -32,46 +32,61 @@ nextjs-portal,
 }
 
 html {
-  /* Fluid root sizing: comfortable reading on 375px phones and crisp scaling on 1440px+ PC */
-  font-size: clamp(15px, 0.25vw + 14.5px, 16.5px);
+  /* Generous root sizing: comfortable, confident reading on phones and crisp scaling on desktop */
+  font-size: clamp(16px, 0.3vw + 15.5px, 17.5px);
 }
 
 html,
 body {
   background-color: var(--bg-canvas);
   color: var(--ink-primary);
+  font-family: var(--font-jakarta), var(--font-outfit), system-ui, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Enforce Space Grotesk Display Hierarchy on Headings */
+/* Enforce Outfit / Syne Display Hierarchy on Headings */
 h1,
 h2,
 h3,
+h4,
 .font-heading {
-  font-family: var(--font-display), var(--font-jakarta), var(--font-arabic), sans-serif;
-  letter-spacing: -0.022em;
+  font-family: var(--font-outfit), var(--font-syne), var(--font-jakarta), sans-serif;
+  letter-spacing: -0.025em;
 }
 
-/* Prevent microscopic text across all devices — enforce readable minimum floors */
+.font-display {
+  font-family: var(--font-outfit), var(--font-jakarta), sans-serif;
+}
+
+.font-syne {
+  font-family: var(--font-syne), var(--font-outfit), sans-serif;
+}
+
+.font-editorial {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+}
+
+/* Prevent microscopic text anywhere — enforce human, comfortable, pro sizing */
 .text-\[8px\],
 .text-\[9px\],
 .text-\[9\.5px\] {
-  font-size: clamp(0.7rem, 0.15vw + 0.68rem, 0.76rem) !important;
-  line-height: 1.35 !important;
+  font-size: 0.8125rem !important; /* 13px */
+  line-height: 1.4 !important;
 }
 
 .text-\[10px\],
 .text-\[10\.5px\] {
-  font-size: clamp(0.74rem, 0.18vw + 0.71rem, 0.8rem) !important;
-  line-height: 1.4 !important;
+  font-size: 0.84375rem !important; /* 13.5px */
+  line-height: 1.45 !important;
 }
 
 .text-\[11px\] {
-  font-size: clamp(0.79rem, 0.2vw + 0.75rem, 0.85rem) !important;
+  font-size: 0.875rem !important; /* 14px */
   line-height: 1.45 !important;
 }
 

@@ -492,10 +492,10 @@ export default function MobileManagerWorkspacePage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h1 className="text-[20px] font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight leading-tight">
               Department Workspace
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-slate-500 font-sans mt-0.5">
               Peer Task Visibility, Scoped Assignment &amp; Operations
             </p>
           </div>
@@ -509,7 +509,7 @@ export default function MobileManagerWorkspacePage() {
                   setScanModalOpen(true);
                 }}
                 title="Organizer Scan Member QR"
-                className="px-2.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#1D63EB] text-[10px] font-extrabold active:scale-[0.98] flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#1D63EB] text-xs font-bold font-display active:scale-[0.98] flex items-center gap-1 shadow-2xs transition cursor-pointer"
               >
                 <QrCode className="w-3.5 h-3.5" />
                 <span>Scan QR</span>
@@ -517,7 +517,7 @@ export default function MobileManagerWorkspacePage() {
             )}
             <Link
               href="/notifications"
-              className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-xs active:scale-[0.98] transition"
+              className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-xs active:scale-[0.98] transition"
             >
               <Bell className="w-4 h-4" />
             </Link>
@@ -525,17 +525,17 @@ export default function MobileManagerWorkspacePage() {
         </div>
 
         {/* Department Operational Clearance & Identity Card */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-4.5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
+        <div className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[10.5px] font-mono font-black uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" />
+            <span className="text-xs font-mono font-black uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5 font-display">
+              <Shield className="w-4 h-4" />
               <span>{roleMode} Clearance</span>
             </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-bold border border-white/20">
+            <span className="px-3 py-1 rounded-full bg-white/15 text-white text-xs font-bold border border-white/20 font-display">
               {currentDept.shortName}
             </span>
           </div>
-          <p className="text-xs text-sky-100/90 font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-sky-100/90 font-medium leading-relaxed font-sans">
             {roleMode === "Dept Manager" || roleMode === "Co-Manager"
               ? `Operational management authority for ${currentDept.name} tasks, member assignments, and check-in rosters.`
               : roleMode === "Team Leader"
@@ -629,36 +629,36 @@ export default function MobileManagerWorkspacePage() {
 
         {/* 4-Column KPI Strip */}
         <div className="grid grid-cols-4 gap-2">
-          <div className="p-2.5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-lg font-black text-slate-900 block leading-tight tabular-nums">
+          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
+            <span className="text-xl sm:text-2xl font-black font-syne text-slate-900 block leading-tight tabular-nums">
               {deptMembers.length}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 leading-tight block mt-0.5">
-              Dept Members
+            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
+              Members
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-lg font-black text-[#1D63EB] block leading-tight tabular-nums">
+          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
+            <span className="text-xl sm:text-2xl font-black font-syne text-[#1D63EB] block leading-tight tabular-nums">
               {activeTasks.length}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 leading-tight block mt-0.5">
-              Active Tasks
+            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
+              Active
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-lg font-black text-indigo-700 block leading-tight tabular-nums">
+          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
+            <span className="text-xl sm:text-2xl font-black font-syne text-indigo-700 block leading-tight tabular-nums">
               {crossDeptTasksForDeptMembers.length}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 leading-tight block mt-0.5">
+            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
               Cross-Dept
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-lg font-black text-emerald-700 block leading-tight tabular-nums">
+          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
+            <span className="text-xl sm:text-2xl font-black font-syne text-emerald-700 block leading-tight tabular-nums">
               {isManagerOrCoManager ? allClubTasks.length : deptTasks.length}
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 leading-tight block mt-0.5">
-              {isManagerOrCoManager ? "All Club Tasks" : "Dept Total"}
+            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
+              {isManagerOrCoManager ? "All Club" : "Total"}
             </span>
           </div>
         </div>

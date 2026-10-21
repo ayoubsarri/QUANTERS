@@ -33,8 +33,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "var(--font-jakarta)", "var(--font-arabic)", "sans-serif"],
-        sans: ["var(--font-jakarta)", "var(--font-arabic)", "system-ui", "sans-serif"],
+        display: ["var(--font-outfit)", "var(--font-display)", "var(--font-jakarta)", "sans-serif"],
+        syne: ["var(--font-syne)", "var(--font-outfit)", "sans-serif"],
+        sans: ["var(--font-jakarta)", "var(--font-outfit)", "system-ui", "sans-serif"],
         serif: ["var(--font-serif)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
         script: ["var(--font-caveat)", "cursive"],
