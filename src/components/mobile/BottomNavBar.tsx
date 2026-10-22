@@ -143,16 +143,16 @@ export function BottomNavBar() {
       aria-label="Primary Mobile Navigation"
       className="fixed bottom-3.5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[500px] z-40 select-none pointer-events-none"
     >
-      {/* Glassify Floating Pill Capsule */}
-      <div className="pointer-events-auto bg-white/85 backdrop-blur-2xl border border-white/80 shadow-[0_12px_36px_rgba(9,25,47,0.12),0_4px_12px_rgba(9,25,47,0.04)] rounded-full p-1.5 flex items-center justify-between">
+      {/* Human-Craft Floating Tab Dock */}
+      <div className="pointer-events-auto bg-white/90 backdrop-blur-2xl border border-white/80 shadow-[0_10px_30px_rgba(9,25,47,0.1),0_2px_8px_rgba(9,25,47,0.04)] rounded-2xl p-1.5 flex items-center justify-between">
         {navItems.map((item) => {
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-full transition-all duration-200 active:scale-95 ${
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 active:scale-95 ${
                 item.active
-                  ? "bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_16px_rgba(29,99,235,0.35)]"
+                  ? "bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_16px_rgba(29,99,235,0.3)]"
                   : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/60"
               }`}
             >

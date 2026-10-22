@@ -171,12 +171,12 @@ export default function MobileHomeHubPage() {
 
           {/* Prestige Alumni Fellowship Honors Card */}
           <div
-            className="rounded-3xl bg-gradient-to-br from-[#061E47] via-[#092B66] to-[#0E3A85] text-white p-5 sm:p-6 border border-white/20 shadow-[0_12px_36px_rgba(6,30,71,0.2)] relative overflow-hidden animate-rise"
+            className="rounded-2xl bg-gradient-to-br from-[#061E47] via-[#092B66] to-[#0E3A85] text-white p-5 sm:p-6 border border-white/20 shadow-[0_12px_36px_rgba(6,30,71,0.2)] relative overflow-hidden animate-rise"
             style={{ animationDelay: "60ms" }}
           >
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
+            <div className="absolute right-0 bottom-0 w-40 h-40 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Honorary Fellowship</span>
               </span>
@@ -196,7 +196,7 @@ export default function MobileHomeHubPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
-              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-amber-300 block leading-tight tabular-nums">
                   3,450 XP
                 </span>
@@ -204,7 +204,7 @@ export default function MobileHomeHubPage() {
                   Lifetime Legacy
                 </span>
               </div>
-              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-white block leading-tight truncate">
                   Former President
                 </span>
@@ -212,7 +212,7 @@ export default function MobileHomeHubPage() {
                   Distinction
                 </span>
               </div>
-              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-[#38E4FF] block leading-tight">
                   Advisory
                 </span>
@@ -228,11 +228,11 @@ export default function MobileHomeHubPage() {
             {/* Module 1: Propose an Alumni Keynote or Workshop */}
             <Link
               href="/proposals"
-              className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition flex items-start justify-between gap-3 group cursor-pointer"
+              className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] transition flex items-start justify-between gap-3 group cursor-pointer"
             >
               <div className="space-y-1.5 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-xs font-black uppercase tracking-wider border border-blue-200/60 font-display">
+                  <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-xs font-black uppercase tracking-wider border border-blue-200/60 font-display">
                     Speaker Series
                   </span>
                   <span className="text-xs font-bold text-slate-400 font-display">Open Channel</span>
@@ -253,9 +253,9 @@ export default function MobileHomeHubPage() {
             <div className="grid grid-cols-2 gap-2.5">
               <Link
                 href="/projects/submit"
-                className="p-4 sm:p-4.5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+                className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
@@ -270,9 +270,9 @@ export default function MobileHomeHubPage() {
 
               <Link
                 href="/workshops"
-                className="p-4 sm:p-4.5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
+                className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
@@ -287,10 +287,10 @@ export default function MobileHomeHubPage() {
             </div>
 
             {/* Module 3: Annual Alumni Gathering VIP Invitation Card */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] space-y-3">
+            <div className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-200 font-display">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-200 font-display">
                     <CalendarCheck2 className="w-3.5 h-3.5 text-amber-700" />
                     <span>Annual Alumni Gala · Nov 2026</span>
                   </span>
@@ -306,7 +306,7 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={() => setRsvpConfirmed((v) => !v)}
-                className={`w-full h-10 rounded-full text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                className={`w-full h-10 rounded-xl text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
                   rsvpConfirmed
                     ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)]"
                     : "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
@@ -361,7 +361,7 @@ export default function MobileHomeHubPage() {
                 </Link>
               </div>
 
-              <div className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] flex items-center justify-between gap-3">
+              <div className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <FieldIcon
                     field={alumniFeaturedWorkshop.iconType}
@@ -370,10 +370,10 @@ export default function MobileHomeHubPage() {
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black bg-amber-50 text-amber-900 border border-amber-200">
+                      <span className="px-2 py-0.5 rounded-md text-[9.5px] font-black bg-amber-50 text-amber-900 border border-amber-200">
                         {alumniFeaturedWorkshop.activityType || "Lab Session"}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
+                      <span className="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
                         {alumniFeaturedWorkshop.level}
                       </span>
                     </div>
@@ -387,7 +387,7 @@ export default function MobileHomeHubPage() {
                 </div>
                 <Link
                   href="/workshops"
-                  className="h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black flex items-center shrink-0 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                  className="h-8.5 px-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black flex items-center shrink-0 active:scale-[0.98] transition cursor-pointer shadow-2xs"
                 >
                   View
                 </Link>
@@ -414,7 +414,7 @@ export default function MobileHomeHubPage() {
               </div>
               <Link
                 href="/explore"
-                className="block rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 overflow-hidden shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-sky-300 active:scale-[0.99] transition"
+                className="block rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 overflow-hidden shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-sky-300 active:scale-[0.99] transition"
               >
                 <div className="relative h-32 w-full">
                   <img
@@ -423,7 +423,7 @@ export default function MobileHomeHubPage() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-                  <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
                     {featuredNews.tagLabel}
                   </span>
                   <div className="absolute bottom-3 left-3 right-3 text-white">
@@ -525,11 +525,11 @@ export default function MobileHomeHubPage() {
 
         {/* Unboxed Architectural Hero Card */}
         <div
-          className="relative rounded-3xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] animate-rise"
+          className="relative rounded-2xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] animate-rise"
           style={{ animationDelay: "60ms" }}
         >
-          <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full bg-[#29D2FF]/20 blur-3xl pointer-events-none" />
-          <div className="absolute -left-8 -bottom-8 w-36 h-36 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
+          <div className="absolute right-0 top-0 w-40 h-40 rounded-full bg-[#29D2FF]/20 blur-3xl pointer-events-none" />
+          <div className="absolute left-0 bottom-0 w-36 h-36 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
 
           <div className="relative z-10">
             {/* Top Row: Unboxed Typographic Rank & Live Status Indicator */}
@@ -600,53 +600,53 @@ export default function MobileHomeHubPage() {
 
         {/* Smart Activity & Progression Strip */}
         <div
-          className="rounded-3xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(9,25,47,0.04)] p-2.5 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
+          className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(9,25,47,0.04)] p-2 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
           style={{ animationDelay: "120ms" }}
         >
           <Link
             href="/badges"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
             <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
               {member.badgeIds.length}
             </span>
-            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
               Badges
             </span>
           </Link>
 
           <Link
             href="/workshops"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
             <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
               {member.workshopsCompletedCount}
             </span>
-            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
               Workshops
             </span>
           </Link>
 
           <Link
             href="/projects/submit"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
             <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
               {member.projectsCompletedCount}
             </span>
-            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
               Projects
             </span>
           </Link>
 
           <Link
             href="/profile"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-2xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
           >
             <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
               {member.xpTotal.toLocaleString()}
             </span>
-            <span className="text-[11px] font-bold font-display uppercase tracking-wider text-slate-500 mt-1.5 group-hover:text-slate-700 transition-colors">
+            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
               Total XP
             </span>
           </Link>
@@ -695,7 +695,7 @@ export default function MobileHomeHubPage() {
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-950 font-extrabold text-[10px] shrink-0">
+              <span className="px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950 font-extrabold text-[10px] shrink-0">
                 Honour Roll
               </span>
             </div>
@@ -720,7 +720,7 @@ export default function MobileHomeHubPage() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-3xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card">
+            <div className="bg-white rounded-2xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3.5">
                   <FieldIcon field={nextWorkshop.iconType} size={28} boxed />
@@ -729,7 +729,7 @@ export default function MobileHomeHubPage() {
                       <h3 className="text-base sm:text-lg font-black font-display text-slate-900">
                         {nextWorkshop.title}
                       </h3>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-[#1D63EB] border border-sky-200 font-display">
+                      <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-[#1D63EB] border border-sky-200 font-display">
                         {nextWorkshop.level}
                       </span>
                     </div>
@@ -748,7 +748,7 @@ export default function MobileHomeHubPage() {
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-black font-mono bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 tabular-nums">
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 tabular-nums">
                   +{nextWorkshop.xpReward} XP
                 </span>
               </div>
@@ -766,18 +766,18 @@ export default function MobileHomeHubPage() {
                       onClick={() =>
                         registerForWorkshop(nextWorkshop.id, member.id)
                       }
-                      className="h-9 px-4 rounded-xl bg-[#1D63EB] text-white text-xs font-black font-display hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                      className="h-8.5 px-3.5 rounded-lg bg-[#1D63EB] text-white text-xs font-black font-display hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer shadow-2xs"
                     >
                       Join
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200/80">
                       <Check className="w-4 h-4" /> Registered
                     </span>
                   )}
                   <Link
                     href="/checkin"
-                    className="h-9 px-4 rounded-xl bg-[#061E47] text-white text-xs font-black font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 shadow-2xs"
+                    className="h-8.5 px-3.5 rounded-lg bg-[#061E47] text-white text-xs font-black font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 shadow-2xs"
                   >
                     <QrCode className="w-4 h-4 text-[#38E4FF]" />
                     <span>Check-in</span>
@@ -796,10 +796,10 @@ export default function MobileHomeHubPage() {
           {/* Primary Action Banner: Scan QR */}
           <Link
             href="/checkin"
-            className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white flex items-center justify-between shadow-sm hover:shadow-md active:scale-[0.98] transition group cursor-pointer"
+            className="w-full p-3.5 rounded-xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white flex items-center justify-between shadow-sm hover:shadow-md active:scale-[0.98] transition group cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-lg bg-white/15 backdrop-blur-md flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
                 <QrCode className="w-5 h-5 text-[#38E4FF]" />
               </div>
               <div className="text-left">
@@ -811,7 +811,7 @@ export default function MobileHomeHubPage() {
                 </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/15 text-xs font-black font-display text-white group-hover:bg-white/25 transition shrink-0">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/15 text-xs font-black font-display text-white group-hover:bg-white/25 transition shrink-0">
               <span>Scan QR</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#38E4FF]" />
             </span>
@@ -821,7 +821,7 @@ export default function MobileHomeHubPage() {
           <div className="grid grid-cols-3 gap-2">
             <Link
               href="/exams"
-              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
             >
               <FileCheck2 className="w-5 h-5 text-[#1D63EB] mb-2 group-hover:scale-105 transition-transform" />
               <div>
@@ -836,7 +836,7 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/projects/submit"
-              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
             >
               <FolderGit2 className="w-5 h-5 text-amber-600 mb-2 group-hover:scale-105 transition-transform" />
               <div>
@@ -851,7 +851,7 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/proposals"
-              className="p-3 rounded-2xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
             >
               <Lightbulb className="w-5 h-5 text-emerald-600 mb-2 group-hover:scale-105 transition-transform" />
               <div>
@@ -868,7 +868,7 @@ export default function MobileHomeHubPage() {
 
         {/* My Assigned Tasks Card with Active | Done & History Segmented Pill Toggle */}
         <div
-          className="bg-white rounded-3xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card animate-rise"
+          className="bg-white rounded-2xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card animate-rise"
           style={{ animationDelay: "360ms" }}
         >
           <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
@@ -877,12 +877,12 @@ export default function MobileHomeHubPage() {
               <span>My Assigned Tasks</span>
             </h2>
 
-            {/* Segmented Pill Toggle: Active (N) | Done & History (M) */}
-            <div className="inline-flex items-center p-0.5 rounded-full bg-[#F4F7FB] border border-[#E2EDF8]">
+            {/* Segmented Toggle: Active (N) | Done & History (M) */}
+            <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F4F7FB] border border-[#E2EDF8]">
               <button
                 type="button"
                 onClick={() => setTaskTab("active")}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "active"
                     ? "bg-[#1D63EB] text-white shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -893,7 +893,7 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={() => setTaskTab("done")}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
+                className={`px-3 py-1 rounded-md text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "done"
                     ? "bg-[#061E47] text-white shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
@@ -914,7 +914,7 @@ export default function MobileHomeHubPage() {
                 return (
                   <div
                     key={task.id}
-                    className="p-3.5 rounded-2xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2.5"
+                    className="p-3.5 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -931,7 +931,7 @@ export default function MobileHomeHubPage() {
                           </span>
                         </p>
                       </div>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-black font-mono bg-emerald-100 text-emerald-800 shrink-0 tabular-nums">
+                      <span className="px-2 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-100 text-emerald-800 shrink-0 tabular-nums">
                         +{line.proposedScore} XP
                       </span>
                     </div>
@@ -1016,7 +1016,7 @@ export default function MobileHomeHubPage() {
                             {task.category} · {line.roleInTask}
                           </span>
                           {line.scoreType && (
-                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-200">
                               {line.scoreType} Score
                             </span>
                           )}
@@ -1025,7 +1025,7 @@ export default function MobileHomeHubPage() {
                           {task.title}
                         </h3>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shrink-0 tabular-nums">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-600 text-white shrink-0 tabular-nums">
                         +{xpAwarded} XP
                       </span>
                     </div>
@@ -1117,8 +1117,13 @@ export default function MobileHomeHubPage() {
 
       {/* 1-Tap Deliver Task Proof Modal */}
       {deliverModalTaskId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4">
-          <div className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4 pb-16 sm:pb-4">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise"
+          >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-extrabold text-slate-900">
                 Deliver Task Proof

@@ -344,7 +344,7 @@ export default function OnboardingWizardPage() {
 
         {/* Step Title Banner */}
         <div
-          className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 mb-4 flex items-center justify-between animate-rise"
+          className="rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 mb-4 flex items-center justify-between animate-rise"
           style={{ animationDelay: "80ms" }}
         >
           <div>
@@ -356,14 +356,14 @@ export default function OnboardingWizardPage() {
               {step}. {currentMeta.title}
             </h1>
           </div>
-          <div className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[#38E4FF] shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#38E4FF] shrink-0">
             <StepIcon className="w-5 h-5" />
           </div>
         </div>
 
         {/* Step Body Card */}
         <div
-          className="flex-1 bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 p-5 sm:p-6 shadow-[0_8px_32px_rgba(9,25,47,0.06)] flex flex-col justify-between animate-rise"
+          className="flex-1 bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-5 sm:p-6 shadow-[0_8px_32px_rgba(9,25,47,0.06)] flex flex-col justify-between animate-rise"
           style={{ animationDelay: "120ms" }}
         >
           {/* STEP 1: Identity & Avatar */}

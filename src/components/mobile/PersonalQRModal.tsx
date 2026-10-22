@@ -23,8 +23,13 @@ export function PersonalQRModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-[360px] rounded-[28px] bg-hero-cobalt text-white p-6 shadow-2xl border border-cyan-400/30 flex flex-col items-center text-center overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 pb-16 sm:pb-4">
+      <div
+        data-modal="true"
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-[360px] rounded-2xl bg-hero-cobalt text-white p-6 shadow-2xl border border-cyan-400/30 flex flex-col items-center text-center overflow-hidden"
+      >
         <button
           type="button"
           onClick={onClose}
@@ -52,7 +57,7 @@ export function PersonalQRModal({
         <h3 className="mt-2.5 text-lg font-extrabold">{member.fullName}</h3>
         <p className="text-xs font-mono text-cyan-300">{member.quanterId}</p>
 
-        <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-bold">
+        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-bold">
           <Shield className="w-3 h-3" /> {member.status.toUpperCase()} MEMBER
         </div>
 

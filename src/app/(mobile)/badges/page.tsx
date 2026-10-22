@@ -76,10 +76,10 @@ export default function MobileBadgesPage() {
     <MobileAppShell>
       <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
         {/* Top Glassify Summary Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] text-white animate-rise">
+        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] text-white animate-rise">
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold font-display text-sky-100 mb-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold font-display text-sky-100 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#38E4FF]" />
                 <span>Skill Badges &amp; Credentials</span>
               </div>
@@ -90,7 +90,7 @@ export default function MobileBadgesPage() {
                 {unlockedCount} Unlocked · {lockedCount} Locked · {CATEGORY_PILLS.length - 1} Categories
               </p>
             </div>
-            <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
+            <div className="shrink-0 w-16 h-16 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
               <PlanetEmblem size={48} />
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function MobileBadgesPage() {
 
         {/* Hexagonal Badge Grid Container */}
         <div
-          className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 p-4 sm:p-5 shadow-[0_6px_24px_rgba(9,25,47,0.05)] animate-rise"
+          className="bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-4 sm:p-5 shadow-[0_4px_18px_rgba(9,25,47,0.04)] animate-rise"
           style={{ animationDelay: "80ms" }}
         >
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-y-4 gap-x-2">
@@ -188,8 +188,13 @@ export default function MobileBadgesPage() {
 
       {/* Badge Detail Sheet */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[420px] rounded-t-3xl sm:rounded-3xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise"
+          >
             <div className="bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 relative flex items-center gap-4 border-b border-white/10">
               <button
                 type="button"
@@ -199,12 +204,12 @@ export default function MobileBadgesPage() {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-white/10 rounded-2xl p-1.5 border border-white/15 shrink-0">
+              <div className="bg-white/10 rounded-xl p-1.5 border border-white/15 shrink-0">
                 <HexagonBadgeCard badge={selectedBadge} />
               </div>
 
               <div className="min-w-0 pr-6">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#38E4FF] text-[#061E47] uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-extrabold bg-[#38E4FF] text-[#061E47] uppercase tracking-wider">
                   {selectedBadge.category}
                 </span>
                 <h2 className="mt-1.5 text-lg font-black leading-tight">

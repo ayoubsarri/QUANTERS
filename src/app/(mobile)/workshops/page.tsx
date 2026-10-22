@@ -154,7 +154,7 @@ export default function MobileWorkshopsPage() {
                 key={ws.id}
                 onClick={() => setSelectedWorkshopId(ws.id)}
                 style={{ animationDelay: `${60 + idx * 45}ms` }}
-                className="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 p-4 sm:p-5 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer animate-rise"
+                className="bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-4 sm:p-5 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer animate-rise"
               >
                 <div className="flex items-start gap-3.5">
                   <FieldIcon field={ws.iconType} size={30} boxed />
@@ -164,14 +164,14 @@ export default function MobileWorkshopsPage() {
                       <h2 className="text-base sm:text-lg font-black font-display text-slate-900 leading-snug">
                         {ws.title}
                       </h2>
-                      <span className="px-3 py-1 rounded-full text-xs font-black font-mono bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0 tabular-nums shadow-2xs">
+                      <span className="px-2.5 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0 tabular-nums shadow-2xs">
                         +{ws.xpReward} XP
                       </span>
                     </div>
 
                     <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                       <span
-                        className={`px-3 py-0.5 rounded-full text-xs font-bold font-display border ${getActivityChipClass(
+                        className={`px-2.5 py-0.5 rounded-md text-xs font-bold font-display border ${getActivityChipClass(
                           actKind
                         )}`}
                       >
@@ -249,8 +249,13 @@ export default function MobileWorkshopsPage() {
 
       {/* Workshop Detail Modal */}
       {activeWorkshop && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[440px] max-h-[86vh] rounded-t-3xl sm:rounded-3xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[440px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise"
+          >
             <div className="bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 relative border-b border-white/10">
               <button
                 type="button"
@@ -264,13 +269,13 @@ export default function MobileWorkshopsPage() {
                 <FieldIcon field={activeWorkshop.iconType} size={30} boxed />
                 <div className="pr-6">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/15 text-sky-100 border border-white/20">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-white/15 text-sky-100 border border-white/20">
                       {resolveActivityType(activeWorkshop)}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#38E4FF] text-[#061E47]">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#38E4FF] text-[#061E47]">
                       {activeWorkshop.level}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                       +{activeWorkshop.xpReward} XP
                     </span>
                   </div>

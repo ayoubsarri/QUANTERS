@@ -374,7 +374,7 @@ export default function ProposalsPage() {
 
         {/* Submission Success Toast Banner */}
         {submittedBanner && (
-          <div className="mb-4 p-4 rounded-3xl bg-emerald-50/90 backdrop-blur-md border border-emerald-200/90 flex items-start justify-between gap-2.5 animate-rise shadow-2xs">
+          <div className="mb-4 p-4 rounded-xl bg-emerald-50/90 backdrop-blur-md border border-emerald-200/90 flex items-start justify-between gap-2.5 animate-rise shadow-2xs">
             <div className="flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
@@ -436,14 +436,14 @@ export default function ProposalsPage() {
                       key={item.key}
                       type="button"
                       onClick={() => setSelectedType(item.key)}
-                      className={`relative flex flex-col items-center justify-center p-3.5 rounded-3xl border text-center transition-all active:scale-[0.98] min-h-[92px] cursor-pointer ${
+                      className={`relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all active:scale-[0.98] min-h-[88px] cursor-pointer ${
                         active
-                          ? "bg-white/95 border-[#1D63EB] ring-2 ring-[#1D63EB]/20 shadow-[0_6px_20px_rgba(29,99,235,0.12)]"
+                          ? "bg-white/95 border-[#1D63EB] ring-2 ring-[#1D63EB]/20 shadow-[0_4px_16px_rgba(29,99,235,0.1)]"
                           : "bg-white/80 backdrop-blur-md border-white/80 hover:bg-white hover:border-slate-300 shadow-2xs"
                       }`}
                     >
                       <div
-                        className={`w-9 h-9 rounded-2xl flex items-center justify-center mb-1.5 ${
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
                           active
                             ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-xs"
                             : `${item.accentBg} ${item.accentText}`
@@ -561,7 +561,7 @@ export default function ProposalsPage() {
             )}
 
             {/* Dynamic Type-Specific Fields */}
-            <div className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 space-y-3.5 shadow-[0_6px_24px_rgba(9,25,47,0.05)]">
+            <div className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 space-y-3.5 shadow-[0_4px_18px_rgba(9,25,47,0.04)]">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#1D63EB]" />
@@ -905,7 +905,7 @@ export default function ProposalsPage() {
         {(mode === "mine" || mode === "history") && (
           <div className="space-y-3 animate-rise">
             {(mode === "mine" ? myProposals : historyProposals).length === 0 ? (
-              <div className="p-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 text-center shadow-2xs">
+              <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center shadow-2xs">
                 <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                 <p className="text-sm font-black text-slate-800">
                   No proposals found
@@ -921,15 +921,15 @@ export default function ProposalsPage() {
                   <div
                     key={prop.id}
                     onClick={() => setActiveProposalDetail(prop)}
-                    className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer space-y-2.5"
+                    className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer space-y-2.5"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold border border-slate-200/60">
+                        <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-extrabold border border-slate-200/60">
                           {prop.type}
                         </span>
                         {prop.type === "Internal Law Amendment" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
                             <Scale className="w-3 h-3" />
                             <span>Requires 2/3 Exec</span>
                           </span>
@@ -980,8 +980,13 @@ export default function ProposalsPage() {
 
       {/* Proposal Detail Modal */}
       {activeProposalDetail && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-white/80 space-y-4 max-h-[85vh] overflow-y-auto animate-rise">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl rounded-2xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise"
+          >
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="flex items-center gap-1.5 flex-wrap">

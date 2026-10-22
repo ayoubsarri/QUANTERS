@@ -525,13 +525,13 @@ export default function MobileManagerWorkspacePage() {
         </div>
 
         {/* Department Operational Clearance & Identity Card */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
+        <div className="rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-mono font-black uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5 font-display">
               <Shield className="w-4 h-4" />
               <span>{roleMode} Clearance</span>
             </span>
-            <span className="px-3 py-1 rounded-full bg-white/15 text-white text-xs font-bold border border-white/20 font-display">
+            <span className="px-2.5 py-0.5 rounded-md bg-white/15 text-white text-xs font-bold border border-white/20 font-display">
               {currentDept.shortName}
             </span>
           </div>
@@ -837,7 +837,7 @@ export default function MobileManagerWorkspacePage() {
 
             <div className="space-y-3">
               {displayedTasks.length === 0 ? (
-                <div className="p-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-[0_4px_20px_rgba(9,25,47,0.03)]">
+                <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-[0_4px_18px_rgba(9,25,47,0.03)]">
                   <p className="text-xs font-bold text-slate-700">
                     {taskViewTab === "active"
                       ? "No active tasks in this view"
@@ -864,9 +864,9 @@ export default function MobileManagerWorkspacePage() {
                     <div
                       key={task.id}
                       onClick={() => openTaskScoringModal(task)}
-                      className={`p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] transition space-y-3 ${
+                      className={`p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] transition space-y-3 ${
                         canAssignTasks
-                          ? "hover:border-blue-300 hover:shadow-[0_8px_28px_rgba(29,99,235,0.08)] active:scale-[0.99] cursor-pointer"
+                          ? "hover:border-blue-300 hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] cursor-pointer"
                           : ""
                       }`}
                     >
@@ -1036,7 +1036,7 @@ export default function MobileManagerWorkspacePage() {
                 return (
                   <div
                     key={mem.id}
-                    className="p-3.5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] flex items-center justify-between gap-3"
+                    className="p-3.5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <img
@@ -1049,7 +1049,7 @@ export default function MobileManagerWorkspacePage() {
                           <p className="text-xs font-extrabold text-slate-900 truncate">
                             {mem.fullName}
                           </p>
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
                             {mem.status}
                           </span>
                         </div>
@@ -1064,7 +1064,7 @@ export default function MobileManagerWorkspacePage() {
                       <button
                         type="button"
                         onClick={() => setQuickMessageTarget(mem)}
-                        className="w-9 h-9 rounded-full bg-white/90 border border-slate-200/80 text-[#1D63EB] hover:bg-blue-50 active:scale-[0.98] flex items-center justify-center transition cursor-pointer shadow-2xs"
+                        className="w-9 h-9 rounded-lg bg-white/90 border border-slate-200/80 text-[#1D63EB] hover:bg-blue-50 active:scale-[0.98] flex items-center justify-center transition cursor-pointer shadow-2xs"
                         title={`Message ${mem.fullName}`}
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -1094,7 +1094,7 @@ export default function MobileManagerWorkspacePage() {
                 return (
                   <div
                     key={team.id}
-                    className="p-4 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] space-y-2"
+                    className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] space-y-2"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -1128,14 +1128,17 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 1: QUICK TASK VALIDATION & SCORING */}
       {activeTaskModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <form
             onSubmit={handleValidateTaskSubmit}
-            className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
+                <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
                   Quick Task Validation
                 </span>
                 <h3 className="text-base font-extrabold text-slate-900 mt-1">
@@ -1225,14 +1228,17 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 2: ASSIGN DEPARTMENT OR SCIENTIFIC TEAM TASK */}
       {createTaskOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <form
             onSubmit={handleCreateTaskSubmit}
-            className="w-full max-w-[440px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[440px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
                   <Lock className="w-3 h-3" />
                   <span>
                     {isTeamLeader
@@ -1409,10 +1415,13 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 3: QUICK MESSAGE TO DEPARTMENT MEMBER */}
       {quickMessageTarget && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <form
             onSubmit={handleSendQuickMessage}
-            className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -1437,12 +1446,12 @@ export default function MobileManagerWorkspacePage() {
               value={quickMsgText}
               onChange={(e) => setQuickMsgText(e.target.value)}
               placeholder={`Write an in-app note to ${quickMessageTarget.fullName}...`}
-              className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 resize-none focus:bg-white focus:border-[#1D63EB] transition-all"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 resize-none focus:bg-white focus:border-[#1D63EB] transition-all"
             />
 
             <button
               type="submit"
-              className="w-full py-3 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white font-black text-xs active:scale-[0.98] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white font-black text-xs active:scale-[0.98] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Send Direct Notification</span>
@@ -1453,11 +1462,16 @@ export default function MobileManagerWorkspacePage() {
 
       {/* MODAL 4: ORGANIZER SCAN MEMBER QR */}
       {scanModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl border border-white/80 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
+                <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
                   Organizer QR Scanner
                 </span>
                 <h3 className="text-base font-extrabold text-slate-900 mt-0.5">

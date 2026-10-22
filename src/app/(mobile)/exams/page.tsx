@@ -94,7 +94,7 @@ export default function ExamsHubPage() {
         </div>
 
         {/* Top Summary Strip */}
-        <div className="p-4 rounded-3xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white border border-white/20 shadow-[0_12px_36px_rgba(6,36,86,0.18)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white border border-white/20 shadow-[0_12px_36px_rgba(6,36,86,0.18)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
           <span className="inline-flex items-center gap-1.5">
             <ClipboardList className="w-4 h-4 text-[#38E4FF] shrink-0" />
             <span>{exams.length} Available Exams</span>
@@ -159,7 +159,7 @@ export default function ExamsHubPage() {
         {/* Exam Cards List */}
         <div className="space-y-3.5">
           {filteredExams.length === 0 ? (
-            <div className="p-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-2xs">
+            <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-2xs">
               <p className="text-sm font-black text-slate-800">
                 No matching skill exams found
               </p>
@@ -177,7 +177,7 @@ export default function ExamsHubPage() {
               return (
                 <div
                   key={exam.id}
-                  className="p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/40 hover:bg-white/95 transition-all space-y-3.5"
+                  className="p-4 sm:p-5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 transition-all space-y-3.5"
                 >
                   {/* Top Row: Icon + Title + Status & Pills */}
                   <div className="flex items-start gap-3.5">

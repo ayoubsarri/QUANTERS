@@ -200,7 +200,7 @@ export default function MobileExplorePage() {
             <button
               type="button"
               onClick={() => setActiveArticle(heroPost)}
-              className="relative w-full h-[220px] sm:h-[260px] rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(6,25,75,0.18)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-white/30"
+              className="relative w-full h-[220px] sm:h-[260px] rounded-2xl overflow-hidden shadow-[0_12px_36px_rgba(6,25,75,0.18)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-white/30"
             >
               <img
                 src={heroPost.imageUrl}
@@ -212,11 +212,11 @@ export default function MobileExplorePage() {
               {/* Top Tag Pill */}
               <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm flex items-center gap-1 font-display">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm flex items-center gap-1 font-display">
                     <AlertCircle className="w-3.5 h-3.5" />
                     <span>IMPORTANT</span>
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm font-display">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm font-display">
                     {heroPost.tagLabel}
                   </span>
                 </div>
@@ -289,19 +289,19 @@ export default function MobileExplorePage() {
                 key={post.id}
                 onClick={() => setActiveArticle(post)}
                 style={{ animationDelay: `${100 + idx * 40}ms` }}
-                className={`bg-white/85 backdrop-blur-xl rounded-3xl border p-4 shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/50 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
+                className={`bg-white/85 backdrop-blur-xl rounded-xl border p-4 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/50 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
                   isTopPriority
                     ? "border-[#1D63EB]/45 ring-2 ring-[#1D63EB]/15"
                     : "border-white/80"
                 }`}
               >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shrink-0 bg-slate-100/80 border border-white/80 shadow-inner">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100/80 border border-white/80 shadow-inner">
                   <img
                     src={post.imageUrl}
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-slate-950/80 text-[#FFE500] font-mono text-[10px] font-extrabold backdrop-blur-xs">
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/80 text-[#FFE500] font-mono text-[10px] font-extrabold backdrop-blur-xs">
                     0{idx + 1}
                   </span>
                 </div>
@@ -369,16 +369,16 @@ export default function MobileExplorePage() {
 
         {/* Redesigned Scientific Fact Check Comparison Card */}
         <div
-          className="rounded-3xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_12px_36px_rgba(9,25,47,0.06)] overflow-hidden animate-rise"
+          className="rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] overflow-hidden animate-rise"
           style={{ animationDelay: "160ms" }}
         >
           {/* Header Bar */}
           <div className="px-4 py-3.5 bg-gradient-to-r from-[#062456] via-[#0A3882] to-[#1258C7] text-white flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 rounded-full bg-[#38E4FF]/20 border border-[#38E4FF]/40 text-[#38E4FF] font-mono text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-xs">
+              <span className="px-2.5 py-0.5 rounded-md bg-[#38E4FF]/20 border border-[#38E4FF]/40 text-[#38E4FF] font-mono text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-xs">
                 SCIENCE FACT CHECK
               </span>
-              <span className="px-3 py-1 rounded-full bg-white/15 border border-white/20 font-mono text-[10px] font-bold text-sky-100 backdrop-blur-xs">
+              <span className="px-2.5 py-0.5 rounded-md bg-white/15 border border-white/20 font-mono text-[10px] font-bold text-sky-100 backdrop-blur-xs">
                 {activeMyth.topic}
               </span>
             </div>
@@ -472,9 +472,14 @@ export default function MobileExplorePage() {
 
       {/* Article Reader Modal with 01/02/03 Stepped Breakdown */}
       {activeArticle && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[480px] max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise">
-            <div className="relative h-52 w-full shrink-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[480px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise"
+          >
+            <div className="relative h-48 w-full shrink-0">
               <img
                 src={activeArticle.imageUrl}
                 alt={activeArticle.title}
@@ -488,7 +493,7 @@ export default function MobileExplorePage() {
               >
                 <X className="w-4 h-4" />
               </button>
-              <span className="absolute bottom-3.5 left-4 px-3 py-1 rounded-full font-mono text-[10px] font-extrabold uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm">
+              <span className="absolute bottom-3.5 left-4 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-extrabold uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm">
                 {activeArticle.tagLabel} · {activeArticle.category}
               </span>
             </div>

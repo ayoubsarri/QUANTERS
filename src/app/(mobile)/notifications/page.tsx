@@ -249,7 +249,7 @@ export default function NotificationsPage() {
         {/* Messages List */}
         <div className="space-y-3">
           {filteredMessages.length === 0 ? (
-            <div className="p-8 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-2.5 shadow-2xs">
+            <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-2.5 shadow-2xs">
               {activeTab === "Inbox" ? (
                 <>
                   <Inbox className="w-10 h-10 text-emerald-500 mx-auto" />
@@ -288,7 +288,7 @@ export default function NotificationsPage() {
                 <div
                   key={msg.id}
                   onClick={() => handleOpenMessage(msg)}
-                  className={`p-4 rounded-3xl bg-white/85 backdrop-blur-xl border active:scale-[0.99] transition-all cursor-pointer shadow-[0_6px_24px_rgba(9,25,47,0.05)] hover:border-[#1D63EB]/40 hover:bg-white/95 ${
+                  className={`p-4 rounded-xl bg-white/85 backdrop-blur-xl border active:scale-[0.99] transition-all cursor-pointer shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 ${
                     msg.unread && !msg.archived
                       ? "border-[#1D63EB]/50 ring-2 ring-[#1D63EB]/10"
                       : "border-white/80"
@@ -369,8 +369,13 @@ export default function NotificationsPage() {
 
       {/* Detail Bottom Sheet Modal */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-12 sm:pb-4">
-          <div className="w-full max-w-[420px] bg-white/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl rounded-2xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 {renderSenderIcon(selectedMessage)}
@@ -386,7 +391,7 @@ export default function NotificationsPage() {
                         color:
                           PRIORITY_BADGE_STYLES[selectedMessage.priority].text,
                       }}
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      className="px-2 py-0.5 rounded-md text-[10px] font-bold"
                     >
                       {selectedMessage.priority}
                     </span>

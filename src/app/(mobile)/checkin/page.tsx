@@ -114,7 +114,7 @@ export default function WorkshopCheckInScannerPage() {
           className="my-4 flex flex-col items-center animate-rise"
           style={{ animationDelay: "60ms" }}
         >
-          <div className="relative w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] rounded-3xl bg-slate-950/70 border border-white/15 shadow-[0_0_40px_rgba(41,210,255,0.25)] flex flex-col items-center justify-center overflow-hidden">
+          <div className="relative w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] rounded-2xl bg-slate-950/70 border border-white/15 shadow-[0_0_40px_rgba(41,210,255,0.25)] flex flex-col items-center justify-center overflow-hidden">
             {/* Cyan Corner Brackets (#29D2FF) */}
             <div className="absolute top-4 left-4 w-7 h-7 border-t-[3.5px] border-l-[3.5px] border-[#29D2FF] rounded-tl-xl" />
             <div className="absolute top-4 right-4 w-7 h-7 border-t-[3.5px] border-r-[3.5px] border-[#29D2FF] rounded-tr-xl" />
