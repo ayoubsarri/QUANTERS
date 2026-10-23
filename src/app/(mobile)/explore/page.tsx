@@ -588,10 +588,14 @@ export default function MobileExplorePage() {
                 {activeArticle.externalUrl ? (
                   <div className="flex items-center gap-2">
                     <a
-                      href={activeArticle.externalUrl}
+                      href={
+                        /^https?:\/\//i.test(activeArticle.externalUrl.trim())
+                          ? activeArticle.externalUrl.trim()
+                          : "https://quanta-algiers.dz"
+                      }
                       target="_blank"
-                      rel="noreferrer"
-                      className="h-10 px-4 rounded-full bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"
+                      rel="noopener noreferrer"
+                      className="h-10 px-4 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"
                     >
                       <span>Open Source</span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -599,7 +603,7 @@ export default function MobileExplorePage() {
                     <button
                       type="button"
                       onClick={() => setActiveArticle(null)}
-                      className="h-10 px-5 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+                      className="h-10 px-5 rounded-lg bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
                     >
                       Done Reading
                     </button>

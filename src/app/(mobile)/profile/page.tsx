@@ -588,9 +588,13 @@ export default function MobileProfilePage() {
           {/* Clickable Digital Links Chips */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <a
-              href={member.githubUrl || "https://github.com/ayoub-sarri-quanta"}
+              href={
+                member.githubUrl && /^https?:\/\//i.test(member.githubUrl.trim())
+                  ? member.githubUrl.trim()
+                  : "https://github.com/ayoub-sarri-quanta"
+              }
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10.5px] font-extrabold hover:bg-slate-800 active:scale-[0.98] transition"
             >
               <FolderGit2 className="w-3 h-3 text-[#38E4FF]" />
@@ -599,9 +603,13 @@ export default function MobileProfilePage() {
             </a>
 
             <a
-              href={member.linkedinUrl || "https://linkedin.com/in/ayoub-sarri"}
+              href={
+                member.linkedinUrl && /^https?:\/\//i.test(member.linkedinUrl.trim())
+                  ? member.linkedinUrl.trim()
+                  : "https://linkedin.com/in/ayoub-sarri"
+              }
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#0A66C2] text-white text-[10.5px] font-extrabold hover:opacity-95 active:scale-[0.98] transition"
             >
               <Linkedin className="w-3 h-3" />
@@ -611,10 +619,12 @@ export default function MobileProfilePage() {
 
             <a
               href={
-                member.portfolioUrl || "https://quanta-algiers.dz/members/ayoub"
+                member.portfolioUrl && /^https?:\/\//i.test(member.portfolioUrl.trim())
+                  ? member.portfolioUrl.trim()
+                  : "https://quanta-algiers.dz/members/ayoub"
               }
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#EBF3FC] text-[#094C9C] border border-[#E2EDF8] text-[10.5px] font-extrabold hover:bg-sky-100 active:scale-[0.98] transition"
             >
               <Globe className="w-3 h-3 text-[#1D63EB]" />

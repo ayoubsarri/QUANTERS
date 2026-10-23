@@ -151,11 +151,69 @@ export function readErpDatabase(): {
   };
 }
 
+const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
+  "departments",
+  "teams",
+  "members",
+  "workshops",
+  "tasks",
+  "pointRules",
+  "ledger",
+  "badges",
+  "exams",
+  "projectSubmissions",
+  "proposals",
+  "explorePosts",
+  "messages",
+  "invitations",
+  "accessGrants",
+  "auditLogs",
+];
+
 export function writeErpDatabase(partial: Partial<ErpDatabaseSnapshot>): ErpDatabaseSnapshot {
   const current = readErpDatabase().snapshot;
+  const sanitized: Partial<ErpDatabaseSnapshot> = {};
+
+  if (partial && typeof partial === "object" && !Array.isArray(partial)) {
+    for (const key of ALLOWED_ARRAY_KEYS) {
+      const incoming = partial[key];
+      if (Array.isArray(incoming)) {
+        if (key === "auditLogs") {
+          // Immutable Audit Log Guarantee: preserve all existing server audit logs and append new ones
+          const existingIds = new Set(current.auditLogs.map((a) => a.id));
+          const newEntries = (incoming as typeof current.auditLogs).filter(
+            (a) => a && typeof a === "object" && typeof a.id === "string" && !existingIds.has(a.id)
+          );
+          sanitized.auditLogs = [...newEntries, ...current.auditLogs];
+        } else {
+          (sanitized as Record<string, unknown>)[key] = incoming;
+        }
+      }
+    }
+
+    if (
+      partial.settings &&
+      typeof partial.settings === "object" &&
+      !Array.isArray(partial.settings)
+    ) {
+      const nextSettings = { ...current.settings };
+      for (const [sKey, sVal] of Object.entries(partial.settings)) {
+        if (
+          sKey !== "__proto__" &&
+          sKey !== "constructor" &&
+          sKey !== "prototype" &&
+          Object.prototype.hasOwnProperty.call(current.settings, sKey)
+        ) {
+          (nextSettings as Record<string, unknown>)[sKey] = sVal;
+        }
+      }
+      sanitized.settings = nextSettings;
+    }
+  }
+
   const next: ErpDatabaseSnapshot = {
     ...current,
-    ...partial,
+    ...sanitized,
     version: "3.0.0",
     updatedAt: new Date().toISOString(),
   };

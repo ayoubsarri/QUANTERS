@@ -397,17 +397,27 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   setMobileFrameMode: (mode) => set({ mobileFrameMode: mode }),
   triggerCelebration: (payload) => set({ celebration: payload }),
 
-  loginWithEmail: (email, _password) => {
+  loginWithEmail: (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      return { ok: false, redirectPath: "/login", message: "Please enter your email address." };
+      return { ok: false, redirectPath: "/login", message: "Please enter your email or Quanter ID." };
     }
+    if (password !== undefined && password.trim() !== "quanta2026") {
+      return {
+        ok: false,
+        redirectPath: "/login",
+        message: "Invalid password. Please check your credentials and try again.",
+      };
+    }
+
     const state = get();
     const existing = state.members.find(
       (m) =>
         m.email.toLowerCase() === cleanEmail ||
         m.handle.toLowerCase() === cleanEmail ||
-        m.quanterId.toLowerCase() === cleanEmail
+        m.handle.replace("@", "").toLowerCase() === cleanEmail ||
+        m.quanterId.toLowerCase() === cleanEmail ||
+        m.fullName.toLowerCase() === cleanEmail
     );
 
     if (existing) {
@@ -420,7 +430,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { ok: true, redirectPath, member: existing };
     }
 
-    if (cleanEmail.includes("admin") || cleanEmail.includes("president")) {
+    if (cleanEmail === "admin@univ-alger.dz" || cleanEmail === "president@univ-alger.dz") {
       const adminMember = state.members.find((m) => m.id === "mem-lotfi") || state.members[0];
       set({
         isAuthenticated: true,
@@ -430,7 +440,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { ok: true, redirectPath: "/admin/overview", member: adminMember };
     }
 
-    if (cleanEmail.includes("hr")) {
+    if (cleanEmail === "hr@univ-alger.dz") {
       const hrMember = state.members.find((m) => m.id === "mem-yasmine") || state.members[0];
       set({
         isAuthenticated: true,
@@ -440,7 +450,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { ok: true, redirectPath: "/admin/overview", member: hrMember };
     }
 
-    if (cleanEmail.includes("alumni")) {
+    if (cleanEmail === "alumni@univ-alger.dz") {
       const alumniMember = state.members.find((m) => m.id === "mem-alumni-1") || state.members[0];
       set({
         isAuthenticated: true,
@@ -450,7 +460,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { ok: true, redirectPath: "/home", member: alumniMember };
     }
 
-    return get().loginWithGoogle(cleanEmail);
+    return {
+      ok: false,
+      redirectPath: "/login",
+      message: "No member account found for this email or Quanter ID.",
+    };
   },
 
   loginWithGoogle: (email, fullName, avatarUrl) => {

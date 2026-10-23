@@ -650,36 +650,52 @@ export default function AdminMemberDetailCardPage() {
                   Professional Links:
                 </span>
                 <a
-                  href={member.githubUrl || `https://github.com/${member.handle.replace("@", "")}`}
+                  href={
+                    member.githubUrl && /^https?:\/\//i.test(member.githubUrl.trim())
+                      ? member.githubUrl.trim()
+                      : `https://github.com/${member.handle.replace("@", "")}`
+                  }
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition"
                 >
                   <span>GitHub</span>
                   <ExternalLink className="w-3 h-3 text-[#29D2FF]" />
                 </a>
                 <a
-                  href={member.linkedinUrl || "https://linkedin.com"}
+                  href={
+                    member.linkedinUrl && /^https?:\/\//i.test(member.linkedinUrl.trim())
+                      ? member.linkedinUrl.trim()
+                      : "https://linkedin.com"
+                  }
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition"
                 >
                   <span>LinkedIn</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
                 <a
-                  href={member.portfolioUrl || "https://quanta-algiers.dz"}
+                  href={
+                    member.portfolioUrl && /^https?:\/\//i.test(member.portfolioUrl.trim())
+                      ? member.portfolioUrl.trim()
+                      : "https://quanta-algiers.dz"
+                  }
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F4F7FB] hover:bg-slate-200 text-slate-800 border border-[#E2EDF8] text-xs font-bold transition"
                 >
                   <span>Portfolio</span>
                   <ExternalLink className="w-3 h-3 text-[#1D63EB]" />
                 </a>
                 <a
-                  href={member.cvUrl || "#cv-document"}
+                  href={
+                    member.cvUrl && /^https?:\/\//i.test(member.cvUrl.trim())
+                      ? member.cvUrl.trim()
+                      : "https://quanta-algiers.dz/cv"
+                  }
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition"
                 >
                   <span>Academic CV</span>

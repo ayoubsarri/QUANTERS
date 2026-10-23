@@ -136,7 +136,7 @@ export default function LoginPage() {
 
       {/* Centered Auth Card */}
       <main className="relative z-10 w-full max-w-[390px] my-auto">
-        <div className="bg-[#0A1A30]/80 backdrop-blur-xl border border-white/12 rounded-[28px] p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-5">
+        <div className="bg-[#0A1A30]/80 backdrop-blur-xl border border-white/12 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-5">
           <div className="text-center space-y-1">
             <h1 className="font-display text-xl sm:text-2xl font-black text-white tracking-tight">
               {mode === "signin" ? "Sign In" : "Create Account"}
@@ -183,6 +183,8 @@ export default function LoginPage() {
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
+                    name="email"
+                    aria-label="Email or Quanter ID"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

@@ -648,9 +648,13 @@ export default function AdminBadgesPage() {
                 <div className="flex flex-wrap items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                   {sub.repoUrl && (
                     <a
-                      href={sub.repoUrl}
+                      href={
+                        /^https?:\/\//i.test(sub.repoUrl.trim())
+                          ? sub.repoUrl.trim()
+                          : "https://github.com"
+                      }
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 font-bold text-[#1D63EB] hover:underline"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
