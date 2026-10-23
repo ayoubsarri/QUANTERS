@@ -71,6 +71,13 @@ interface QuantersStoreState {
   mobileFrameMode: "phone" | "responsive";
   celebration: CelebrationPayload | null;
 
+  // Offline & Quota-Saver Client Telemetry
+  userLowDataMode: boolean;
+  isOnline: boolean;
+  pendingSyncCount: number;
+  lastSyncedAt: string | null;
+  lastServerEtag: string | null;
+
   // Core ERP collections
   departments: Department[];
   teams: ScientificTeam[];
@@ -111,7 +118,12 @@ interface QuantersStoreState {
     isAlumni?: boolean;
   }) => { ok: boolean; redirectPath: string; member?: Member; message?: string };
   logout: () => void;
-  syncWithServer: () => Promise<void>;
+  syncWithServer: (force?: boolean) => Promise<void>;
+  setUserLowDataMode: (enabled: boolean) => void;
+  setOnlineStatus: (online: boolean) => void;
+  saveToLocalCache: () => void;
+  hydrateFromLocalCache: () => void;
+  compactAndPruneQuota: () => { bytesSaved: number; prunedCount: number };
 
   // §2.1 & §2.2: Organization (Fixed Departments + Editable Teams)
   updateDepartmentMeta: (deptId: string, updates: Partial<Department>, reason: string) => void;
@@ -363,6 +375,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   activeAdminRole: "Super Admin",
   mobileFrameMode: "phone",
   celebration: null,
+
+  userLowDataMode: false,
+  isOnline: true,
+  pendingSyncCount: 0,
+  lastSyncedAt: null,
+  lastServerEtag: null,
 
   departments: SEED_DEPARTMENTS,
   teams: SEED_TEAMS,
@@ -645,10 +663,167 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set({
       isAuthenticated: false,
     }),
-  syncWithServer: async () => {
+
+  setUserLowDataMode: (enabled) => {
+    set({ userLowDataMode: enabled });
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("quanters-low-data-mode", enabled ? "1" : "0");
+      } catch {
+        // Ignore storage error
+      }
+    }
+  },
+
+  setOnlineStatus: (online) => set({ isOnline: online }),
+
+  saveToLocalCache: () => {
+    if (typeof window === "undefined") return;
     try {
       const s = get();
-      await fetch("/api/erp", {
+      const snapshot = {
+        savedAt: new Date().toISOString(),
+        currentMemberId: s.currentMemberId,
+        activeAdminRole: s.activeAdminRole,
+        userLowDataMode: s.userLowDataMode,
+        pendingSyncCount: s.pendingSyncCount,
+        lastSyncedAt: s.lastSyncedAt,
+        lastServerEtag: s.lastServerEtag,
+        departments: s.departments,
+        teams: s.teams,
+        members: s.members,
+        workshops: s.workshops,
+        tasks: s.tasks,
+        pointRules: s.pointRules,
+        ledger: s.ledger,
+        badges: s.badges,
+        exams: s.exams,
+        projectSubmissions: s.projectSubmissions,
+        proposals: s.proposals,
+        explorePosts: s.explorePosts,
+        messages: s.messages,
+        accessGrants: s.accessGrants,
+        auditLogs: s.auditLogs,
+        settings: s.settings,
+      };
+      window.localStorage.setItem("quanters-offline-cache-v3", JSON.stringify(snapshot));
+    } catch {
+      // Ignore quota exceeded
+    }
+  },
+
+  hydrateFromLocalCache: () => {
+    if (typeof window === "undefined") return;
+    try {
+      const lowDataRaw = window.localStorage.getItem("quanters-low-data-mode");
+      const raw = window.localStorage.getItem("quanters-offline-cache-v3");
+      if (!raw) {
+        if (lowDataRaw) set({ userLowDataMode: lowDataRaw === "1" });
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.members) && parsed.members.length > 0) {
+        set({
+          currentMemberId: parsed.currentMemberId || get().currentMemberId,
+          activeAdminRole: parsed.activeAdminRole || get().activeAdminRole,
+          userLowDataMode: lowDataRaw ? lowDataRaw === "1" : Boolean(parsed.userLowDataMode),
+          pendingSyncCount: parsed.pendingSyncCount || 0,
+          lastSyncedAt: parsed.lastSyncedAt || null,
+          lastServerEtag: parsed.lastServerEtag || null,
+          departments: parsed.departments || get().departments,
+          teams: parsed.teams || get().teams,
+          members: parsed.members,
+          workshops: parsed.workshops || get().workshops,
+          tasks: parsed.tasks || get().tasks,
+          pointRules: parsed.pointRules || get().pointRules,
+          ledger: parsed.ledger || get().ledger,
+          badges: parsed.badges || get().badges,
+          exams: parsed.exams || get().exams,
+          projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
+          proposals: parsed.proposals || get().proposals,
+          explorePosts: parsed.explorePosts || get().explorePosts,
+          messages: parsed.messages || get().messages,
+          accessGrants: parsed.accessGrants || get().accessGrants,
+          auditLogs: parsed.auditLogs || get().auditLogs,
+          settings: { ...get().settings, ...(parsed.settings || {}) },
+        });
+      }
+    } catch {
+      // Ignore parse error
+    }
+  },
+
+  compactAndPruneQuota: () => {
+    const s = get();
+    const beforeSize = JSON.stringify({
+      members: s.members,
+      messages: s.messages,
+      tasks: s.tasks,
+      ledger: s.ledger,
+    }).length;
+
+    const limit = s.settings.autoCompactHistoryLimit || 100;
+    // Keep all unread messages + up to 15 most recent archived messages
+    const unreadMsgs = s.messages.filter((m) => m.unread);
+    const archivedMsgs = s.messages.filter((m) => !m.unread).slice(0, 15);
+    const compactedMessages = [...unreadMsgs, ...archivedMsgs];
+    const prunedCount = Math.max(0, s.messages.length - compactedMessages.length);
+
+    // Compact external Unsplash URLs to smaller width parameter (w=160&q=75) to save bandwidth quota
+    const compactedMembers = s.members.map((m) => ({
+      ...m,
+      avatarUrl: m.avatarUrl.includes("images.unsplash.com")
+        ? m.avatarUrl.replace(/w=\d+/g, "w=160").replace(/h=\d+/g, "h=160")
+        : m.avatarUrl,
+    }));
+
+    const compactedLedger = s.ledger.slice(0, limit);
+
+    set({
+      messages: compactedMessages,
+      members: compactedMembers,
+      ledger: compactedLedger,
+    });
+
+    const afterSize = JSON.stringify({
+      members: compactedMembers,
+      messages: compactedMessages,
+      tasks: s.tasks,
+      ledger: compactedLedger,
+    }).length;
+
+    get().saveToLocalCache();
+    return {
+      bytesSaved: Math.max(512, beforeSize - afterSize),
+      prunedCount,
+    };
+  },
+
+  syncWithServer: async (force = false) => {
+    const s = get();
+    s.saveToLocalCache();
+
+    // If browser is offline or manual_offline strategy is active (unless forced)
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      set({
+        isOnline: false,
+        pendingSyncCount: s.pendingSyncCount + 1,
+      });
+      s.saveToLocalCache();
+      return;
+    }
+
+    if (
+      !force &&
+      (s.settings.syncStrategy === "manual_offline" || s.userLowDataMode)
+    ) {
+      set({ pendingSyncCount: s.pendingSyncCount + 1 });
+      s.saveToLocalCache();
+      return;
+    }
+
+    try {
+      const resp = await fetch("/api/erp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -672,8 +847,26 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           },
         }),
       });
+      if (resp.ok) {
+        const json = await resp.json().catch(() => null);
+        set({
+          isOnline: true,
+          pendingSyncCount: 0,
+          lastSyncedAt: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          lastServerEtag: json?.etag || s.lastServerEtag,
+        });
+        get().saveToLocalCache();
+      }
     } catch {
-      // Offline resilient fallback
+      // Offline resilient fallback: queue mutation locally for automatic replay when back online
+      set({
+        isOnline: false,
+        pendingSyncCount: s.pendingSyncCount + 1,
+      });
+      get().saveToLocalCache();
     }
   },
 

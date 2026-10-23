@@ -18,7 +18,7 @@ export function MobileAppShell({
   className = "bg-[#F4F7FB]",
 }: MobileAppShellProps) {
   return (
-    <div className={`min-h-dvh w-full flex flex-col ${className}`}>
+    <div className={`min-h-dvh w-full flex flex-col pt-[env(safe-area-inset-top)] ${className}`}>
       {/* Responsive Mobile-First Content Container (Full-bleed on phones, centered on PC) */}
       <div
         className={`flex-1 w-full flex flex-col ${

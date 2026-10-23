@@ -652,4 +652,11 @@ export interface SystemSettings {
   examFreezeMode?: boolean;
   quietHoursEnabled?: boolean;
   weeklyWorkloadCapHours?: number;
+  // Firebase Free-Tier & User Quota Optimization Controls
+  quotaSaverPreset?: "standard" | "aggressive" | "ultra";
+  syncStrategy?: "instant" | "debounced_30s" | "manual_offline";
+  clientCacheTtlMinutes?: number;
+  deltaSyncOnly?: boolean;
+  disableVideoOnCellular?: boolean;
+  autoCompactHistoryLimit?: number;
 }

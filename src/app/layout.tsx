@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Space_Grotesk,
   Plus_Jakarta_Sans,
@@ -10,6 +10,7 @@ import {
   Caveat,
 } from "next/font/google";
 import "./globals.css";
+import { PwaOfflineManager } from "@/components/shared/PwaOfflineManager";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -60,10 +61,41 @@ const caveat = Caveat({
   weight: ["600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0A2558" },
+    { media: "(prefers-color-scheme: dark)", color: "#040C1A" },
+  ],
+};
+
 export const metadata: Metadata = {
+  applicationName: "QUANTERS",
   title: "QUANTERS — QUANTA Scientific Club",
   description:
     "Official Member Platform, Workshops & Activities, Skill Verification & Governance ERP for QUANTA Scientific Club · University of Algiers 1",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "QUANTERS",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -77,6 +109,7 @@ export default function RootLayout({
       className={`${outfit.variable} ${syne.variable} ${display.variable} ${jakarta.variable} ${serif.variable} ${arabic.variable} ${mono.variable} ${caveat.variable}`}
     >
       <body className="font-sans min-h-dvh flex flex-col bg-[#F4F7FB] text-[#09192F] selection:bg-[#FFE500] selection:text-[#09192F]">
+        <PwaOfflineManager />
         <main className="flex-1 flex flex-col">{children}</main>
       </body>
     </html>

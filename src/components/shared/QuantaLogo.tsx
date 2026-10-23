@@ -43,7 +43,7 @@ export function QuantaLogo({
         className="absolute inset-0 rounded-full bg-cyan-400/20 blur-md pointer-events-none scale-110"
       />
       <img
-        src="/brand/logo_quanta.png"
+        src="/brand/logo_quanta_opt.webp"
         alt="QUANTA"
         className="w-full h-full object-contain relative z-10 drop-shadow-[0_2px_10px_rgba(29,99,235,0.35)]"
       />

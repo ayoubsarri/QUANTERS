@@ -2529,4 +2529,10 @@ export const SEED_SETTINGS: SystemSettings = {
   healthWeightRecent: 15,
   maxImageDimensionPx: 256,
   webpCompressionQuality: 78,
+  quotaSaverPreset: "aggressive",
+  syncStrategy: "debounced_30s",
+  clientCacheTtlMinutes: 15,
+  deltaSyncOnly: true,
+  disableVideoOnCellular: true,
+  autoCompactHistoryLimit: 100,
 };

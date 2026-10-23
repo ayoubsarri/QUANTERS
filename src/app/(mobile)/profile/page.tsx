@@ -105,6 +105,11 @@ export default function MobileProfilePage() {
   const submitPointsAppeal = useQuantersStore((s) => s.submitPointsAppeal);
   const logout = useQuantersStore((s) => s.logout);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
+  const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
+  const setUserLowDataMode = useQuantersStore((s) => s.setUserLowDataMode);
+  const isOnline = useQuantersStore((s) => s.isOnline);
+  const pendingSyncCount = useQuantersStore((s) => s.pendingSyncCount);
+  const lastSyncedAt = useQuantersStore((s) => s.lastSyncedAt);
 
   const member =
     members.find((m) => m.id === currentMemberId) || members[0];
@@ -738,6 +743,64 @@ export default function MobileProfilePage() {
                 Save
               </button>
             </form>
+          )}
+        </div>
+
+        {/* Offline PWA & Data Quota-Saver Card */}
+        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+                  Offline PWA &amp; Data Saver
+                </h3>
+                <span
+                  className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
+                    isOnline
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-800 border-amber-200"
+                  }`}
+                >
+                  {isOnline ? "ONLINE · CACHED" : "OFFLINE MODE"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {userLowDataMode
+                  ? "Low-Data Quota Saver ON · Batches syncs & skips heavy video"
+                  : "All app screens & member pass cached on device for offline use"}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setUserLowDataMode(!userLowDataMode)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition cursor-pointer shrink-0 ${
+                userLowDataMode
+                  ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                  : "bg-[#F4F7FB] text-slate-700 border-[#E2EDF8] hover:bg-slate-200/70"
+              }`}
+            >
+              {userLowDataMode ? "Quota Saver: ON" : "Enable Data Saver"}
+            </button>
+          </div>
+
+          {(pendingSyncCount > 0 || lastSyncedAt) && (
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+              <span>
+                {pendingSyncCount > 0
+                  ? `${pendingSyncCount} local change(s) queued for sync`
+                  : `Last synced at ${lastSyncedAt}`}
+              </span>
+              {pendingSyncCount > 0 && isOnline && (
+                <button
+                  type="button"
+                  onClick={() => syncWithServer(true)}
+                  className="px-2.5 py-1 rounded-md bg-slate-900 text-white text-[10.5px] font-bold cursor-pointer"
+                >
+                  Sync Now
+                </button>
+              )}
+            </div>
           )}
         </div>
 

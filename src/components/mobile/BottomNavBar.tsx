@@ -141,7 +141,7 @@ export function BottomNavBar() {
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="fixed bottom-3.5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[500px] z-40 select-none pointer-events-none"
+      className="fixed bottom-3.5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[500px] z-40 select-none pointer-events-none pb-[env(safe-area-inset-bottom)]"
     >
       {/* Human-Craft Floating Tab Dock */}
       <div className="pointer-events-auto bg-white/90 backdrop-blur-2xl border border-white/80 shadow-[0_10px_30px_rgba(9,25,47,0.1),0_2px_8px_rgba(9,25,47,0.04)] rounded-2xl p-1.5 flex items-center justify-between">

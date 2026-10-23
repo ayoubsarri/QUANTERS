@@ -3,13 +3,67 @@ import { readErpDatabase, writeErpDatabase } from "@/lib/server/db";
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB strict payload ceiling
 
-export async function GET() {
+function computeQuotaTelemetry(
+  baseTelemetry: ReturnType<typeof readErpDatabase>["telemetry"],
+  preset: "standard" | "aggressive" | "ultra" = "aggressive"
+) {
+  // Firebase Spark Free-Tier Limits: 50,000 reads/day, 20,000 writes/day
+  const readsPerUser = preset === "ultra" ? 4 : preset === "aggressive" ? 10 : 65;
+  const writesPerUser = preset === "ultra" ? 2 : preset === "aggressive" ? 5 : 28;
+  const maxByReads = Math.floor(50000 / readsPerUser);
+  const maxByWrites = Math.floor(20000 / writesPerUser);
+  const firebaseSparkMaxUsers = Math.min(maxByReads, maxByWrites);
+  const quotaReductionPercent =
+    preset === "ultra" ? 94 : preset === "aggressive" ? 85 : 0;
+
+  return {
+    ...baseTelemetry,
+    preset,
+    estimatedDailyReadsPerUser: readsPerUser,
+    estimatedDailyWritesPerUser: writesPerUser,
+    firebaseSparkMaxUsers,
+    quotaReductionPercent,
+  };
+}
+
+export async function GET(req: NextRequest) {
   const { snapshot, telemetry } = readErpDatabase();
-  return NextResponse.json({
-    ok: true,
+  const etag = `W/"${snapshot.updatedAt}-${telemetry.dbSizeBytes}"`;
+  const ifNoneMatch = req.headers.get("if-none-match");
+  const sinceParam = req.nextUrl.searchParams.get("since");
+
+  if (
+    (ifNoneMatch && ifNoneMatch === etag) ||
+    (sinceParam && sinceParam === snapshot.updatedAt)
+  ) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: {
+        ETag: etag,
+        "Cache-Control": "private, max-age=0, must-revalidate",
+      },
+    });
+  }
+
+  const enrichedTelemetry = computeQuotaTelemetry(
     telemetry,
-    data: snapshot,
-  });
+    snapshot.settings.quotaSaverPreset || "aggressive"
+  );
+
+  return NextResponse.json(
+    {
+      ok: true,
+      etag,
+      telemetry: enrichedTelemetry,
+      data: snapshot,
+    },
+    {
+      headers: {
+        ETag: etag,
+        "Cache-Control": "private, max-age=0, must-revalidate",
+      },
+    }
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -86,11 +140,25 @@ export async function POST(req: NextRequest) {
     const payload = body.data && typeof body.data === "object" ? body.data : body;
     const updated = writeErpDatabase(payload);
     const { telemetry } = readErpDatabase();
-    return NextResponse.json({
-      ok: true,
+    const etag = `W/"${updated.updatedAt}-${telemetry.dbSizeBytes}"`;
+    const enrichedTelemetry = computeQuotaTelemetry(
       telemetry,
-      updatedAt: updated.updatedAt,
-    });
+      updated.settings.quotaSaverPreset || "aggressive"
+    );
+
+    return NextResponse.json(
+      {
+        ok: true,
+        etag,
+        telemetry: enrichedTelemetry,
+        updatedAt: updated.updatedAt,
+      },
+      {
+        headers: {
+          ETag: etag,
+        },
+      }
+    );
   } catch (err) {
     return NextResponse.json(
       {

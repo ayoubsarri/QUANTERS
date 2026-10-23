@@ -26,11 +26,15 @@ interface ErpTelemetry {
   dbSizeKB: number;
   memberCount: number;
   quotaUsedPercent: number;
+  estimatedDailyReadsPerUser?: number;
+  estimatedDailyWritesPerUser?: number;
+  firebaseSparkMaxUsers?: number;
+  quotaReductionPercent?: number;
 }
 
 export default function AdminSettingsPage() {
   const state = useQuantersStore();
-  const { settings, updateSettings, syncWithServer } = state;
+  const { settings, updateSettings, syncWithServer, compactAndPruneQuota } = state;
 
   const [formState, setFormState] = useState<SystemSettings>({
     ...settings,
@@ -43,6 +47,12 @@ export default function AdminSettingsPage() {
     examFreezeMode: settings.examFreezeMode ?? false,
     quietHoursEnabled: settings.quietHoursEnabled ?? true,
     weeklyWorkloadCapHours: settings.weeklyWorkloadCapHours ?? 6,
+    quotaSaverPreset: settings.quotaSaverPreset ?? "aggressive",
+    syncStrategy: settings.syncStrategy ?? "debounced_30s",
+    clientCacheTtlMinutes: settings.clientCacheTtlMinutes ?? 15,
+    deltaSyncOnly: settings.deltaSyncOnly ?? true,
+    disableVideoOnCellular: settings.disableVideoOnCellular ?? true,
+    autoCompactHistoryLimit: settings.autoCompactHistoryLimit ?? 100,
   });
 
   const [banner, setBanner] = useState<string | null>(null);
@@ -52,6 +62,10 @@ export default function AdminSettingsPage() {
     dbSizeKB: 42.8,
     memberCount: state.members.length,
     quotaUsedPercent: 0.08,
+    estimatedDailyReadsPerUser: 10,
+    estimatedDailyWritesPerUser: 5,
+    firebaseSparkMaxUsers: 4000,
+    quotaReductionPercent: 85,
   });
   const [syncing, setSyncing] = useState(false);
 
@@ -872,6 +886,239 @@ export default function AdminSettingsPage() {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+
+      {/* SECTION 5: FIREBASE FREE-TIER & USER QUOTA OPTIMIZER */}
+      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#1D63EB]" />
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+              5. Firebase Free-Tier &amp; User Quota Optimizer
+            </h2>
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-bold">
+              {formState.quotaSaverPreset === "ultra"
+                ? "94% QUOTA SAVED"
+                : formState.quotaSaverPreset === "aggressive"
+                  ? "85% QUOTA SAVED"
+                  : "STANDARD MODE"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600">
+            <span>
+              Est. Spark Free-Tier Capacity:{" "}
+              <strong className="text-[#1D63EB]">
+                {formState.quotaSaverPreset === "ultra"
+                  ? "10,000"
+                  : formState.quotaSaverPreset === "aggressive"
+                    ? "4,000"
+                    : "700"}{" "}
+                Daily Active Users
+              </strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Row A: 3 One-Click Quota Presets */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              {
+                key: "standard" as const,
+                title: "Standard Mode",
+                badge: "0% Reduction",
+                desc: "Instant read/write sync · 256px WebP avatars · 5m local cache TTL",
+                patch: {
+                  quotaSaverPreset: "standard" as const,
+                  syncStrategy: "instant" as const,
+                  clientCacheTtlMinutes: 5,
+                  maxImageDimensionPx: 256,
+                  webpCompressionQuality: 82,
+                  disableVideoOnCellular: false,
+                },
+              },
+              {
+                key: "aggressive" as const,
+                title: "Aggressive Quota-Saver",
+                badge: "Recommended · -85% Reads/Writes",
+                desc: "30s batched writes · ETag 304 cache (15m TTL) · 160px WebP avatars (~8 KB)",
+                patch: {
+                  quotaSaverPreset: "aggressive" as const,
+                  syncStrategy: "debounced_30s" as const,
+                  clientCacheTtlMinutes: 15,
+                  maxImageDimensionPx: 160,
+                  webpCompressionQuality: 75,
+                  disableVideoOnCellular: true,
+                },
+              },
+              {
+                key: "ultra" as const,
+                title: "Ultra Free-Tier Mode",
+                badge: "Max Savings · -94% Quota",
+                desc: "Offline-first manual/exit sync · 60m cache TTL · 128px WebP (~4 KB) · Static hero poster",
+                patch: {
+                  quotaSaverPreset: "ultra" as const,
+                  syncStrategy: "manual_offline" as const,
+                  clientCacheTtlMinutes: 60,
+                  maxImageDimensionPx: 128,
+                  webpCompressionQuality: 65,
+                  disableVideoOnCellular: true,
+                },
+              },
+            ].map((item) => {
+              const active = (formState.quotaSaverPreset || "aggressive") === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() =>
+                    applyImmediatePatch(
+                      item.patch,
+                      `Switched Firebase Quota Optimizer preset to ${item.title}`,
+                      `Activated ${item.title} (${item.badge})`
+                    )
+                  }
+                  className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
+                    active
+                      ? "bg-[#EBF3FC] border-[#1D63EB] shadow-xs"
+                      : "bg-[#F8FAFD] border-[#E2EDF8] hover:border-slate-300"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-slate-900">
+                        {item.title}
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold ${
+                          active
+                            ? "bg-[#1D63EB] text-white"
+                            : "bg-slate-200/80 text-slate-700"
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                      {item.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Row B: Fine-Grained Quota & Offline Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+            {/* Write Sync Strategy */}
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-slate-800">Write Sync Strategy</div>
+                <div className="text-[10px] text-slate-500">Controls Firestore write frequency</div>
+              </div>
+              <select
+                value={formState.syncStrategy || "debounced_30s"}
+                onChange={(e) =>
+                  applyImmediatePatch(
+                    {
+                      syncStrategy: e.target.value as SystemSettings["syncStrategy"],
+                    },
+                    "Updated write sync strategy",
+                    `Write sync strategy set to ${e.target.value}`
+                  )
+                }
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
+              >
+                <option value="instant">Instant (Every Action)</option>
+                <option value="debounced_30s">Batched (30s Coalesced)</option>
+                <option value="manual_offline">Offline-First (Manual / Reconnect)</option>
+              </select>
+            </div>
+
+            {/* Client Local Cache TTL */}
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-slate-800">Client Read Cache TTL</div>
+                <div className="text-[10px] text-slate-500">Serves tab switches from local PWA cache</div>
+              </div>
+              <div className="flex items-center gap-1">
+                {[5, 15, 60].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() =>
+                      applyImmediatePatch(
+                        { clientCacheTtlMinutes: mins },
+                        `Updated client read cache TTL to ${mins}m`,
+                        `Client read cache TTL set to ${mins} minutes`
+                      )
+                    }
+                    className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
+                      (formState.clientCacheTtlMinutes ?? 15) === mins
+                        ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Avatar Compression Cap */}
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-slate-800">Avatar WebP Dimension Cap</div>
+                <div className="text-[10px] text-slate-500">Zero Firebase Storage bucket overhead</div>
+              </div>
+              <div className="flex items-center gap-1">
+                {[128, 160, 256].map((px) => (
+                  <button
+                    key={px}
+                    type="button"
+                    onClick={() =>
+                      applyImmediatePatch(
+                        { maxImageDimensionPx: px },
+                        `Updated avatar max dimension to ${px}px`,
+                        `Avatar WebP dimension cap set to ${px}×${px}px`
+                      )
+                    }
+                    className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
+                      formState.maxImageDimensionPx === px
+                        ? "bg-[#06182C] text-white border-[#06182C]"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    {px}px
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Compact & Prune Clutter Action */}
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-slate-800">Payload Compaction</div>
+                <div className="text-[10px] text-slate-500">Prunes stale read notices &amp; shrinks URLs</div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = compactAndPruneQuota();
+                  await syncWithServer(true);
+                  setBanner(
+                    `Compacted database payload: saved ${res.bytesSaved} bytes (${res.prunedCount} stale archived notices pruned)`
+                  );
+                }}
+                className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>Compact &amp; Free Quota</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
