@@ -1,23 +1,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ChevronDown,
   Eye,
   EyeOff,
-  Film,
-  Image as ImageIcon,
   KeyRound,
   Mail,
-  Sparkles,
   User,
   X,
 } from "lucide-react";
-import { MobileAppShell } from "@/components/mobile/MobileAppShell";
-import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
@@ -39,6 +33,46 @@ function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
         fill="#EA4335"
         d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96Z"
       />
+    </svg>
+  );
+}
+
+/**
+ * Custom Architectural Orbital Crest for QUANTA Scientific Club · University of Algiers 1
+ */
+function UniversityOrbitalCrestSvg({ className = "w-8 h-8" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 36 36" fill="none" className={className} aria-hidden="true">
+      <circle
+        cx="18"
+        cy="18"
+        r="16"
+        className="fill-[#081A36]/80 stroke-[#38E4FF]/35"
+        strokeWidth="1.2"
+      />
+      <ellipse
+        cx="18"
+        cy="18"
+        rx="11.5"
+        ry="4.8"
+        transform="rotate(-28 18 18)"
+        stroke="#38E4FF"
+        strokeWidth="1.35"
+        strokeOpacity="0.9"
+      />
+      <ellipse
+        cx="18"
+        cy="18"
+        rx="11.5"
+        ry="4.8"
+        transform="rotate(28 18 18)"
+        stroke="#60A5FA"
+        strokeWidth="1.35"
+        strokeOpacity="0.65"
+      />
+      <circle cx="18" cy="18" r="2.6" fill="#FFE500" />
+      <circle cx="26.5" cy="13.5" r="1.5" fill="#38E4FF" />
+      <circle cx="9.5" cy="22.5" r="1.4" fill="#38E4FF" />
     </svg>
   );
 }
@@ -70,27 +104,21 @@ const QUICK_SIGNIN_ACCOUNTS = [
   },
 ];
 
-type BackdropMode = "video" | "keyframe1" | "keyframe2";
-
 export default function WelcomeSplashPage() {
   const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
 
   const {
     loginWithEmail,
     loginWithGoogle,
     registerAccount,
     syncWithServer,
-    userLowDataMode,
-    settings,
   } = useQuantersStore();
-
-  const skipHeavyVideo = userLowDataMode || settings.quotaSaverPreset === "ultra";
 
   // In-page Login Drawer state ("START BOTTOM THEN IN SAME PAGE THE LOGIN APPEAR")
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
-  const [backdropMode, setBackdropMode] = useState<BackdropMode>("keyframe1");
 
   // Auth form fields
   const [email, setEmail] = useState("ayoub.sarri@univ-alger.dz");
@@ -101,12 +129,9 @@ export default function WelcomeSplashPage() {
   const [showGoogleChooser, setShowGoogleChooser] = useState(false);
 
   useEffect(() => {
-    if (backdropMode === "video" && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Fallback if autoplay is blocked
-      });
-    }
-  }, [backdropMode]);
+    bgVideoRef.current?.play().catch(() => {});
+    desktopVideoRef.current?.play().catch(() => {});
+  }, []);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,420 +173,471 @@ export default function WelcomeSplashPage() {
     router.push(res.redirectPath);
   };
 
-  const activePoster =
-    backdropMode === "keyframe2"
-      ? "/brand/welcome_keyframe_2.png"
-      : "/brand/welcome_keyframe_1.png";
-
   return (
-    <MobileAppShell
-      hideBottomNav
-      darkStatus
-      className="bg-[#030914] text-white relative min-h-dvh flex flex-col justify-between overflow-hidden select-none"
-    >
-      {/* 1. Full-Bleed Cosmic Video / Yarn Astronaut Keyframe Stage */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {backdropMode === "video" ? (
-          <video
-            ref={videoRef}
-            src="/brand/welcome_loop.mp4"
-            poster="/brand/welcome_keyframe_1.png"
-            preload="metadata"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className={`w-full h-full object-cover object-center transition-all duration-500 ${
-              authOpen ? "scale-[1.04] brightness-[0.45] blur-[3px]" : "scale-[1.01]"
-            }`}
-          />
-        ) : (
-          <img
-            src={activePoster}
-            alt="QUANTERS Knitted Astronaut Keyframe"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = "/brand/welcome_splash_bg.png";
-            }}
-            className={`w-full h-full object-cover object-center transition-all duration-500 ${
-              authOpen ? "scale-[1.04] brightness-[0.45] blur-[3px]" : "scale-[1.01]"
-            }`}
-          />
-        )}
-
-        {/* Top & Bottom Atmospheric Vignette */}
-        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#030914]/90 via-[#030914]/40 to-transparent" />
-        <div
-          className={`absolute inset-x-0 bottom-0 transition-all duration-500 ${
+    <div className="min-h-dvh w-full bg-[#030812] text-white relative overflow-hidden select-none flex flex-col justify-between">
+      {/* =====================================================================
+          1. AMBIENT VIDEO BACKDROP
+          - Phone (< lg): Full-bleed crystal-clear 9:16 crocheted astronaut loop
+          - PC (lg+): Softly blurred atmospheric cosmos behind the 2-column stage
+         ===================================================================== */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <video
+          ref={bgVideoRef}
+          src="/brand/welcome_loop.mp4"
+          poster="/brand/welcome_keyframe_1.png"
+          preload="auto"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className={`w-full h-full object-cover object-center transition-all duration-500 ${
             authOpen
-              ? "h-full bg-[#030914]/55"
-              : "h-72 bg-gradient-to-t from-[#030914] via-[#030914]/75 to-transparent"
+              ? "scale-[1.04] brightness-[0.36] blur-[4px] lg:blur-2xl lg:brightness-[0.2]"
+              : "scale-[1.01] lg:scale-110 lg:blur-2xl lg:brightness-[0.24]"
+          }`}
+        />
+
+        {/* Subtle architectural dot grid on desktop */}
+        <div className="hidden lg:block absolute inset-0 bg-quanta-grid-dark opacity-30" />
+
+        {/* Phone Top & Bottom Vignettes (Leaves center 60% clear for the astronaut & galaxy) */}
+        <div className="lg:hidden absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#030812]/90 via-[#030812]/40 to-transparent" />
+        <div
+          className={`lg:hidden absolute inset-x-0 bottom-0 transition-all duration-500 ${
+            authOpen
+              ? "h-full bg-[#030812]/65"
+              : "h-64 bg-gradient-to-t from-[#030812] via-[#030812]/80 to-transparent"
           }`}
         />
       </div>
 
-      {/* 2. Top Brand Header + Compact Keyframe Switcher */}
-      <header
-        className={`relative z-10 w-full max-w-[440px] mx-auto px-5 transition-all duration-300 ${
-          authOpen ? "pt-4 sm:pt-6" : "pt-5 sm:pt-7"
-        } flex flex-col items-center text-center`}
-      >
-        {/* Ultra-Compact Single-Line Backdrop Switcher */}
-        <div className="mb-2 inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-[#081528]/85 backdrop-blur-md border border-white/10 text-[10px] font-mono whitespace-nowrap">
-          <button
-            type="button"
-            onClick={() => setBackdropMode("keyframe1")}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
-              backdropMode === "keyframe1"
-                ? "bg-[#1D63EB] text-white"
-                : "text-slate-300 hover:text-white"
-            }`}
-          >
-            <ImageIcon className="w-2.5 h-2.5 shrink-0" />
-            <span>Keyframe 1</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setBackdropMode("keyframe2")}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
-              backdropMode === "keyframe2"
-                ? "bg-[#1D63EB] text-white"
-                : "text-slate-300 hover:text-white"
-            }`}
-          >
-            <Sparkles className="w-2.5 h-2.5 shrink-0" />
-            <span>Keyframe 2</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setBackdropMode("video")}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition cursor-pointer ${
-              backdropMode === "video"
-                ? "bg-[#1D63EB] text-white"
-                : "text-slate-300 hover:text-white"
-            }`}
-          >
-            <Film className="w-2.5 h-2.5 shrink-0" />
-            <span>Loop Video</span>
-          </button>
-        </div>
+      {/* =====================================================================
+          2. RESPONSIVE STAGE CONTAINER
+          - Phone (< lg): Full-height vertical column (Top Brand -> Astronaut -> Bottom Dock)
+          - PC (lg+): 12-Column Split Stage (Left 9:16 Uncropped Video Portal | Right Brand & Auth)
+         ===================================================================== */}
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between">
+        {/* -------------------------------------------------------------------
+            LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal
+           ------------------------------------------------------------------- */}
+        <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
+          <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
+            <video
+              ref={desktopVideoRef}
+              src="/brand/welcome_loop.mp4"
+              poster="/brand/welcome_keyframe_1.png"
+              preload="auto"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover object-center"
+            />
 
-        <QuantaLogo
-          size={authOpen ? 40 : 48}
-          showSubtitle
-          centered
-          variant="dark"
-          className="drop-shadow-[0_6px_24px_rgba(0,0,0,0.75)] transition-all duration-300"
-        />
+            {/* Subtle top & bottom cinema frame gradients */}
+            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#030812]/65 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#030812]/90 via-[#030812]/35 to-transparent pointer-events-none" />
 
-        {/* 4 Pillars — sits cleanly above the astronaut helmet */}
-        {!authOpen && (
-          <div className="mt-2.5 drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] animate-rise">
-            <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-display font-extrabold tracking-[0.2em] text-slate-100 uppercase">
-              <span>DISCOVER</span>
-              <span className="text-sky-400">·</span>
-              <span className="text-[#38E4FF] drop-shadow-[0_0_12px_rgba(56,228,255,0.65)]">
-                LEARN
-              </span>
-              <span className="text-sky-400">·</span>
-              <span>PROVE</span>
-              <span className="text-sky-400">·</span>
-              <span>BELONG</span>
+            {/* Clean Minimal Bottom Signature inside the PC Video Frame */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
+                  <span className="font-mono text-xs tracking-[0.14em] text-[#38E4FF] uppercase font-bold">
+                    CYCLE 2026 / 27
+                  </span>
+                </div>
+                <div className="text-xs font-display font-medium text-slate-300 mt-0.5">
+                  Explore · Build · Verify
+                </div>
+              </div>
+              <img
+                src="/brand/logo_quanta_opt.webp"
+                alt="QUANTA"
+                className="w-7 h-7 object-contain opacity-90 drop-shadow-[0_2px_8px_rgba(56,228,255,0.4)]"
+              />
             </div>
-          </div>
-        )}
-      </header>
-
-      {/* 3. Center Stage Spacer + Handwritten Callout */}
-      {!authOpen ? (
-        <div className="relative z-10 w-full max-w-[440px] mx-auto px-6 my-auto flex justify-end pointer-events-none">
-          <div className="mr-1 sm:mr-3 mt-16 -rotate-6 text-center font-script text-2xl sm:text-3xl leading-[1.08] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)]">
-            <div>More</div>
-            <div>than a club,</div>
-            <div>a scientific</div>
-            <div>journey.</div>
           </div>
         </div>
-      ) : (
-        <div
-          className="flex-1 w-full cursor-pointer"
-          onClick={() => setAuthOpen(false)}
-          aria-hidden="true"
-        />
-      )}
 
-      {/* 4. Bottom Interactive Dock: Either [Start] Splash Dock OR In-Page Login Sheet */}
-      <footer className="relative z-20 w-full max-w-[420px] mx-auto px-4 pb-6 sm:pb-8 flex flex-col items-center">
-        {!authOpen ? (
-          /* STATE A: Clean Bottom Start Dock */
-          <div className="w-full space-y-3.5 text-center animate-rise">
-            <button
-              type="button"
-              onClick={() => setAuthOpen(true)}
-              className="w-full h-13.5 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-[#07152B] font-display font-black text-base tracking-tight shadow-[0_12px_36px_rgba(0,0,0,0.65)] active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Start</span>
-              <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-            </button>
+        {/* -------------------------------------------------------------------
+            RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns)
+           ------------------------------------------------------------------- */}
+        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
+          {/* A. ORIGINAL EDITORIAL BRAND LOCKUP & 4-PILLAR HAIRLINE BAR */}
+          <header className="w-full space-y-3 animate-rise">
+            <div className="flex items-center justify-between gap-3">
+              {/* Left: Pure Emblem + Geometric Wordmark */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
+                  <div className="absolute inset-0 rounded-full bg-[#38E4FF]/20 blur-md pointer-events-none" />
+                  <img
+                    src="/brand/logo_quanta_opt.webp"
+                    alt="QUANTA Logo"
+                    className="w-10 h-10 sm:w-11 sm:h-11 object-contain relative z-10 drop-shadow-[0_4px_14px_rgba(56,228,255,0.5)]"
+                  />
+                </div>
 
-            <div className="flex items-center justify-center gap-3.5 text-xs font-display font-bold text-sky-200/95">
-              <Link
-                href="/onboarding"
-                className="hover:text-white transition underline underline-offset-4 decoration-sky-400/50"
-              >
-                New Member Registration
-              </Link>
-              <span className="text-slate-500">•</span>
-              <Link
-                href="/home"
-                className="hover:text-white transition underline underline-offset-4 decoration-sky-400/50"
-              >
-                Explore Platform
-              </Link>
-            </div>
-
-            <div className="pt-0.5 font-mono text-[10px] tracking-[0.16em] text-slate-400/90 uppercase">
-              QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1
-            </div>
-          </div>
-        ) : (
-          /* STATE B: In-Page Slide-Up Login & Account Sheet */
-          <div
-            data-modal="true"
-            role="dialog"
-            aria-label="Member Sign In"
-            className="w-full bg-[#081528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-5 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.75)] space-y-4 text-left animate-rise"
-          >
-            {/* Sheet Top Header: Segmented Switcher + Collapse Button */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex p-1 rounded-lg bg-white/5 border border-white/10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("signin");
-                    setErrorMsg(null);
-                  }}
-                  className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
-                    authMode === "signin"
-                      ? "bg-[#1D63EB] text-white shadow-xs"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("register");
-                    setErrorMsg(null);
-                  }}
-                  className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
-                    authMode === "register"
-                      ? "bg-[#1D63EB] text-white shadow-xs"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  Create Account
-                </button>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-display font-black text-2xl sm:text-3xl lg:text-[32px] tracking-[-0.03em] text-white leading-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+                      QUANTERS
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-[#38E4FF] shadow-[0_0_10px_#38E4FF]" />
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 whitespace-nowrap">
+                    <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
+                      BY QUANTA
+                    </span>
+                    <span className="text-white/25">•</span>
+                    <span className="font-mono text-xs font-medium tracking-[0.08em] text-slate-300/90 leading-none">
+                      ALGIERS 1
+                    </span>
+                  </div>
+                </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setAuthOpen(false)}
-                aria-label="Close login panel"
-                className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-[11px] font-bold inline-flex items-center gap-1 transition cursor-pointer"
-              >
-                <ChevronDown className="w-3.5 h-3.5" />
-                <span>Back</span>
-              </button>
             </div>
 
-            {/* 1-Tap Google Sign-In Button */}
-            <button
-              type="button"
-              onClick={() => setShowGoogleChooser(true)}
-              className="w-full h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer shadow-xs"
-            >
-              <GoogleLogoSvg className="w-4 h-4" />
-              <span>Continue with Google</span>
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="h-px bg-white/10 flex-1" />
-              <span className="font-mono text-[10px] uppercase font-bold text-slate-500">
-                or credentials
-              </span>
-              <div className="h-px bg-white/10 flex-1" />
-            </div>
-
-            {errorMsg && (
-              <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center">
-                {errorMsg}
+            {/* Single-Line Architectural 4-Pillar Hairline Bar (Zero Boxes) */}
+            {!authOpen && (
+              <div className="flex items-center justify-between border-y border-white/15 py-2 px-0.5 text-xs font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                <span className="text-slate-200">DISCOVER</span>
+                <span className="text-white/25">/</span>
+                <span className="text-[#38E4FF]">LEARN</span>
+                <span className="text-white/25">/</span>
+                <span className="text-slate-200">PROVE</span>
+                <span className="text-white/25">/</span>
+                <span className="text-slate-200">BELONG</span>
               </div>
             )}
+          </header>
 
-            {authMode === "signin" ? (
-              <form onSubmit={handleEmailSignIn} className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Email or Quanter ID
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      name="email"
-                      aria-label="Email or Quanter ID"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@univ-alger.dz"
-                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
-                    />
-                  </div>
-                </div>
+          {/* B. CENTER STAGE
+              - On Phone (< lg): Open transparent window so the floating crocheted astronaut & galaxy shine unobstructed
+              - On PC (lg+): High-impact Editorial Manifesto Headline when Login is closed */}
+          {!authOpen ? (
+            <div className="my-auto py-4 lg:py-6">
+              <div className="hidden lg:block space-y-4 max-w-[540px] animate-rise">
+                <h1 className="font-display font-black text-4xl xl:text-[52px] tracking-[-0.03em] text-white leading-[1.06]">
+                  More than a club,{" "}
+                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-5xl xl:text-[62px] tracking-normal mt-1">
+                    a scientific journey.
+                  </span>
+                </h1>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      aria-label="Password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      className="w-full h-10 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full h-10.5 py-2.5 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Sign In to QUANTERS</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister} className="space-y-2.5">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Ayoub Sarri"
-                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@univ-alger.dz"
-                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      className="w-full h-10 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full h-10.5 py-2.5 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Create Account &amp; Continue</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-            )}
-
-            {/* 1-Tap Quick Demo Persona Strip */}
-            <div className="pt-2 border-t border-white/10 space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-400">
-                <span>1-Tap Quick Sign-In</span>
-                <Link
-                  href="/onboarding"
-                  className="text-[#38E4FF] hover:underline font-sans font-bold normal-case"
-                >
-                  Full KYC Form →
-                </Link>
+                <p className="text-sm text-slate-300/90 leading-relaxed max-w-[460px]">
+                  Join hands-on workshops, verify laboratory and technical skills,
+                  collaborate across scientific teams, and build your academic
+                  track record at the University of Algiers 1.
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {QUICK_SIGNIN_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() =>
-                      handleQuickPersonaLogin(acc.email, acc.name, acc.avatar)
-                    }
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/12 border border-white/10 flex items-center gap-1.5 text-left transition cursor-pointer"
-                  >
-                    <img
-                      src={acc.avatar}
-                      alt={acc.name}
-                      className="w-6 h-6 rounded-full object-cover shrink-0 border border-white/20"
-                    />
-                    <div className="min-w-0">
-                      <div className="text-[10.5px] font-extrabold text-white truncate leading-tight">
-                        {acc.shortLabel}
-                      </div>
-                      <div className="text-[9px] font-mono text-sky-300 leading-tight">
-                        {acc.role}
+            </div>
+          ) : (
+            <div
+              className="flex-1 w-full cursor-pointer lg:hidden"
+              onClick={() => setAuthOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+
+          {/* C. BOTTOM INTERACTIVE DOCK
+              - State 1 (!authOpen): Editorial Callout + [Start] Button + Creative Institutional Crest
+              - State 2 (authOpen): In-Page Slide-Up Login & Account Sheet */}
+          <footer className="w-full space-y-3.5">
+            {!authOpen ? (
+              <div className="w-full space-y-3.5 animate-rise">
+                {/* Phone Editorial Statement right above Start button */}
+                <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+                  <p className="font-display font-black text-xl sm:text-2xl tracking-[-0.02em] text-white leading-tight">
+                    More than a club,{" "}
+                    <span className="font-editorial italic font-normal text-[#38E4FF] text-[26px] sm:text-3xl">
+                      a scientific journey.
+                    </span>
+                  </p>
+                </div>
+
+                {/* Primary Bottom Start Button (Substantial 56px Height) */}
+                <button
+                  type="button"
+                  onClick={() => setAuthOpen(true)}
+                  className="w-full h-14 px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-display font-black text-lg tracking-tight text-[#061326]">
+                      Start
+                    </span>
+                    <span className="h-4 w-px bg-slate-300" />
+                    <span className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+                      Member Portal
+                    </span>
+                  </div>
+
+                  <div className="w-9 h-9 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                </button>
+
+                {/* Creative Architectural Institutional Signature (Zero Heavy Box):
+                    QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1 */}
+                <div className="pt-1">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-[#38E4FF]/35 to-transparent mb-3" />
+                  <div className="flex items-center justify-between gap-3 px-1">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <UniversityOrbitalCrestSvg className="w-8 h-8 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-display font-extrabold text-xs tracking-[0.14em] text-white uppercase truncate">
+                          QUANTA SCIENTIFIC CLUB
+                        </div>
+                        <div className="font-mono text-xs font-semibold tracking-[0.08em] text-[#38E4FF] uppercase truncate">
+                          UNIVERSITY OF ALGIERS 1
+                        </div>
                       </div>
                     </div>
-                  </button>
-                ))}
+
+                    <div className="hidden sm:block shrink-0 pl-3 border-l border-white/15 text-right">
+                      <div className="font-mono text-xs font-semibold tracking-[0.1em] text-slate-300 uppercase">
+                        FAC. SCIENCES
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </footer>
+            ) : (
+              /* STATE B: In-Page Slide-Up Login & Account Sheet */
+              <div
+                data-modal="true"
+                role="dialog"
+                aria-label="Member Sign In"
+                className="w-full bg-[#071428]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-5 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 text-left animate-rise"
+              >
+                {/* Sheet Top Header: Segmented Switcher + Collapse Button */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="inline-flex p-1 rounded-lg bg-white/5 border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("signin");
+                        setErrorMsg(null);
+                      }}
+                      className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
+                        authMode === "signin"
+                          ? "bg-[#1D63EB] text-white shadow-xs"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("register");
+                        setErrorMsg(null);
+                      }}
+                      className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
+                        authMode === "register"
+                          ? "bg-[#1D63EB] text-white shadow-xs"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      Create Account
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAuthOpen(false)}
+                    aria-label="Close login panel"
+                    className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold inline-flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                    <span>Back</span>
+                  </button>
+                </div>
+
+                {/* 1-Tap Google Sign-In Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleChooser(true)}
+                  className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99] cursor-pointer shadow-xs"
+                >
+                  <GoogleLogoSvg className="w-4 h-4" />
+                  <span>Continue with Google</span>
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px bg-white/10 flex-1" />
+                  <span className="font-mono text-xs uppercase font-semibold text-slate-400 whitespace-nowrap">
+                    or credentials
+                  </span>
+                  <div className="h-px bg-white/10 flex-1" />
+                </div>
+
+                {errorMsg && (
+                  <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center">
+                    {errorMsg}
+                  </div>
+                )}
+
+                {authMode === "signin" ? (
+                  <form onSubmit={handleEmailSignIn} className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Email or Quanter ID
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="text"
+                          name="email"
+                          aria-label="Email or Quanter ID"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="name@univ-alger.dz"
+                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          aria-label="Password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Password"
+                          className="w-full h-11 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full h-11 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Sign In to QUANTERS</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegister} className="space-y-2.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="text"
+                          required
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="e.g. Ayoub Sarri"
+                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="name@univ-alger.dz"
+                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="At least 6 characters"
+                          className="w-full h-11 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full h-11 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Create Account &amp; Continue</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </form>
+                )}
+
+                {/* 1-Tap Quick Demo Persona Strip */}
+                <div className="pt-2.5 border-t border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 whitespace-nowrap">
+                    <span>QUICK ACCESS</span>
+                    <span className="text-sky-300/90">ALGIERS 1</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {QUICK_SIGNIN_ACCOUNTS.map((acc) => (
+                      <button
+                        key={acc.email}
+                        type="button"
+                        onClick={() =>
+                          handleQuickPersonaLogin(acc.email, acc.name, acc.avatar)
+                        }
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/12 border border-white/10 flex items-center gap-2 text-left transition cursor-pointer"
+                      >
+                        <img
+                          src={acc.avatar}
+                          alt={acc.name}
+                          className="w-6 h-6 rounded-full object-cover shrink-0 border border-white/20"
+                        />
+                        <div className="min-w-0">
+                          <div className="text-xs font-extrabold text-white truncate leading-tight">
+                            {acc.shortLabel}
+                          </div>
+                          <div className="text-xs font-mono text-sky-300 leading-tight truncate">
+                            {acc.role}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </footer>
+        </div>
+      </div>
 
       {/* Google Quick Account Chooser Modal */}
       {showGoogleChooser && (
@@ -600,11 +676,11 @@ export default function WelcomeSplashPage() {
                     <div className="text-xs font-bold text-white truncate">
                       {acc.name}
                     </div>
-                    <div className="text-[10px] text-slate-400 truncate">
+                    <div className="text-xs text-slate-400 truncate">
                       {acc.email}
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-sky-200">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-white/10 text-sky-200">
                     {acc.role}
                   </span>
                 </button>
@@ -613,6 +689,6 @@ export default function WelcomeSplashPage() {
           </div>
         </div>
       )}
-    </MobileAppShell>
+    </div>
   );
 }
