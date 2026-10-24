@@ -104,10 +104,138 @@ const QUICK_SIGNIN_ACCOUNTS = [
   },
 ];
 
+// Shared in-memory Blob URL cache so the loop never makes repeated HTTP range requests
+let sharedVideoBlobUrl: string | null = null;
+let sharedVideoBlobPromise: Promise<string | null> | null = null;
+
+function getOrLoadVideoBlobUrl(src: string): Promise<string | null> {
+  if (sharedVideoBlobUrl) return Promise.resolve(sharedVideoBlobUrl);
+  if (!sharedVideoBlobPromise) {
+    sharedVideoBlobPromise = fetch(src)
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((blob) => {
+        if (!blob) return null;
+        sharedVideoBlobUrl = URL.createObjectURL(blob);
+        return sharedVideoBlobUrl;
+      })
+      .catch(() => null);
+  }
+  return sharedVideoBlobPromise;
+}
+
+/**
+ * Dual-Buffered Zero-Saccade Seamless Loop Video Player
+ * Combines the 211-frame optical-flow morphed video with an A/B pre-decoded
+ * standby buffer swap so the browser never performs a visible EOF seek.
+ */
+function SeamlessLoopVideo({
+  src = "/brand/welcome_loop.mp4",
+  poster = "/brand/welcome_keyframe_1.png",
+  className = "",
+}: {
+  src?: string;
+  poster?: string;
+  className?: string;
+}) {
+  const videoARef = useRef<HTMLVideoElement>(null);
+  const videoBRef = useRef<HTMLVideoElement>(null);
+  const [activeSlot, setActiveSlot] = useState<0 | 1>(0);
+  const activeSlotRef = useRef<0 | 1>(0);
+  const swappingRef = useRef(false);
+  const [videoSrc, setVideoSrc] = useState<string>(src);
+
+  useEffect(() => {
+    let mounted = true;
+    getOrLoadVideoBlobUrl(src).then((blobUrl) => {
+      if (mounted && blobUrl) {
+        setVideoSrc(blobUrl);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [src]);
+
+  useEffect(() => {
+    const vA = videoARef.current;
+    const vB = videoBRef.current;
+    if (!vA || !vB) return;
+
+    const active = activeSlotRef.current === 0 ? vA : vB;
+    const standby = activeSlotRef.current === 0 ? vB : vA;
+
+    standby.pause();
+    standby.currentTime = 0;
+    active.play().catch(() => {});
+
+    let rafId: number;
+    const tick = () => {
+      const curr = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current;
+      const next = activeSlotRef.current === 0 ? videoBRef.current : videoARef.current;
+
+      if (
+        curr &&
+        next &&
+        !swappingRef.current &&
+        curr.duration > 1 &&
+        curr.duration - curr.currentTime <= 0.14
+      ) {
+        swappingRef.current = true;
+        const nextSlot: 0 | 1 = activeSlotRef.current === 0 ? 1 : 0;
+
+        next.currentTime = 0;
+        next.play().catch(() => {});
+        activeSlotRef.current = nextSlot;
+        setActiveSlot(nextSlot);
+
+        window.setTimeout(() => {
+          curr.pause();
+          curr.currentTime = 0;
+          swappingRef.current = false;
+        }, 160);
+      }
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    rafId = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [videoSrc]);
+
+  return (
+    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+      <video
+        ref={videoARef}
+        src={videoSrc}
+        poster={poster}
+        preload="auto"
+        autoPlay
+        loop
+        muted
+        playsInline
+        className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-150 ease-linear ${
+          activeSlot === 0 ? "opacity-100 z-10" : "opacity-0 z-0"
+        }`}
+      />
+      <video
+        ref={videoBRef}
+        src={videoSrc}
+        poster={poster}
+        preload="auto"
+        loop
+        muted
+        playsInline
+        className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-150 ease-linear ${
+          activeSlot === 1 ? "opacity-100 z-10" : "opacity-0 z-0"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function WelcomeSplashPage() {
   const router = useRouter();
-  const bgVideoRef = useRef<HTMLVideoElement>(null);
-  const desktopVideoRef = useRef<HTMLVideoElement>(null);
 
   const {
     loginWithEmail,
@@ -127,11 +255,6 @@ export default function WelcomeSplashPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showGoogleChooser, setShowGoogleChooser] = useState(false);
-
-  useEffect(() => {
-    bgVideoRef.current?.play().catch(() => {});
-    desktopVideoRef.current?.play().catch(() => {});
-  }, []);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,16 +304,10 @@ export default function WelcomeSplashPage() {
           - PC (lg+): Softly blurred atmospheric cosmos behind the 2-column stage
          ===================================================================== */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <video
-          ref={bgVideoRef}
+        <SeamlessLoopVideo
           src="/brand/welcome_loop.mp4"
           poster="/brand/welcome_keyframe_1.png"
-          preload="auto"
-          autoPlay
-          loop
-          muted
-          playsInline
-          className={`w-full h-full object-cover object-center transition-all duration-500 ${
+          className={`transition-all duration-500 ${
             authOpen
               ? "scale-[1.04] brightness-[0.36] blur-[4px] lg:blur-2xl lg:brightness-[0.2]"
               : "scale-[1.01] lg:scale-110 lg:blur-2xl lg:brightness-[0.24]"
@@ -222,16 +339,9 @@ export default function WelcomeSplashPage() {
            ------------------------------------------------------------------- */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
-            <video
-              ref={desktopVideoRef}
+            <SeamlessLoopVideo
               src="/brand/welcome_loop.mp4"
               poster="/brand/welcome_keyframe_1.png"
-              preload="auto"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover object-center"
             />
 
             {/* Subtle top & bottom cinema frame gradients */}
