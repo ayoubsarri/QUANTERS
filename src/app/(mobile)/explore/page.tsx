@@ -2,24 +2,23 @@
 
 import React, { useState } from "react";
 import {
-  AlertCircle,
   ArrowRight,
   Bookmark,
-  BookOpen,
   Calendar,
-  CheckCircle2,
+  Check,
   ChevronLeft,
   ChevronRight,
   Clock,
   ExternalLink,
+  RotateCcw,
   Search,
   Sparkles,
   X,
-  XCircle,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
+import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
+import { ExploreCategory, ExplorePost, FieldIconKey } from "@/lib/types/erp";
 
 const FILTER_TABS: ("All" | ExploreCategory)[] = [
   "All",
@@ -29,36 +28,179 @@ const FILTER_TABS: ("All" | ExploreCategory)[] = [
   "Events",
 ];
 
-const MYTH_CARDS = [
+interface LabChallengeRound {
+  id: string;
+  domain: string;
+  icon: FieldIconKey;
+  telemetry: string;
+  scenario: string;
+  question: string;
+  options: {
+    id: string;
+    label: string;
+    detail: string;
+  }[];
+  correctId: string;
+  verdictTitle: string;
+  explanation: string;
+  xpReward: number;
+}
+
+const LAB_CHALLENGES: LabChallengeRound[] = [
   {
-    id: "m1",
-    topic: "ASTROPHYSICS · JWST SPECTROSCOPY",
-    myth: "A single dimethyl sulfide (DMS) spectral feature on an exoplanet automatically proves extraterrestrial life.",
-    reality:
-      "Abiotic photochemical pathways and overlapping methane/CO₂ absorption bands require ≥5σ multi-instrument transit confirmation before claiming a biosignature.",
-    stat: "≥ 5σ",
-    statLabel: "Detection Threshold",
-    source: "JWST NIRSpec Exoplanet Transmission Consortium (2026)",
+    id: "lc-1",
+    domain: "ASTROPHYSICS · JWST SPECTROSCOPY",
+    icon: "astronomy",
+    telemetry: "λ = 3.3–4.8 μm · Transit Depth 0.84%",
+    scenario:
+      "During an exoplanet atmospheric transit scan, your spectrometer detects a sharp absorption dip at 4.3 μm alongside a weak feature near 3.3 μm.",
+    question: "Which protocol confirms whether this is a true biosignature?",
+    options: [
+      {
+        id: "a",
+        label: "Require ≥5σ multi-instrument transit verification",
+        detail: "Cross-check NIRSpec & MIRI to rule out abiotic photochemical methane/CO₂ overlap",
+      },
+      {
+        id: "b",
+        label: "Declare dimethyl sulfide (DMS) from a single transit",
+        detail: "Rely on the 3.3 μm peak amplitude alone without secondary eclipse baseline",
+      },
+      {
+        id: "c",
+        label: "Apply optical broadband smoothing",
+        detail: "Average out narrow molecular absorption lines across the infrared band",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "5σ Multi-Band Verification Confirmed",
+    explanation:
+      "Abiotic UV photolysis routinely mimics organic peaks at low SNR. Only ≥5σ multi-epoch confirmation across independent spectral channels separates true biosignatures from CO₂/CH₄ contamination.",
+    xpReward: 15,
   },
   {
-    id: "m2",
-    topic: "AI & COMPUTATIONAL SCIENCE",
-    myth: "Larger parameter counts alone guarantee accurate physical and mathematical reasoning.",
-    reality:
-      "Physics-informed constraints, symbolic verification, and curated domain datasets outperform raw parameter scaling on scientific benchmarks by 3.2×.",
-    stat: "3.2×",
-    statLabel: "Domain Solver Gain",
-    source: "Nature Machine Intelligence · Scientific Foundation Benchmarks",
+    id: "lc-2",
+    domain: "QUANTUM COMPUTING · COHERENCE",
+    icon: "quantum",
+    telemetry: "T₁ = 118 μs · Physical Gate Error 0.42%",
+    scenario:
+      "Your superconducting processor reaches 64 physical qubits, but deep circuit outputs still drift toward uniform thermal noise after 40 gate layers.",
+    question: "What unlocks reliable quantum advantage on this hardware?",
+    options: [
+      {
+        id: "a",
+        label: "Double the clock frequency of microwave pulses",
+        detail: "Drive Rabi oscillations faster without error syndromes",
+      },
+      {
+        id: "b",
+        label: "Encode logical qubits below the surface-code threshold",
+        detail: "Use syndrome extraction so logical error suppresses exponentially with code distance",
+      },
+      {
+        id: "c",
+        label: "Increase readout resonator power by 10 dB",
+        detail: "Boost measurement photon number during active gate execution",
+      },
+    ],
+    correctId: "b",
+    verdictTitle: "Fault-Tolerant Logical Encoding",
+    explanation:
+      "Adding raw physical qubits increases cross-talk unless gate errors stay below the ~1% surface-code threshold, allowing syndrome decoding to suppress logical decoherence.",
+    xpReward: 15,
   },
   {
-    id: "m3",
-    topic: "QUANTUM COMPUTING · ERROR CORRECTION",
-    myth: "Adding more physical qubits immediately speeds up every classical algorithm exponentially.",
-    reality:
-      "Quantum advantage is restricted to specific structured problems (e.g., Hamiltonian simulation, factoring) and requires fault-tolerant logical qubits below the surface-code threshold.",
-    stat: "< 1%",
-    statLabel: "Gate Error Threshold",
-    source: "APS Physical Review X · Quantum Fault-Tolerance Review",
+    id: "lc-3",
+    domain: "AI & SCIENTIFIC MODELING",
+    icon: "ai-ml",
+    telemetry: "Navier-Stokes PDE · Reynolds Re = 10⁴",
+    scenario:
+      "A standard neural network trained on fluid velocity frames predicts turbulent vortices that violate conservation of mass and momentum after 15 timesteps.",
+    question: "How do you enforce physical validity in the model?",
+    options: [
+      {
+        id: "a",
+        label: "Embed PDE conservation residuals into the loss function",
+        detail: "Use Physics-Informed Neural Network (PINN) divergence-free constraints",
+      },
+      {
+        id: "b",
+        label: "Remove activation functions in hidden layers",
+        detail: "Convert the network into a purely linear matrix projection",
+      },
+      {
+        id: "c",
+        label: "Train with higher JPEG compression on flow images",
+        detail: "Quantize velocity fields to 8-bit pixel intensities",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "Physics-Informed Conservation Law",
+    explanation:
+      "Penalizing non-zero divergence (∇·u = 0) and Navier-Stokes momentum residuals directly in the objective guarantees physically admissible trajectories and 3.2× higher domain accuracy.",
+    xpReward: 15,
+  },
+  {
+    id: "lc-4",
+    domain: "EMBEDDED SYSTEMS · IOT LAB",
+    icon: "arduino",
+    telemetry: "I²C Bus 400 kHz · VCC = 3.3V",
+    scenario:
+      "Three environmental sensors share a single I²C bus on your prototype rover, but data frames freeze intermittently whenever the motor driver engages.",
+    question: "What is the primary hardware fix for bus lockups?",
+    options: [
+      {
+        id: "a",
+        label: "Remove all ground connections between modules",
+        detail: "Let each sensor float at an independent reference potential",
+      },
+      {
+        id: "b",
+        label: "Size pull-up resistors (2.2–4.7 kΩ) & decouple motor rails",
+        detail: "Add 100 nF ceramic bypass capacitors and proper SDA/SCL termination",
+      },
+      {
+        id: "c",
+        label: "Drive the 3.3V logic pins directly from the 12V battery",
+        detail: "Bypass the voltage regulator to raise logic thresholds",
+      },
+    ],
+    correctId: "b",
+    verdictTitle: "Signal Integrity & Rail Decoupling",
+    explanation:
+      "Inductive motor spikes corrupt open-drain I²C lines when pull-up impedance is too weak. Proper 3.3 kΩ pull-ups paired with local 100 nF decoupling restores clean clock edges.",
+    xpReward: 15,
+  },
+  {
+    id: "lc-5",
+    domain: "DATA SCIENCE · EXPERIMENTAL STATS",
+    icon: "data",
+    telemetry: "n = 18 Samples · 42 Tested Features",
+    scenario:
+      "A student research team tests 42 independent variables against a small 18-sample dataset and finds one correlation with p = 0.038.",
+    question: "How should the team evaluate this finding before publishing?",
+    options: [
+      {
+        id: "a",
+        label: "Apply Benjamini-Hochberg / Bonferroni correction",
+        detail: "Account for multiple-hypothesis testing inflation and validate on held-out data",
+      },
+      {
+        id: "b",
+        label: "Drop the 41 non-significant variables from the report",
+        detail: "Present the single p = 0.038 feature as an isolated primary hypothesis",
+      },
+      {
+        id: "c",
+        label: "Interpolate synthetic duplicates to triple sample size",
+        detail: "Copy existing rows before running the t-test",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "False Discovery Rate Control",
+    explanation:
+      "Testing 42 random hypotheses at α = 0.05 yields ~2 false positives by chance alone (1 - 0.95⁴² = 88.4%). Controlling the False Discovery Rate prevents p-hacking artifacts.",
+    xpReward: 15,
   },
 ];
 
@@ -83,14 +225,24 @@ function getPostPriorityMeta(post: ExplorePost): {
 
 export default function MobileExplorePage() {
   const explorePosts = useQuantersStore((s) => s.explorePosts);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const addManualPointsEntry = useQuantersStore((s) => s.addManualPointsEntry);
+
   const [selectedCategory, setSelectedCategory] = useState<
     "All" | ExploreCategory
   >("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [carouselIdx, setCarouselIdx] = useState(0);
-  const [mythIdx, setMythIdx] = useState(0);
   const [activeArticle, setActiveArticle] = useState<ExplorePost | null>(null);
   const [savedIds, setSavedIds] = useState<string[]>(["exp-1"]);
+
+  // Interactive Quantum Lab Challenge Game State
+  const [roundIdx, setRoundIdx] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
+    {}
+  );
+  const [rewardedRounds, setRewardedRounds] = useState<string[]>([]);
+  const [streak, setStreak] = useState(2);
 
   // Always sort published posts so Important / Featured / Newest appear first
   const publishedPosts = [...explorePosts]
@@ -116,7 +268,37 @@ export default function MobileExplorePage() {
   const heroPost =
     publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0];
 
-  const activeMyth = MYTH_CARDS[mythIdx % MYTH_CARDS.length];
+  const activeChallenge = LAB_CHALLENGES[roundIdx % LAB_CHALLENGES.length];
+  const chosenOptionId = selectedAnswers[activeChallenge.id] || null;
+  const isSolvedCorrect = chosenOptionId === activeChallenge.correctId;
+
+  const handleSelectOption = (optionId: string) => {
+    if (selectedAnswers[activeChallenge.id]) return;
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [activeChallenge.id]: optionId,
+    }));
+
+    if (optionId === activeChallenge.correctId) {
+      setStreak((s) => s + 1);
+      if (!rewardedRounds.includes(activeChallenge.id)) {
+        setRewardedRounds((prev) => [...prev, activeChallenge.id]);
+        addManualPointsEntry(
+          currentMemberId,
+          activeChallenge.xpReward,
+          `Quantum Lab Challenge: ${activeChallenge.verdictTitle}`,
+          "Quiz"
+        );
+      }
+    } else {
+      setStreak(0);
+    }
+  };
+
+  const handleResetGame = () => {
+    setSelectedAnswers({});
+    setRoundIdx(0);
+  };
 
   const toggleSave = (id: string) => {
     setSavedIds((prev) =>
@@ -126,13 +308,15 @@ export default function MobileExplorePage() {
 
   const getTagBadgeStyle = (post: ExplorePost) => {
     if (post.tagLabel === "OPPORTUNITY" || post.tagTone === "amber") {
-      return "bg-[#FFE500]/90 text-[#06182C] border-amber-300";
+      return "bg-[#182C4E] text-[#7DD3FC] border-[#2B4875]";
     }
     if (post.tagLabel === "QUANTA CLUB" || post.tagTone === "cyan") {
-      return "bg-cyan-100 text-[#094C9C] border-cyan-300";
+      return "bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]";
     }
-    return "bg-[#E0F0FF] text-[#1D63EB] border-sky-200";
+    return "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5]";
   };
+
+  const totalEarnedGameXp = rewardedRounds.length * 15;
 
   return (
     <MobileAppShell>
@@ -144,15 +328,15 @@ export default function MobileExplorePage() {
         >
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-black text-[#0F1E36] tracking-tight">
                 Explore{" "}
-                <span className="font-editorial text-[#1D63EB]">
+                <span className="font-editorial italic font-normal text-[#0284C7]">
                   The Dispatch
                 </span>
               </h1>
             </div>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1 font-sans">
-              Scientific journalism, fellowships, club dispatches & visual explainers
+            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 font-sans">
+              Scientific journalism, fellowships, club dispatches &amp; interactive lab challenges
             </p>
           </div>
           <div className="relative w-full sm:w-64">
@@ -162,7 +346,7 @@ export default function MobileExplorePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search articles, topics..."
-              className="w-full h-10.5 pl-10 pr-4 rounded-full bg-white/80 backdrop-blur-md border border-white/90 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-[0_2px_10px_rgba(9,25,47,0.04)] transition-all font-sans"
+              className="w-full h-10 pl-10 pr-4 rounded-xl bg-white border border-slate-200/90 text-xs sm:text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] shadow-2xs transition-all font-sans"
             />
           </div>
         </div>
@@ -179,10 +363,10 @@ export default function MobileExplorePage() {
                 key={tab}
                 type="button"
                 onClick={() => setSelectedCategory(tab)}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
                   active
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
-                    : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
+                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60"
+                    : "bg-white text-slate-600 border border-slate-200/90 hover:bg-[#F0F6FF] hover:text-[#0F1E36]"
                 }`}
               >
                 {tab}
@@ -200,27 +384,27 @@ export default function MobileExplorePage() {
             <button
               type="button"
               onClick={() => setActiveArticle(heroPost)}
-              className="relative w-full h-[220px] sm:h-[260px] rounded-2xl overflow-hidden shadow-[0_12px_36px_rgba(6,25,75,0.18)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-white/30"
+              className="relative w-full h-[215px] sm:h-[250px] rounded-2xl overflow-hidden shadow-[0_14px_34px_rgba(15,30,54,0.16)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-[#2B4875]/30"
             >
               <img
                 src={heroPost.imageUrl}
                 alt={heroPost.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#030D1E] via-[#041226]/55 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/95 via-[#101F38]/55 to-transparent" />
 
               {/* Top Tag Pill */}
               <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm flex items-center gap-1 font-display">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>IMPORTANT</span>
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-[#182C4E]/90 text-[#7DD3FC] border border-[#38BDF8]/40 backdrop-blur-md font-mono flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                    <span>FEATURED</span>
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm font-display">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-white/95 text-[#0F1E36] font-mono shadow-2xs">
                     {heroPost.tagLabel}
                   </span>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-950/70 text-sky-100 backdrop-blur-md border border-white/20 shrink-0 font-mono">
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#0F1E36]/80 text-sky-100 backdrop-blur-md border border-white/15 shrink-0 font-mono">
                   {heroPost.readTime}
                 </span>
               </div>
@@ -230,13 +414,13 @@ export default function MobileExplorePage() {
                 <h2 className="font-display text-base sm:text-xl font-black leading-snug line-clamp-2 text-white">
                   {heroPost.title}
                 </h2>
-                <div className="mt-2 flex items-center justify-between text-xs sm:text-sm text-sky-200/90 font-medium font-sans">
-                  <span>
+                <div className="mt-2 flex items-center justify-between gap-2 text-xs text-sky-100/90 font-medium font-sans">
+                  <span className="truncate">
                     {heroPost.source} · {heroPost.date}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-xs font-display">
-                    <span>Read Breakdown</span>
-                    <ArrowRight className="w-4 h-4" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-[#7DD3FC] font-bold text-xs font-mono shrink-0">
+                    <span>Read</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>
@@ -256,7 +440,7 @@ export default function MobileExplorePage() {
                       aria-label={`Slide ${i + 1}`}
                       className={`h-1.5 rounded-full transition-all cursor-pointer ${
                         isCurrent
-                          ? "w-6 bg-[#1D63EB]"
+                          ? "w-6 bg-[#182C4E]"
                           : "w-1.5 bg-slate-300 hover:bg-slate-400"
                       }`}
                     />
@@ -267,14 +451,236 @@ export default function MobileExplorePage() {
           </div>
         )}
 
+        {/* INTERACTIVE GAME: Quantum Lab Challenge (Replaces static Science Fact Check) */}
+        <div
+          className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_8px_26px_rgba(15,30,54,0.06)] overflow-hidden animate-rise"
+          style={{ animationDelay: "110ms" }}
+        >
+          {/* Game Top Bar — Softened Cosmic Slate-Navy */}
+          <div className="px-4 py-3.5 bg-gradient-to-r from-[#182C4E] via-[#152746] to-[#101F38] text-white border-b border-[#2B4875]/60 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <FieldIcon field={activeChallenge.icon} size={22} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#7DD3FC]">
+                    QUANTUM LAB CHALLENGE
+                  </span>
+                  <span className="text-white/30">·</span>
+                  <span className="font-mono text-[10px] font-bold text-slate-300 truncate">
+                    ROUND 0{(roundIdx % LAB_CHALLENGES.length) + 1}/0{LAB_CHALLENGES.length}
+                  </span>
+                </div>
+                <p className="text-xs font-extrabold font-display text-white truncate">
+                  {activeChallenge.domain}
+                </p>
+              </div>
+            </div>
+
+            {/* Live Streak & XP Score */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="px-2.5 py-1 rounded-lg bg-[#0F1E36]/75 border border-[#2B4875]/80 font-mono text-xs font-bold text-[#7DD3FC] tabular-nums">
+                Streak {streak}x
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/35 font-mono text-xs font-bold text-white tabular-nums">
+                +{totalEarnedGameXp} XP
+              </span>
+            </div>
+          </div>
+
+          {/* Round Selector & Telemetry Strip */}
+          <div className="px-4 py-2.5 bg-[#F0F6FF] border-b border-[#D5E3F5] flex items-center justify-between gap-2 flex-wrap">
+            <span className="font-mono text-xs font-bold text-[#182C4E] truncate">
+              Telemetry: <span className="text-[#0284C7]">{activeChallenge.telemetry}</span>
+            </span>
+
+            <div className="flex items-center gap-1">
+              {LAB_CHALLENGES.map((r, i) => {
+                const answered = Boolean(selectedAnswers[r.id]);
+                const right = selectedAnswers[r.id] === r.correctId;
+                const active = i === roundIdx % LAB_CHALLENGES.length;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setRoundIdx(i)}
+                    className={`w-6 h-6 rounded-md font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                      active
+                        ? "bg-[#182C4E] text-white shadow-2xs"
+                        : answered
+                        ? right
+                          ? "bg-[#E0F2FE] text-[#0369A1] border border-[#7DD3FC]"
+                          : "bg-slate-200 text-slate-600"
+                        : "bg-white text-slate-500 border border-slate-200/80 hover:border-[#182C4E]/40"
+                    }`}
+                    title={`Round ${i + 1}`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Scenario & Interactive Options */}
+          <div className="p-4 sm:p-5 space-y-3.5">
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+                {activeChallenge.scenario}
+              </p>
+              <h3 className="text-sm sm:text-base font-black font-display text-[#0F1E36] pt-1">
+                {activeChallenge.question}
+              </h3>
+            </div>
+
+            {/* 3 Selectable Hypotheses */}
+            <div className="space-y-2">
+              {activeChallenge.options.map((opt, idx) => {
+                const isSelected = chosenOptionId === opt.id;
+                const isRightOption = opt.id === activeChallenge.correctId;
+                const showResult = Boolean(chosenOptionId);
+
+                let cardStyle =
+                  "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
+                let badgeStyle =
+                  "bg-[#182C4E] text-white";
+
+                if (showResult) {
+                  if (isRightOption) {
+                    cardStyle =
+                      "bg-[#F0F6FF] border-[#0284C7] ring-1 ring-[#38BDF8]/40 text-[#0F1E36]";
+                    badgeStyle = "bg-[#0284C7] text-white";
+                  } else if (isSelected && !isRightOption) {
+                    cardStyle =
+                      "bg-slate-100/90 border-slate-300 text-slate-500 opacity-85";
+                    badgeStyle = "bg-slate-400 text-white";
+                  } else {
+                    cardStyle =
+                      "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
+                    badgeStyle = "bg-slate-200 text-slate-500";
+                  }
+                }
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={showResult}
+                    onClick={() => handleSelectOption(opt.id)}
+                    className={`w-full p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${cardStyle} ${
+                      showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${badgeStyle}`}
+                    >
+                      {showResult && isRightOption ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        String.fromCharCode(65 + idx)
+                      )}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs sm:text-sm font-extrabold font-display leading-snug">
+                          {opt.label}
+                        </span>
+                        {showResult && isRightOption && (
+                          <span className="px-2 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
+                            +{activeChallenge.xpReward} XP
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-snug font-sans">
+                        {opt.detail}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Instant Empirical Explanation Reveal */}
+            {chosenOptionId && (
+              <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white border border-[#2B4875] space-y-2 animate-rise">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#7DD3FC]">
+                    {isSolvedCorrect
+                      ? `✓ HYPOTHESIS VERIFIED · +${activeChallenge.xpReward} XP`
+                      : "LAB ANALYSIS · OPTIMAL PROTOCOL"}
+                  </span>
+                  <span className="font-mono text-xs font-bold text-sky-200">
+                    {activeChallenge.verdictTitle}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                  {activeChallenge.explanation}
+                </p>
+                <div className="pt-1 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetGame}
+                    className="inline-flex items-center gap-1 text-xs font-mono font-bold text-slate-300 hover:text-white cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Lab</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRoundIdx((prev) => (prev + 1) % LAB_CHALLENGES.length)
+                    }
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#38BDF8] text-[#0F1E36] font-mono text-xs font-bold hover:brightness-105 active:scale-[0.98] transition cursor-pointer"
+                  >
+                    <span>Next Scenario</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Footer when not yet answered */}
+            {!chosenOptionId && (
+              <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
+                <span className="font-mono font-semibold">
+                  Select a hypothesis to test (+{activeChallenge.xpReward} XP)
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRoundIdx(
+                        (prev) =>
+                          (prev - 1 + LAB_CHALLENGES.length) %
+                          LAB_CHALLENGES.length
+                      )
+                    }
+                    className="w-7 h-7 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] text-[#182C4E] flex items-center justify-center cursor-pointer"
+                    aria-label="Previous challenge"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRoundIdx((prev) => (prev + 1) % LAB_CHALLENGES.length)
+                    }
+                    className="w-7 h-7 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] text-[#182C4E] flex items-center justify-center cursor-pointer"
+                    aria-label="Next challenge"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Priority Feed List: New & Important Dispatches First */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between px-0.5 gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <h2 className="font-display text-base sm:text-lg font-black text-slate-900">
-                Latest &amp; Featured Dispatches
-              </h2>
-            </div>
+            <h2 className="font-display text-base sm:text-lg font-black text-[#0F1E36]">
+              Latest &amp; Featured Dispatches
+            </h2>
             <span className="font-mono text-xs font-bold text-slate-400">
               {filteredPosts.length} STORIES
             </span>
@@ -288,20 +694,20 @@ export default function MobileExplorePage() {
               <div
                 key={post.id}
                 onClick={() => setActiveArticle(post)}
-                style={{ animationDelay: `${100 + idx * 40}ms` }}
-                className={`bg-white/85 backdrop-blur-xl rounded-xl border p-4 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/50 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
+                style={{ animationDelay: `${120 + idx * 40}ms` }}
+                className={`bg-white rounded-xl border p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/45 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
                   isTopPriority
-                    ? "border-[#1D63EB]/45 ring-2 ring-[#1D63EB]/15"
-                    : "border-white/80"
+                    ? "border-[#182C4E]/35 border-l-[3px] border-l-[#182C4E]"
+                    : "border-slate-200/90"
                 }`}
               >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100/80 border border-white/80 shadow-inner">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80">
                   <img
                     src={post.imageUrl}
                     alt={post.title}
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-slate-950/80 text-[#FFE500] font-mono text-[10px] font-extrabold backdrop-blur-xs">
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[#101F38]/90 text-[#7DD3FC] font-mono text-xs font-bold backdrop-blur-xs">
                     0{idx + 1}
                   </span>
                 </div>
@@ -310,19 +716,19 @@ export default function MobileExplorePage() {
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {priorityBadge === "IMPORTANT" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-rose-600 text-white font-display text-xs font-extrabold uppercase tracking-wider shadow-2xs">
-                          <AlertCircle className="w-3 h-3" />
-                          <span>IMPORTANT</span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold uppercase tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                          <span>PRIORITY</span>
                         </span>
                       )}
                       {priorityBadge === "NEW" && (
-                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#061E47] text-[#38E4FF] font-display text-xs font-extrabold uppercase tracking-wider">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0369A1] font-mono text-xs font-bold uppercase tracking-wider">
                           <Sparkles className="w-3 h-3" />
                           <span>NEW</span>
                         </span>
                       )}
                       <span
-                        className={`px-3 py-0.5 rounded-full font-display text-xs font-extrabold uppercase tracking-wider border ${getTagBadgeStyle(
+                        className={`px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
                           post
                         )}`}
                       >
@@ -335,9 +741,9 @@ export default function MobileExplorePage() {
                         e.stopPropagation();
                         toggleSave(post.id);
                       }}
-                      className={`p-1.5 rounded-full hover:bg-slate-100/60 active:scale-[0.95] transition cursor-pointer ${
+                      className={`p-1.5 rounded-full hover:bg-slate-100 active:scale-[0.95] transition cursor-pointer ${
                         isSaved
-                          ? "text-[#1D63EB]"
+                          ? "text-[#182C4E]"
                           : "text-slate-400 hover:text-slate-600"
                       }`}
                       aria-label="Bookmark article"
@@ -348,12 +754,12 @@ export default function MobileExplorePage() {
                     </button>
                   </div>
 
-                  <h3 className="font-display mt-1.5 text-base sm:text-lg font-black text-slate-900 leading-snug line-clamp-2">
+                  <h3 className="font-display mt-1.5 text-sm sm:text-base font-black text-[#0F1E36] leading-snug line-clamp-2">
                     {post.title}
                   </h3>
 
-                  <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans">
-                    <span className="text-[#094C9C] font-bold">
+                  <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans flex-wrap">
+                    <span className="text-[#182C4E] font-bold">
                       {post.source}
                     </span>
                     <span>·</span>
@@ -366,108 +772,6 @@ export default function MobileExplorePage() {
             );
           })}
         </div>
-
-        {/* Redesigned Scientific Fact Check Comparison Card */}
-        <div
-          className="rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_6px_24px_rgba(9,25,47,0.05)] overflow-hidden animate-rise"
-          style={{ animationDelay: "160ms" }}
-        >
-          {/* Header Bar */}
-          <div className="px-4 py-3.5 bg-gradient-to-r from-[#062456] via-[#0A3882] to-[#1258C7] text-white flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-md bg-[#38E4FF]/20 border border-[#38E4FF]/40 text-[#38E4FF] font-mono text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-xs">
-                SCIENCE FACT CHECK
-              </span>
-              <span className="px-2.5 py-0.5 rounded-md bg-white/15 border border-white/20 font-mono text-[10px] font-bold text-sky-100 backdrop-blur-xs">
-                {activeMyth.topic}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[11px] font-extrabold text-sky-200 tabular-nums">
-                {(mythIdx % MYTH_CARDS.length) + 1} / {MYTH_CARDS.length}
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMythIdx(
-                      (prev) =>
-                        (prev - 1 + MYTH_CARDS.length) % MYTH_CARDS.length
-                    )
-                  }
-                  aria-label="Previous fact check card"
-                  className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white active:scale-[0.96] transition cursor-pointer"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMythIdx((prev) => (prev + 1) % MYTH_CARDS.length)
-                  }
-                  aria-label="Next fact check card"
-                  className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white active:scale-[0.96] transition cursor-pointer"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Body: Two Comparison Panels */}
-          <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* Panel 1: Misconception */}
-            <div className="rounded-2xl p-4 bg-rose-50/80 backdrop-blur-md border border-rose-200/70 flex flex-col justify-between space-y-2.5 shadow-2xs">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-rose-700 font-mono text-[10.5px] font-extrabold uppercase tracking-wider">
-                    <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                    <span>Misconception</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[9.5px] font-extrabold">
-                    Unverified Claim
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800 leading-relaxed">
-                  &ldquo;{activeMyth.myth}&rdquo;
-                </p>
-              </div>
-            </div>
-
-            {/* Panel 2: Scientific Consensus */}
-            <div className="rounded-2xl p-4 bg-emerald-50/80 backdrop-blur-md border border-emerald-200/70 flex flex-col justify-between space-y-2.5 shadow-2xs">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-800 font-mono text-[10.5px] font-extrabold uppercase tracking-wider">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Scientific Consensus</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-950 font-mono text-[10px] font-extrabold">
-                    {activeMyth.stat} · {activeMyth.statLabel}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800 leading-relaxed">
-                  {activeMyth.reality}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer: Citation Strip */}
-          <div className="px-4 sm:px-5 py-3 bg-white/60 backdrop-blur-md border-t border-white/80 flex items-center justify-between gap-2 text-[11px] text-slate-600">
-            <span className="flex items-center gap-1.5 font-semibold truncate">
-              <BookOpen className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
-              <span className="truncate">
-                <strong className="text-slate-800">Reference:</strong>{" "}
-                {activeMyth.source}
-              </span>
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D63EB] font-mono text-[10px] font-bold shrink-0 border border-blue-200/60">
-              Peer-Reviewed
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Article Reader Modal with 01/02/03 Stepped Breakdown */}
@@ -477,7 +781,7 @@ export default function MobileExplorePage() {
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[480px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white/95 backdrop-blur-2xl overflow-hidden shadow-2xl border border-white/80 flex flex-col animate-rise"
+            className="w-full max-w-[480px] max-h-[78dvh] sm:max-h-[82dvh] rounded-2xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise"
           >
             <div className="relative h-48 w-full shrink-0">
               <img
@@ -485,7 +789,7 @@ export default function MobileExplorePage() {
                 alt={activeArticle.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/95 via-[#101F38]/40 to-transparent" />
               <button
                 type="button"
                 onClick={() => setActiveArticle(null)}
@@ -493,18 +797,18 @@ export default function MobileExplorePage() {
               >
                 <X className="w-4 h-4" />
               </button>
-              <span className="absolute bottom-3.5 left-4 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-extrabold uppercase tracking-wider bg-[#FFE500] text-[#06182C] shadow-sm">
+              <span className="absolute bottom-3.5 left-4 px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider bg-[#182C4E] text-[#7DD3FC] border border-[#38BDF8]/35 shadow-sm">
                 {activeArticle.tagLabel} · {activeArticle.category}
               </span>
             </div>
 
             <div className="p-5 overflow-y-auto space-y-3.5">
-              <h2 className="font-display text-lg font-extrabold text-slate-900 leading-snug">
+              <h2 className="font-display text-lg font-extrabold text-[#0F1E36] leading-snug">
                 {activeArticle.title}
               </h2>
 
-              <div className="flex items-center gap-3 text-xs font-semibold text-slate-500 pb-2.5 border-b border-slate-100">
-                <span className="text-[#1D63EB] font-extrabold">
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-500 pb-2.5 border-b border-slate-100 flex-wrap">
+                <span className="text-[#182C4E] font-extrabold">
                   {activeArticle.source}
                 </span>
                 <span className="flex items-center gap-1">
@@ -520,13 +824,13 @@ export default function MobileExplorePage() {
               </p>
 
               {/* 01 / 02 / 03 Stepped Breakdown */}
-              <div className="rounded-2xl bg-[#F4F8FD] border-l-4 border-[#1D63EB] p-3.5 space-y-2">
-                <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-[#094C9C]">
+              <div className="rounded-xl bg-[#F0F6FF] border-l-4 border-[#182C4E] p-3.5 space-y-2">
+                <div className="font-mono text-xs font-bold uppercase tracking-wider text-[#182C4E]">
                   THE 3-STEP SCIENTIFIC BREAKDOWN
                 </div>
                 <div className="space-y-1.5 text-xs text-slate-700">
                   <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#1D63EB]">
+                    <span className="font-mono font-extrabold text-[#0284C7]">
                       01
                     </span>
                     <span>
@@ -535,7 +839,7 @@ export default function MobileExplorePage() {
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#1D63EB]">
+                    <span className="font-mono font-extrabold text-[#0284C7]">
                       02
                     </span>
                     <span>
@@ -544,7 +848,7 @@ export default function MobileExplorePage() {
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#1D63EB]">
+                    <span className="font-mono font-extrabold text-[#0284C7]">
                       03
                     </span>
                     <span>
@@ -556,27 +860,16 @@ export default function MobileExplorePage() {
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-[#EBF3FC]/80 border border-[#D4E4F7] text-xs text-slate-700 space-y-1">
-                <div className="font-extrabold text-[#094C9C] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#1D63EB]" />
-                  <span>QUANTA Editorial Digest</span>
-                </div>
-                <p>
-                  Curated by the QUANTA Media & Scientific Teams for University
-                  of Algiers 1 members.
-                </p>
-              </div>
-
               <div className="pt-2 flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => toggleSave(activeArticle.id)}
-                  className="h-10 px-4 rounded-full border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
+                  className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
                 >
                   <Bookmark
                     className={`w-4 h-4 ${
                       savedIds.includes(activeArticle.id)
-                        ? "fill-[#1D63EB] text-[#1D63EB]"
+                        ? "fill-[#182C4E] text-[#182C4E]"
                         : ""
                     }`}
                   />
@@ -595,7 +888,7 @@ export default function MobileExplorePage() {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-10 px-4 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"
+                      className="h-10 px-4 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"
                     >
                       <span>Open Source</span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -603,7 +896,7 @@ export default function MobileExplorePage() {
                     <button
                       type="button"
                       onClick={() => setActiveArticle(null)}
-                      className="h-10 px-5 rounded-lg bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+                      className="h-10 px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
                     >
                       Done Reading
                     </button>
@@ -612,7 +905,7 @@ export default function MobileExplorePage() {
                   <button
                     type="button"
                     onClick={() => setActiveArticle(null)}
-                    className="h-10 px-5 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+                    className="h-10 px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
                   >
                     Done Reading
                   </button>

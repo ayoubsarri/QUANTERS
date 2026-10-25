@@ -14,34 +14,35 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
   const isLocked = badge.memberState === "Locked";
   const isInProgress = badge.memberState === "In Progress";
 
+  // Unified Cosmic Slate-Navy & Stellar Cyan / Indigo Palette (No #D97706 or muddy browns)
   const toneColors = {
     blue: {
-      stroke1: "#38E4FF",
-      stroke2: "#1D63EB",
-      fill1: "#071E3D",
-      fill2: "#0F3872",
-      glow: "rgba(56,228,255,0.28)",
+      stroke1: "#7DD3FC",
+      stroke2: "#38BDF8",
+      fill1: "#182C4E",
+      fill2: "#101F38",
+      glow: "rgba(56,189,248,0.22)",
     },
     cyan: {
-      stroke1: "#22D3EE",
-      stroke2: "#0284C7",
-      fill1: "#052038",
-      fill2: "#0B466E",
-      glow: "rgba(34,211,238,0.28)",
+      stroke1: "#BAE6FD",
+      stroke2: "#38BDF8",
+      fill1: "#162D4E",
+      fill2: "#0F1E36",
+      glow: "rgba(125,211,252,0.24)",
     },
     gold: {
-      stroke1: "#FDE047",
-      stroke2: "#D97706",
-      fill1: "#1D1908",
-      fill2: "#423009",
-      glow: "rgba(250,204,21,0.32)",
+      stroke1: "#E0F2FE",
+      stroke2: "#38BDF8",
+      fill1: "#1E365D",
+      fill2: "#12233E",
+      glow: "rgba(125,211,252,0.28)",
     },
     purple: {
-      stroke1: "#C084FC",
-      stroke2: "#6366F1",
-      fill1: "#181036",
-      fill2: "#311F68",
-      glow: "rgba(192,132,252,0.28)",
+      stroke1: "#93C5FD",
+      stroke2: "#60A5FA",
+      fill1: "#1A2B50",
+      fill2: "#111E38",
+      glow: "rgba(147,197,253,0.22)",
     },
   };
 
@@ -52,20 +53,20 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
     <button
       type="button"
       onClick={() => onClick?.(badge)}
-      className="group relative flex flex-col items-center p-2.5 rounded-2xl bg-white border border-[#E2ECFA] shadow-card hover:shadow-md hover:border-[#BFD9FB] active:scale-[0.97] transition-all text-center w-full"
+      className="group relative flex flex-col items-center p-2.5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_3px_12px_rgba(15,30,54,0.04)] hover:shadow-md hover:border-[#182C4E]/35 active:scale-[0.97] transition-all text-center w-full cursor-pointer"
     >
-      {/* Crafted Multi-Layer SVG Hexagonal Emblem */}
-      <div className="relative w-[78px] h-[84px] flex items-center justify-center mb-1.5">
+      {/* Clean Hexagonal Emblem */}
+      <div className="relative w-[74px] h-[80px] flex items-center justify-center mb-1.5">
         {!isLocked && (
           <div
-            className="absolute inset-2 rounded-full blur-md opacity-70 group-hover:opacity-100 transition-opacity"
+            className="absolute inset-2 rounded-full blur-md opacity-60 group-hover:opacity-95 transition-opacity"
             style={{ background: t.glow }}
           />
         )}
 
         <svg
-          width="78"
-          height="84"
+          width="74"
+          height="80"
           viewBox="0 0 80 88"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -87,63 +88,54 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
             points="40,3 75,23 75,65 40,85 5,65 5,23"
             fill={`url(#${uid}-bg)`}
             stroke={`url(#${uid}-rim)`}
-            strokeWidth="3"
+            strokeWidth="2.6"
             strokeLinejoin="round"
           />
 
-          {/* Inner Precision Hexagon Track */}
+          {/* Inner Hexagon Track */}
           <polygon
             points="40,10 69,26.5 69,61.5 40,78 11,61.5 11,26.5"
             fill="none"
             stroke={isLocked ? "#94A3B8" : t.stroke1}
-            strokeOpacity={isLocked ? "0.35" : "0.38"}
-            strokeWidth="1.2"
+            strokeOpacity={isLocked ? "0.3" : "0.32"}
+            strokeWidth="1"
             strokeDasharray={isInProgress ? "4 3" : undefined}
           />
-
-          {/* Subtle top specular highlight */}
-          {!isLocked && (
-            <polygon
-              points="40,10 66,25 40,36 14,25"
-              fill="#FFFFFF"
-              fillOpacity="0.07"
-            />
-          )}
         </svg>
 
-        {/* Center Vector Emblem */}
+        {/* Center Minimalist Vector Emblem */}
         <div className="absolute inset-0 z-20 flex items-center justify-center">
           {isLocked ? (
-            <div className="w-8 h-8 rounded-full bg-slate-400/30 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-slate-400/25 flex items-center justify-center">
               <Lock className="w-4 h-4 text-slate-600" />
             </div>
           ) : (
-            <FieldIcon field={`${badge.name} ${badge.iconName}`} size={29} />
+            <FieldIcon field={`${badge.name} ${badge.iconName}`} size={26} />
           )}
         </div>
       </div>
 
       {/* Badge Title */}
       <span
-        className={`text-xs sm:text-[13px] font-extrabold font-display leading-snug line-clamp-2 min-h-[32px] flex items-center justify-center px-1 ${
-          isLocked ? "text-[#94A3B8]" : "text-[#0B2545]"
+        className={`text-xs font-extrabold font-display leading-snug line-clamp-2 min-h-[32px] flex items-center justify-center px-1 ${
+          isLocked ? "text-slate-400" : "text-[#0F1E36]"
         }`}
       >
         {badge.name}
       </span>
 
-      {/* Bottom Gold XP Pill or Progress */}
+      {/* Harmonized XP Pill */}
       <div className="mt-1.5">
         {isLocked ? (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-[#F1F5F9] text-[#64748B]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-slate-100 text-slate-500">
             +{badge.xpReward} XP
           </span>
         ) : isInProgress ? (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-[#E0F0FF] text-[#1D63EB]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5]">
             {badge.progressPercent}% · +{badge.xpReward} XP
           </span>
         ) : (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black font-mono bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-[#182C4E] text-[#7DD3FC] border border-[#2B4875]">
             +{badge.xpReward} XP
           </span>
         )}

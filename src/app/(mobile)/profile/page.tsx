@@ -287,12 +287,12 @@ export default function MobileProfilePage() {
 
       <div className="px-4 pt-2 pb-6 space-y-3.5 animate-rise">
         {/* Top Title & Quick Actions — Editorial Header */}
-        <div className="flex items-end justify-between gap-2 pb-2 border-b border-[#DCE9F9]">
+        <div className="flex items-end justify-between gap-2 pb-2 border-b border-slate-200/90">
           <div className="min-w-0">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#1D63EB] block truncate">
+            <span className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block truncate">
               DOSSIER · {member.quanterId}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-950 tracking-tight leading-none mt-1">
+            <h1 className="text-2xl sm:text-3xl font-black font-display text-[#0F1E36] tracking-tight leading-none mt-1">
               Profile{" "}
               <span className="font-editorial italic font-normal text-slate-500 text-xl">
                 &amp; Credentials
@@ -302,38 +302,38 @@ export default function MobileProfilePage() {
           <button
             type="button"
             onClick={() => setLedgerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white text-[11px] font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(29,99,235,0.25)] hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60 hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
           >
-            <History className="w-3.5 h-3.5 text-white" />
+            <History className="w-3.5 h-3.5 text-[#7DD3FC]" />
             <span>XP Ledger</span>
           </button>
         </div>
 
         {/* Member Identity Dossier — Clean Architectural Card */}
-        <div className="bg-white rounded-xl border border-[#DCE9F9] p-4 sm:p-5 shadow-[0_4px_16px_rgba(29,99,235,0.05)]">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3.5 min-w-0">
               <button
                 type="button"
                 onClick={() => setAvatarModalOpen(true)}
                 className="relative shrink-0 group cursor-pointer active:scale-[0.98]"
-                title="Change & auto-compress avatar"
+                title="Change avatar"
               >
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
-                  className="w-14 h-14 rounded-xl object-cover border-2 border-[#1D63EB]/30 shadow-xs"
+                  className="w-14 h-14 rounded-xl object-cover border-2 border-[#182C4E]/25 shadow-xs"
                 />
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#38BDF8] border-2 border-white" />
               </button>
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg sm:text-xl font-black font-display text-slate-950 truncate tracking-tight">
+                  <h2 className="text-lg sm:text-xl font-black font-display text-[#0F1E36] truncate tracking-tight">
                     {member.fullName}
                   </h2>
                 </div>
-                <p className="text-xs font-mono font-bold text-[#1D63EB] mt-0.5">
+                <p className="text-xs font-mono font-bold text-[#0284C7] mt-0.5">
                   {member.handle}{" "}
                   <span className="text-slate-400">· {member.quanterId}</span>
                 </p>
@@ -348,7 +348,7 @@ export default function MobileProfilePage() {
               type="button"
               onClick={() => setQrOpen(true)}
               aria-label="Show Personal Digital ID QR"
-              className="w-10 h-10 rounded-lg bg-[#EBF3FC] hover:bg-[#DCE9F9] border border-[#CFE2F9] active:scale-[0.97] flex items-center justify-center text-[#1D63EB] shrink-0 shadow-xs transition cursor-pointer"
+              className="w-10 h-10 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] border border-[#D5E3F5] active:scale-[0.97] flex items-center justify-center text-[#182C4E] shrink-0 shadow-xs transition cursor-pointer"
             >
               <QrCode className="w-4.5 h-4.5" />
             </button>
@@ -360,30 +360,30 @@ export default function MobileProfilePage() {
         </div>
 
         {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card (Zero Obstruction on Right) */}
-        <div className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#030711] border border-slate-800/90 shadow-[0_18px_40px_rgba(3,8,18,0.28)] group">
+        <div className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#0B1528] border border-[#2B4875]/60 shadow-[0_16px_38px_rgba(11,21,40,0.26)] group">
           {/* Static Nano Banana Artwork with Subtle Zero-G Drift */}
           <img
             src="/brand/hero_rank_banner.webp"
             alt="QUANTERS Crocheted Astronaut & Cyan Spiral Galaxy"
             className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none animate-zero-g"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#02060E]/96 via-[#040B1A]/76 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#02060E]/90 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0B1528]/96 via-[#101F38]/76 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#0B1528]/90 to-transparent pointer-events-none" />
 
           <div className="relative z-10 max-w-[60%]">
             <div className="flex items-center gap-2">
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   member.status === "Trainee"
-                    ? "bg-amber-400 shadow-[0_0_8px_#fbbf24]"
-                    : "bg-emerald-400 shadow-[0_0_8px_#34d399]"
+                    ? "bg-[#7DD3FC] shadow-[0_0_8px_#7DD3FC]"
+                    : "bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]"
                 }`}
               />
-              <span className="text-[10.5px] font-black tracking-[0.2em] font-mono text-[#38E4FF] uppercase">
+              <span className="text-xs font-black tracking-[0.18em] font-mono text-[#7DD3FC] uppercase">
                 RANK 0{member.level}
               </span>
-              <span className="text-white/30 text-[10px]">·</span>
-              <span className="text-[10.5px] font-mono font-bold tracking-wider text-slate-300 uppercase">
+              <span className="text-white/30 text-xs">·</span>
+              <span className="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">
                 {member.status === "Trainee" ? "Trainee" : "Active"}
               </span>
             </div>
@@ -396,12 +396,12 @@ export default function MobileProfilePage() {
               <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums leading-none">
                 {member.xpSeason.toLocaleString()}
               </span>
-              <span className="text-[11px] font-black font-mono tracking-[0.18em] text-[#38E4FF] uppercase">
+              <span className="text-xs font-black font-mono tracking-[0.18em] text-[#7DD3FC] uppercase">
                 XP
               </span>
             </div>
 
-            <p className="mt-1.5 text-[11px] font-mono text-slate-300/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <p className="mt-1.5 text-xs font-mono text-slate-300/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               <span className="text-white font-bold tabular-nums">
                 {Math.round((member.xpSeason / 1000) * 100)}%
               </span>{" "}
@@ -411,17 +411,17 @@ export default function MobileProfilePage() {
 
           {/* Hairline Architectural Progress Track */}
           <div className="relative z-10 mt-4 pt-2.5 border-t border-white/10 flex items-center gap-3">
-            <div className="relative h-[3px] flex-1 bg-white/15 rounded-full overflow-visible">
+            <div className="relative h-[4px] flex-1 bg-white/15 rounded-full overflow-visible">
               <div
-                className="h-full bg-gradient-to-r from-[#38E4FF] to-white rounded-full shadow-[0_0_10px_#38E4FF] transition-all duration-700"
+                className="h-full bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#E0F2FE] rounded-full shadow-[0_0_10px_rgba(56,189,248,0.65)] transition-all duration-700"
                 style={{ width: `${xpProgressPct}%` }}
               />
               <span
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#38E4FF]"
+                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#38BDF8]"
                 style={{ left: `${xpProgressPct}%` }}
               />
             </div>
-            <span className="text-[10px] font-mono font-bold tracking-widest text-sky-200/90 tabular-nums shrink-0">
+            <span className="text-xs font-mono font-bold tracking-widest text-sky-200/90 tabular-nums shrink-0">
               {member.xpSeason}/1000
             </span>
           </div>
@@ -487,24 +487,24 @@ export default function MobileProfilePage() {
           </div>
         </div>
 
-        {/* 3 Club Governance Rows — Precision Ledger Harmonized with Royal Blue Tab Bar */}
-        <div className="bg-white rounded-xl border border-[#DCE9F9] divide-y divide-slate-100 shadow-[0_4px_16px_rgba(29,99,235,0.05)] overflow-hidden">
+        {/* 3 Club Governance Rows — Harmonized with Cosmic Slate-Navy & Glacial Ice */}
+        <div className="bg-white rounded-xl border border-slate-200/90 divide-y divide-slate-100 shadow-[0_4px_16px_rgba(15,30,54,0.04)] overflow-hidden">
           {/* Row 1: Department */}
           <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] text-[#1D63EB] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#182C4E] border border-[#2B4875] text-[#7DD3FC] flex items-center justify-center shrink-0">
                 <Building2 className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1D63EB]/80 block">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
                   01 · Department
                 </span>
-                <p className="text-sm font-extrabold font-display text-slate-950 truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
                   {dept?.name || "IT and Technical Solutions"}
                 </p>
               </div>
             </div>
-            <span className="text-[10.5px] font-mono font-bold text-slate-400 uppercase shrink-0">
+            <span className="text-xs font-mono font-bold text-slate-400 uppercase shrink-0">
               Primary
             </span>
           </div>
@@ -512,19 +512,19 @@ export default function MobileProfilePage() {
           {/* Row 2: Scientific Team */}
           <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] text-[#094C9C] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#182C4E] border border-[#2B4875] text-[#7DD3FC] flex items-center justify-center shrink-0">
                 <Orbit className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1D63EB]/80 block">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
                   02 · Scientific Team
                 </span>
-                <p className="text-sm font-extrabold font-display text-slate-950 truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
                   {team?.name || "Astronomy & Astrophysics"}
                 </p>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded-md bg-[#EBF3FC] text-[#094C9C] border border-[#CFE2F9] text-[10.5px] font-mono font-bold shrink-0">
+            <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-mono font-bold shrink-0">
               {member.roles[0] || "Member"}
             </span>
           </div>
@@ -533,17 +533,17 @@ export default function MobileProfilePage() {
           <button
             type="button"
             onClick={() => setTraineeTrackerOpen(true)}
-            className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left hover:bg-[#F8FBFF] active:scale-[0.99] transition cursor-pointer"
+            className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left hover:bg-[#F8FAFC] active:scale-[0.99] transition cursor-pointer"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#0284C7] flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 block">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 block">
                   03 · Standing &amp; Tenure
                 </span>
-                <p className="text-sm font-extrabold font-display text-slate-950 truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
                   {member.status === "Active"
                     ? "Active Member"
                     : `${member.status} Member`}{" "}
@@ -551,7 +551,7 @@ export default function MobileProfilePage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#1D63EB] shrink-0">
+            <div className="flex items-center gap-1 text-xs font-mono font-bold text-[#182C4E] shrink-0">
               <span>Roadmap</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </div>
@@ -559,17 +559,17 @@ export default function MobileProfilePage() {
         </div>
 
         {/* Residence & Professional Links Card */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card space-y-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-[#1D63EB]" />
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36] flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-[#0284C7]" />
               <span>Residence &amp; Professional Links</span>
             </h3>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setEditHrModalOpen(true)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#E0F0FF] text-[#1D63EB] text-[10.5px] font-extrabold hover:bg-sky-100 active:scale-[0.98] transition cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition cursor-pointer"
               >
                 <Pencil className="w-3 h-3" />
                 <span>Edit Details</span>
@@ -578,25 +578,25 @@ export default function MobileProfilePage() {
           </div>
 
           {/* Residence & Commute Row */}
-          <div className="p-2.5 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-1">
-            <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-              <MapPin className="w-3 h-3 text-[#1D63EB]" />
+          <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1">
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+              <MapPin className="w-3 h-3 text-[#0284C7]" />
               <span>Residence &amp; Commute Logistics</span>
             </div>
-            <p className="text-xs font-extrabold text-slate-900">
+            <p className="text-xs font-extrabold text-[#0F1E36]">
               {displayCommune} · {displayWilaya}
             </p>
             <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-700">
-                <Home className="w-2.5 h-2.5 text-[#1D63EB]" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-xs font-bold text-slate-700">
+                <Home className="w-3 h-3 text-[#182C4E]" />
                 {displayHousing}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[10px] font-bold text-[#094C9C]">
+              <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#182C4E]">
                 Commute: {displayCommute}
               </span>
               {member.canStayLate !== false && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700">
-                  <Check className="w-3 h-3 text-emerald-600" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#E0F2FE] border border-[#BAE6FD] text-xs font-bold text-[#0369A1]">
+                  <Check className="w-3 h-3 text-[#0284C7]" />
                   <span>Saturday / Late Sessions</span>
                 </span>
               )}
@@ -613,9 +613,9 @@ export default function MobileProfilePage() {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10.5px] font-extrabold hover:bg-slate-800 active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 active:scale-[0.98] transition"
             >
-              <FolderGit2 className="w-3 h-3 text-[#38E4FF]" />
+              <FolderGit2 className="w-3 h-3 text-[#7DD3FC]" />
               <span>GitHub</span>
               <ExternalLink className="w-2.5 h-2.5 opacity-75" />
             </a>
@@ -628,9 +628,9 @@ export default function MobileProfilePage() {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#0A66C2] text-white text-[10.5px] font-extrabold hover:opacity-95 active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
             >
-              <Linkedin className="w-3 h-3" />
+              <Linkedin className="w-3 h-3 text-[#0284C7]" />
               <span>LinkedIn</span>
               <ExternalLink className="w-2.5 h-2.5 opacity-75" />
             </a>
@@ -643,19 +643,19 @@ export default function MobileProfilePage() {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#EBF3FC] text-[#094C9C] border border-[#E2EDF8] text-[10.5px] font-extrabold hover:bg-sky-100 active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
             >
-              <Globe className="w-3 h-3 text-[#1D63EB]" />
+              <Globe className="w-3 h-3 text-[#0284C7]" />
               <span>Portfolio</span>
               <ExternalLink className="w-2.5 h-2.5 opacity-75" />
             </a>
           </div>
 
           {/* Weekly Availability Schedule Section */}
-          <div className="p-3 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2">
+          <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 font-display">
-                <CalendarDays className="w-3.5 h-3.5 text-[#1D63EB]" />
+              <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-500 font-display">
+                <CalendarDays className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>Weekly Club Availability</span>
               </div>
               <button
@@ -664,7 +664,7 @@ export default function MobileProfilePage() {
                   setEditAvailability(member.availability || {});
                   setScheduleModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-blue-200/90 text-[#1D63EB] text-[10.5px] font-extrabold font-display hover:bg-blue-50 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[#182C4E] text-xs font-bold font-display hover:bg-[#F0F6FF] active:scale-[0.98] transition cursor-pointer shadow-2xs"
               >
                 <Pencil className="w-3 h-3" />
                 <span>Edit Schedule</span>
@@ -672,10 +672,10 @@ export default function MobileProfilePage() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] border border-blue-200 text-xs font-black font-display tabular-nums">
+              <span className="px-2.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-black font-display tabular-nums">
                 {totalFreeSlots} slots free
               </span>
-              <span className="text-[11px] font-medium text-slate-500 font-sans">
+              <span className="text-xs font-medium text-slate-500 font-sans">
                 {totalFreeSlots >= 8
                   ? "Optimal for weekend labs & team missions"
                   : "Part-time availability registered"}
@@ -692,7 +692,7 @@ export default function MobileProfilePage() {
                     key={day}
                     className={`py-1.5 px-0.5 rounded-lg text-center border transition-all ${
                       hasSlots
-                        ? "bg-white text-slate-900 border-slate-200 shadow-2xs"
+                        ? "bg-white text-[#0F1E36] border-slate-200 shadow-2xs"
                         : "bg-slate-100/60 text-slate-400 border-transparent"
                     }`}
                   >
@@ -701,7 +701,7 @@ export default function MobileProfilePage() {
                     </span>
                     <span
                       className={`block text-[10px] font-black font-display mt-0.5 ${
-                        hasSlots ? "text-[#1D63EB]" : "text-slate-300"
+                        hasSlots ? "text-[#0284C7]" : "text-slate-300"
                       }`}
                     >
                       {slots.length > 0 ? `${slots.length}s` : "—"}
@@ -714,15 +714,15 @@ export default function MobileProfilePage() {
         </div>
 
         {/* Skills Section with + Add */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
               Skills &amp; Competencies
             </h3>
             <button
               type="button"
               onClick={() => setAddingSkill((v) => !v)}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E0F0FF] text-[#1D63EB] text-[10.5px] font-extrabold hover:bg-sky-100 active:scale-[0.98] transition cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>Add</span>
@@ -733,7 +733,7 @@ export default function MobileProfilePage() {
             {member.skills.map((skill) => (
               <span
                 key={skill}
-                className="px-2.5 py-1 rounded-full bg-[#F4F7FB] border border-[#E2EDF8] text-slate-800 text-[11px] font-bold"
+                className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[#0F1E36] text-xs font-bold"
               >
                 {skill}
               </span>
@@ -751,7 +751,7 @@ export default function MobileProfilePage() {
               />
               <button
                 type="submit"
-                className="h-8 px-3 rounded-lg bg-[#1D63EB] text-white text-xs font-bold active:scale-[0.98] cursor-pointer"
+                className="h-8 px-3 rounded-lg bg-[#182C4E] text-white text-xs font-bold active:scale-[0.98] cursor-pointer"
               >
                 Save
               </button>
@@ -759,25 +759,25 @@ export default function MobileProfilePage() {
           )}
         </div>
 
-        {/* Offline PWA & Data Quota-Saver Card */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card space-y-2.5">
+        {/* Offline App Cache & Data Saver Card */}
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-2.5">
           <div className="flex items-center justify-between gap-2">
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  Offline PWA &amp; Data Saver
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
+                  Offline App Cache &amp; Data Saver
                 </h3>
                 <span
-                  className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
+                  className={`px-1.5 py-0.5 rounded font-mono text-xs font-bold border ${
                     isOnline
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-800 border-amber-200"
+                      ? "bg-[#F0F6FF] text-[#0284C7] border-[#D5E3F5]"
+                      : "bg-slate-100 text-slate-600 border-slate-200"
                   }`}
                 >
                   {isOnline ? "ONLINE · CACHED" : "OFFLINE MODE"}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {userLowDataMode
                   ? "Low-Data Quota Saver ON · Batches syncs & skips heavy video"
                   : "All app screens & member pass cached on device for offline use"}
@@ -787,10 +787,10 @@ export default function MobileProfilePage() {
             <button
               type="button"
               onClick={() => setUserLowDataMode(!userLowDataMode)}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition cursor-pointer shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer shrink-0 ${
                 userLowDataMode
-                  ? "bg-[#1D63EB] text-white border-[#1D63EB]"
-                  : "bg-[#F4F7FB] text-slate-700 border-[#E2EDF8] hover:bg-slate-200/70"
+                  ? "bg-[#182C4E] text-white border-[#2B4875]"
+                  : "bg-[#F8FAFC] text-slate-700 border-slate-200 hover:bg-[#F0F6FF]"
               }`}
             >
               {userLowDataMode ? "Quota Saver: ON" : "Enable Data Saver"}
@@ -798,7 +798,7 @@ export default function MobileProfilePage() {
           </div>
 
           {(pendingSyncCount > 0 || lastSyncedAt) && (
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>
                 {pendingSyncCount > 0
                   ? `${pendingSyncCount} local change(s) queued for sync`
@@ -808,7 +808,7 @@ export default function MobileProfilePage() {
                 <button
                   type="button"
                   onClick={() => syncWithServer(true)}
-                  className="px-2.5 py-1 rounded-md bg-slate-900 text-white text-[10.5px] font-bold cursor-pointer"
+                  className="px-2.5 py-1 rounded-md bg-[#182C4E] text-white text-xs font-bold cursor-pointer"
                 >
                   Sync Now
                 </button>
@@ -818,12 +818,12 @@ export default function MobileProfilePage() {
         </div>
 
         {/* Account & Session Controls */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] p-3.5 shadow-card space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               Signed-in Account
             </span>
-            <span className="text-[11px] font-bold text-slate-700 truncate">
+            <span className="text-xs font-bold text-slate-700 truncate">
               {member.email}
             </span>
           </div>
@@ -833,9 +833,9 @@ export default function MobileProfilePage() {
           ) && (
             <Link
               href="/admin/overview"
-              className="w-full h-10 rounded-xl bg-[#09192F] hover:bg-[#122B4E] text-white text-xs font-extrabold flex items-center justify-center gap-2 transition"
+              className="w-full h-10 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition border border-[#2B4875]/60"
             >
-              <LayoutDashboard className="w-3.5 h-3.5 text-[#38E4FF]" />
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#7DD3FC]" />
               <span>Open Admin Console</span>
             </Link>
           )}
@@ -846,7 +846,7 @@ export default function MobileProfilePage() {
               logout();
               router.push("/login");
             }}
-            className="w-full h-10 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
+            className="w-full h-10 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>

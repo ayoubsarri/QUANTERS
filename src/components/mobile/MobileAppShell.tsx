@@ -18,13 +18,17 @@ export function MobileAppShell({
   className = "bg-[#F4F7FB]",
 }: MobileAppShellProps) {
   return (
-    <div className={`min-h-dvh w-full flex flex-col pt-[env(safe-area-inset-top)] ${className}`}>
-      {/* Responsive Mobile-First Content Container (Full-bleed on phones, centered on PC) */}
+    <div
+      className={`min-h-dvh w-full max-w-full overflow-x-hidden flex flex-col pt-[env(safe-area-inset-top)] ${className}`}
+    >
+      {/* Responsive Multi-Viewport Container: Full-bleed on phones (360-640px), spacious on Tablet (768px) & PC (1440px) */}
       <div
         className={`flex-1 w-full flex flex-col ${
           darkStatus
             ? "min-h-dvh"
-            : `max-w-[680px] mx-auto ${hideBottomNav ? "pb-8" : "pb-28 sm:pb-32"}`
+            : `max-w-[680px] md:max-w-[740px] lg:max-w-[800px] mx-auto ${
+                hideBottomNav ? "pb-8" : "pb-28 sm:pb-32"
+              }`
         }`}
       >
         {children}
