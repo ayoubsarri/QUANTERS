@@ -4,11 +4,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
+  Check,
   ChevronDown,
+  Download,
   Eye,
   EyeOff,
   KeyRound,
   Mail,
+  Monitor,
+  Smartphone,
   User,
   X,
 } from "lucide-react";
@@ -256,6 +260,43 @@ export default function WelcomeSplashPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showGoogleChooser, setShowGoogleChooser] = useState(false);
 
+  // Download App state & native install prompt capture
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [appDownloadedToast, setAppDownloadedToast] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
+
+  const handleDownloadAppClick = async () => {
+    if (deferredInstallPrompt) {
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice?.outcome === "accepted") {
+          setAppDownloadedToast(true);
+          window.setTimeout(() => setAppDownloadedToast(false), 3500);
+        }
+        setDeferredInstallPrompt(null);
+        return;
+      } catch {
+        // Fallback to Download App modal
+      }
+    }
+    setShowDownloadModal(true);
+  };
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -408,16 +449,57 @@ export default function WelcomeSplashPage() {
               </div>
             </div>
 
-            {/* Single-Line Architectural 4-Pillar Hairline Bar (Zero Boxes) */}
+            {/* Single-Line Architectural 4-Pillar Hairline Bar + Open Editorial Download Row (Zero AI Boxes) */}
             {!authOpen && (
-              <div className="flex items-center justify-between border-y border-white/15 py-2 px-0.5 text-xs font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                <span className="text-slate-200">DISCOVER</span>
-                <span className="text-white/25">/</span>
-                <span className="text-[#38E4FF]">LEARN</span>
-                <span className="text-white/25">/</span>
-                <span className="text-slate-200">PROVE</span>
-                <span className="text-white/25">/</span>
-                <span className="text-slate-200">BELONG</span>
+              <div className="space-y-0">
+                <div className="flex items-center justify-between border-y border-white/15 py-2 px-0.5 text-xs font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                  <span className="text-slate-200">DISCOVER</span>
+                  <span className="text-white/25">/</span>
+                  <span className="text-[#38E4FF]">LEARN</span>
+                  <span className="text-white/25">/</span>
+                  <span className="text-slate-200">PROVE</span>
+                  <span className="text-white/25">/</span>
+                  <span className="text-slate-200">BELONG</span>
+                </div>
+
+                {/* Open Unboxed Horizontal Download App Strip right under header text */}
+                <button
+                  type="button"
+                  onClick={handleDownloadAppClick}
+                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-2 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                >
+                  <span className="font-editorial italic text-base sm:text-lg text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
+                    Available for phone &amp; desktop
+                  </span>
+
+                  <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold tracking-[0.12em] uppercase text-[#38E4FF] group-hover:text-white transition-colors whitespace-nowrap">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="animate-download-bob text-[#38E4FF] group-hover:text-[#FFE500] transition-colors shrink-0"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M8 2V10.5M8 10.5L4.8 7.3M8 10.5L11.2 7.3"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2.5 13.2H13.5"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className="border-b border-[#38E4FF]/55 group-hover:border-white pb-0.5">
+                      Download App
+                    </span>
+                  </span>
+                </button>
               </div>
             )}
           </header>
@@ -797,6 +879,103 @@ export default function WelcomeSplashPage() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Download App Modal (Zero mention of PWA) */}
+      {showDownloadModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowDownloadModal(false)}
+        >
+          <div
+            className="w-full max-w-[380px] bg-[#07152B] border border-[#38E4FF]/30 rounded-2xl p-5 shadow-[0_24px_80px_rgba(0,0,0,0.85)] space-y-4 text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#38E4FF]/15 border border-[#38E4FF]/35 flex items-center justify-center text-[#38E4FF] shrink-0">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-black text-base text-white leading-tight">
+                    Download QUANTERS App
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Get instant home-screen &amp; desktop access
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDownloadModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                aria-label="Close download dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+                <Smartphone className="w-4 h-4 text-[#38E4FF] shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <div className="text-xs font-display font-bold text-white">
+                    On Phone (Android &amp; iOS)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Tap your browser menu or Share icon and select{" "}
+                    <span className="text-[#38E4FF] font-semibold">
+                      Install App
+                    </span>{" "}
+                    or{" "}
+                    <span className="text-[#38E4FF] font-semibold">
+                      Add to Home Screen
+                    </span>
+                    .
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+                <Monitor className="w-4 h-4 text-[#38E4FF] shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <div className="text-xs font-display font-bold text-white">
+                    On Computer (Windows &amp; Mac)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Click the{" "}
+                    <span className="text-[#38E4FF] font-semibold">
+                      Install QUANTERS
+                    </span>{" "}
+                    icon in the right side of your address bar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDownloadModal(false);
+                  setAppDownloadedToast(true);
+                  window.setTimeout(() => setAppDownloadedToast(false), 3200);
+                }}
+                className="flex-1 h-10 rounded-xl bg-[#38E4FF] hover:bg-[#60ECFF] text-[#041022] font-display font-black text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Got It · Ready to Install</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {appDownloadedToast && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#071B36]/95 border border-[#38E4FF]/40 text-white text-xs font-display font-bold shadow-xl">
+          <Check className="w-4 h-4 text-[#38E4FF]" />
+          <span>QUANTERS App ready on your device</span>
         </div>
       )}
     </div>

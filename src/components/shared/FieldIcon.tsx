@@ -8,28 +8,29 @@ export const ALL_FIELD_ICONS: {
   label: string;
   gradient: string;
   accent: string;
+  code: string;
 }[] = [
-  { key: "python", label: "Python & Coding", gradient: "from-[#0B2E59] to-[#1D63EB]", accent: "#FACC15" },
-  { key: "arduino", label: "Arduino & IoT", gradient: "from-[#064E3B] to-[#0D9488]", accent: "#34D399" },
-  { key: "astronomy", label: "Astronomy & Space", gradient: "from-[#091E3A] to-[#1E3A8A]", accent: "#38E4FF" },
-  { key: "printing", label: "3D Printing & CAD", gradient: "from-[#1E293B] to-[#3B82F6]", accent: "#60A5FA" },
-  { key: "data", label: "Data Science", gradient: "from-[#0F172A] to-[#2563EB]", accent: "#38BDF8" },
-  { key: "ai-ml", label: "AI & Neural Nets", gradient: "from-[#1E1B4B] to-[#4F46E5]", accent: "#A78BFA" },
-  { key: "cybersecurity", label: "Cybersecurity", gradient: "from-[#062E22] to-[#059669]", accent: "#6EE7B7" },
-  { key: "web-dev", label: "Web & Mobile Dev", gradient: "from-[#0C4A6E] to-[#0284C7]", accent: "#7DD3FC" },
-  { key: "robotics", label: "Robotics & Control", gradient: "from-[#312E81] to-[#6366F1]", accent: "#C4B5FD" },
-  { key: "quantum", label: "Quantum Physics", gradient: "from-[#06182C] to-[#0369A1]", accent: "#38E4FF" },
-  { key: "chemistry", label: "Chemistry & Lab", gradient: "from-[#064E3B] to-[#10B981]", accent: "#A7F3D0" },
-  { key: "biotech", label: "Biotech & Genetics", gradient: "from-[#134E4A] to-[#14B8A6]", accent: "#5EEAD4" },
-  { key: "mathematics", label: "Mathematics & Logic", gradient: "from-[#1E3A8A] to-[#3B82F6]", accent: "#93C5FD" },
-  { key: "ui-ux", label: "UI/UX & Graphic Design", gradient: "from-[#4C1D95] to-[#7C3AED]", accent: "#DDD6FE" },
-  { key: "media-photo", label: "Media & Photography", gradient: "from-[#7C2D12] to-[#EA580C]", accent: "#FDBA74" },
-  { key: "scientific-writing", label: "LaTeX & Research", gradient: "from-[#0F172A] to-[#334155]", accent: "#38E4FF" },
-  { key: "public-speaking", label: "Public Speaking", gradient: "from-[#78350F] to-[#D97706]", accent: "#FDE68A" },
-  { key: "leadership", label: "Leadership & Mentorship", gradient: "from-[#713F12] to-[#EAB308]", accent: "#FEF08A" },
-  { key: "logistics", label: "Logistics & Operations", gradient: "from-[#1E293B] to-[#475569]", accent: "#94A3B8" },
-  { key: "entrepreneurship", label: "Startups & Innovation", gradient: "from-[#7C2D12] to-[#F59E0B]", accent: "#FDE047" },
-  { key: "electronics", label: "Electronics & PCB", gradient: "from-[#064E3B] to-[#047857]", accent: "#6EE7B7" },
+  { key: "python", label: "Python & Coding", gradient: "from-[#050D1E] to-[#0B1E3D]", accent: "#38E4FF", code: "PY" },
+  { key: "arduino", label: "Arduino & IoT", gradient: "from-[#041614] to-[#082F29]", accent: "#34D399", code: "IO" },
+  { key: "astronomy", label: "Astronomy & Space", gradient: "from-[#040917] to-[#0D1E42]", accent: "#38E4FF", code: "AS" },
+  { key: "printing", label: "3D Printing & CAD", gradient: "from-[#071124] to-[#11264D]", accent: "#60A5FA", code: "3D" },
+  { key: "data", label: "Data Science", gradient: "from-[#050E20] to-[#0C244A]", accent: "#38BDF8", code: "DS" },
+  { key: "ai-ml", label: "AI & Neural Nets", gradient: "from-[#0B0924] to-[#1E174C]", accent: "#A78BFA", code: "AI" },
+  { key: "cybersecurity", label: "Cybersecurity", gradient: "from-[#041512] to-[#063227]", accent: "#34D399", code: "CS" },
+  { key: "web-dev", label: "Web & Mobile Dev", gradient: "from-[#051224] to-[#09294E]", accent: "#38E4FF", code: "WD" },
+  { key: "robotics", label: "Robotics & Control", gradient: "from-[#090B24] to-[#191D52]", accent: "#818CF8", code: "RB" },
+  { key: "quantum", label: "Quantum Physics", gradient: "from-[#030917] to-[#092349]", accent: "#38E4FF", code: "QT" },
+  { key: "chemistry", label: "Chemistry & Lab", gradient: "from-[#041613] to-[#08332A]", accent: "#34D399", code: "CH" },
+  { key: "biotech", label: "Biotech & Genetics", gradient: "from-[#041718] to-[#0A3538]", accent: "#2DD4BF", code: "BT" },
+  { key: "mathematics", label: "Mathematics & Logic", gradient: "from-[#061024] to-[#102652]", accent: "#60A5FA", code: "MT" },
+  { key: "ui-ux", label: "UI/UX & Graphic Design", gradient: "from-[#110926] to-[#261454]", accent: "#C084FC", code: "UX" },
+  { key: "media-photo", label: "Media & Photography", gradient: "from-[#1A0D06] to-[#3B1D0E]", accent: "#FB923C", code: "MD" },
+  { key: "scientific-writing", label: "LaTeX & Research", gradient: "from-[#050C1A] to-[#11223E]", accent: "#38E4FF", code: "LX" },
+  { key: "public-speaking", label: "Public Speaking", gradient: "from-[#1A1205] to-[#38270B]", accent: "#FBBF24", code: "PS" },
+  { key: "leadership", label: "Leadership & Mentorship", gradient: "from-[#191305] to-[#36280A]", accent: "#FACC15", code: "LD" },
+  { key: "logistics", label: "Logistics & Operations", gradient: "from-[#070E1B] to-[#16233B]", accent: "#94A3B8", code: "OP" },
+  { key: "entrepreneurship", label: "Startups & Innovation", gradient: "from-[#191005] to-[#38230A]", accent: "#FBBF24", code: "IN" },
+  { key: "electronics", label: "Electronics & PCB", gradient: "from-[#041512] to-[#073026]", accent: "#34D399", code: "EL" },
 ];
 
 export function resolveFieldKey(raw?: string): FieldIconKey {
@@ -76,174 +77,240 @@ export function FieldIcon({ field, size = 28, boxed = false, className = "" }: F
       case "python":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+            {/* Precision Terminal Brackets + Dual Interlocking Python Paths */}
+            <path d="M5 9L2.5 16L5 23" stroke="#38E4FF" strokeOpacity="0.35" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M27 9L29.5 16L27 23" stroke="#FACC15" strokeOpacity="0.35" strokeWidth="1.2" strokeLinecap="round" />
             <path
-              d="M15.8 4C11.2 4 11.5 6 11.5 6V8.5H16V9.5H9.5C9.5 9.5 6 9.1 6 14C6 18.9 9.1 18.7 9.1 18.7H11V16.2C11 16.2 10.9 13.1 14 13.1H19.2C19.2 13.1 22 13.1 22 10.4V6.6C22 6.6 22.4 4 15.8 4Z"
-              fill="#38BDF8"
+              d="M15.8 4.5C11.4 4.5 11.6 6.4 11.6 6.4V8.8H16.2V9.8H9.8C9.8 9.8 6.5 9.4 6.5 14.1C6.5 18.8 9.4 18.5 9.4 18.5H11.2V16.1C11.2 16.1 11.1 13.2 14.1 13.2H19.1C19.1 13.2 21.8 13.2 21.8 10.6V6.9C21.8 6.9 22.2 4.5 15.8 4.5Z"
+              fill="#38E4FF"
+              fillOpacity="0.2"
+              stroke="#38E4FF"
+              strokeWidth="1.5"
             />
             <path
-              d="M16.2 28C20.8 28 20.5 26 20.5 26V23.5H16V22.5H22.5C22.5 22.5 26 22.9 26 18C26 13.1 22.9 13.3 22.9 13.3H21V15.8C21 15.8 21.1 18.9 18 18.9H12.8C12.8 18.9 10 18.9 10 21.6V25.4C10 25.4 9.6 28 16.2 28Z"
+              d="M16.2 27.5C20.6 27.5 20.4 25.6 20.4 25.6V23.2H15.8V22.2H22.2C22.2 22.2 25.5 22.6 25.5 17.9C25.5 13.2 22.6 13.5 22.6 13.5H20.8V15.9C20.8 15.9 20.9 18.8 17.9 18.8H12.9C12.9 18.8 10.2 18.8 10.2 21.4V25.1C10.2 25.1 9.8 27.5 16.2 27.5Z"
               fill="#FACC15"
+              fillOpacity="0.22"
+              stroke="#FACC15"
+              strokeWidth="1.5"
             />
-            <circle cx="13.5" cy="6.6" r="1.1" fill="#06182C" />
-            <circle cx="18.5" cy="25.4" r="1.1" fill="#06182C" />
+            <circle cx="13.8" cy="7.2" r="1.15" fill="#FFFFFF" />
+            <circle cx="18.2" cy="24.8" r="1.15" fill="#FACC15" />
           </svg>
         );
       case "astronomy":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="6.5" fill="#38E4FF" fillOpacity="0.9" />
+            <circle cx="16" cy="16" r="11" stroke="#38E4FF" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx="16" cy="16" r="5.5" fill="#38E4FF" fillOpacity="0.25" stroke="#38E4FF" strokeWidth="1.6" />
             <ellipse
               cx="16"
               cy="16"
-              rx="13"
-              ry="4.8"
-              transform="rotate(-24 16 16)"
-              stroke="#FACC15"
-              strokeWidth="2.2"
+              rx="13.2"
+              ry="4.4"
+              transform="rotate(-26 16 16)"
+              stroke="#FFFFFF"
+              strokeWidth="1.5"
             />
-            <circle cx="25" cy="7" r="1.6" fill="#FFFFFF" />
-            <circle cx="7" cy="23" r="1.2" fill="#38E4FF" />
+            <circle cx="16" cy="16" r="2.2" fill="#FFE500" />
+            <circle cx="25.5" cy="7.5" r="1.5" fill="#38E4FF" />
+            <circle cx="6.5" cy="23.5" r="1.2" fill="#FFFFFF" />
           </svg>
         );
       case "arduino":
       case "electronics":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="8" y="8" width="16" height="16" rx="3.5" fill="#10B981" fillOpacity="0.22" stroke="#34D399" strokeWidth="2" />
-            <rect x="12" y="12" width="8" height="8" rx="1.5" fill="#34D399" />
-            <path d="M11 4V8M16 4V8M21 4V8M11 24V28M16 24V28M21 24V28M4 11H8M4 16H8M4 21H8M24 11H28M24 16H28M24 21H28" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round" />
+            <rect x="8.5" y="8.5" width="15" height="15" rx="2.5" fill="#34D399" fillOpacity="0.16" stroke="#34D399" strokeWidth="1.6" />
+            <rect x="12.5" y="12.5" width="7" height="7" rx="1" stroke="#FFFFFF" strokeWidth="1.4" />
+            <circle cx="16" cy="16" r="1.5" fill="#38E4FF" />
+            <path
+              d="M11.5 4.5V8.5M16 4.5V8.5M20.5 4.5V8.5M11.5 23.5V27.5M16 23.5V27.5M20.5 23.5V27.5M4.5 11.5H8.5M4.5 16H8.5M4.5 20.5H8.5M23.5 11.5H27.5M23.5 16H27.5M23.5 20.5H27.5"
+              stroke="#6EE7B7"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
         );
       case "printing":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M16 5L26 10.5V21.5L16 27L6 21.5V10.5L16 5Z" fill="#3B82F6" fillOpacity="0.25" stroke="#60A5FA" strokeWidth="2" />
-            <path d="M16 5V16M16 16L26 10.5M16 16L6 10.5M16 16V27" stroke="#38E4FF" strokeWidth="1.8" />
-            <circle cx="16" cy="16" r="2.5" fill="#FACC15" />
+            <path
+              d="M16 4.5L26 10.2V21.8L16 27.5L6 21.8V10.2L16 4.5Z"
+              fill="#38E4FF"
+              fillOpacity="0.14"
+              stroke="#60A5FA"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <path d="M16 4.5V16M16 16L26 10.2M16 16L6 10.2M16 16V27.5" stroke="#38E4FF" strokeWidth="1.4" />
+            <circle cx="16" cy="16" r="2.3" fill="#FFE500" />
+            <circle cx="16" cy="4.5" r="1.3" fill="#FFFFFF" />
           </svg>
         );
       case "data":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="6" y="17" width="4.5" height="9" rx="1.5" fill="#60A5FA" />
-            <rect x="13.5" y="12" width="4.5" height="14" rx="1.5" fill="#38E4FF" />
-            <rect x="21" y="7" width="4.5" height="19" rx="1.5" fill="#FACC15" />
-            <path d="M7 13L15 8L23 5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="23" cy="5" r="2" fill="#38E4FF" />
+            <path d="M5 26.5H27" stroke="#475569" strokeWidth="1.4" strokeLinecap="round" />
+            <rect x="7" y="17.5" width="4" height="9" rx="1" fill="#38E4FF" fillOpacity="0.3" stroke="#38E4FF" strokeWidth="1.4" />
+            <rect x="14" y="12.5" width="4" height="14" rx="1" fill="#38E4FF" fillOpacity="0.55" stroke="#38E4FF" strokeWidth="1.4" />
+            <rect x="21" y="7.5" width="4" height="19" rx="1" fill="#FFE500" fillOpacity="0.85" />
+            <path d="M7.5 13L15.5 8.5L23 5" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" />
+            <circle cx="23" cy="5" r="1.8" fill="#38E4FF" />
           </svg>
         );
       case "ai-ml":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M9 10L16 6L23 10M9 22L16 26L23 22M9 10L23 22M23 10L9 22M16 6V26" stroke="#A78BFA" strokeWidth="1.8" strokeOpacity="0.8" />
-            <circle cx="16" cy="6" r="2.6" fill="#38E4FF" />
-            <circle cx="9" cy="10" r="2.6" fill="#C4B5FD" />
-            <circle cx="23" cy="10" r="2.6" fill="#C4B5FD" />
-            <circle cx="16" cy="16" r="3.4" fill="#FACC15" />
-            <circle cx="9" cy="22" r="2.6" fill="#C4B5FD" />
-            <circle cx="23" cy="22" r="2.6" fill="#C4B5FD" />
-            <circle cx="16" cy="26" r="2.6" fill="#38E4FF" />
+            <polygon
+              points="16,5 26,10.5 26,21.5 16,27 6,21.5 6,10.5"
+              stroke="#A78BFA"
+              strokeOpacity="0.45"
+              strokeWidth="1.3"
+              fill="#A78BFA"
+              fillOpacity="0.1"
+            />
+            <path d="M9 11L16 6.5L23 11M9 21L16 25.5L23 21M9 11L23 21M23 11L9 21M16 6.5V25.5" stroke="#C4B5FD" strokeWidth="1.3" strokeOpacity="0.75" />
+            <circle cx="16" cy="6.5" r="2.1" fill="#38E4FF" />
+            <circle cx="9" cy="11" r="2" fill="#FFFFFF" />
+            <circle cx="23" cy="11" r="2" fill="#FFFFFF" />
+            <circle cx="16" cy="16" r="3" fill="#FFE500" />
+            <circle cx="9" cy="21" r="2" fill="#C4B5FD" />
+            <circle cx="23" cy="21" r="2" fill="#C4B5FD" />
+            <circle cx="16" cy="25.5" r="2.1" fill="#38E4FF" />
           </svg>
         );
       case "cybersecurity":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M16 4L25 8V15.5C25 21.5 21.2 26.2 16 28C10.8 26.2 7 21.5 7 15.5V8L16 4Z" fill="#10B981" fillOpacity="0.22" stroke="#34D399" strokeWidth="2.2" />
-            <rect x="12.5" y="14.5" width="7" height="6" rx="1.5" fill="#6EE7B7" />
-            <path d="M14 14.5V12.5C14 11.4 14.9 10.5 16 10.5C17.1 10.5 18 11.4 18 12.5V14.5" stroke="#FFFFFF" strokeWidth="1.8" />
+            <path
+              d="M16 4.5L25 8.2V15.5C25 21.3 21.2 25.9 16 27.8C10.8 25.9 7 21.3 7 15.5V8.2L16 4.5Z"
+              fill="#34D399"
+              fillOpacity="0.16"
+              stroke="#34D399"
+              strokeWidth="1.6"
+            />
+            <rect x="12.5" y="14.5" width="7" height="5.8" rx="1.2" stroke="#FFFFFF" strokeWidth="1.5" />
+            <path d="M14 14.5V12.5C14 11.4 14.9 10.5 16 10.5C17.1 10.5 18 11.4 18 12.5V14.5" stroke="#38E4FF" strokeWidth="1.5" />
+            <circle cx="16" cy="17.4" r="1.1" fill="#FFE500" />
           </svg>
         );
       case "quantum":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <ellipse cx="16" cy="16" rx="12" ry="5" transform="rotate(-30 16 16)" stroke="#38E4FF" strokeWidth="1.8" />
-            <ellipse cx="16" cy="16" rx="12" ry="5" transform="rotate(30 16 16)" stroke="#60A5FA" strokeWidth="1.8" />
-            <ellipse cx="16" cy="16" rx="12" ry="5" transform="rotate(90 16 16)" stroke="#FACC15" strokeWidth="1.8" />
-            <circle cx="16" cy="16" r="3" fill="#FFFFFF" />
+            <ellipse cx="16" cy="16" rx="12.5" ry="4.6" transform="rotate(-30 16 16)" stroke="#38E4FF" strokeWidth="1.5" />
+            <ellipse cx="16" cy="16" rx="12.5" ry="4.6" transform="rotate(30 16 16)" stroke="#60A5FA" strokeWidth="1.5" />
+            <ellipse cx="16" cy="16" rx="12.5" ry="4.6" transform="rotate(90 16 16)" stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="1.3" />
+            <circle cx="16" cy="16" r="2.6" fill="#FFE500" />
+            <circle cx="25" cy="11" r="1.4" fill="#38E4FF" />
           </svg>
         );
       case "chemistry":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M12 5H20M14 5V12L8 23C7.2 24.5 8.3 26.5 10 26.5H22C23.7 26.5 24.8 24.5 24 23L18 12V5" stroke="#34D399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M10 20H22L23.5 23.5C24 24.5 23.2 25.5 22 25.5H10C8.8 25.5 8 24.5 8.5 23.5L10 20Z" fill="#10B981" fillOpacity="0.55" />
-            <circle cx="15" cy="22" r="1.5" fill="#A7F3D0" />
-            <circle cx="18.5" cy="18" r="1.2" fill="#38E4FF" />
+            <path
+              d="M12.5 5H19.5M14 5V11.8L8.2 22.8C7.5 24.2 8.5 26 10.2 26H21.8C23.5 26 24.5 24.2 23.8 22.8L18 11.8V5"
+              stroke="#34D399"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M10.2 19.5H21.8L23.2 22.8C23.6 23.8 22.9 24.8 21.8 24.8H10.2C9.1 24.8 8.4 23.8 8.8 22.8L10.2 19.5Z" fill="#34D399" fillOpacity="0.35" />
+            <circle cx="14.5" cy="21.5" r="1.3" fill="#FFFFFF" />
+            <circle cx="18" cy="17" r="1.1" fill="#38E4FF" />
           </svg>
         );
       case "biotech":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M10 5C10 12 22 12 22 19C22 23 18 26 10 27" stroke="#2DD4BF" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M22 5C22 12 10 12 10 19C10 23 14 26 22 27" stroke="#38BDF8" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M12 9H20M13 16H19M12 23H20" stroke="#FACC15" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M10 5C10 12 22 12 22 19C22 23 18 26 10 27" stroke="#2DD4BF" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M22 5C22 12 10 12 10 19C10 23 14 26 22 27" stroke="#38E4FF" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M12 9H20M13 16H19M12 23H20" stroke="#FFE500" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
         );
       case "scientific-writing":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="7" y="5" width="18" height="22" rx="3" fill="#38BDF8" fillOpacity="0.18" stroke="#38E4FF" strokeWidth="2" />
-            <path d="M11 11H21M11 15.5H21M11 20H16" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="20.5" cy="20.5" r="2.5" fill="#FACC15" />
+            <rect x="7.5" y="5" width="17" height="22" rx="2" fill="#38E4FF" fillOpacity="0.14" stroke="#38E4FF" strokeWidth="1.6" />
+            <path d="M11 10.5H21M11 15H21M11 19.5H16" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" />
+            <circle cx="20.5" cy="20.5" r="2.2" fill="#FFE500" />
           </svg>
         );
       case "leadership":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <path d="M16 4L19.3 10.8L26.8 11.9L21.4 17.1L22.7 24.6L16 21L9.3 24.6L10.6 17.1L5.2 11.9L12.7 10.8L16 4Z" fill="#FACC15" stroke="#FEF08A" strokeWidth="1.6" />
+            <path
+              d="M16 4.5L19.1 10.9L26.2 12L21.1 16.9L22.3 24L16 20.6L9.7 24L10.9 16.9L5.8 12L12.9 10.9L16 4.5Z"
+              fill="#FACC15"
+              fillOpacity="0.25"
+              stroke="#FFE500"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <circle cx="16" cy="15" r="2" fill="#FFFFFF" />
           </svg>
         );
       case "robotics":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="7" y="10" width="18" height="14" rx="4" fill="#6366F1" fillOpacity="0.3" stroke="#A5B4FC" strokeWidth="2" />
-            <circle cx="12.5" cy="16.5" r="2" fill="#38E4FF" />
-            <circle cx="19.5" cy="16.5" r="2" fill="#38E4FF" />
-            <path d="M16 5V10M13 21H19" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="16" cy="5" r="1.8" fill="#FACC15" />
+            <rect x="7" y="10.5" width="18" height="13.5" rx="2.5" fill="#818CF8" fillOpacity="0.2" stroke="#A5B4FC" strokeWidth="1.6" />
+            <circle cx="12.5" cy="16.5" r="1.8" fill="#38E4FF" />
+            <circle cx="19.5" cy="16.5" r="1.8" fill="#38E4FF" />
+            <path d="M16 5.5V10.5M13 21H19" stroke="#FFE500" strokeWidth="1.6" strokeLinecap="round" />
+            <circle cx="16" cy="5.5" r="1.6" fill="#FFE500" />
           </svg>
         );
       case "ui-ux":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="5" y="6" width="22" height="16" rx="3" stroke="#C4B5FD" strokeWidth="2" />
-            <circle cx="12" cy="14" r="3" fill="#38E4FF" />
-            <path d="M17 11H23M17 15H21" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" />
-            <path d="M12 26H20" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" />
+            <rect x="5.5" y="6.5" width="21" height="15.5" rx="2" stroke="#C4B5FD" strokeWidth="1.6" />
+            <circle cx="12" cy="14.2" r="2.8" fill="#38E4FF" fillOpacity="0.35" stroke="#38E4FF" strokeWidth="1.4" />
+            <path d="M17.5 11.5H23M17.5 15.5H21" stroke="#FFE500" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M12 25.5H20" stroke="#C4B5FD" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
         );
       case "media-photo":
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <rect x="5" y="9" width="22" height="16" rx="3.5" fill="#EA580C" fillOpacity="0.25" stroke="#FDBA74" strokeWidth="2" />
-            <circle cx="16" cy="17" r="4.5" stroke="#38E4FF" strokeWidth="2.2" />
-            <path d="M11 9L12.8 6.5H19.2L21 9" stroke="#FDBA74" strokeWidth="2" strokeLinecap="round" />
+            <rect x="5.5" y="9.5" width="21" height="15" rx="2.5" fill="#FB923C" fillOpacity="0.18" stroke="#FDBA74" strokeWidth="1.6" />
+            <circle cx="16" cy="17" r="4.2" stroke="#38E4FF" strokeWidth="1.8" />
+            <circle cx="16" cy="17" r="1.5" fill="#FFE500" />
+            <path d="M11.5 9.5L13 7H19L20.5 9.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         );
       default:
         return (
           <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="10" stroke="#38E4FF" strokeWidth="2.2" />
-            <path d="M16 10V16L20 19" stroke="#FACC15" strokeWidth="2.2" strokeLinecap="round" />
+            <circle cx="16" cy="16" r="9.5" stroke="#38E4FF" strokeWidth="1.6" />
+            <path d="M16 10.5V16L19.8 18.8" stroke="#FFE500" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         );
     }
   };
 
   if (!boxed) {
-    return <span className={`inline-flex items-center justify-center ${className}`}>{renderSvg()}</span>;
+    return (
+      <span className={`inline-flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${className}`}>
+        {renderSvg()}
+      </span>
+    );
   }
 
   return (
     <div
-      className={`relative flex items-center justify-center rounded-2xl bg-gradient-to-br ${meta.gradient} shadow-md border border-white/15 shrink-0 overflow-hidden ${className}`}
+      className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br ${meta.gradient} border border-slate-800/90 shadow-[0_8px_20px_rgba(3,8,18,0.22),inset_0_1px_0_rgba(255,255,255,0.14)] shrink-0 overflow-hidden group ${className}`}
       style={{ width: size + 20, height: size + 20 }}
     >
+      {/* Precision Architectural Corner Ticks */}
+      <span className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-[#38E4FF]/45 pointer-events-none" />
+      <span className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-[#38E4FF]/45 pointer-events-none" />
       <div
-        className="absolute -top-3 -right-3 w-8 h-8 rounded-full opacity-35 blur-sm"
+        className="absolute -top-3 -right-3 w-8 h-8 rounded-full opacity-30 blur-xs pointer-events-none"
         style={{ background: meta.accent }}
       />
-      {renderSvg()}
+      <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+        {renderSvg()}
+      </div>
     </div>
   );
 }

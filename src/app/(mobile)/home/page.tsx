@@ -169,54 +169,62 @@ export default function MobileHomeHubPage() {
             </div>
           </div>
 
-          {/* Prestige Alumni Fellowship Honors Card */}
+          {/* Prestige Alumni Fellowship Honors Card (Nano Banana Static Cosmic Banner) */}
           <div
-            className="rounded-2xl bg-gradient-to-br from-[#061E47] via-[#092B66] to-[#0E3A85] text-white p-5 sm:p-6 border border-white/20 shadow-[0_12px_36px_rgba(6,30,71,0.2)] relative overflow-hidden animate-rise"
+            className="rounded-2xl bg-[#040917] text-white p-5 sm:p-6 border border-[#38E4FF]/30 shadow-[0_18px_44px_rgba(3,8,18,0.45)] relative overflow-hidden animate-rise"
             style={{ animationDelay: "60ms" }}
           >
-            <div className="absolute right-0 bottom-0 w-40 h-40 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
+            {/* Nano Banana Static Crocheted Astronaut & Cyan Spiral Galaxy Artwork */}
+            <img
+              src="/brand/hero_rank_banner.webp"
+              alt="QUANTERS Cosmic Explorer Banner"
+              className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/95 via-[#051026]/80 to-[#030812]/25 pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
+
             <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md border border-white/20 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#07162E]/80 backdrop-blur-md border border-[#38E4FF]/35 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Honorary Fellowship</span>
               </span>
-              <span className="text-xs font-mono font-bold text-amber-300">
+              <span className="text-xs font-mono font-bold text-amber-300 drop-shadow">
                 Class of {member.graduationYear || "2026"}
               </span>
             </div>
 
-            <div className="mt-3.5 relative z-10">
-              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
+            <div className="mt-3.5 relative z-10 max-w-[68%]">
+              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                 {member.fullName}
               </h2>
-              <p className="text-xs sm:text-sm font-medium text-sky-200/90 mt-1 max-w-[420px] leading-relaxed font-sans">
+              <p className="text-xs sm:text-sm font-medium text-sky-200/95 mt-1 leading-relaxed font-sans drop-shadow">
                 {member.alumniPosition ||
                   "Doctoral Researcher in Quantum Photonics · Faculty of Sciences"}
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
-              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-amber-300 block leading-tight tabular-nums">
                   3,450 XP
                 </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
                   Lifetime Legacy
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-white block leading-tight truncate">
                   Former President
                 </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
                   Distinction
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
                 <span className="text-base sm:text-lg font-black font-display text-[#38E4FF] block leading-tight">
                   Advisory
                 </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-1">
+                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
                   Scientific Council
                 </span>
               </div>
@@ -448,74 +456,90 @@ export default function MobileHomeHubPage() {
   // ============================================================================
   return (
     <MobileAppShell>
-      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
-        {/* Top Creative Greeting Header */}
+      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
+        {/* Top Editorial & Technical Greeting Header (Zero AI Bubble Styling) */}
         <div
           className="flex items-center justify-between gap-3 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Link href="/profile" className="relative shrink-0 group">
-              <div className="relative w-12 h-12 rounded-2xl p-0.5 bg-gradient-to-tr from-[#1D63EB] to-[#38E4FF] shadow-[0_4px_14px_rgba(29,99,235,0.22)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-900/85 bg-slate-950 shadow-[0_6px_16px_rgba(3,8,18,0.14)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
-                  className="w-full h-full rounded-[14px] object-cover bg-white"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-subtle" />
-              </span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#F4F7FB] shadow-xs" />
             </Link>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-display">
-                  Good evening
+              <div className="flex items-center gap-1.5 font-mono text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                <span className="font-bold text-slate-900">
+                  {dept?.shortName || "Logistics"}
                 </span>
-                <span className="w-1 h-1 rounded-full bg-slate-300" />
-                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#1D63EB] font-display">
-                  <span>{dept?.shortName || "Logistics"}</span>
-                </span>
+                <span className="text-slate-300">·</span>
+                <span>{member.quanterId}</span>
               </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight truncate">
-                  {firstName}
+
+              <div className="flex items-baseline gap-1.5 mt-0.5 truncate">
+                <h1 className="text-2xl font-black font-display text-slate-950 tracking-tight leading-none">
+                  {firstName},
                 </h1>
-                {(member.isBureauMember ||
-                  member.roles.some((r) =>
-                    [
-                      "Super Admin",
-                      "Executive",
-                      "HR Head",
-                      "Department Head",
-                      "Co-Manager",
-                      "Team Leader",
-                    ].includes(r)
-                  )) && (
-                  <Link
-                    href="/manager"
-                    className="inline-flex items-center gap-0.5 text-xs font-black font-display text-[#1D63EB] hover:text-blue-800 transition group"
-                    title="Department & Team Operations"
-                  >
-                    <span>· Desk</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-[#1D63EB] group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
-                )}
+                <span className="font-editorial italic text-xl text-slate-600 truncate leading-none">
+                  science needs you.
+                </span>
               </div>
-              <p className="text-xs font-semibold text-slate-500 truncate mt-0.5 font-sans">
-                Keep exploring. Science needs you.
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {(member.isBureauMember ||
+              member.roles.some((r) =>
+                [
+                  "Super Admin",
+                  "Executive",
+                  "HR Head",
+                  "Department Head",
+                  "Co-Manager",
+                  "Team Leader",
+                ].includes(r)
+              )) && (
+              <Link
+                href="/manager"
+                className="h-10 px-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-mono font-bold text-slate-800 hover:border-slate-900 flex items-center justify-center transition active:scale-95 shadow-2xs"
+                title="Department & Team Operations"
+              >
+                <span>Desk</span>
+              </Link>
+            )}
             <Link
               href="/notifications"
-              className="relative w-10 h-10 rounded-full text-slate-700 hover:text-[#1D63EB] hover:bg-slate-100 flex items-center justify-center transition active:scale-95"
+              className="relative w-10 h-10 rounded-xl bg-white border border-slate-200/90 text-slate-800 hover:border-slate-900 flex items-center justify-center transition active:scale-95 shadow-2xs group"
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5" />
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="transition-transform duration-200 group-hover:rotate-6"
+              >
+                <path
+                  d="M18 8C18 6.4 17.4 4.8 16.2 3.7C15.1 2.6 13.6 2 12 2C10.4 2 8.9 2.6 7.8 3.7C6.6 4.8 6 6.4 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M13.7 21C13.5 21.3 13.3 21.6 12.9 21.8C12.6 21.9 12.3 22 12 22C11.7 22 11.4 21.9 11.1 21.8C10.7 21.6 10.5 21.3 10.3 21"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
               {unreadCount > 0 && (
                 <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#ED1C24] ring-2 ring-white" />
               )}
@@ -523,368 +547,458 @@ export default function MobileHomeHubPage() {
           </div>
         </div>
 
-        {/* Unboxed Architectural Hero Card */}
+        {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card
+            - Sharp architectural frame (rounded-xl), zero boxes covering the astronaut on the right */}
         <div
-          className="relative rounded-2xl p-5 sm:p-6 text-white overflow-hidden bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] animate-rise"
-          style={{ animationDelay: "60ms" }}
+          className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#040814] border border-slate-900 shadow-[0_18px_42px_rgba(3,8,18,0.34)] animate-rise group"
+          style={{ animationDelay: "50ms" }}
         >
-          <div className="absolute right-0 top-0 w-40 h-40 rounded-full bg-[#29D2FF]/20 blur-3xl pointer-events-none" />
-          <div className="absolute left-0 bottom-0 w-36 h-36 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
+          {/* Static Nano Banana Artwork with subtle zero-gravity drift */}
+          <img
+            src="/brand/hero_rank_banner.webp"
+            alt="QUANTERS Crocheted Astronaut & Cyan Spiral Galaxy"
+            className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none animate-zero-g"
+          />
+          {/* Left-only dark contrast gradient so the right 42% (astronaut + galaxy) is 100% unobstructed */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/96 via-[#040B1B]/72 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
 
-          <div className="relative z-10">
-            {/* Top Row: Unboxed Typographic Rank & Live Status Indicator */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-black tracking-widest font-mono text-[#38E4FF] uppercase">
-                  RANK 0{member.level}
-                </span>
-                <span className="text-white/30 text-xs">/</span>
-                <span className="text-xs sm:text-sm font-extrabold tracking-wide text-white/95 font-display">
-                  {member.levelTitle}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-xs font-extrabold font-display">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    member.status === "Trainee"
-                      ? "bg-amber-400 shadow-[0_0_8px_#fbbf24]"
-                      : "bg-emerald-400 shadow-[0_0_8px_#34d399]"
-                  }`}
-                />
-                <span
-                  className={
-                    member.status === "Trainee"
-                      ? "text-amber-200"
-                      : "text-emerald-300"
-                  }
-                >
-                  {member.status === "Trainee" ? "Trainee" : "Active Member"}
-                </span>
-              </div>
-            </div>
-
-            {/* Central Metric Block (Unboxed XP) */}
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums drop-shadow-sm">
-                    {member.xpSeason.toLocaleString()}
-                  </span>
-                  <span className="text-xs font-black font-mono tracking-widest text-[#38E4FF] uppercase">
-                    XP
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-sky-200/90 font-sans">
-                  <span className="text-white font-bold tabular-nums">
-                    {Math.round((member.xpSeason / 1000) * 100)}%
-                  </span>{" "}
-                  season target · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to Rank 0{member.level + 1}
-                </p>
-              </div>
-
-              <div className="shrink-0">
-                <PlanetEmblem size={58} />
-              </div>
-            </div>
-
-            {/* Frosted Architectural Progress Bar */}
-            <div className="mt-3.5 h-2 w-full rounded-full bg-slate-950/40 backdrop-blur-md border border-white/15 p-0.5 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#29D2FF] via-[#38E4FF] to-[#60A5FA] shadow-[0_0_12px_rgba(41,210,255,0.65)] transition-all duration-500"
-                style={{ width: `${xpProgressPct}%` }}
+          <div className="relative z-10 max-w-[60%]">
+            {/* Line 1: Unboxed Mono Status + Rank Index */}
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  member.status === "Trainee"
+                    ? "bg-amber-400 shadow-[0_0_8px_#fbbf24]"
+                    : "bg-emerald-400 shadow-[0_0_8px_#34d399]"
+                }`}
               />
+              <span className="font-mono text-xs font-bold tracking-[0.14em] text-[#38E4FF] uppercase">
+                RANK 0{member.level}
+              </span>
+              <span className="text-white/30 text-xs">·</span>
+              <span className="font-mono text-xs text-slate-300 uppercase tracking-wider">
+                {member.status === "Trainee" ? "Trainee" : "Active"}
+              </span>
+            </div>
+
+            {/* Line 2: Creative Mixed Font Title (Display + Editorial Italic) */}
+            <div className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
+                {member.levelTitle.split(" ")[0] || "Quantum"}
+              </span>
+              <span className="font-editorial italic font-normal text-2xl sm:text-[26px] text-[#38E4FF] leading-none">
+                {member.levelTitle.split(" ").slice(1).join(" ") || "Explorer"}
+              </span>
+            </div>
+
+            {/* Line 3: Large Tabular XP Readout */}
+            <div className="mt-3 flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none">
+                {member.xpSeason.toLocaleString()}
+              </span>
+              <span className="text-xs font-black font-mono tracking-[0.18em] text-[#38E4FF] uppercase">
+                XP
+              </span>
+            </div>
+
+            {/* Line 4: Concise Target Specification */}
+            <p className="mt-1 font-mono text-xs text-slate-300/95 whitespace-nowrap">
+              <span className="text-white font-bold tabular-nums">
+                {Math.round((member.xpSeason / 1000) * 100)}%
+              </span>{" "}
+              target · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to 0{member.level + 1}
+            </p>
+          </div>
+
+          {/* Architectural 2px Hairline Progress Bar with Glowing Playhead */}
+          <div className="relative z-10 mt-4 pt-0.5">
+            <div className="h-1 w-full bg-white/15 relative overflow-visible">
+              <div
+                className="h-full bg-gradient-to-r from-[#38E4FF] to-[#FFE500] shadow-[0_0_10px_#38E4FF] transition-all duration-700 relative"
+                style={{ width: `${xpProgressPct}%` }}
+              >
+                <span className="absolute -right-1 -top-1 w-3 h-3 rounded-full bg-[#38E4FF] ring-2 ring-[#040814] shadow-[0_0_10px_#38E4FF]" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Smart Activity & Progression Strip */}
+        {/* Open Swiss Architectural 4-Metric Specification Grid (Zero Bubble Box) */}
         <div
-          className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(9,25,47,0.04)] p-2 grid grid-cols-4 divide-x divide-slate-100/90 animate-rise"
-          style={{ animationDelay: "120ms" }}
+          className="border-y border-slate-200/90 py-3 grid grid-cols-4 divide-x divide-slate-200/80 animate-rise"
+          style={{ animationDelay: "100ms" }}
         >
           <Link
             href="/badges"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-start px-2.5 first:pl-1 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+            <span className="font-mono text-xs text-slate-400 leading-none">01</span>
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#1D63EB] transition-colors">
               {member.badgeIds.length}
             </span>
-            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
+            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
               Badges
             </span>
           </Link>
 
           <Link
             href="/workshops"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+            <span className="font-mono text-xs text-slate-400 leading-none">02</span>
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#1D63EB] transition-colors">
               {member.workshopsCompletedCount}
             </span>
-            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
-              Workshops
+            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
+              Sessions
             </span>
           </Link>
 
           <Link
             href="/projects/submit"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+            <span className="font-mono text-xs text-slate-400 leading-none">03</span>
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#1D63EB] transition-colors">
               {member.projectsCompletedCount}
             </span>
-            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
+            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
               Projects
             </span>
           </Link>
 
           <Link
             href="/profile"
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-slate-50/80 active:scale-[0.98] transition-all cursor-pointer text-center group"
+            className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 tabular-nums leading-none group-hover:text-[#1D63EB] transition-colors">
+            <span className="font-mono text-xs text-slate-400 leading-none">04</span>
+            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#1D63EB] transition-colors">
               {member.xpTotal.toLocaleString()}
             </span>
-            <span className="text-[10px] font-bold font-display uppercase tracking-tight text-slate-500 mt-1 group-hover:text-slate-700 transition-colors">
+            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
               Total XP
             </span>
           </Link>
         </div>
 
-        {/* Collapsible Gold Member of the Month Spotlight Strip */}
+        {/* Cosmic-Obsidian Editorial Honour Ribbon (Star of the Month) */}
         <div
-          className="rounded-2xl bg-gradient-to-r from-amber-50 via-[#FEF3C7]/80 to-amber-50 border border-amber-200/90 px-3.5 py-2.5 shadow-sm animate-rise"
-          style={{ animationDelay: "180ms" }}
+          className="rounded-xl bg-[#050C1A] text-white border border-slate-800 border-l-2 border-l-[#FFE500] px-3.5 py-2.5 shadow-[0_8px_20px_rgba(3,8,18,0.12)] animate-rise"
+          style={{ animationDelay: "150ms" }}
         >
           <button
             type="button"
             onClick={() => setShowMotmDetails((v) => !v)}
-            className="w-full flex items-center justify-between gap-2 text-left cursor-pointer"
+            className="w-full flex items-center justify-between gap-2 text-left cursor-pointer group"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="w-6 h-6 rounded-full bg-amber-400/25 border border-amber-400/50 flex items-center justify-center text-amber-700 shrink-0">
-                <Award className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 min-w-0 whitespace-nowrap overflow-hidden">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-[#FFE500] shrink-0 transition-transform duration-300 group-hover:rotate-12"
+              >
+                <polygon
+                  points="12,2 15,8.5 22,9.3 17,14.1 18.2,21 12,17.7 5.8,21 7,14.1 2,9.3 9,8.5"
+                  fill="currentColor"
+                  fillOpacity="0.25"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+              </svg>
+              <span className="font-editorial italic text-base text-[#FFE500] shrink-0">
+                Star of the Month
               </span>
-              <span className="text-xs font-extrabold text-amber-950 truncate">
-                Star of the Month: {motmMember.fullName} ·{" "}
-                <span className="text-amber-700">+50 XP</span>
+              <span className="text-white/25 text-xs">·</span>
+              <span className="text-xs font-display font-bold text-white truncate">
+                {motmMember.fullName}
+              </span>
+              <span className="font-mono text-xs font-bold text-[#38E4FF] shrink-0">
+                +50 XP
               </span>
             </div>
             {showMotmDetails ? (
-              <ChevronUp className="w-4 h-4 text-amber-800 shrink-0" />
+              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-amber-800 shrink-0" />
+              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
             )}
           </button>
 
           {showMotmDetails && (
-            <div className="mt-2 pt-2 border-t border-amber-200/70 flex items-center justify-between gap-3 text-[11px] text-amber-900">
-              <div className="flex items-center gap-2">
+            <div className="mt-2.5 pt-2.5 border-t border-white/10 flex items-center justify-between gap-3 text-xs text-slate-300">
+              <div className="flex items-center gap-2.5">
                 <img
                   src={motmMember.avatarUrl}
                   alt={motmMember.fullName}
-                  className="w-7 h-7 rounded-full object-cover border border-amber-400"
+                  className="w-7 h-7 rounded-lg object-cover border border-[#FFE500]/60"
                 />
                 <div>
-                  <p className="font-bold">
+                  <p className="font-bold text-white">
                     {motmMember.levelTitle} · {motmMember.xpMonth} XP this month
                   </p>
-                  <p className="text-[10px] text-amber-800">
-                    96% workshop attendance & exemplary scientific leadership
+                  <p className="text-xs text-slate-400">
+                    96% workshop attendance &amp; scientific leadership
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950 font-extrabold text-[10px] shrink-0">
-                Honour Roll
+              <span className="font-mono text-xs text-[#FFE500] uppercase tracking-wider shrink-0">
+                [Laureate]
               </span>
             </div>
           )}
         </div>
 
-        {/* Next Workshop Card */}
+        {/* Next Workshop Precision Laboratory Ticket (Zero Pastel Pill Soup) */}
         {nextWorkshop && (
           <div
-            className="animate-rise"
-            style={{ animationDelay: "240ms" }}
+            className="animate-rise space-y-1.5"
+            style={{ animationDelay: "200ms" }}
           >
-            <div className="flex items-center justify-between mb-1.5">
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                Next Workshop
-              </h2>
+            <div className="flex items-baseline justify-between px-0.5">
+              <div className="flex items-baseline gap-1.5">
+                <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-slate-900">
+                  NEXT SESSION
+                </h2>
+                <span className="font-editorial italic text-base text-slate-500">
+                  scheduled lab
+                </span>
+              </div>
               <Link
                 href="/workshops"
-                className="text-xs font-bold text-[#1D63EB] hover:underline"
+                className="font-mono text-xs font-bold text-[#1D63EB] hover:underline"
               >
-                See all
+                All sessions →
               </Link>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card">
-              <div className="flex items-start justify-between gap-3">
+            <div className="bg-white rounded-xl border border-slate-200/95 shadow-[0_6px_20px_rgba(9,25,47,0.04)] overflow-hidden transition-all duration-200 hover:border-slate-400">
+              {/* Top Technical Spec Header Strip */}
+              <div className="bg-[#050C1A] text-white px-4 py-2 flex items-center justify-between font-mono text-xs border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF]" />
+                  <span className="uppercase tracking-[0.12em] text-slate-300">
+                    {nextWorkshop.level} · TRACK
+                  </span>
+                </div>
+                <span className="font-bold text-[#38E4FF] tabular-nums">
+                  +{nextWorkshop.xpReward} XP
+                </span>
+              </div>
+
+              <div className="p-4">
                 <div className="flex items-start gap-3.5">
                   <FieldIcon field={nextWorkshop.iconType} size={28} boxed />
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base sm:text-lg font-black font-display text-slate-900">
-                        {nextWorkshop.title}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-[#1D63EB] border border-sky-200 font-display">
-                        {nextWorkshop.level}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 space-y-1 text-xs sm:text-sm text-slate-600 font-sans">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-black font-display text-slate-950 leading-snug">
+                      {nextWorkshop.title}
+                    </h3>
+                    <div className="mt-1.5 space-y-1 text-xs text-slate-600 font-mono">
                       <p className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-[#1D63EB]" />
+                        <Calendar className="w-3.5 h-3.5 text-slate-900 shrink-0" />
                         <span>
                           {nextWorkshop.dateLabel} · {nextWorkshop.timeRange}
                         </span>
                       </p>
                       <p className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{nextWorkshop.location}</span>
+                        <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <span className="truncate">{nextWorkshop.location}</span>
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <span className="px-2.5 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 tabular-nums">
-                  +{nextWorkshop.xpReward} XP
-                </span>
-              </div>
+                <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-semibold text-slate-600 tabular-nums">
+                    {nextWorkshop.seatsLeft} seats open
+                  </span>
 
-              <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 tabular-nums font-sans">
-                  <Users className="w-4 h-4 text-[#1D63EB]" />
-                  {nextWorkshop.seatsLeft} seats left
-                </span>
-
-                <div className="flex items-center gap-2">
-                  {!isRegisteredNext ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        registerForWorkshop(nextWorkshop.id, member.id)
-                      }
-                      className="h-8.5 px-3.5 rounded-lg bg-[#1D63EB] text-white text-xs font-black font-display hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                  <div className="flex items-center gap-2">
+                    {!isRegisteredNext ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          registerForWorkshop(nextWorkshop.id, member.id)
+                        }
+                        className="h-8 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
+                      >
+                        Reserve Seat
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-emerald-700">
+                        <Check className="w-3.5 h-3.5" /> Registered
+                      </span>
+                    )}
+                    <Link
+                      href="/checkin"
+                      className="h-8 px-3.5 rounded-lg bg-[#050C1A] text-white text-xs font-bold font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 border border-slate-800"
                     >
-                      Join
-                    </button>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold font-display text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200/80">
-                      <Check className="w-4 h-4" /> Registered
-                    </span>
-                  )}
-                  <Link
-                    href="/checkin"
-                    className="h-8.5 px-3.5 rounded-lg bg-[#061E47] text-white text-xs font-black font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <QrCode className="w-4 h-4 text-[#38E4FF]" />
-                    <span>Check-in</span>
-                  </Link>
+                      <QrCode className="w-3.5 h-3.5 text-[#38E4FF]" />
+                      <span>Check-in</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Intentional Asymmetric Quick Actions: Primary Check-In + Tool Trio */}
+        {/* Quick Operations & Custom Technical Emblem Trio */}
         <div
-          className="space-y-2 animate-rise"
-          style={{ animationDelay: "300ms" }}
+          className="space-y-2.5 animate-rise"
+          style={{ animationDelay: "260ms" }}
         >
-          {/* Primary Action Banner: Scan QR */}
+          {/* Primary Action Banner: Optical QR Check-In */}
           <Link
             href="/checkin"
-            className="w-full p-3.5 rounded-xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white flex items-center justify-between shadow-sm hover:shadow-md active:scale-[0.98] transition group cursor-pointer"
+            className="w-full p-3.5 rounded-xl bg-[#050C1A] border border-slate-800 text-white flex items-center justify-between shadow-[0_10px_24px_rgba(3,8,18,0.16)] hover:border-[#38E4FF]/50 active:scale-[0.99] transition group cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white/15 backdrop-blur-md flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                <QrCode className="w-5 h-5 text-[#38E4FF]" />
+              {/* Custom Optical Viewfinder SVG Icon */}
+              <div className="w-10 h-10 rounded-lg bg-[#0B1933] border border-[#38E4FF]/35 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 8V5.5C4 4.7 4.7 4 5.5 4H8M16 4H18.5C19.3 4 20 4.7 20 5.5V8M20 16V18.5C20 19.3 19.3 20 18.5 20H16M8 20H5.5C4.7 20 4 19.3 4 18.5V16"
+                    stroke="#38E4FF"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" stroke="#FFFFFF" strokeWidth="1.5" />
+                  <path d="M5 12H19" stroke="#FFE500" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
               </div>
               <div className="text-left">
-                <span className="text-xs sm:text-sm font-black font-display tracking-tight block">
-                  Live Session Check-In
-                </span>
-                <span className="text-[11px] text-blue-100 font-sans block">
-                  Scan amphitheatre or lab projector QR code
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs sm:text-sm font-black font-display tracking-tight text-white">
+                    Live Session
+                  </span>
+                  <span className="font-editorial italic text-base text-[#38E4FF]">
+                    Check-In
+                  </span>
+                </div>
+                <span className="font-mono text-xs text-slate-400 block">
+                  Scan room projector or enter 6-digit code
                 </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/15 text-xs font-black font-display text-white group-hover:bg-white/25 transition shrink-0">
-              <span>Scan QR</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#38E4FF]" />
+            <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#38E4FF] group-hover:translate-x-0.5 transition-transform shrink-0">
+              <span>SCAN</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </span>
           </Link>
 
-          {/* Secondary Coordinated Tool Trio */}
+          {/* Secondary Coordinated Tool Trio with Custom Technical SVG Icons */}
           <div className="grid grid-cols-3 gap-2">
             <Link
               href="/exams"
-              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
             >
-              <FileCheck2 className="w-5 h-5 text-[#1D63EB] mb-2 group-hover:scale-105 transition-transform" />
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <polygon
+                      points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"
+                      stroke="#38E4FF"
+                      strokeWidth="1.7"
+                      fill="#38E4FF"
+                      fillOpacity="0.15"
+                    />
+                    <path d="M9 12.2L11 14.2L15.2 9.8" stroke="#FFE500" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span className="font-mono text-xs text-slate-400">01</span>
+              </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
                   Skill Exams
                 </span>
-                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
-                  6 MCQ Tests
+                <span className="font-mono text-xs text-slate-500 block mt-0.5">
+                  6 assessments
                 </span>
               </div>
             </Link>
 
             <Link
               href="/projects/submit"
-              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
             >
-              <FolderGit2 className="w-5 h-5 text-amber-600 mb-2 group-hover:scale-105 transition-transform" />
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="7" cy="7" r="2.2" stroke="#38E4FF" strokeWidth="1.7" />
+                    <circle cx="17" cy="7" r="2.2" stroke="#FFE500" strokeWidth="1.7" />
+                    <circle cx="12" cy="17" r="2.2" stroke="#FFFFFF" strokeWidth="1.7" />
+                    <path d="M8.8 8.5L11 15M15.2 8.5L13 15" stroke="#38E4FF" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <span className="font-mono text-xs text-slate-400">02</span>
+              </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
-                  Submit Project
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
+                  Projects
                 </span>
-                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
-                  Track A Badges
+                <span className="font-mono text-xs text-slate-500 block mt-0.5">
+                  Submit proof
                 </span>
               </div>
             </Link>
 
             <Link
               href="/proposals"
-              className="p-3 rounded-xl bg-white border border-[#E2EDF8] shadow-2xs hover:border-blue-300 active:scale-[0.98] transition group text-left flex flex-col justify-between"
+              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
             >
-              <Lightbulb className="w-5 h-5 text-emerald-600 mb-2 group-hover:scale-105 transition-transform" />
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z"
+                      stroke="#FFE500"
+                      strokeWidth="1.7"
+                      fill="#FFE500"
+                      fillOpacity="0.18"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="12" cy="12" r="1.6" fill="#38E4FF" />
+                  </svg>
+                </div>
+                <span className="font-mono text-xs text-slate-400">03</span>
+              </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-900 block leading-tight">
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
                   Proposals
                 </span>
-                <span className="text-[10px] font-medium text-slate-500 font-sans block mt-0.5">
-                  Submit Ideas
+                <span className="font-mono text-xs text-slate-500 block mt-0.5">
+                  Pitch ideas
                 </span>
               </div>
             </Link>
           </div>
         </div>
 
-        {/* My Assigned Tasks Card with Active | Done & History Segmented Pill Toggle */}
+        {/* My Assigned Tasks Card with Architectural Hairline Layout */}
         <div
-          className="bg-white rounded-2xl border border-[#E2EDF8] p-4 sm:p-5 shadow-card animate-rise"
-          style={{ animationDelay: "360ms" }}
+          className="bg-white rounded-xl border border-slate-200/95 p-4 sm:p-5 shadow-[0_6px_20px_rgba(9,25,47,0.04)] animate-rise"
+          style={{ animationDelay: "320ms" }}
         >
           <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
-            <h2 className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 font-display">
-              <ClipboardCheck className="w-4 h-4 text-[#1D63EB]" />
-              <span>My Assigned Tasks</span>
-            </h2>
+            <div className="flex items-baseline gap-1.5">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-slate-900">
+                ASSIGNED TASKS
+              </h2>
+              <span className="font-editorial italic text-base text-slate-500">
+                missions
+              </span>
+            </div>
 
             {/* Segmented Toggle: Active (N) | Done & History (M) */}
-            <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F4F7FB] border border-[#E2EDF8]">
+            <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200/80">
               <button
                 type="button"
                 onClick={() => setTaskTab("active")}
-                className={`px-3 py-1 rounded-md text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "active"
-                    ? "bg-[#1D63EB] text-white shadow-sm"
+                    ? "bg-[#050C1A] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -893,19 +1007,19 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={() => setTaskTab("done")}
-                className={`px-3 py-1 rounded-md text-xs font-black font-display active:scale-[0.98] transition cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "done"
-                    ? "bg-[#061E47] text-white shadow-sm"
+                    ? "bg-[#050C1A] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Done & History ({doneAndOldTasks.length})
+                Done ({doneAndOldTasks.length})
               </button>
             </div>
           </div>
 
           {taskTab === "active" ? (
-            <div className="space-y-2.5">
+            <div className="divide-y divide-slate-200/80">
               {activeTasks.map((task) => {
                 const line = task.assignees.find(
                   (a) => a.memberId === member.id
@@ -914,32 +1028,34 @@ export default function MobileHomeHubPage() {
                 return (
                   <div
                     key={task.id}
-                    className="p-3.5 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-2.5"
+                    className="py-3 first:pt-0 last:pb-0 space-y-2"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#1D63EB] font-display">
-                          {task.category} · {line.roleInTask}
+                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#1D63EB]">
+                          {task.category} // {line.roleInTask}
                         </span>
-                        <h3 className="text-sm sm:text-base font-extrabold font-display text-slate-900 mt-0.5">
+                        <h3 className="text-sm sm:text-base font-extrabold font-display text-slate-950 mt-0.5">
                           {task.title}
                         </h3>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-sans">
-                          <Clock className="w-3.5 h-3.5" />
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-mono">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
                           <span>
-                            Due: {task.deadline} · {task.locationOrShift}
+                            {task.deadline} · {task.locationOrShift}
                           </span>
                         </p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-100 text-emerald-800 shrink-0 tabular-nums">
+                      <span className="font-mono text-xs font-bold text-slate-900 shrink-0 tabular-nums border-b border-slate-900/40 pb-0.5">
                         +{line.proposedScore} XP
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 flex-wrap">
-                      <span className="text-xs font-semibold text-slate-600 font-sans">
-                        Status:{" "}
-                        <strong className="text-slate-900 font-bold">{line.status}</strong>
+                    <div className="flex items-center justify-between gap-2 pt-1.5 flex-wrap">
+                      <span className="font-mono text-xs text-slate-500">
+                        STATE:{" "}
+                        <strong className="text-slate-900 font-bold uppercase">
+                          {line.status}
+                        </strong>
                       </span>
 
                       <div className="flex items-center gap-1.5 flex-wrap">

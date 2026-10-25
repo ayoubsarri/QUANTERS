@@ -182,9 +182,11 @@ h4,
 @keyframes riseIn {
   0% {
     opacity: 0;
+    transform: translateY(8px);
   }
   100% {
     opacity: 1;
+    transform: translateY(0px);
   }
 }
 
@@ -193,7 +195,25 @@ h4,
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes downloadBob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+
+@keyframes zeroGravityDrift {
+  0%, 100% {
+    transform: scale(1.01) translate3d(0px, 0px, 0);
+  }
+  50% {
+    transform: scale(1.04) translate3d(-3px, -3px, 0);
   }
 }
 
@@ -238,11 +258,19 @@ h4,
 }
 
 .animate-rise {
-  animation: riseIn 260ms var(--ease-out) backwards;
+  animation: riseIn 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .animate-float-subtle {
   animation: floatSubtle 4.2s ease-in-out infinite;
+}
+
+.animate-download-bob {
+  animation: downloadBob 2.2s ease-in-out infinite;
+}
+
+.animate-zero-g {
+  animation: zeroGravityDrift 7.5s ease-in-out infinite;
 }
 
 .animate-orbit-pulse {

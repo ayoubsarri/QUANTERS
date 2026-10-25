@@ -75,23 +75,26 @@ export default function MobileBadgesPage() {
   return (
     <MobileAppShell>
       <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
-        {/* Top Glassify Summary Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] border border-white/20 shadow-[0_16px_40px_rgba(6,36,86,0.22)] text-white animate-rise">
+        {/* Top Nano Banana Cosmic Summary Hero Banner */}
+        <div className="relative overflow-hidden rounded-2xl p-5 bg-[#040814] border border-[#38E4FF]/30 shadow-[0_20px_50px_rgba(3,8,18,0.42)] text-white animate-rise">
+          <img
+            src="/brand/hero_rank_banner.webp"
+            alt="QUANTERS Cosmic Badges Banner"
+            className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/94 via-[#050E22]/70 to-transparent pointer-events-none" />
           <div className="relative z-10 flex items-center justify-between gap-3">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold font-display text-sky-100 mb-2">
+            <div className="max-w-[68%]">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#07162E]/80 backdrop-blur-md border border-[#38E4FF]/35 text-xs font-bold font-display text-[#38E4FF] mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#38E4FF]" />
                 <span>Skill Badges &amp; Credentials</span>
               </div>
-              <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white">
+              <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
                 My Skill Badges
               </h1>
-              <p className="text-xs sm:text-sm text-sky-200/90 font-medium mt-1 font-sans">
+              <p className="text-xs sm:text-sm text-sky-200/95 font-medium mt-1 font-sans drop-shadow">
                 {unlockedCount} Unlocked · {lockedCount} Locked · {CATEGORY_PILLS.length - 1} Categories
               </p>
-            </div>
-            <div className="shrink-0 w-16 h-16 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
-              <PlanetEmblem size={48} />
             </div>
           </div>
         </div>
@@ -108,7 +111,7 @@ export default function MobileBadgesPage() {
           </div>
           <Link
             href="/exams"
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold font-display border border-white/80 shadow-2xs hover:bg-white active:scale-[0.98] transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white/90 backdrop-blur-md text-[#1D63EB] text-xs font-extrabold font-display border border-white/80 shadow-2xs hover:bg-white active:scale-[0.98] transition cursor-pointer"
           >
             <FileCheck2 className="w-4 h-4" />
             <span>Exams Hub</span>
@@ -127,9 +130,9 @@ export default function MobileBadgesPage() {
                 key={pill.key}
                 type="button"
                 onClick={() => setStatusFilter(pill.key)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
                   active
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
+                    ? "bg-[#040D1E] text-[#38E4FF] shadow-[0_4px_14px_rgba(4,13,30,0.25)] border border-[#38E4FF]/35"
                     : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
                 }`}
               >

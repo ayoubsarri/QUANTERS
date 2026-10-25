@@ -8,73 +8,22 @@ interface PlanetEmblemProps {
 }
 
 /**
- * High-definition vector cosmic planetary emblem with luminous orbital rings.
- * Sharp, scalable, zero blurry raster text.
+ * Nano Banana Cosmic Galaxy & Quantum Ringed Planet Emblem
+ * Matches the Welcome page crocheted astronaut & cyan spiral galaxy aesthetic.
  */
-export function PlanetEmblem({ size = 56, className = "" }: PlanetEmblemProps) {
+export function PlanetEmblem({ size = 58, className = "" }: PlanetEmblemProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 80 80"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`shrink-0 drop-shadow-[0_0_16px_rgba(41,210,255,0.45)] animate-float-subtle ${className}`}
-      aria-label="QUANTA Cosmic Planet Emblem"
+    <div
+      style={{ width: size, height: size }}
+      className={`relative shrink-0 rounded-xl overflow-hidden border border-[#38E4FF]/35 bg-[#040917] shadow-[0_0_22px_rgba(56,228,255,0.35)] ${className}`}
+      aria-label="QUANTA Cosmic Galaxy Emblem"
     >
-      <defs>
-        <linearGradient
-          id="planetBodyGradient"
-          x1="18"
-          y1="16"
-          x2="62"
-          y2="64"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor="#38E4FF" />
-          <stop offset="55%" stopColor="#1D63EB" />
-          <stop offset="100%" stopColor="#092B6B" />
-        </linearGradient>
-        <linearGradient
-          id="planetRingGradient"
-          x1="4"
-          y1="54"
-          x2="76"
-          y2="26"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0%" stopColor="#38E4FF" stopOpacity="0.95" />
-          <stop offset="50%" stopColor="#87D9F8" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#29D2FF" stopOpacity="0.95" />
-        </linearGradient>
-      </defs>
-
-      {/* Ambient background micro-stars */}
-      <circle cx="16" cy="18" r="1.5" fill="#87D9F8" opacity="0.85" />
-      <circle cx="64" cy="15" r="1.8" fill="#FFFFFF" opacity="0.9" />
-      <circle cx="66" cy="60" r="1.3" fill="#38E4FF" opacity="0.7" />
-
-      {/* Main Celestial Sphere */}
-      <circle cx="40" cy="40" r="19" fill="url(#planetBodyGradient)" />
-
-      {/* Specular highlight crescent */}
-      <path
-        d="M27 29C31 24 38 22 45 24C37 25 30 31 28 39C26.5 35.5 26 32 27 29Z"
-        fill="#87D9F8"
-        opacity="0.45"
+      <img
+        src="/brand/cosmic_galaxy_emblem.webp"
+        alt="QUANTA Cosmic Galaxy"
+        className="w-full h-full object-cover object-center scale-110 select-none pointer-events-none"
       />
-
-      {/* Luminous Orbital Ring */}
-      <ellipse
-        cx="40"
-        cy="41"
-        rx="33"
-        ry="9.5"
-        transform="rotate(-22 40 41)"
-        stroke="url(#planetRingGradient)"
-        strokeWidth="3.2"
-        fill="none"
-      />
-    </svg>
+      <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/15 pointer-events-none" />
+    </div>
   );
 }

@@ -92,32 +92,46 @@ export default function MobileWorkshopsPage() {
 
   return (
     <MobileAppShell>
-      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
-        {/* Top Header */}
+      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
+        {/* Top Cosmic Header Banner matching Welcome Page Aesthetic */}
         <div
-          className="flex items-center justify-between gap-2 animate-rise"
+          className="relative overflow-hidden rounded-xl p-4 sm:p-5 bg-[#030711] border border-slate-800/90 shadow-[0_16px_38px_rgba(3,8,18,0.28)] text-white animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight">
-              Workshops &amp; Activities
-            </h1>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 font-sans">
-              Hands-on labs, scientific sessions &amp; club activities
-            </p>
+          <img
+            src="/brand/hero_rank_banner.webp"
+            alt="QUANTERS Cosmic Lab Banner"
+            className="absolute inset-0 w-full h-full object-cover object-right opacity-90 select-none pointer-events-none animate-zero-g"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#02060E]/96 via-[#040B1A]/78 to-transparent pointer-events-none" />
+          <div className="relative z-10 flex items-end justify-between gap-3">
+            <div className="min-w-0 max-w-[62%]">
+              <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#38E4FF] uppercase block">
+                CATALOG · 0{workshops.length} SESSIONS
+              </span>
+              <h1 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight mt-1 leading-tight drop-shadow">
+                Workshops{" "}
+                <span className="font-editorial italic font-normal text-sky-200">
+                  &amp; Labs
+                </span>
+              </h1>
+              <p className="text-[11px] font-mono text-slate-300/90 mt-1 drop-shadow">
+                Hands-on scientific sessions &amp; field work
+              </p>
+            </div>
+            <Link
+              href="/checkin"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#050E20]/90 hover:bg-[#38E4FF] text-[#38E4FF] hover:text-slate-950 text-[11px] font-bold font-mono uppercase tracking-wider shadow-md active:scale-[0.98] transition border border-[#38E4FF]/35 shrink-0 backdrop-blur-md"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>QR Pass</span>
+            </Link>
           </div>
-          <Link
-            href="/checkin"
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#062456] to-[#0A3882] text-white text-xs font-extrabold font-display shadow-sm hover:shadow-md active:scale-[0.98] transition border border-white/20 shrink-0"
-          >
-            <QrCode className="w-4 h-4 text-[#38E4FF]" />
-            <span>Check-in</span>
-          </Link>
         </div>
 
-        {/* Filter Pills: All | Upcoming | Completed | Mine */}
+        {/* Open Architectural Tab Strip: All | Upcoming | Completed | Mine */}
         <div
-          className="flex items-center gap-1.5 overflow-x-auto pb-1 animate-rise"
+          className="flex items-center gap-5 border-b border-slate-200/90 overflow-x-auto animate-rise"
           style={{ animationDelay: "40ms" }}
         >
           {FILTER_TABS.map((tab) => {
@@ -127,20 +141,23 @@ export default function MobileWorkshopsPage() {
                 key={tab}
                 type="button"
                 onClick={() => setFilter(tab)}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold font-display active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap ${
+                className={`relative pb-2.5 text-xs sm:text-sm font-bold font-display tracking-tight transition-colors cursor-pointer whitespace-nowrap ${
                   active
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
-                    : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
+                    ? "text-slate-950"
+                    : "text-slate-400 hover:text-slate-700"
                 }`}
               >
-                {tab}
+                <span>{tab}</span>
+                {active && (
+                  <span className="absolute inset-x-0 bottom-0 h-[2.5px] bg-slate-950 rounded-full" />
+                )}
               </button>
             );
           })}
         </div>
 
-        {/* Workshops & Activities Cards List */}
-        <div className="space-y-3">
+        {/* Workshops & Activities — Precision Laboratory Specification Cards */}
+        <div className="space-y-2.5">
           {filteredWorkshops.map((ws, idx) => {
             const isRegistered =
               ws.registeredMemberIds.includes(currentMemberId);
@@ -154,67 +171,60 @@ export default function MobileWorkshopsPage() {
                 key={ws.id}
                 onClick={() => setSelectedWorkshopId(ws.id)}
                 style={{ animationDelay: `${60 + idx * 45}ms` }}
-                className="bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-4 sm:p-5 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer animate-rise"
+                className="group bg-white rounded-xl border border-slate-200/90 border-l-[3px] border-l-[#0A4D96] p-4 shadow-[0_2px_10px_rgba(9,25,47,0.03)] hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(9,25,47,0.07)] hover:-translate-y-0.5 active:scale-[0.99] transition-all cursor-pointer animate-rise"
               >
                 <div className="flex items-start gap-3.5">
                   <FieldIcon field={ws.iconType} size={30} boxed />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-base sm:text-lg font-black font-display text-slate-900 leading-snug">
-                        {ws.title}
-                      </h2>
-                      <span className="px-2.5 py-0.5 rounded-md text-xs font-black font-mono bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0 tabular-nums shadow-2xs">
+                    {/* Top Specification Metadata Line (Zero Pill Soup) */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                        <span className="text-[#0A4D96]">{actKind}</span>
+                        <span className="text-slate-300">·</span>
+                        <span>{ws.level}</span>
+                        {ws.status === "Running" && (
+                          <>
+                            <span className="text-slate-300">·</span>
+                            <span className="inline-flex items-center gap-1 text-emerald-600">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>LIVE</span>
+                            </span>
+                          </>
+                        )}
+                        {isAttended && (
+                          <>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-sky-700">VERIFIED</span>
+                          </>
+                        )}
+                      </div>
+                      <span className="text-xs font-black font-mono text-emerald-700 shrink-0 tabular-nums">
                         +{ws.xpReward} XP
                       </span>
                     </div>
 
-                    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-md text-xs font-bold font-display border ${getActivityChipClass(
-                          actKind
-                        )}`}
-                      >
-                        {actKind}
-                      </span>
-                      <span
-                        className={`px-3 py-0.5 rounded-full text-xs font-bold font-display border ${getLevelChipClass(
-                          ws.level
-                        )}`}
-                      >
-                        {ws.level}
-                      </span>
-                      {ws.status === "Running" && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold font-display bg-emerald-500/15 text-emerald-700 border border-emerald-300">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Live Now</span>
-                        </span>
-                      )}
-                      {isAttended && (
-                        <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-bold font-display bg-sky-100 text-[#094C9C] border border-sky-200/60">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#1D63EB]" />
-                          <span>Attended</span>
-                        </span>
-                      )}
-                    </div>
+                    <h2 className="mt-1 text-base sm:text-lg font-black font-display text-slate-950 leading-snug tracking-tight group-hover:text-[#0A4D96] transition-colors">
+                      {ws.title}
+                    </h2>
 
-                    <div className="mt-2.5 space-y-1 text-xs sm:text-sm text-slate-600 sm:flex sm:items-center sm:gap-4 sm:space-y-0 font-sans">
-                      <p className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] font-mono text-slate-500">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>
                           {ws.dateLabel} · {ws.timeRange}
                         </span>
-                      </p>
-                      <p className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>{ws.location}</span>
-                      </p>
+                      </span>
                     </div>
 
                     <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 tabular-nums font-sans">
-                        <Users className="w-3.5 h-3.5 text-[#1D63EB]" />
-                        {ws.seatsLeft} seats left
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-500 tabular-nums">
+                        <Users className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{ws.seatsLeft} seats open</span>
                       </span>
 
                       <div
@@ -222,9 +232,9 @@ export default function MobileWorkshopsPage() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         {isRegistered ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-extrabold border border-emerald-200 shadow-2xs">
-                            <Check className="w-3 h-3" />
-                            <span>Registered</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-[10.5px] font-mono font-bold uppercase tracking-wider">
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span>Enrolled</span>
                           </span>
                         ) : (
                           <button
@@ -232,9 +242,9 @@ export default function MobileWorkshopsPage() {
                             onClick={() =>
                               registerForWorkshop(ws.id, currentMemberId)
                             }
-                            className="h-8 px-4 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-[11px] font-extrabold hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+                            className="h-7 px-3 rounded-lg bg-slate-950 hover:bg-[#0A4D96] text-white text-[10.5px] font-mono font-bold uppercase tracking-wider active:scale-[0.98] transition cursor-pointer"
                           >
-                            Register
+                            Enroll →
                           </button>
                         )}
                       </div>
