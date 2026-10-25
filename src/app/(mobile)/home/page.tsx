@@ -682,9 +682,9 @@ export default function MobileHomeHubPage() {
           </Link>
         </div>
 
-        {/* Cosmic-Obsidian Editorial Honour Ribbon (Star of the Month) */}
+        {/* Royal-Cobalt & Warm-Gold Editorial Honour Ribbon (Star of the Month) */}
         <div
-          className="rounded-xl bg-[#050C1A] text-white border border-slate-800 border-l-2 border-l-[#FFE500] px-3.5 py-2.5 shadow-[0_8px_20px_rgba(3,8,18,0.12)] animate-rise"
+          className="rounded-xl bg-gradient-to-r from-[#0B3B8C] via-[#1554C8] to-[#1D63EB] text-white border border-[#1D63EB]/40 border-l-[3px] border-l-[#FFE500] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(29,99,235,0.2)] animate-rise"
           style={{ animationDelay: "150ms" }}
         >
           <button
@@ -703,7 +703,7 @@ export default function MobileHomeHubPage() {
                 <polygon
                   points="12,2 15,8.5 22,9.3 17,14.1 18.2,21 12,17.7 5.8,21 7,14.1 2,9.3 9,8.5"
                   fill="currentColor"
-                  fillOpacity="0.25"
+                  fillOpacity="0.3"
                   stroke="currentColor"
                   strokeWidth="1.8"
                 />
@@ -711,34 +711,34 @@ export default function MobileHomeHubPage() {
               <span className="font-editorial italic text-base text-[#FFE500] shrink-0">
                 Star of the Month
               </span>
-              <span className="text-white/25 text-xs">·</span>
+              <span className="text-white/35 text-xs">·</span>
               <span className="text-xs font-display font-bold text-white truncate">
                 {motmMember.fullName}
               </span>
-              <span className="font-mono text-xs font-bold text-[#38E4FF] shrink-0">
+              <span className="font-mono text-xs font-bold text-[#7CEEFF] shrink-0">
                 +50 XP
               </span>
             </div>
             {showMotmDetails ? (
-              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+              <ChevronUp className="w-4 h-4 text-sky-200 shrink-0" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+              <ChevronDown className="w-4 h-4 text-sky-200 shrink-0" />
             )}
           </button>
 
           {showMotmDetails && (
-            <div className="mt-2.5 pt-2.5 border-t border-white/10 flex items-center justify-between gap-3 text-xs text-slate-300">
+            <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-center justify-between gap-3 text-xs text-sky-100">
               <div className="flex items-center gap-2.5">
                 <img
                   src={motmMember.avatarUrl}
                   alt={motmMember.fullName}
-                  className="w-7 h-7 rounded-lg object-cover border border-[#FFE500]/60"
+                  className="w-7 h-7 rounded-lg object-cover border border-[#FFE500]/70"
                 />
                 <div>
                   <p className="font-bold text-white">
                     {motmMember.levelTitle} · {motmMember.xpMonth} XP this month
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-sky-200/90">
                     96% workshop attendance &amp; scientific leadership
                   </p>
                 </div>
@@ -750,7 +750,7 @@ export default function MobileHomeHubPage() {
           )}
         </div>
 
-        {/* Next Workshop Precision Laboratory Ticket (Zero Pastel Pill Soup) */}
+        {/* Next Workshop Precision Laboratory Ticket (Harmonized with Royal Blue Tab Bar) */}
         {nextWorkshop && (
           <div
             className="animate-rise space-y-1.5"
@@ -758,7 +758,7 @@ export default function MobileHomeHubPage() {
           >
             <div className="flex items-baseline justify-between px-0.5">
               <div className="flex items-baseline gap-1.5">
-                <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-slate-900">
+                <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#094C9C]">
                   NEXT SESSION
                 </h2>
                 <span className="font-editorial italic text-base text-slate-500">
@@ -773,16 +773,16 @@ export default function MobileHomeHubPage() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/95 shadow-[0_6px_20px_rgba(9,25,47,0.04)] overflow-hidden transition-all duration-200 hover:border-slate-400">
-              {/* Top Technical Spec Header Strip */}
-              <div className="bg-[#050C1A] text-white px-4 py-2 flex items-center justify-between font-mono text-xs border-b border-slate-800">
+            <div className="bg-white rounded-xl border border-[#DCE9F9] shadow-[0_6px_20px_rgba(29,99,235,0.06)] overflow-hidden transition-all duration-200 hover:border-[#1D63EB]/50">
+              {/* Top Technical Spec Header Strip in Soft Sky & Royal Blue */}
+              <div className="bg-gradient-to-r from-[#EBF3FC] to-[#F4F8FD] text-[#094C9C] px-4 py-2 flex items-center justify-between font-mono text-xs border-b border-[#DCE9F9]">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF]" />
-                  <span className="uppercase tracking-[0.12em] text-slate-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1D63EB]" />
+                  <span className="uppercase tracking-[0.12em] font-bold text-[#094C9C]">
                     {nextWorkshop.level} · TRACK
                   </span>
                 </div>
-                <span className="font-bold text-[#38E4FF] tabular-nums">
+                <span className="font-bold text-[#1D63EB] tabular-nums">
                   +{nextWorkshop.xpReward} XP
                 </span>
               </div>
@@ -796,13 +796,13 @@ export default function MobileHomeHubPage() {
                     </h3>
                     <div className="mt-1.5 space-y-1 text-xs text-slate-600 font-mono">
                       <p className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-900 shrink-0" />
+                        <Calendar className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
                         <span>
                           {nextWorkshop.dateLabel} · {nextWorkshop.timeRange}
                         </span>
                       </p>
                       <p className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-[#1D63EB]/70 shrink-0" />
                         <span className="truncate">{nextWorkshop.location}</span>
                       </p>
                     </div>
@@ -821,7 +821,7 @@ export default function MobileHomeHubPage() {
                         onClick={() =>
                           registerForWorkshop(nextWorkshop.id, member.id)
                         }
-                        className="h-8 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
+                        className="h-8 px-3.5 rounded-lg bg-[#EBF3FC] hover:bg-[#DCE9F9] text-[#094C9C] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
                       >
                         Reserve Seat
                       </button>
@@ -832,9 +832,9 @@ export default function MobileHomeHubPage() {
                     )}
                     <Link
                       href="/checkin"
-                      className="h-8 px-3.5 rounded-lg bg-[#050C1A] text-white text-xs font-bold font-display hover:bg-slate-900 active:scale-[0.98] transition flex items-center gap-1.5 border border-slate-800"
+                      className="h-8 px-3.5 rounded-lg bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-bold font-display shadow-[0_4px_12px_rgba(29,99,235,0.28)] hover:brightness-105 active:scale-[0.98] transition flex items-center gap-1.5"
                     >
-                      <QrCode className="w-3.5 h-3.5 text-[#38E4FF]" />
+                      <QrCode className="w-3.5 h-3.5 text-white" />
                       <span>Check-in</span>
                     </Link>
                   </div>
@@ -844,28 +844,28 @@ export default function MobileHomeHubPage() {
           </div>
         )}
 
-        {/* Quick Operations & Custom Technical Emblem Trio */}
+        {/* Quick Operations & Custom Technical Emblem Trio (Harmonized with Royal Blue Tab Bar) */}
         <div
           className="space-y-2.5 animate-rise"
           style={{ animationDelay: "260ms" }}
         >
-          {/* Primary Action Banner: Optical QR Check-In */}
+          {/* Primary Action Banner: Optical QR Check-In in Royal Blue Gradient */}
           <Link
             href="/checkin"
-            className="w-full p-3.5 rounded-xl bg-[#050C1A] border border-slate-800 text-white flex items-center justify-between shadow-[0_10px_24px_rgba(3,8,18,0.16)] hover:border-[#38E4FF]/50 active:scale-[0.99] transition group cursor-pointer"
+            className="w-full p-3.5 rounded-xl bg-gradient-to-r from-[#0A449E] via-[#1557CE] to-[#1D63EB] border border-[#1D63EB]/40 text-white flex items-center justify-between shadow-[0_8px_22px_rgba(29,99,235,0.22)] hover:brightness-105 active:scale-[0.99] transition group cursor-pointer"
           >
             <div className="flex items-center gap-3">
               {/* Custom Optical Viewfinder SVG Icon */}
-              <div className="w-10 h-10 rounded-lg bg-[#0B1933] border border-[#38E4FF]/35 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-lg bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M4 8V5.5C4 4.7 4.7 4 5.5 4H8M16 4H18.5C19.3 4 20 4.7 20 5.5V8M20 16V18.5C20 19.3 19.3 20 18.5 20H16M8 20H5.5C4.7 20 4 19.3 4 18.5V16"
-                    stroke="#38E4FF"
-                    strokeWidth="1.8"
+                    stroke="#7CEEFF"
+                    strokeWidth="1.9"
                     strokeLinecap="round"
                   />
-                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" stroke="#FFFFFF" strokeWidth="1.5" />
-                  <path d="M5 12H19" stroke="#FFE500" strokeWidth="1.5" strokeLinecap="round" />
+                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" stroke="#FFFFFF" strokeWidth="1.6" />
+                  <path d="M5 12H19" stroke="#FFE500" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </div>
               <div className="text-left">
@@ -873,44 +873,44 @@ export default function MobileHomeHubPage() {
                   <span className="text-xs sm:text-sm font-black font-display tracking-tight text-white">
                     Live Session
                   </span>
-                  <span className="font-editorial italic text-base text-[#38E4FF]">
+                  <span className="font-editorial italic text-base text-[#7CEEFF]">
                     Check-In
                   </span>
                 </div>
-                <span className="font-mono text-xs text-slate-400 block">
+                <span className="font-mono text-xs text-sky-100/90 block">
                   Scan room projector or enter 6-digit code
                 </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#38E4FF] group-hover:translate-x-0.5 transition-transform shrink-0">
+            <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-white group-hover:translate-x-0.5 transition-transform shrink-0">
               <span>SCAN</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </span>
           </Link>
 
-          {/* Secondary Coordinated Tool Trio with Custom Technical SVG Icons */}
+          {/* Secondary Coordinated Tool Trio with Royal-Blue Custom Technical SVG Icons */}
           <div className="grid grid-cols-3 gap-2">
             <Link
               href="/exams"
-              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
+              className="p-3 rounded-xl bg-white border border-[#DCE9F9] hover:border-[#1D63EB] hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(29,99,235,0.05)]"
             >
               <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <polygon
                       points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"
-                      stroke="#38E4FF"
-                      strokeWidth="1.7"
-                      fill="#38E4FF"
-                      fillOpacity="0.15"
+                      stroke="#1D63EB"
+                      strokeWidth="1.8"
+                      fill="#1D63EB"
+                      fillOpacity="0.14"
                     />
-                    <path d="M9 12.2L11 14.2L15.2 9.8" stroke="#FFE500" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9 12.2L11 14.2L15.2 9.8" stroke="#094C9C" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span className="font-mono text-xs text-slate-400">01</span>
+                <span className="font-mono text-xs text-[#1D63EB]/70 font-bold">01</span>
               </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight group-hover:text-[#1D63EB] transition-colors">
                   Skill Exams
                 </span>
                 <span className="font-mono text-xs text-slate-500 block mt-0.5">
@@ -921,21 +921,21 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/projects/submit"
-              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
+              className="p-3 rounded-xl bg-white border border-[#DCE9F9] hover:border-[#1D63EB] hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(29,99,235,0.05)]"
             >
               <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="7" cy="7" r="2.2" stroke="#38E4FF" strokeWidth="1.7" />
-                    <circle cx="17" cy="7" r="2.2" stroke="#FFE500" strokeWidth="1.7" />
-                    <circle cx="12" cy="17" r="2.2" stroke="#FFFFFF" strokeWidth="1.7" />
-                    <path d="M8.8 8.5L11 15M15.2 8.5L13 15" stroke="#38E4FF" strokeWidth="1.5" strokeLinecap="round" />
+                    <circle cx="7" cy="7" r="2.2" stroke="#1D63EB" strokeWidth="1.8" />
+                    <circle cx="17" cy="7" r="2.2" stroke="#0284C7" strokeWidth="1.8" />
+                    <circle cx="12" cy="17" r="2.2" stroke="#094C9C" strokeWidth="1.8" />
+                    <path d="M8.8 8.5L11 15M15.2 8.5L13 15" stroke="#1D63EB" strokeWidth="1.6" strokeLinecap="round" />
                   </svg>
                 </div>
-                <span className="font-mono text-xs text-slate-400">02</span>
+                <span className="font-mono text-xs text-[#1D63EB]/70 font-bold">02</span>
               </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight group-hover:text-[#1D63EB] transition-colors">
                   Projects
                 </span>
                 <span className="font-mono text-xs text-slate-500 block mt-0.5">
@@ -946,26 +946,26 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/proposals"
-              className="p-3 rounded-xl bg-white border border-slate-200/95 hover:border-slate-900 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-2xs"
+              className="p-3 rounded-xl bg-white border border-[#DCE9F9] hover:border-[#1D63EB] hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(29,99,235,0.05)]"
             >
               <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#050C1A] border border-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-8 h-8 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z"
-                      stroke="#FFE500"
-                      strokeWidth="1.7"
-                      fill="#FFE500"
-                      fillOpacity="0.18"
+                      stroke="#1D63EB"
+                      strokeWidth="1.8"
+                      fill="#1D63EB"
+                      fillOpacity="0.16"
                       strokeLinejoin="round"
                     />
-                    <circle cx="12" cy="12" r="1.6" fill="#38E4FF" />
+                    <circle cx="12" cy="12" r="1.6" fill="#094C9C" />
                   </svg>
                 </div>
-                <span className="font-mono text-xs text-slate-400">03</span>
+                <span className="font-mono text-xs text-[#1D63EB]/70 font-bold">03</span>
               </div>
               <div>
-                <span className="text-xs font-black font-display text-slate-950 block leading-tight">
+                <span className="text-xs font-black font-display text-slate-950 block leading-tight group-hover:text-[#1D63EB] transition-colors">
                   Proposals
                 </span>
                 <span className="font-mono text-xs text-slate-500 block mt-0.5">
@@ -978,12 +978,12 @@ export default function MobileHomeHubPage() {
 
         {/* My Assigned Tasks Card with Architectural Hairline Layout */}
         <div
-          className="bg-white rounded-xl border border-slate-200/95 p-4 sm:p-5 shadow-[0_6px_20px_rgba(9,25,47,0.04)] animate-rise"
+          className="bg-white rounded-xl border border-[#DCE9F9] p-4 sm:p-5 shadow-[0_6px_20px_rgba(29,99,235,0.05)] animate-rise"
           style={{ animationDelay: "320ms" }}
         >
           <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
             <div className="flex items-baseline gap-1.5">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-slate-900">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#094C9C]">
                 ASSIGNED TASKS
               </h2>
               <span className="font-editorial italic text-base text-slate-500">
@@ -992,13 +992,13 @@ export default function MobileHomeHubPage() {
             </div>
 
             {/* Segmented Toggle: Active (N) | Done & History (M) */}
-            <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200/80">
+            <div className="inline-flex items-center p-0.5 rounded-lg bg-[#EBF3FC] border border-[#DCE9F9]">
               <button
                 type="button"
                 onClick={() => setTaskTab("active")}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "active"
-                    ? "bg-[#050C1A] text-white shadow-2xs"
+                    ? "bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -1009,7 +1009,7 @@ export default function MobileHomeHubPage() {
                 onClick={() => setTaskTab("done")}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
                   taskTab === "done"
-                    ? "bg-[#050C1A] text-white shadow-2xs"
+                    ? "bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >

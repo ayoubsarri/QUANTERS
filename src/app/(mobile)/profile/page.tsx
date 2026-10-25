@@ -287,9 +287,9 @@ export default function MobileProfilePage() {
 
       <div className="px-4 pt-2 pb-6 space-y-3.5 animate-rise">
         {/* Top Title & Quick Actions — Editorial Header */}
-        <div className="flex items-end justify-between gap-2 pb-2 border-b border-slate-200/80">
+        <div className="flex items-end justify-between gap-2 pb-2 border-b border-[#DCE9F9]">
           <div className="min-w-0">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-slate-400 block truncate">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#1D63EB] block truncate">
               DOSSIER · {member.quanterId}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-950 tracking-tight leading-none mt-1">
@@ -302,15 +302,15 @@ export default function MobileProfilePage() {
           <button
             type="button"
             onClick={() => setLedgerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-950 text-white text-[11px] font-bold font-mono tracking-wider uppercase hover:bg-slate-800 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#1D63EB] to-[#0A4CC7] text-white text-[11px] font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(29,99,235,0.25)] hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
           >
-            <History className="w-3.5 h-3.5 text-[#38E4FF]" />
+            <History className="w-3.5 h-3.5 text-white" />
             <span>XP Ledger</span>
           </button>
         </div>
 
         {/* Member Identity Dossier — Clean Architectural Card */}
-        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_2px_10px_rgba(9,25,47,0.03)]">
+        <div className="bg-white rounded-xl border border-[#DCE9F9] p-4 sm:p-5 shadow-[0_4px_16px_rgba(29,99,235,0.05)]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3.5 min-w-0">
               <button
@@ -322,7 +322,7 @@ export default function MobileProfilePage() {
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
-                  className="w-14 h-14 rounded-xl object-cover border border-slate-900/15 shadow-xs"
+                  className="w-14 h-14 rounded-xl object-cover border-2 border-[#1D63EB]/30 shadow-xs"
                 />
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white" />
               </button>
@@ -333,7 +333,7 @@ export default function MobileProfilePage() {
                     {member.fullName}
                   </h2>
                 </div>
-                <p className="text-xs font-mono font-bold text-slate-600 mt-0.5">
+                <p className="text-xs font-mono font-bold text-[#1D63EB] mt-0.5">
                   {member.handle}{" "}
                   <span className="text-slate-400">· {member.quanterId}</span>
                 </p>
@@ -348,7 +348,7 @@ export default function MobileProfilePage() {
               type="button"
               onClick={() => setQrOpen(true)}
               aria-label="Show Personal Digital ID QR"
-              className="w-10 h-10 rounded-lg bg-slate-950 hover:bg-slate-800 active:scale-[0.97] flex items-center justify-center text-[#38E4FF] shrink-0 shadow-xs transition cursor-pointer"
+              className="w-10 h-10 rounded-lg bg-[#EBF3FC] hover:bg-[#DCE9F9] border border-[#CFE2F9] active:scale-[0.97] flex items-center justify-center text-[#1D63EB] shrink-0 shadow-xs transition cursor-pointer"
             >
               <QrCode className="w-4.5 h-4.5" />
             </button>
@@ -487,16 +487,16 @@ export default function MobileProfilePage() {
           </div>
         </div>
 
-        {/* 3 Club Governance Rows — Precision Ledger */}
-        <div className="bg-white rounded-xl border border-slate-200/90 divide-y divide-slate-100 overflow-hidden">
+        {/* 3 Club Governance Rows — Precision Ledger Harmonized with Royal Blue Tab Bar */}
+        <div className="bg-white rounded-xl border border-[#DCE9F9] divide-y divide-slate-100 shadow-[0_4px_16px_rgba(29,99,235,0.05)] overflow-hidden">
           {/* Row 1: Department */}
           <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-slate-950 text-[#38E4FF] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] text-[#1D63EB] flex items-center justify-center shrink-0">
                 <Building2 className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 block">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1D63EB]/80 block">
                   01 · Department
                 </span>
                 <p className="text-sm font-extrabold font-display text-slate-950 truncate">
@@ -512,11 +512,11 @@ export default function MobileProfilePage() {
           {/* Row 2: Scientific Team */}
           <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-slate-950 text-sky-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#EBF3FC] border border-[#CFE2F9] text-[#094C9C] flex items-center justify-center shrink-0">
                 <Orbit className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 block">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1D63EB]/80 block">
                   02 · Scientific Team
                 </span>
                 <p className="text-sm font-extrabold font-display text-slate-950 truncate">
@@ -524,7 +524,7 @@ export default function MobileProfilePage() {
                 </p>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10.5px] font-mono font-bold shrink-0">
+            <span className="px-2 py-0.5 rounded-md bg-[#EBF3FC] text-[#094C9C] border border-[#CFE2F9] text-[10.5px] font-mono font-bold shrink-0">
               {member.roles[0] || "Member"}
             </span>
           </div>
@@ -533,10 +533,10 @@ export default function MobileProfilePage() {
           <button
             type="button"
             onClick={() => setTraineeTrackerOpen(true)}
-            className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50 active:scale-[0.99] transition cursor-pointer"
+            className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-3 text-left hover:bg-[#F8FBFF] active:scale-[0.99] transition cursor-pointer"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-slate-950 text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
@@ -551,7 +551,7 @@ export default function MobileProfilePage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#0A4D96] shrink-0">
+            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#1D63EB] shrink-0">
               <span>Roadmap</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </div>

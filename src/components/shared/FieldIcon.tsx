@@ -10,27 +10,27 @@ export const ALL_FIELD_ICONS: {
   accent: string;
   code: string;
 }[] = [
-  { key: "python", label: "Python & Coding", gradient: "from-[#050D1E] to-[#0B1E3D]", accent: "#38E4FF", code: "PY" },
-  { key: "arduino", label: "Arduino & IoT", gradient: "from-[#041614] to-[#082F29]", accent: "#34D399", code: "IO" },
-  { key: "astronomy", label: "Astronomy & Space", gradient: "from-[#040917] to-[#0D1E42]", accent: "#38E4FF", code: "AS" },
-  { key: "printing", label: "3D Printing & CAD", gradient: "from-[#071124] to-[#11264D]", accent: "#60A5FA", code: "3D" },
-  { key: "data", label: "Data Science", gradient: "from-[#050E20] to-[#0C244A]", accent: "#38BDF8", code: "DS" },
-  { key: "ai-ml", label: "AI & Neural Nets", gradient: "from-[#0B0924] to-[#1E174C]", accent: "#A78BFA", code: "AI" },
-  { key: "cybersecurity", label: "Cybersecurity", gradient: "from-[#041512] to-[#063227]", accent: "#34D399", code: "CS" },
-  { key: "web-dev", label: "Web & Mobile Dev", gradient: "from-[#051224] to-[#09294E]", accent: "#38E4FF", code: "WD" },
-  { key: "robotics", label: "Robotics & Control", gradient: "from-[#090B24] to-[#191D52]", accent: "#818CF8", code: "RB" },
-  { key: "quantum", label: "Quantum Physics", gradient: "from-[#030917] to-[#092349]", accent: "#38E4FF", code: "QT" },
-  { key: "chemistry", label: "Chemistry & Lab", gradient: "from-[#041613] to-[#08332A]", accent: "#34D399", code: "CH" },
-  { key: "biotech", label: "Biotech & Genetics", gradient: "from-[#041718] to-[#0A3538]", accent: "#2DD4BF", code: "BT" },
-  { key: "mathematics", label: "Mathematics & Logic", gradient: "from-[#061024] to-[#102652]", accent: "#60A5FA", code: "MT" },
-  { key: "ui-ux", label: "UI/UX & Graphic Design", gradient: "from-[#110926] to-[#261454]", accent: "#C084FC", code: "UX" },
-  { key: "media-photo", label: "Media & Photography", gradient: "from-[#1A0D06] to-[#3B1D0E]", accent: "#FB923C", code: "MD" },
-  { key: "scientific-writing", label: "LaTeX & Research", gradient: "from-[#050C1A] to-[#11223E]", accent: "#38E4FF", code: "LX" },
-  { key: "public-speaking", label: "Public Speaking", gradient: "from-[#1A1205] to-[#38270B]", accent: "#FBBF24", code: "PS" },
-  { key: "leadership", label: "Leadership & Mentorship", gradient: "from-[#191305] to-[#36280A]", accent: "#FACC15", code: "LD" },
-  { key: "logistics", label: "Logistics & Operations", gradient: "from-[#070E1B] to-[#16233B]", accent: "#94A3B8", code: "OP" },
-  { key: "entrepreneurship", label: "Startups & Innovation", gradient: "from-[#191005] to-[#38230A]", accent: "#FBBF24", code: "IN" },
-  { key: "electronics", label: "Electronics & PCB", gradient: "from-[#041512] to-[#073026]", accent: "#34D399", code: "EL" },
+  { key: "python", label: "Python & Coding", gradient: "from-[#1D63EB] to-[#0A4CC7]", accent: "#38E4FF", code: "PY" },
+  { key: "arduino", label: "Arduino & IoT", gradient: "from-[#0D9488] to-[#0F766E]", accent: "#34D399", code: "IO" },
+  { key: "astronomy", label: "Astronomy & Space", gradient: "from-[#1545A8] to-[#092C74]", accent: "#38E4FF", code: "AS" },
+  { key: "printing", label: "3D Printing & CAD", gradient: "from-[#2563EB] to-[#1D4ED8]", accent: "#60A5FA", code: "3D" },
+  { key: "data", label: "Data Science", gradient: "from-[#0284C7] to-[#0369A1]", accent: "#38BDF8", code: "DS" },
+  { key: "ai-ml", label: "AI & Neural Nets", gradient: "from-[#4F46E5] to-[#3730A3]", accent: "#C4B5FD", code: "AI" },
+  { key: "cybersecurity", label: "Cybersecurity", gradient: "from-[#059669] to-[#047857]", accent: "#6EE7B7", code: "CS" },
+  { key: "web-dev", label: "Web & Mobile Dev", gradient: "from-[#1D63EB] to-[#0E48B4]", accent: "#38E4FF", code: "WD" },
+  { key: "robotics", label: "Robotics & Control", gradient: "from-[#4338CA] to-[#312E81]", accent: "#A5B4FC", code: "RB" },
+  { key: "quantum", label: "Quantum Physics", gradient: "from-[#1D63EB] to-[#0B3B8C]", accent: "#38E4FF", code: "QT" },
+  { key: "chemistry", label: "Chemistry & Lab", gradient: "from-[#0D9488] to-[#115E59]", accent: "#5EEAD4", code: "CH" },
+  { key: "biotech", label: "Biotech & Genetics", gradient: "from-[#0891B2] to-[#0E7490]", accent: "#67E8F9", code: "BT" },
+  { key: "mathematics", label: "Mathematics & Logic", gradient: "from-[#1D63EB] to-[#1E40AF]", accent: "#93C5FD", code: "MT" },
+  { key: "ui-ux", label: "UI/UX & Graphic Design", gradient: "from-[#6D28D9] to-[#4C1D95]", accent: "#DDD6FE", code: "UX" },
+  { key: "media-photo", label: "Media & Photography", gradient: "from-[#D97706] to-[#B45309]", accent: "#FDE68A", code: "MD" },
+  { key: "scientific-writing", label: "LaTeX & Research", gradient: "from-[#1D63EB] to-[#0A4CC7]", accent: "#38E4FF", code: "LX" },
+  { key: "public-speaking", label: "Public Speaking", gradient: "from-[#D97706] to-[#92400E]", accent: "#FDE68A", code: "PS" },
+  { key: "leadership", label: "Leadership & Mentorship", gradient: "from-[#1D63EB] to-[#0B3B8C]", accent: "#FDE047", code: "LD" },
+  { key: "logistics", label: "Logistics & Operations", gradient: "from-[#1E40AF] to-[#1E3A8A]", accent: "#93C5FD", code: "OP" },
+  { key: "entrepreneurship", label: "Startups & Innovation", gradient: "from-[#EA580C] to-[#C2410C]", accent: "#FDBA74", code: "IN" },
+  { key: "electronics", label: "Electronics & PCB", gradient: "from-[#0D9488] to-[#0F766E]", accent: "#5EEAD4", code: "EL" },
 ];
 
 export function resolveFieldKey(raw?: string): FieldIconKey {
@@ -298,14 +298,14 @@ export function FieldIcon({ field, size = 28, boxed = false, className = "" }: F
 
   return (
     <div
-      className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br ${meta.gradient} border border-slate-800/90 shadow-[0_8px_20px_rgba(3,8,18,0.22),inset_0_1px_0_rgba(255,255,255,0.14)] shrink-0 overflow-hidden group ${className}`}
+      className={`relative flex items-center justify-center rounded-xl bg-gradient-to-b ${meta.gradient} border border-white/25 shadow-[0_6px_16px_rgba(29,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.3)] shrink-0 overflow-hidden group ${className}`}
       style={{ width: size + 20, height: size + 20 }}
     >
       {/* Precision Architectural Corner Ticks */}
-      <span className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-[#38E4FF]/45 pointer-events-none" />
-      <span className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-[#38E4FF]/45 pointer-events-none" />
+      <span className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-white/50 pointer-events-none" />
+      <span className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-white/50 pointer-events-none" />
       <div
-        className="absolute -top-3 -right-3 w-8 h-8 rounded-full opacity-30 blur-xs pointer-events-none"
+        className="absolute -top-3 -right-3 w-8 h-8 rounded-full opacity-35 blur-xs pointer-events-none"
         style={{ background: meta.accent }}
       />
       <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
