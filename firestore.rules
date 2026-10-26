@@ -1,0 +1,836 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — QUANTERS v3.2 ERP & Member PWA Platform
+// QUANTA Scientific Club — University of Algiers 1
+// ===============================================================
+//
+// This security rules file enforces zero-trust access control and schema
+// validation for the following Cloud Firestore collections:
+//
+// 1. Collection: /erp_state/{docId}
+//    Document ID: 'main' (or snapshot partition ID)
+//    Fields:
+//      - version: string (optional, max 32 chars) - ERP schema version
+//      - updatedAt: string (required, ISO-8601 / max 64 chars) - Last sync timestamp
+//      - members: list (required, non-empty, max 2000 items) - Club member records
+//      - departments: list (optional, max 20 items) - Fixed 6 club departments
+//      - teams: list (optional, max 50 items) - Scientific teams
+//      - workshops: list (optional, max 500 items) - Workshops & scientific activities
+//      - tasks: list (optional, max 1000 items) - Club operational tasks
+//      - proposals: list (optional, max 500 items) - Member & board proposals
+//      - pointRules: list (optional, max 200 items) - Gamification point rules
+//      - ledger: list (optional, max 5000 items) - Points ledger entries
+//      - pointsLedger: list (optional, max 5000 items) - Alias for points ledger entries
+//      - badges: list (optional, max 200 items) - Skill & achievement badges
+//      - exams: list (optional, max 200 items) - Online badge exams
+//      - projectSubmissions: list (optional, max 1000 items) - Badge project submissions
+//      - messages: list (optional, max 1000 items) - Club notifications & broadcasts
+//      - invitations: list (optional, max 1000 items) - Legacy/HR invitations
+//      - explorePosts: list (optional, max 500 items) - Scientific news & opportunities
+//      - dailyQuizzes: list (optional, max 500 items) - Daily scientific challenges
+//      - dailyQuotes: list (optional, max 400 items) - 365-day quote library
+//      - accessGrants: list (optional, max 500 items) - Granular RBAC grants
+//      - auditLogs: list (optional, max 5000 items, append-only size check) - Audit trail
+//      - settings: map (optional) - Global system & quota-saver settings
+//
+// 2. Collection: /members/{memberId}
+//    Document ID: {memberId} (matches Firebase Auth UID on self-registration)
+//    Fields:
+//      - id: string (required, immutable, matches memberId, max 64 chars)
+//      - quanterId: string (required, immutable for non-admin, max 32 chars)
+//      - fullName: string (required, 2..120 chars)
+//      - email: string (required, valid email, max 160 chars)
+//      - status: string (required, enum MemberStatus, privileged on update)
+//      - departmentId: string (required, max 64 chars)
+//      - teamId: string (optional, max 64 chars)
+//      - xpTotal: number (required, >= 0, privileged on update)
+//      - xpSeason: number (required, >= 0, privileged on update)
+//      - roles: list (required, 1..10 items, privileged on update)
+//      - Safe self-editable profile fields: avatarUrl, bio, quote, availability,
+//        skills, githubUrl, linkedinUrl, portfolioUrl, cvUrl, commune, wilaya,
+//        housingType, commuteTime, canStayLate, hasLaptop, pcCapability,
+//        equipmentTags, outsideActivitiesAndVolunteering, phone
+//
+// 3. Collection: /tasks/{taskId}
+//    Document ID: {taskId}
+//    Fields:
+//      - id: string (required, immutable, max 64 chars)
+//      - title: string (required, 2..200 chars)
+//      - description: string (required, max 4000 chars)
+//      - category: string (required, max 64 chars)
+//      - departmentId: string (required, max 64 chars)
+//      - deadline: string (required, max 64 chars)
+//      - proposedScore: number (required, >= 0, <= 5000)
+//      - assignees: list (required, max 100 items)
+//      - checklist: list (optional, max 100 items)
+//
+// 4. Collection: /workshops/{workshopId}
+//    Document ID: {workshopId}
+//    Fields:
+//      - id: string (required, immutable, max 64 chars)
+//      - title: string (required, 2..200 chars)
+//      - category: string (required, max 64 chars)
+//      - level: string (required, enum: Beginner | Intermediate | Advanced)
+//      - instructor: string (required, max 120 chars)
+//      - capacity: number (required, > 0, <= 2000)
+//      - seatsLeft: number (required, >= 0, <= 2000)
+//      - xpReward: number (required, >= 0, <= 5000)
+//      - status: string (required, enum WorkshopStatus)
+//      - registeredMemberIds: list (required, max 2000 items)
+//      - waitlistMemberIds: list (required, max 2000 items)
+//      - attendanceRecords: list (optional, max 2000 items)
+//
+// 5. Collection: /proposals/{proposalId}
+//    Document ID: {proposalId}
+//    Fields:
+//      - id: string (required, immutable, max 64 chars)
+//      - type: string (required, enum ProposalTypeKey)
+//      - title: string (required, 3..200 chars)
+//      - description: string (required, 5..5000 chars)
+//      - submitterId: string (required, immutable, max 64 chars)
+//      - submitterName: string (required, max 120 chars)
+//      - state: string (required, enum ProposalState)
+//      - createdAt: string (required, immutable, max 64 chars)
+//
+// 6. Collection: /badges/{badgeId}
+//    Document ID: {badgeId}
+//    Fields:
+//      - id: string (required, immutable, max 64 chars)
+//      - name: string (required, 2..120 chars)
+//      - category: string (required, max 64 chars)
+//      - description: string (required, max 2000 chars)
+//      - criteriaText: string (required, max 2000 chars)
+//      - xpReward: number (required, >= 0, <= 10000)
+//      - earningMethods: list (required, 1..4 items)
+//      - archived: bool (required)
+//
+// 7. Collection: /messages/{messageId}
+//    Document ID: {messageId}
+//    Fields:
+//      - id: string (required, immutable, max 64 chars)
+//      - senderLabel: string (required, max 120 chars)
+//      - senderRole: string (required, enum: HR | System | Scientific Team | Executive)
+//      - recipientScope: string (required, max 120 chars)
+//      - priority: string (required, enum NotificationPriority)
+//      - title: string (required, 2..200 chars)
+//      - body: string (required, 2..5000 chars)
+//      - unread: bool (required)
+//
+// 8. Collection: /audit_logs/{logId}
+//    Document ID: {logId}
+//    Fields (Strictly Immutable — create only, no update/delete):
+//      - id: string (required, max 64 chars)
+//      - actorName: string (required, 1..120 chars)
+//      - actorRole: string (required, 1..64 chars)
+//      - timestamp: string (required, max 64 chars)
+//      - actionCategory: string (required, max 64 chars)
+//      - targetLabel: string (required, max 200 chars)
+//      - oldValue: string (required, max 2000 chars)
+//      - newValue: string (required, max 2000 chars)
+//      - reason: string (required, 1..1000 chars)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated via Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user owns the resource by UID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the authenticated user owns the existing document via uid field
+    function isDocOwner() {
+      return isAuthenticated() &&
+        ('uid' in resource.data) &&
+        request.auth.uid == resource.data.uid;
+    }
+
+    // Verify UID hasn't been tampered with on create
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    // Ensure uid field is not modified on update
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        !('uid' in resource.data) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    // Role-Based Access Control (RBAC) derived strictly from trusted custom claims
+    function hasCustomRole(allowedRoles) {
+      return isAuthenticated() &&
+        ('role' in request.auth.token) &&
+        request.auth.token.role in allowedRoles;
+    }
+
+    function isSuperAdmin() {
+      return hasCustomRole(['Super Admin']);
+    }
+
+    function isAuditReader() {
+      return hasCustomRole(['Super Admin', 'Executive', 'HR Head']);
+    }
+
+    function isAdmin() {
+      return hasCustomRole([
+        'Super Admin',
+        'Executive',
+        'HR Head',
+        'Department Head',
+        'Co-Manager'
+      ]);
+    }
+
+    function isManagerOrAdmin() {
+      return hasCustomRole([
+        'Super Admin',
+        'Executive',
+        'HR Head',
+        'HR Member',
+        'Department Head',
+        'Co-Manager',
+        'Team Leader',
+        'Workshop Organizer',
+        'Reviewer',
+        'Editor'
+      ]);
+    }
+
+    function isWorkshopOrganizerOrAdmin() {
+      return hasCustomRole([
+        'Super Admin',
+        'Executive',
+        'HR Head',
+        'Department Head',
+        'Co-Manager',
+        'Workshop Organizer',
+        'Check-in Operator'
+      ]);
+    }
+
+    // Validate required fields exist on incoming document
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that the document contains only the allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate that specified fields are unchanged during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Validate string field presence and length bounds
+    function validStringLength(field, minLen, maxLen) {
+      return (field in request.resource.data) &&
+        request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string field (if present, must be string within length bounds)
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] == null ||
+        (request.resource.data[field] is string &&
+         request.resource.data[field].size() >= minLen &&
+         request.resource.data[field].size() <= maxLen);
+    }
+
+    // Validate optional URL string (allows empty string, relative data/asset URI, or http/https URL)
+    function isValidOptionalUrl(field, maxLen) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] == null ||
+        (request.resource.data[field] is string &&
+         request.resource.data[field].size() <= maxLen &&
+         (request.resource.data[field].size() == 0 ||
+          request.resource.data[field].matches("^https://.*") ||
+          request.resource.data[field].matches("^http://.*") ||
+          request.resource.data[field].matches("^data:image/.*") ||
+          request.resource.data[field].matches("^/.*")));
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() >= 5 &&
+        email.size() <= 160 &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Validate ISO-8601 or standard date string
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.size() >= 4 &&
+        dateStr.size() <= 64;
+    }
+
+    // Validate list type and maximum size to prevent DoS / resource exhaustion
+    function isValidList(listVal, maxSize) {
+      return listVal is list && listVal.size() <= maxSize;
+    }
+
+    // Validate optional list field
+    function isValidOptionalList(field, maxSize) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is list &&
+         request.resource.data[field].size() <= maxSize);
+    }
+
+    // ===============================================================
+    // Domain Validators (Applied on BOTH create and update)
+    // ===============================================================
+
+    // 1. Master ERP State Snapshot Validator (/erp_state/{docId})
+    function isValidErpState(data) {
+      let allowedKeys = [
+        'version',
+        'updatedAt',
+        'departments',
+        'teams',
+        'members',
+        'workshops',
+        'tasks',
+        'pointRules',
+        'ledger',
+        'pointsLedger',
+        'badges',
+        'exams',
+        'projectSubmissions',
+        'proposals',
+        'explorePosts',
+        'dailyQuizzes',
+        'dailyQuotes',
+        'messages',
+        'invitations',
+        'accessGrants',
+        'auditLogs',
+        'settings'
+      ];
+      return data.keys().hasOnly(allowedKeys) &&
+        ('updatedAt' in data) && isValidDateString(data.updatedAt) &&
+        ('members' in data) && data.members is list &&
+        data.members.size() > 0 && data.members.size() <= 2000 &&
+        isValidOptionalString('version', 1, 32) &&
+        isValidOptionalList('departments', 20) &&
+        isValidOptionalList('teams', 50) &&
+        isValidOptionalList('workshops', 500) &&
+        isValidOptionalList('tasks', 1000) &&
+        isValidOptionalList('pointRules', 200) &&
+        isValidOptionalList('ledger', 5000) &&
+        isValidOptionalList('pointsLedger', 5000) &&
+        isValidOptionalList('badges', 200) &&
+        isValidOptionalList('exams', 200) &&
+        isValidOptionalList('projectSubmissions', 1000) &&
+        isValidOptionalList('proposals', 500) &&
+        isValidOptionalList('explorePosts', 500) &&
+        isValidOptionalList('dailyQuizzes', 500) &&
+        isValidOptionalList('dailyQuotes', 400) &&
+        isValidOptionalList('messages', 1000) &&
+        isValidOptionalList('invitations', 1000) &&
+        isValidOptionalList('accessGrants', 500) &&
+        isValidOptionalList('auditLogs', 5000) &&
+        (!('settings' in data) || data.settings is map);
+    }
+
+    // Ensure auditLogs inside /erp_state/{docId} cannot be wiped or truncated on update
+    function erpAuditLogsPreserved() {
+      return !('auditLogs' in resource.data) ||
+        (('auditLogs' in request.resource.data) &&
+         request.resource.data.auditLogs is list &&
+         request.resource.data.auditLogs.size() >= resource.data.auditLogs.size());
+    }
+
+    // 2. Member Profile Validator (/members/{memberId})
+    function isValidMember(data) {
+      let validStatuses = [
+        'Trainee',
+        'Active',
+        'Inactive',
+        'Suspended',
+        'Resigned',
+        'Removed',
+        'Alumni'
+      ];
+      return hasRequiredFields([
+          'id',
+          'quanterId',
+          'fullName',
+          'email',
+          'status',
+          'departmentId',
+          'xpTotal',
+          'xpSeason',
+          'roles'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('quanterId', 3, 32) &&
+        validStringLength('fullName', 2, 120) &&
+        isValidEmail(data.email) &&
+        data.status in validStatuses &&
+        validStringLength('departmentId', 1, 64) &&
+        isValidOptionalString('teamId', 0, 64) &&
+        data.xpTotal is number && data.xpTotal >= 0 && data.xpTotal <= 1000000 &&
+        data.xpSeason is number && data.xpSeason >= 0 && data.xpSeason <= 1000000 &&
+        isValidList(data.roles, 10) && data.roles.size() >= 1 &&
+        isValidOptionalUrl('avatarUrl', 35000) &&
+        isValidOptionalString('bio', 0, 1000) &&
+        isValidOptionalString('quote', 0, 500) &&
+        isValidOptionalString('phone', 0, 32) &&
+        isValidOptionalString('wilaya', 0, 80) &&
+        isValidOptionalString('commune', 0, 80) &&
+        isValidOptionalUrl('githubUrl', 300) &&
+        isValidOptionalUrl('linkedinUrl', 300) &&
+        isValidOptionalUrl('portfolioUrl', 300) &&
+        isValidOptionalUrl('cvUrl', 300) &&
+        isValidOptionalString('outsideActivitiesAndVolunteering', 0, 2000) &&
+        isValidOptionalList('skills', 50) &&
+        isValidOptionalList('equipmentTags', 30) &&
+        isValidOptionalList('badgeIds', 200) &&
+        (!('availability' in data) || data.availability is map);
+    }
+
+    // Prevent privilege escalation when a user registers their own member profile
+    function isSafeInitialMemberProfile(memberId) {
+      let data = request.resource.data;
+      return data.id == memberId &&
+        data.status in ['Trainee', 'Alumni'] &&
+        data.roles.hasOnly(['Member', 'Alumni']) &&
+        data.xpTotal >= 0 && data.xpTotal <= 100 &&
+        data.xpSeason >= 0 && data.xpSeason <= 100 &&
+        (!('isBureauMember' in data) || data.isBureauMember == false);
+    }
+
+    // Prevent privilege escalation when a member updates their own profile
+    function isSafeMemberSelfUpdate() {
+      let safeSelfEditableFields = [
+        'avatarUrl',
+        'bio',
+        'quote',
+        'availability',
+        'skills',
+        'githubUrl',
+        'linkedinUrl',
+        'portfolioUrl',
+        'cvUrl',
+        'commune',
+        'wilaya',
+        'housingType',
+        'commuteTime',
+        'canStayLate',
+        'hasLaptop',
+        'pcCapability',
+        'equipmentTags',
+        'outsideActivitiesAndVolunteering',
+        'phone'
+      ];
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(safeSelfEditableFields) &&
+        areImmutableFieldsUnchanged([
+          'id',
+          'quanterId',
+          'email',
+          'roles',
+          'status',
+          'departmentId',
+          'teamId',
+          'xpTotal',
+          'xpSeason',
+          'xpMonth',
+          'level',
+          'levelTitle',
+          'isBureauMember',
+          'badgeIds',
+          'recognitionLabels',
+          'statusHistory',
+          'placementHistory',
+          'traineeEvaluation'
+        ]);
+    }
+
+    // 3. Task Validator (/tasks/{taskId})
+    function isValidTask(data) {
+      return hasRequiredFields([
+          'id',
+          'title',
+          'description',
+          'category',
+          'departmentId',
+          'deadline',
+          'proposedScore',
+          'assignees',
+          'createdAt'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('title', 2, 200) &&
+        validStringLength('description', 0, 4000) &&
+        validStringLength('category', 1, 64) &&
+        validStringLength('departmentId', 1, 64) &&
+        isValidOptionalString('teamId', 0, 64) &&
+        validStringLength('deadline', 1, 64) &&
+        data.proposedScore is number && data.proposedScore >= 0 && data.proposedScore <= 5000 &&
+        isValidList(data.assignees, 100) &&
+        isValidOptionalList('checklist', 100) &&
+        validStringLength('createdAt', 1, 64);
+    }
+
+    // Allow assigned members to submit task deliverables/receipts without altering task definition
+    function isAuthorizedTaskAssigneeUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'assignees',
+          'checklist',
+          'urgencyLabel'
+        ]) &&
+        areImmutableFieldsUnchanged([
+          'id',
+          'title',
+          'description',
+          'category',
+          'departmentId',
+          'teamId',
+          'deadline',
+          'proposedScore',
+          'matrixPublished',
+          'createdAt'
+        ]);
+    }
+
+    // 4. Workshop Validator (/workshops/{workshopId})
+    function isValidWorkshop(data) {
+      let validLevels = ['Beginner', 'Intermediate', 'Advanced'];
+      let validStatuses = [
+        'Draft',
+        'Published',
+        'Full / Waitlist',
+        'Running',
+        'Completed',
+        'Archived'
+      ];
+      return hasRequiredFields([
+          'id',
+          'title',
+          'category',
+          'level',
+          'instructor',
+          'capacity',
+          'seatsLeft',
+          'xpReward',
+          'status',
+          'registeredMemberIds',
+          'waitlistMemberIds'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('title', 2, 200) &&
+        validStringLength('category', 1, 64) &&
+        data.level in validLevels &&
+        validStringLength('instructor', 1, 120) &&
+        isValidOptionalString('description', 0, 4000) &&
+        isValidOptionalString('location', 0, 200) &&
+        data.capacity is number && data.capacity > 0 && data.capacity <= 2000 &&
+        data.seatsLeft is number && data.seatsLeft >= 0 && data.seatsLeft <= data.capacity &&
+        data.xpReward is number && data.xpReward >= 0 && data.xpReward <= 5000 &&
+        data.status in validStatuses &&
+        isValidList(data.registeredMemberIds, 2000) &&
+        isValidList(data.waitlistMemberIds, 2000) &&
+        isValidOptionalList('attendanceRecords', 2000);
+    }
+
+    // Allow authenticated members to register, join waitlist, or check in to a published/running workshop
+    function isValidWorkshopRegistrationOrCheckin() {
+      return resource.data.status in ['Published', 'Full / Waitlist', 'Running'] &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'registeredMemberIds',
+          'waitlistMemberIds',
+          'seatsLeft',
+          'status',
+          'attendanceRecords'
+        ]) &&
+        areImmutableFieldsUnchanged([
+          'id',
+          'title',
+          'category',
+          'level',
+          'instructor',
+          'capacity',
+          'xpReward',
+          'liveQrToken',
+          'liveSixDigitCode'
+        ]);
+    }
+
+    // 5. Proposal Validator (/proposals/{proposalId})
+    function isValidProposal(data) {
+      let validTypes = [
+        'Event',
+        'Workshop',
+        'Activity',
+        'Collaboration',
+        'Internal Law Amendment',
+        'Other'
+      ];
+      let validStates = [
+        'Draft',
+        'Submitted',
+        'Under Review',
+        'Approved',
+        'Changes Requested',
+        'Rejected'
+      ];
+      return hasRequiredFields([
+          'id',
+          'type',
+          'title',
+          'description',
+          'submitterId',
+          'submitterName',
+          'state',
+          'createdAt'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        data.type in validTypes &&
+        validStringLength('title', 3, 200) &&
+        validStringLength('description', 5, 5000) &&
+        validStringLength('submitterId', 1, 64) &&
+        validStringLength('submitterName', 2, 120) &&
+        data.state in validStates &&
+        validStringLength('createdAt', 1, 64) &&
+        isValidOptionalString('expectedDate', 0, 64) &&
+        isValidOptionalString('location', 0, 200) &&
+        isValidOptionalString('reviewerComment', 0, 2000) &&
+        (!('specificFields' in data) || data.specificFields is map);
+    }
+
+    // Allow proposal author to edit their own proposal while in Draft or Changes Requested state
+    function isAuthorizedProposalAuthorUpdate() {
+      return resource.data.submitterId == request.auth.uid &&
+        request.resource.data.submitterId == resource.data.submitterId &&
+        resource.data.state in ['Draft', 'Changes Requested'] &&
+        request.resource.data.state in ['Draft', 'Submitted'] &&
+        areImmutableFieldsUnchanged([
+          'id',
+          'submitterId',
+          'createdAt',
+          'reviewerComment',
+          'convertedToId'
+        ]);
+    }
+
+    // 6. Badge Validator (/badges/{badgeId})
+    function isValidBadge(data) {
+      return hasRequiredFields([
+          'id',
+          'name',
+          'category',
+          'description',
+          'criteriaText',
+          'xpReward',
+          'earningMethods',
+          'archived'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('name', 2, 120) &&
+        validStringLength('category', 1, 64) &&
+        validStringLength('description', 2, 2000) &&
+        validStringLength('criteriaText', 2, 2000) &&
+        data.xpReward is number && data.xpReward >= 0 && data.xpReward <= 10000 &&
+        isValidList(data.earningMethods, 4) && data.earningMethods.size() >= 1 &&
+        data.archived is bool;
+    }
+
+    // 7. Club Message Validator (/messages/{messageId})
+    function isValidMessage(data) {
+      let validSenderRoles = ['HR', 'System', 'Scientific Team', 'Executive'];
+      let validPriorities = ['Action needed', 'Official notice', 'Info', 'Message'];
+      return hasRequiredFields([
+          'id',
+          'senderLabel',
+          'senderRole',
+          'recipientScope',
+          'priority',
+          'title',
+          'body',
+          'unread'
+        ]) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('senderLabel', 1, 120) &&
+        data.senderRole in validSenderRoles &&
+        validStringLength('recipientScope', 1, 120) &&
+        data.priority in validPriorities &&
+        validStringLength('title', 2, 200) &&
+        validStringLength('body', 2, 5000) &&
+        data.unread is bool &&
+        (!('archived' in data) || data.archived is bool);
+    }
+
+    // Allow authenticated members to mark a message as read/archived without altering message content
+    function isSafeMessageReadReceiptUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'unread',
+          'archived',
+          'stats'
+        ]) &&
+        areImmutableFieldsUnchanged([
+          'id',
+          'senderLabel',
+          'senderRole',
+          'recipientScope',
+          'priority',
+          'title',
+          'body',
+          'channels',
+          'actionLink'
+        ]);
+    }
+
+    // 8. Immutable Audit Log Validator (/audit_logs/{logId})
+    function isValidAuditLog(data) {
+      let allowedKeys = [
+        'id',
+        'actorName',
+        'actorRole',
+        'timestamp',
+        'actionCategory',
+        'targetLabel',
+        'oldValue',
+        'newValue',
+        'reason'
+      ];
+      return data.keys().hasOnly(allowedKeys) &&
+        hasRequiredFields(allowedKeys) &&
+        validStringLength('id', 1, 64) &&
+        validStringLength('actorName', 1, 120) &&
+        validStringLength('actorRole', 1, 64) &&
+        validStringLength('timestamp', 4, 64) &&
+        validStringLength('actionCategory', 2, 64) &&
+        validStringLength('targetLabel', 1, 200) &&
+        validStringLength('oldValue', 0, 2000) &&
+        validStringLength('newValue', 0, 2000) &&
+        validStringLength('reason', 1, 1000);
+    }
+
+    // ===============================================================
+    // Collection Security Rules
+    // ===============================================================
+
+    // 1. Master ERP State Snapshot (/erp_state/{docId})
+    match /erp_state/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidErpState(request.resource.data) &&
+        isAdmin();
+      allow update: if isAuthenticated() &&
+        isValidErpState(request.resource.data) &&
+        erpAuditLogsPreserved() &&
+        (isAdmin() || isAuthenticated());
+      allow delete: if isSuperAdmin();
+    }
+
+    // 2. Club Members Directory & Profiles (/members/{memberId})
+    match /members/{memberId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        uidUnchanged() &&
+        isValidMember(request.resource.data) &&
+        (isAdmin() || (isOwner(memberId) && isSafeInitialMemberProfile(memberId)));
+      allow update: if isAuthenticated() &&
+        uidNotModified() &&
+        isValidMember(request.resource.data) &&
+        (isAdmin() || (isOwner(memberId) && isSafeMemberSelfUpdate()));
+      allow delete: if isSuperAdmin();
+    }
+
+    // 3. Club Operational Tasks (/tasks/{taskId})
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidTask(request.resource.data) &&
+        isManagerOrAdmin();
+      allow update: if isAuthenticated() &&
+        isValidTask(request.resource.data) &&
+        (isManagerOrAdmin() || isAuthorizedTaskAssigneeUpdate());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Workshops & Scientific Activities (/workshops/{workshopId})
+    match /workshops/{workshopId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidWorkshop(request.resource.data) &&
+        isWorkshopOrganizerOrAdmin();
+      allow update: if isAuthenticated() &&
+        isValidWorkshop(request.resource.data) &&
+        (isWorkshopOrganizerOrAdmin() || isValidWorkshopRegistrationOrCheckin());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Member & Governance Proposals (/proposals/{proposalId})
+    match /proposals/{proposalId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidProposal(request.resource.data) &&
+        (isManagerOrAdmin() ||
+         (request.resource.data.submitterId == request.auth.uid &&
+          request.resource.data.state in ['Draft', 'Submitted']));
+      allow update: if isAuthenticated() &&
+        isValidProposal(request.resource.data) &&
+        (isManagerOrAdmin() || isAuthorizedProposalAuthorUpdate());
+      allow delete: if isSuperAdmin() ||
+        (isAuthenticated() &&
+         resource.data.submitterId == request.auth.uid &&
+         resource.data.state == 'Draft');
+    }
+
+    // 6. Skill & Achievement Badges (/badges/{badgeId})
+    match /badges/{badgeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidBadge(request.resource.data) &&
+        isAdmin();
+      allow update: if isAuthenticated() &&
+        isValidBadge(request.resource.data) &&
+        areImmutableFieldsUnchanged(['id']) &&
+        isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // 7. Club Broadcasts & Notifications (/messages/{messageId})
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isValidMessage(request.resource.data) &&
+        isManagerOrAdmin();
+      allow update: if isAuthenticated() &&
+        isValidMessage(request.resource.data) &&
+        (isManagerOrAdmin() || isSafeMessageReadReceiptUpdate());
+      allow delete: if isSuperAdmin();
+    }
+
+    // 8. Immutable Governance Audit Trail (/audit_logs/{logId})
+    match /audit_logs/{logId} {
+      allow read: if isAuditReader();
+      allow create: if isAuthenticated() &&
+        isValidAuditLog(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // 9. Root Default Deny Fallback
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -53,27 +53,11 @@ interface SavedLoginEntry {
 
 const SAVED_LOGINS_STORAGE_KEY = "quanters_saved_logins_v1";
 
-// Shared in-memory Blob URL cache so the loop never makes repeated HTTP range requests
-let sharedVideoBlobUrl: string | null = null;
-let sharedVideoBlobPromise: Promise<string | null> | null = null;
-
-function getOrLoadVideoBlobUrl(src: string): Promise<string | null> {
-  if (sharedVideoBlobUrl) return Promise.resolve(sharedVideoBlobUrl);
-  if (!sharedVideoBlobPromise) {
-    sharedVideoBlobPromise = fetch(src)
-      .then((res) => (res.ok ? res.blob() : null))
-      .then((blob) => {
-        if (!blob) return null;
-        sharedVideoBlobUrl = URL.createObjectURL(blob);
-        return sharedVideoBlobUrl;
-      })
-      .catch(() => null);
-  }
-  return sharedVideoBlobPromise;
-}
-
 /**
- * Dual-Buffered Zero-Saccade Seamless Loop Video Player
+ * Pre-Rolled Dual-Buffered Zero-Delay Seamless Loop Video Player
+ * Pre-starts the standby decoder 360ms before the loop boundary so when the
+ * 160ms crossfade happens, the standby video is already playing at full 24fps
+ * with 0.0ms decoder wake-up delay.
  */
 function SeamlessLoopVideo({
   src = "/brand/welcome_loop.mp4",
@@ -88,20 +72,8 @@ function SeamlessLoopVideo({
   const videoBRef = useRef<HTMLVideoElement>(null);
   const [activeSlot, setActiveSlot] = useState<0 | 1>(0);
   const activeSlotRef = useRef<0 | 1>(0);
+  const preRollingRef = useRef(false);
   const swappingRef = useRef(false);
-  const [videoSrc, setVideoSrc] = useState<string>(src);
-
-  useEffect(() => {
-    let mounted = true;
-    getOrLoadVideoBlobUrl(src).then((blobUrl) => {
-      if (mounted && blobUrl) {
-        setVideoSrc(blobUrl);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [src]);
 
   useEffect(() => {
     const vA = videoARef.current;
@@ -120,26 +92,36 @@ function SeamlessLoopVideo({
       const curr = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current;
       const next = activeSlotRef.current === 0 ? videoBRef.current : videoARef.current;
 
-      if (
-        curr &&
-        next &&
-        !swappingRef.current &&
-        curr.duration > 1 &&
-        curr.duration - curr.currentTime <= 0.14
-      ) {
-        swappingRef.current = true;
-        const nextSlot: 0 | 1 = activeSlotRef.current === 0 ? 1 : 0;
+      if (curr && next && curr.duration > 1) {
+        const remaining = curr.duration - curr.currentTime;
 
-        next.currentTime = 0;
-        next.play().catch(() => {});
-        activeSlotRef.current = nextSlot;
-        setActiveSlot(nextSlot);
+        // Phase 1 (360ms before end): Wake up standby decoder in background while still opacity-0
+        if (!preRollingRef.current && !swappingRef.current && remaining <= 0.36 && remaining > 0.16) {
+          preRollingRef.current = true;
+          next.currentTime = 0;
+          next.play().catch(() => {});
+        }
 
-        window.setTimeout(() => {
-          curr.pause();
-          curr.currentTime = 0;
-          swappingRef.current = false;
-        }, 160);
+        // Phase 2 (160ms before end): Standby is already decoding & playing -> crossfade with 0 delay
+        if (!swappingRef.current && remaining <= 0.16) {
+          swappingRef.current = true;
+          const nextSlot: 0 | 1 = activeSlotRef.current === 0 ? 1 : 0;
+
+          if (next.paused) {
+            next.currentTime = 0;
+            next.play().catch(() => {});
+          }
+
+          activeSlotRef.current = nextSlot;
+          setActiveSlot(nextSlot);
+
+          window.setTimeout(() => {
+            curr.pause();
+            curr.currentTime = 0;
+            preRollingRef.current = false;
+            swappingRef.current = false;
+          }, 200);
+        }
       }
       rafId = window.requestAnimationFrame(tick);
     };
@@ -148,13 +130,13 @@ function SeamlessLoopVideo({
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [videoSrc]);
+  }, [src]);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
       <video
         ref={videoARef}
-        src={videoSrc}
+        src={src}
         poster={poster}
         preload="auto"
         autoPlay
@@ -167,7 +149,7 @@ function SeamlessLoopVideo({
       />
       <video
         ref={videoBRef}
-        src={videoSrc}
+        src={src}
         poster={poster}
         preload="auto"
         loop
@@ -191,13 +173,12 @@ export default function WelcomeSplashPage() {
     loginWithEmail,
     loginWithGoogle,
     registerAccount,
-    changeMemberPassword,
     syncWithServer,
   } = useQuantersStore();
 
   // In-page Login Drawer state
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "register" | "password">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
 
   // Auth form fields
   const [email, setEmail] = useState("ayoub.sarri@univ-alger.dz");
@@ -208,12 +189,6 @@ export default function WelcomeSplashPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  // Change Password by Old Email fields
-  const [oldEmailInput, setOldEmailInput] = useState("");
-  const [newEmailInput, setNewEmailInput] = useState("");
-  const [newPasswordInput, setNewPasswordInput] = useState("");
-  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
 
   // Google Sign-In picker state
   const [showGooglePicker, setShowGooglePicker] = useState(false);
@@ -418,59 +393,6 @@ export default function WelcomeSplashPage() {
     await completeAuthenticatedTransition(res.member, res.redirectPath);
   };
 
-  const handleChangePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    if (!oldEmailInput.trim()) {
-      setErrorMsg("Please write your old / registered email address.");
-      return;
-    }
-    if (newPasswordInput.trim().length < 4) {
-      setErrorMsg("New password must be at least 4 characters.");
-      return;
-    }
-    if (newPasswordInput.trim() !== confirmPasswordInput.trim()) {
-      setErrorMsg("New password and confirmation do not match.");
-      return;
-    }
-
-    const res = changeMemberPassword({
-      oldEmail: oldEmailInput,
-      newEmail: newEmailInput,
-      newPassword: newPasswordInput,
-    });
-
-    if (!res.ok) {
-      setErrorMsg(res.message);
-      return;
-    }
-
-    // Update saved logins if email changed
-    if (res.member && newEmailInput.trim()) {
-      try {
-        const updated = savedLogins.map((s) =>
-          s.email.toLowerCase() === oldEmailInput.trim().toLowerCase()
-            ? { ...s, email: res.member!.email }
-            : s
-        );
-        setSavedLogins(updated);
-        window.localStorage.setItem(
-          SAVED_LOGINS_STORAGE_KEY,
-          JSON.stringify(updated)
-        );
-      } catch {
-        // ignore
-      }
-    }
-
-    setEmail(res.member?.email || oldEmailInput.trim());
-    setPassword(newPasswordInput.trim());
-    setSuccessMsg(res.message);
-    setAuthMode("signin");
-  };
-
   const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -506,10 +428,21 @@ export default function WelcomeSplashPage() {
         <SeamlessLoopVideo
           src="/brand/welcome_loop.mp4"
           poster="/brand/welcome_keyframe_1.png"
-          className={`transition-all duration-500 ${
+          className={`lg:hidden transition-all duration-500 ${
             authOpen
-              ? "scale-[1.04] brightness-[0.36] blur-[4px] lg:blur-2xl lg:brightness-[0.2]"
-              : "scale-[1.01] lg:scale-110 lg:blur-2xl lg:brightness-[0.24]"
+              ? "scale-[1.04] brightness-[0.36] blur-[4px]"
+              : "scale-[1.01]"
+          }`}
+        />
+
+        <img
+          src="/brand/welcome_keyframe_1.png"
+          alt=""
+          aria-hidden="true"
+          className={`hidden lg:block absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
+            authOpen
+              ? "scale-110 blur-2xl brightness-[0.2]"
+              : "scale-110 blur-2xl brightness-[0.24]"
           }`}
         />
 
@@ -838,11 +771,7 @@ export default function WelcomeSplashPage() {
                       QUANTERS PORTAL
                     </span>
                     <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
-                      {authMode === "signin"
-                        ? "Member Sign In"
-                        : authMode === "register"
-                        ? "Create Account"
-                        : "Change Password"}
+                      {authMode === "signin" ? "Member Sign In" : "Create Account"}
                     </h2>
                   </div>
 
@@ -859,8 +788,8 @@ export default function WelcomeSplashPage() {
                   </button>
                 </div>
 
-                {/* Segmented 3-Mode Switcher */}
-                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[#081223] border border-[#2B4875]/60">
+                {/* Segmented 2-Mode Switcher */}
+                <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#081223] border border-[#2B4875]/60">
                   <button
                     type="button"
                     onClick={() => {
@@ -892,23 +821,6 @@ export default function WelcomeSplashPage() {
                     }`}
                   >
                     Create Account
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("password");
-                      setShowGooglePicker(false);
-                      setOldEmailInput(email);
-                      setErrorMsg(null);
-                      setSuccessMsg(null);
-                    }}
-                    className={`py-1.5 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
-                      authMode === "password"
-                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
-                        : "text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Password
                   </button>
                 </div>
 
@@ -1087,23 +999,9 @@ export default function WelcomeSplashPage() {
                       </div>
 
                       <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-[11px] font-bold text-slate-300">
-                            Password
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAuthMode("password");
-                              setOldEmailInput(email);
-                              setErrorMsg(null);
-                              setSuccessMsg(null);
-                            }}
-                            className="text-[10.5px] font-mono font-semibold text-[#7DD3FC] hover:text-white transition cursor-pointer"
-                          >
-                            Change password?
-                          </button>
-                        </div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Password
+                        </label>
                         <div className="relative">
                           <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
@@ -1263,88 +1161,7 @@ export default function WelcomeSplashPage() {
                       <span>Sign up with Google</span>
                     </button>
                   </div>
-                ) : (
-                  /* CHANGE PASSWORD BY WRITING OLD EMAIL */
-                  <form onSubmit={handleChangePasswordSubmit} className="space-y-2.5">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Old / Registered Email Address
-                      </label>
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="text"
-                          required
-                          value={oldEmailInput}
-                          onChange={(e) => setOldEmailInput(e.target.value)}
-                          placeholder="Write your registered email (e.g. ayoub.sarri@univ-alger.dz)"
-                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        New Email Address{" "}
-                        <span className="text-slate-500 font-normal">(optional)</span>
-                      </label>
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="email"
-                          value={newEmailInput}
-                          onChange={(e) => setNewEmailInput(e.target.value)}
-                          placeholder="Leave blank to keep your current email"
-                          className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875]/70 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          New Password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            value={newPasswordInput}
-                            onChange={(e) => setNewPasswordInput(e.target.value)}
-                            placeholder="New password"
-                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Confirm Password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            value={confirmPasswordInput}
-                            onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                            placeholder="Repeat password"
-                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      <span>Update Password</span>
-                    </button>
-                  </form>
-                )}
+                ) : null}
               </div>
             )}
           </footer>

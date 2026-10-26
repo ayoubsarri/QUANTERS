@@ -2,6 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { readErpDatabase, writeErpDatabase } from "@/lib/server/db";
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB strict payload ceiling
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
+const RATE_LIMIT_MAX_WRITES = 60; // max 60 state writes per minute per IP
+
+const writeRateMap = new Map<string, { count: number; resetAt: number }>();
+
+const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function hasPrototypePollutionKeys(value: unknown, depth = 0): boolean {
+  if (depth > 12 || !value || typeof value !== "object") return false;
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (hasPrototypePollutionKeys(value[i], depth + 1)) return true;
+    }
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  for (const key of Object.keys(record)) {
+    if (FORBIDDEN_KEYS.has(key)) return true;
+    if (hasPrototypePollutionKeys(record[key], depth + 1)) return true;
+  }
+  return false;
+}
+
+function checkRateLimit(clientKey: string): boolean {
+  const now = Date.now();
+  const entry = writeRateMap.get(clientKey);
+  if (!entry || now > entry.resetAt) {
+    writeRateMap.set(clientKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count += 1;
+  return entry.count <= RATE_LIMIT_MAX_WRITES;
+}
 
 function computeQuotaTelemetry(
   baseTelemetry: ReturnType<typeof readErpDatabase>["telemetry"],
@@ -41,6 +74,7 @@ export async function GET(req: NextRequest) {
       headers: {
         ETag: etag,
         "Cache-Control": "private, max-age=0, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   }
@@ -61,6 +95,7 @@ export async function GET(req: NextRequest) {
       headers: {
         ETag: etag,
         "Cache-Control": "private, max-age=0, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
       },
     }
   );
@@ -68,7 +103,22 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Cross-Site Request Forgery (CSRF) Fetch Metadata Defense
+    // 1. Sliding-Window Rate Limiting per IP
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const clientIp = forwardedFor ? forwardedFor.split(",")[0].trim() : "local";
+    if (!checkRateLimit(clientIp)) {
+      return NextResponse.json(
+        {
+          type: "https://quanters.quanta.dz/problems/rate-limit-exceeded",
+          title: "Too Many Requests",
+          status: 429,
+          detail: "Rate limit exceeded for state mutations. Please wait a moment.",
+        },
+        { status: 429 }
+      );
+    }
+
+    // 2. Cross-Site Request Forgery (CSRF) Fetch Metadata & Origin Defense
     const secFetchSite = req.headers.get("sec-fetch-site");
     if (secFetchSite && secFetchSite === "cross-site") {
       return NextResponse.json(
@@ -82,7 +132,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Content-Type Validation
+    const originHeader = req.headers.get("origin");
+    const hostHeader = req.headers.get("host");
+    if (originHeader && hostHeader) {
+      try {
+        const originHost = new URL(originHeader).host;
+        if (originHost !== hostHeader) {
+          return NextResponse.json(
+            {
+              type: "https://quanters.quanta.dz/problems/origin-mismatch",
+              title: "Origin Mismatch",
+              status: 403,
+              detail: "Request Origin header does not match Host.",
+            },
+            { status: 403 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          {
+            type: "https://quanters.quanta.dz/problems/invalid-origin",
+            title: "Malformed Origin Header",
+            status: 403,
+            detail: "Invalid Origin header.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 3. Content-Type Validation
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.toLowerCase().includes("application/json")) {
       return NextResponse.json(
@@ -96,7 +175,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Payload Size Limit (DoS Protection)
+    // 4. Payload Size Limit (DoS Protection)
     const rawBody = await req.text();
     const byteLength = Buffer.byteLength(rawBody, "utf-8");
     if (byteLength > MAX_BODY_BYTES) {
@@ -111,17 +190,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Prototype Pollution Key Guard
-    if (rawBody.includes('"__proto__"')) {
-      return NextResponse.json(
-        {
-          type: "https://quanters.quanta.dz/problems/invalid-payload",
-          title: "Forbidden Prototype Key",
-          status: 400,
-          detail: "Payload contains forbidden prototype pollution keys.",
-        },
-        { status: 400 }
-      );
+    // 5. Deep Prototype Pollution Guard
+    if (
+      rawBody.includes('"__proto__"') ||
+      rawBody.includes('"constructor"') ||
+      rawBody.includes('"prototype"')
+    ) {
+      const parsedCheck = JSON.parse(rawBody);
+      if (hasPrototypePollutionKeys(parsedCheck)) {
+        return NextResponse.json(
+          {
+            type: "https://quanters.quanta.dz/problems/invalid-payload",
+            title: "Forbidden Prototype Key",
+            status: 400,
+            detail: "Payload contains forbidden prototype pollution keys.",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const body = JSON.parse(rawBody);
@@ -156,6 +242,8 @@ export async function POST(req: NextRequest) {
       {
         headers: {
           ETag: etag,
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
         },
       }
     );

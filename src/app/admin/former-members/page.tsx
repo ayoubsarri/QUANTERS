@@ -7,7 +7,7 @@ export default function AdminFormerMembersRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/admin/members");
+    router.replace("/admin/members?tab=former");
   }, [router]);
 
   return null;

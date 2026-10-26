@@ -12,6 +12,7 @@ import {
   CheckSquare,
   ExternalLink,
   FileSpreadsheet,
+  GraduationCap,
   KeyRound,
   LayoutDashboard,
   Lock,
@@ -21,6 +22,7 @@ import {
   ShieldAlert,
   Sparkles,
   UserCheck,
+  UserX,
   Users,
   X,
 } from "lucide-react";
@@ -63,6 +65,22 @@ const NAV_GROUPS: NavGroup[] = [
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "KPI Viewer"],
         badgeCount: (s) =>
           s.members.filter((m) => ["Trainee", "Active", "Inactive", "Suspended"].includes(m.status)).length,
+      },
+      {
+        label: "Former Members",
+        href: "/admin/members?tab=former",
+        icon: UserX,
+        allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"],
+        badgeCount: (s) =>
+          s.members.filter((m) => ["Resigned", "Removed"].includes(m.status)).length || undefined,
+      },
+      {
+        label: "Alumni",
+        href: "/admin/members?tab=alumni",
+        icon: GraduationCap,
+        allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "KPI Viewer"],
+        badgeCount: (s) =>
+          s.members.filter((m) => m.status === "Alumni").length || undefined,
       },
       {
         label: "Departments & Teams",
