@@ -451,49 +451,24 @@ export default function MobileExplorePage() {
           </div>
         )}
 
-        {/* INTERACTIVE GAME: Quantum Lab Challenge (Replaces static Science Fact Check) */}
+        {/* COMPACT INTERACTIVE QUIZ */}
         <div
-          className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_8px_26px_rgba(15,30,54,0.06)] overflow-hidden animate-rise"
+          className="rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.05)] overflow-hidden animate-rise"
           style={{ animationDelay: "110ms" }}
         >
-          {/* Game Top Bar — Softened Cosmic Slate-Navy */}
-          <div className="px-4 py-3.5 bg-gradient-to-r from-[#182C4E] via-[#152746] to-[#101F38] text-white border-b border-[#2B4875]/60 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <FieldIcon field={activeChallenge.icon} size={22} />
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#7DD3FC]">
-                    QUANTUM LAB CHALLENGE
-                  </span>
-                  <span className="text-white/30">·</span>
-                  <span className="font-mono text-[10px] font-bold text-slate-300 truncate">
-                    ROUND 0{(roundIdx % LAB_CHALLENGES.length) + 1}/0{LAB_CHALLENGES.length}
-                  </span>
-                </div>
-                <p className="text-xs font-extrabold font-display text-white truncate">
-                  {activeChallenge.domain}
-                </p>
-              </div>
-            </div>
-
-            {/* Live Streak & XP Score */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="px-2.5 py-1 rounded-lg bg-[#0F1E36]/75 border border-[#2B4875]/80 font-mono text-xs font-bold text-[#7DD3FC] tabular-nums">
-                Streak {streak}x
+          {/* Compact Single Header Bar */}
+          <div className="px-3.5 py-2 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white border-b border-[#2B4875]/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <FieldIcon field={activeChallenge.icon} size={18} />
+              <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
+                Quiz
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/35 font-mono text-xs font-bold text-white tabular-nums">
-                +{totalEarnedGameXp} XP
+              <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
+                +{activeChallenge.xpReward} XP
               </span>
             </div>
-          </div>
 
-          {/* Round Selector & Telemetry Strip */}
-          <div className="px-4 py-2.5 bg-[#F0F6FF] border-b border-[#D5E3F5] flex items-center justify-between gap-2 flex-wrap">
-            <span className="font-mono text-xs font-bold text-[#182C4E] truncate">
-              Telemetry: <span className="text-[#0284C7]">{activeChallenge.telemetry}</span>
-            </span>
-
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {LAB_CHALLENGES.map((r, i) => {
                 const answered = Boolean(selectedAnswers[r.id]);
                 const right = selectedAnswers[r.id] === r.correctId;
@@ -503,16 +478,16 @@ export default function MobileExplorePage() {
                     key={r.id}
                     type="button"
                     onClick={() => setRoundIdx(i)}
-                    className={`w-6 h-6 rounded-md font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                    className={`w-5 h-5 rounded font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                       active
-                        ? "bg-[#182C4E] text-white shadow-2xs"
+                        ? "bg-[#38BDF8] text-[#0F1E36]"
                         : answered
                         ? right
-                          ? "bg-[#E0F2FE] text-[#0369A1] border border-[#7DD3FC]"
-                          : "bg-slate-200 text-slate-600"
-                        : "bg-white text-slate-500 border border-slate-200/80 hover:border-[#182C4E]/40"
+                          ? "bg-white/20 text-[#7DD3FC]"
+                          : "bg-white/10 text-slate-400"
+                        : "bg-white/10 text-slate-300 hover:bg-white/20"
                     }`}
-                    title={`Round ${i + 1}`}
+                    title={`Question ${i + 1}`}
                   >
                     {i + 1}
                   </button>
@@ -521,19 +496,14 @@ export default function MobileExplorePage() {
             </div>
           </div>
 
-          {/* Scenario & Interactive Options */}
-          <div className="p-4 sm:p-5 space-y-3.5">
-            <div className="space-y-1">
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
-                {activeChallenge.scenario}
-              </p>
-              <h3 className="text-sm sm:text-base font-black font-display text-[#0F1E36] pt-1">
-                {activeChallenge.question}
-              </h3>
-            </div>
+          {/* Compact Question & Options */}
+          <div className="p-3.5 space-y-2.5">
+            <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
+              {activeChallenge.question}
+            </h3>
 
-            {/* 3 Selectable Hypotheses */}
-            <div className="space-y-2">
+            {/* 3 Compact Options */}
+            <div className="space-y-1.5">
               {activeChallenge.options.map((opt, idx) => {
                 const isSelected = chosenOptionId === opt.id;
                 const isRightOption = opt.id === activeChallenge.correctId;
@@ -541,17 +511,16 @@ export default function MobileExplorePage() {
 
                 let cardStyle =
                   "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
-                let badgeStyle =
-                  "bg-[#182C4E] text-white";
+                let badgeStyle = "bg-[#182C4E] text-white";
 
                 if (showResult) {
                   if (isRightOption) {
                     cardStyle =
-                      "bg-[#F0F6FF] border-[#0284C7] ring-1 ring-[#38BDF8]/40 text-[#0F1E36]";
+                      "bg-[#F0F6FF] border-[#0284C7] text-[#0F1E36]";
                     badgeStyle = "bg-[#0284C7] text-white";
                   } else if (isSelected && !isRightOption) {
                     cardStyle =
-                      "bg-slate-100/90 border-slate-300 text-slate-500 opacity-85";
+                      "bg-slate-100 border-slate-300 text-slate-500 opacity-85";
                     badgeStyle = "bg-slate-400 text-white";
                   } else {
                     cardStyle =
@@ -566,110 +535,51 @@ export default function MobileExplorePage() {
                     type="button"
                     disabled={showResult}
                     onClick={() => handleSelectOption(opt.id)}
-                    className={`w-full p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${cardStyle} ${
+                    className={`w-full py-2 px-2.5 rounded-lg border text-left transition-all flex items-center gap-2.5 ${cardStyle} ${
                       showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
                     }`}
                   >
                     <span
-                      className={`w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${badgeStyle}`}
+                      className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
                     >
                       {showResult && isRightOption ? (
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3 h-3" />
                       ) : (
                         String.fromCharCode(65 + idx)
                       )}
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs sm:text-sm font-extrabold font-display leading-snug">
-                          {opt.label}
-                        </span>
-                        {showResult && isRightOption && (
-                          <span className="px-2 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
-                            +{activeChallenge.xpReward} XP
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-snug font-sans">
-                        {opt.detail}
-                      </p>
-                    </div>
+                    <span className="flex-1 text-xs font-bold font-display leading-snug">
+                      {opt.label}
+                    </span>
+                    {showResult && isRightOption && (
+                      <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
+                        +{activeChallenge.xpReward} XP
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Instant Empirical Explanation Reveal */}
+            {/* Compact Instant Explanation Strip */}
             {chosenOptionId && (
-              <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white border border-[#2B4875] space-y-2 animate-rise">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#7DD3FC]">
-                    {isSolvedCorrect
-                      ? `✓ HYPOTHESIS VERIFIED · +${activeChallenge.xpReward} XP`
-                      : "LAB ANALYSIS · OPTIMAL PROTOCOL"}
-                  </span>
-                  <span className="font-mono text-xs font-bold text-sky-200">
-                    {activeChallenge.verdictTitle}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-200 leading-relaxed font-sans">
-                  {activeChallenge.explanation}
+              <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2.5 animate-rise">
+                <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
+                  <strong className="font-mono text-[#0284C7]">
+                    {isSolvedCorrect ? "✓ Correct:" : "Answer:"}
+                  </strong>{" "}
+                  {activeChallenge.verdictTitle}
                 </p>
-                <div className="pt-1 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={handleResetGame}
-                    className="inline-flex items-center gap-1 text-xs font-mono font-bold text-slate-300 hover:text-white cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reset Lab</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoundIdx((prev) => (prev + 1) % LAB_CHALLENGES.length)
-                    }
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#38BDF8] text-[#0F1E36] font-mono text-xs font-bold hover:brightness-105 active:scale-[0.98] transition cursor-pointer"
-                  >
-                    <span>Next Scenario</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Footer when not yet answered */}
-            {!chosenOptionId && (
-              <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
-                <span className="font-mono font-semibold">
-                  Select a hypothesis to test (+{activeChallenge.xpReward} XP)
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoundIdx(
-                        (prev) =>
-                          (prev - 1 + LAB_CHALLENGES.length) %
-                          LAB_CHALLENGES.length
-                      )
-                    }
-                    className="w-7 h-7 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] text-[#182C4E] flex items-center justify-center cursor-pointer"
-                    aria-label="Previous challenge"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoundIdx((prev) => (prev + 1) % LAB_CHALLENGES.length)
-                    }
-                    className="w-7 h-7 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] text-[#182C4E] flex items-center justify-center cursor-pointer"
-                    aria-label="Next challenge"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRoundIdx((prev) => (prev + 1) % LAB_CHALLENGES.length)
+                  }
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#182C4E] text-white font-mono text-xs font-bold hover:brightness-110 active:scale-[0.98] transition cursor-pointer shrink-0"
+                >
+                  <span>Next</span>
+                  <ArrowRight className="w-3 h-3 text-[#7DD3FC]" />
+                </button>
               </div>
             )}
           </div>

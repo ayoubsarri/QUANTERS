@@ -32,8 +32,8 @@ nextjs-portal,
 }
 
 html {
-  /* Generous root sizing: comfortable, confident reading on phones and crisp scaling on desktop */
-  font-size: clamp(16px, 0.3vw + 15.5px, 17.5px);
+  /* Responsive root sizing: fits 320px–390px phones cleanly without overflow and scales up on desktop */
+  font-size: clamp(14.5px, 0.35vw + 13.5px, 16.5px);
 }
 
 html,
@@ -75,19 +75,19 @@ h4,
 .text-\[8px\],
 .text-\[9px\],
 .text-\[9\.5px\] {
-  font-size: 0.8125rem !important; /* 13px */
-  line-height: 1.4 !important;
+  font-size: 0.6875rem !important; /* ~11px */
+  line-height: 1.35 !important;
 }
 
 .text-\[10px\],
 .text-\[10\.5px\] {
-  font-size: 0.84375rem !important; /* 13.5px */
-  line-height: 1.45 !important;
+  font-size: 0.71875rem !important; /* ~11.5px */
+  line-height: 1.4 !important;
 }
 
 .text-\[11px\] {
-  font-size: 0.875rem !important; /* 14px */
-  line-height: 1.45 !important;
+  font-size: 0.75rem !important; /* ~12px */
+  line-height: 1.4 !important;
 }
 
 .tabular-nums {

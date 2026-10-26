@@ -289,7 +289,7 @@ export default function MobileProfilePage() {
         {/* Top Title & Quick Actions — Editorial Header */}
         <div className="flex items-end justify-between gap-2 pb-2 border-b border-slate-200/90">
           <div className="min-w-0">
-            <span className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block truncate">
+            <span className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block">
               DOSSIER · {member.quanterId}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black font-display text-[#0F1E36] tracking-tight leading-none mt-1">
@@ -337,7 +337,7 @@ export default function MobileProfilePage() {
                   {member.handle}{" "}
                   <span className="text-slate-400">· {member.quanterId}</span>
                 </p>
-                <p className="text-xs font-medium text-slate-500 mt-0.5 truncate font-sans">
+                <p className="text-xs font-medium text-slate-500 mt-0.5 font-sans">
                   {member.major} · {member.university}
                 </p>
               </div>
@@ -499,7 +499,7 @@ export default function MobileProfilePage() {
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
                   01 · Department
                 </span>
-                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {dept?.name || "IT and Technical Solutions"}
                 </p>
               </div>
@@ -519,7 +519,7 @@ export default function MobileProfilePage() {
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
                   02 · Scientific Team
                 </span>
-                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {team?.name || "Astronomy & Astrophysics"}
                 </p>
               </div>
@@ -543,7 +543,7 @@ export default function MobileProfilePage() {
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 block">
                   03 · Standing &amp; Tenure
                 </span>
-                <p className="text-sm font-extrabold font-display text-[#0F1E36] truncate">
+                <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {member.status === "Active"
                     ? "Active Member"
                     : `${member.status} Member`}{" "}
@@ -819,11 +819,11 @@ export default function MobileProfilePage() {
 
         {/* Account & Session Controls */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               Signed-in Account
             </span>
-            <span className="text-xs font-bold text-slate-700 truncate">
+            <span className="text-xs font-bold text-slate-700 break-all">
               {member.email}
             </span>
           </div>

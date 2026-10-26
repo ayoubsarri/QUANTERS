@@ -427,7 +427,7 @@ export default function ProposalsPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-3 gap-2">
                 {PROPOSAL_TYPES.map((item) => {
                   const Icon = item.icon;
                   const active = selectedType === item.key;
@@ -436,31 +436,31 @@ export default function ProposalsPage() {
                       key={item.key}
                       type="button"
                       onClick={() => setSelectedType(item.key)}
-                      className={`relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all active:scale-[0.98] min-h-[88px] cursor-pointer ${
+                      className={`relative flex flex-col items-center justify-center px-1.5 py-2.5 sm:p-3 rounded-xl border text-center transition-all active:scale-[0.98] min-h-[84px] cursor-pointer ${
                         active
-                          ? "bg-white/95 border-[#1D63EB] ring-2 ring-[#1D63EB]/20 shadow-[0_4px_16px_rgba(29,99,235,0.1)]"
+                          ? "bg-white/95 border-[#182C4E] ring-2 ring-[#182C4E]/15 shadow-[0_4px_16px_rgba(16,31,56,0.1)]"
                           : "bg-white/80 backdrop-blur-md border-white/80 hover:bg-white hover:border-slate-300 shadow-2xs"
                       }`}
                     >
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
                           active
-                            ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-xs"
+                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] shadow-xs"
                             : `${item.accentBg} ${item.accentText}`
                         }`}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <span
-                        className={`text-[11px] font-extrabold leading-tight ${
-                          active ? "text-[#1D63EB]" : "text-slate-700"
+                        className={`text-[10.5px] sm:text-[11px] font-extrabold leading-tight ${
+                          active ? "text-[#182C4E]" : "text-slate-700"
                         }`}
                       >
                         {item.shortLabel}
                       </span>
                       {item.key === "Internal Law Amendment" && (
-                        <span className="mt-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[8px] font-extrabold uppercase tracking-tight">
-                          <Scale className="w-2.5 h-2.5" />
+                        <span className="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[8px] font-extrabold uppercase tracking-tight">
+                          <Scale className="w-2.5 h-2.5 text-[#0284C7]" />
                           <span>2/3 Exec</span>
                         </span>
                       )}

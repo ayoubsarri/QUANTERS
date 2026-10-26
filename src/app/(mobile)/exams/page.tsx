@@ -94,18 +94,18 @@ export default function ExamsHubPage() {
         </div>
 
         {/* Top Summary Strip */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white border border-white/20 shadow-[0_12px_36px_rgba(6,36,86,0.18)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 shadow-[0_8px_24px_rgba(16,31,56,0.16)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
           <span className="inline-flex items-center gap-1.5">
-            <ClipboardList className="w-4 h-4 text-[#38E4FF] shrink-0" />
+            <ClipboardList className="w-4 h-4 text-[#7DD3FC] shrink-0" />
             <span>{exams.length} Available Exams</span>
           </span>
           <span className="text-white/40">·</span>
           <span className="inline-flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-amber-300 shrink-0" />
+            <Target className="w-4 h-4 text-[#38BDF8] shrink-0" />
             <span>70–80% Pass Threshold</span>
           </span>
           <span className="text-white/40">·</span>
-          <span className="inline-flex items-center gap-1.5 text-[#38E4FF]">
+          <span className="inline-flex items-center gap-1.5 text-[#7DD3FC]">
             <Sparkles className="w-4 h-4 shrink-0" />
             <span>Instant Badge + XP</span>
           </span>
@@ -204,7 +204,7 @@ export default function ExamsHubPage() {
                         )}
                       </div>
 
-                      <p className="text-[11px] font-medium text-slate-500 mt-0.5 truncate">
+                      <p className="text-[11px] font-medium text-slate-500 mt-0.5">
                         {linkedBadge
                           ? `Unlocks Badge: ${linkedBadge.name}`
                           : "Official Club Skill Assessment"}

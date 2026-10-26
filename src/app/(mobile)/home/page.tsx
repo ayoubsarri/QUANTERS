@@ -457,40 +457,35 @@ export default function MobileHomeHubPage() {
   return (
     <MobileAppShell>
       <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
-        {/* Top Editorial & Technical Greeting Header (Zero AI Bubble Styling) */}
+        {/* Top Editorial & Technical Greeting Header (Zero Overlap / Zero Truncation) */}
         <div
-          className="flex items-center justify-between gap-3 animate-rise"
+          className="flex items-center justify-between gap-2.5 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
             <Link href="/profile" className="relative shrink-0 group">
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-[#182C4E]/35 bg-[#101F38] shadow-[0_6px_16px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
+              <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-[#182C4E]/30 bg-[#101F38] shadow-[0_4px_12px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#38BDF8] border-2 border-[#F4F7FB] shadow-xs" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#38BDF8] border-2 border-[#F4F7FB] shadow-xs" />
             </Link>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 font-mono text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                <span className="font-bold text-slate-900">
-                  {dept?.shortName || "Logistics"}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex items-center gap-1 font-mono text-[11px] sm:text-xs text-slate-500 uppercase tracking-wider">
+                <span className="font-bold text-[#0284C7] shrink-0">
+                  {dept?.shortName || "IT & Tech"}
                 </span>
-                <span className="text-slate-300">·</span>
-                <span>{member.quanterId}</span>
+                <span className="text-slate-300 shrink-0">·</span>
+                <span className="shrink-0">{member.quanterId}</span>
               </div>
 
-              <div className="flex items-baseline gap-1.5 mt-0.5 truncate">
-                <h1 className="text-2xl font-black font-display text-slate-950 tracking-tight leading-none">
-                  {firstName},
-                </h1>
-                <span className="font-editorial italic text-xl text-slate-600 truncate leading-none">
-                  science needs you.
-                </span>
-              </div>
+              <h1 className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tracking-tight leading-snug mt-0.5">
+                {member.fullName}
+              </h1>
             </div>
           </div>
 
@@ -508,7 +503,7 @@ export default function MobileHomeHubPage() {
               )) && (
               <Link
                 href="/manager"
-                className="h-10 px-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-mono font-bold text-slate-800 hover:border-slate-900 flex items-center justify-center transition active:scale-95 shadow-2xs"
+                className="h-9 px-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
                 title="Department & Team Operations"
               >
                 <span>Desk</span>
@@ -516,12 +511,12 @@ export default function MobileHomeHubPage() {
             )}
             <Link
               href="/notifications"
-              className="relative w-10 h-10 rounded-xl bg-white border border-slate-200/90 text-slate-800 hover:border-slate-900 flex items-center justify-center transition active:scale-95 shadow-2xs group"
+              className="relative w-9 h-9 rounded-xl bg-white border border-slate-200/90 text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs group shrink-0"
               aria-label="Notifications"
             >
               <svg
-                width="18"
-                height="18"
+                width="17"
+                height="17"
                 viewBox="0 0 24 24"
                 fill="none"
                 className="transition-transform duration-200 group-hover:rotate-6"
@@ -541,7 +536,7 @@ export default function MobileHomeHubPage() {
                 />
               </svg>
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#ED1C24] ring-2 ring-white" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0284C7] ring-2 ring-white" />
               )}
             </Link>
           </div>
@@ -563,11 +558,11 @@ export default function MobileHomeHubPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/96 via-[#040B1B]/72 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
 
-          <div className="relative z-10 max-w-[60%]">
+          <div className="relative z-10 max-w-[66%]">
             {/* Line 1: Unboxed Mono Status + Rank Index */}
-            <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]" />
-              <span className="font-mono text-xs font-bold tracking-[0.14em] text-[#7DD3FC] uppercase">
+              <span className="font-mono text-xs font-bold tracking-[0.12em] text-[#7DD3FC] uppercase">
                 RANK 0{member.level}
               </span>
               <span className="text-white/30 text-xs">·</span>
@@ -587,21 +582,21 @@ export default function MobileHomeHubPage() {
             </div>
 
             {/* Line 3: Large Tabular XP Readout */}
-            <div className="mt-3 flex items-baseline gap-1.5 whitespace-nowrap">
+            <div className="mt-2.5 flex items-baseline gap-1.5 whitespace-nowrap">
               <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none">
                 {member.xpSeason.toLocaleString()}
               </span>
-              <span className="text-xs font-black font-mono tracking-[0.18em] text-[#7DD3FC] uppercase">
+              <span className="text-xs font-black font-mono tracking-[0.16em] text-[#7DD3FC] uppercase">
                 XP
               </span>
             </div>
 
             {/* Line 4: Concise Target Specification */}
-            <p className="mt-1 font-mono text-xs text-slate-300/95 whitespace-nowrap">
+            <p className="mt-1 font-mono text-xs text-slate-300/95">
               <span className="text-white font-bold tabular-nums">
                 {Math.round((member.xpSeason / 1000) * 100)}%
               </span>{" "}
-              target · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to 0{member.level + 1}
+              · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to R0{member.level + 1}
             </p>
           </div>
 
@@ -703,10 +698,10 @@ export default function MobileHomeHubPage() {
                 />
               </svg>
               <span className="font-editorial italic text-base text-[#BAE6FD] shrink-0">
-                Star of the Month
+                Star<span className="hidden sm:inline"> of the Month</span>
               </span>
               <span className="text-white/30 text-xs">·</span>
-              <span className="text-xs font-display font-bold text-white truncate">
+              <span className="text-xs font-display font-bold text-white">
                 {motmMember.fullName}
               </span>
               <span className="font-mono text-xs font-bold text-[#7DD3FC] shrink-0">
@@ -793,7 +788,7 @@ export default function MobileHomeHubPage() {
                     </p>
                     <p className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{nextWorkshop.location}</span>
+                      <span>{nextWorkshop.location}</span>
                     </p>
                   </div>
                 </div>
@@ -903,7 +898,7 @@ export default function MobileHomeHubPage() {
                   Skill Exams
                 </span>
                 <span className="font-mono text-xs text-slate-500 block mt-0.5">
-                  6 assessments
+                  6 exams
                 </span>
               </div>
             </Link>
@@ -1181,20 +1176,20 @@ export default function MobileHomeHubPage() {
             style={{ animationDelay: "420ms" }}
           >
             <div className="flex items-center justify-between mb-1.5">
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
                 Latest News
               </h2>
               <Link
                 href="/explore"
-                className="text-xs font-bold text-[#1D63EB] hover:underline"
+                className="text-xs font-mono font-bold text-[#182C4E] hover:text-[#0284C7]"
               >
-                See all
+                See all →
               </Link>
             </div>
 
             <Link
               href="/explore"
-              className="block bg-white rounded-2xl border border-[#E2EDF8] overflow-hidden shadow-card hover:border-sky-300 active:scale-[0.99] transition"
+              className="block bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-[0_4px_16px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/40 active:scale-[0.99] transition"
             >
               <div className="relative h-32 w-full">
                 <img
@@ -1202,15 +1197,15 @@ export default function MobileHomeHubPage() {
                   alt={featuredNews.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/25 to-transparent" />
-                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/90 via-[#101F38]/30 to-transparent" />
+                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md text-xs font-mono font-bold uppercase tracking-wider bg-[#182C4E]/90 text-[#7DD3FC] border border-[#38BDF8]/35">
                   {featuredNews.tagLabel}
                 </span>
                 <div className="absolute bottom-2.5 left-3 right-3 text-white">
                   <h3 className="text-xs font-extrabold leading-snug line-clamp-2">
                     {featuredNews.title}
                   </h3>
-                  <p className="text-[10px] text-sky-200 mt-0.5">
+                  <p className="text-xs text-sky-200 mt-0.5 font-mono">
                     {featuredNews.source} · {featuredNews.readTime}
                   </p>
                 </div>
