@@ -396,7 +396,7 @@ export default function WelcomeSplashPage() {
     if (!cleanEmail) {
       setForgotPasswordStatus({
         type: "error",
-        message: "Please enter your email address to reset password.",
+        message: "Please enter your email address.",
       });
       return;
     }
@@ -419,29 +419,27 @@ export default function WelcomeSplashPage() {
       setForgotPasswordStatus({
         type: "google_account",
         message:
-          "This email is connected with Google Authentication. Please use 'Continue with Google' to sign in. If you have lost access to your Google account or need credential assistance, please contact the administrator below.",
+          "This account uses Google Sign-In. Please sign in with Google or contact the admin below.",
       });
       return;
     }
 
-    // 2. Dispatch official Firebase password reset
+    // 2. Dispatch password reset
     const res = await sendFirebasePasswordReset(cleanEmail);
     setForgotPasswordLoading(false);
 
     if (res.success) {
       setForgotPasswordStatus({
         type: "success",
-        message:
-          res.message ||
-          "Firebase password reset email dispatched! Please check your inbox and spam folder for the secure reset link.",
+        message: "Reset link sent! Please check your inbox and spam folder.",
       });
     } else {
       setForgotPasswordStatus({
         type: "error",
         message:
           res.errorCode === "USER_NOT_FOUND"
-            ? "This email is not registered with an active password or Google account. Please verify your address or contact the club administrator below."
-            : res.message,
+            ? "Email not registered. Please verify your address or contact the admin below."
+            : res.message || "Unable to send reset link. Contact admin below.",
       });
     }
   };
@@ -531,7 +529,7 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between">
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between lg:justify-center">
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
@@ -556,16 +554,16 @@ export default function WelcomeSplashPage() {
                 </div>
               </div>
               <img
-                src="/brand/univ_quanta_asset2.png"
-                alt="University of Algiers 1 & Quanta"
-                className="h-6 w-auto object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
+                src="/brand/QUANTERS_white_logo.svg"
+                alt="Faculty of Sciences - University of Algiers 1"
+                className="h-8 w-auto object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
               />
             </div>
           </div>
         </div>
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
-        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
+        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between lg:justify-center min-h-[calc(100dvh-2.5rem)] lg:min-h-0 lg:my-auto lg:space-y-6">
           {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT & RESPONSIVE SCALING */}
           <header className={`w-full space-y-2 sm:space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
             <div className="w-full flex justify-start text-left">
@@ -648,11 +646,11 @@ export default function WelcomeSplashPage() {
 
           {/* B. CENTER STAGE */}
           {!authOpen ? (
-            <div className="my-auto py-4 lg:py-6">
-              <div className="hidden lg:block space-y-4 max-w-[540px] animate-rise">
-                <h1 className="font-display font-black text-4xl xl:text-[52px] tracking-[-0.03em] text-white leading-[1.06]">
+            <div className="my-auto py-4 lg:py-0 lg:my-0">
+              <div className="hidden lg:block space-y-3.5 max-w-[540px] animate-rise">
+                <h1 className="font-display font-black text-3xl xl:text-[42px] tracking-[-0.03em] text-white leading-[1.08]">
                   More than a club,{" "}
-                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-5xl xl:text-[62px] tracking-normal mt-1">
+                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-4xl xl:text-[50px] tracking-normal mt-1">
                     a scientific journey.
                   </span>
                 </h1>
@@ -673,7 +671,7 @@ export default function WelcomeSplashPage() {
           )}
 
           {/* C. BOTTOM INTERACTIVE DOCK */}
-          <footer className="w-full space-y-3.5">
+          <footer className="w-full space-y-3.5 lg:space-y-4">
             {!authOpen ? (
               <div className="w-full space-y-3.5 animate-rise">
                 {/* Phone Editorial Statement right above Start button */}
@@ -710,19 +708,19 @@ export default function WelcomeSplashPage() {
                   </div>
                 </button>
 
-                {/* Institutional Partner Emblems (Clean, Spacious, Zero Condensed Clutter) */}
+                {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
                 <div className="pt-2">
                   <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2.5" />
-                  <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
-                      alt="University of Algiers 1 & Quanta"
+                      alt="Quanta Scientific Club"
                       className="h-6 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
                     <img
-                      src="/brand/univ_logo.svg"
-                      alt="Faculty of Sciences"
-                      className="h-6 sm:h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      src="/brand/QUANTERS_white_logo.svg"
+                      alt="Faculty of Sciences - University of Algiers 1"
+                      className="h-8 sm:h-9 lg:h-10 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
@@ -1043,10 +1041,10 @@ export default function WelcomeSplashPage() {
                           </span>
                           <div>
                             <h3 className="font-display font-black text-sm text-white leading-tight">
-                              Reset Account Password
+                              Reset Password
                             </h3>
-                            <p className="text-[11px] text-slate-400 font-mono">
-                              Official Firebase Authentication Recovery
+                            <p className="text-[11px] text-slate-400">
+                              Enter your email to receive a recovery link.
                             </p>
                           </div>
                         </div>
@@ -1066,7 +1064,7 @@ export default function WelcomeSplashPage() {
                       <form onSubmit={handleFirebasePasswordReset} className="space-y-2.5">
                         <div>
                           <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1">
-                            Account Email Address
+                            Your Email Address
                           </label>
                           <input
                             type="email"
@@ -1087,11 +1085,11 @@ export default function WelcomeSplashPage() {
                           className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
                         >
                           {forgotPasswordLoading ? (
-                            <span>Dispatching Firebase Reset...</span>
+                            <span>Sending reset link...</span>
                           ) : (
                             <>
                               <Mail className="w-3.5 h-3.5 text-[#7DD3FC]" />
-                              <span>Send Password Reset Email</span>
+                              <span>Send Reset Link</span>
                             </>
                           )}
                         </button>
@@ -1118,10 +1116,10 @@ export default function WelcomeSplashPage() {
                             )}
                             <span>
                               {forgotPasswordStatus.type === "success"
-                                ? "Reset Link Dispatched"
+                                ? "Link Sent"
                                 : forgotPasswordStatus.type === "google_account"
-                                ? "Google Authentication Account"
-                                : "Unable to Reset Password"}
+                                ? "Google Account"
+                                : "Unable to Reset"}
                             </span>
                           </div>
                           <p>{forgotPasswordStatus.message}</p>
@@ -1131,25 +1129,25 @@ export default function WelcomeSplashPage() {
                       {/* Fallback Contact Section */}
                       <div className="pt-2 border-t border-white/10 space-y-2">
                         <div className="text-[11px] font-mono text-slate-400">
-                          If your email is not linked with Google or you need admin help:
+                          Need help? Contact Admin:
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {[
                             {
-                              label: "QUANTA Administration",
+                              label: "Administration",
                               addr: "quantaclubdz@gmail.com",
                             },
                             {
-                              label: "HR Department Desk",
+                              label: "HR Desk",
                               addr: "hr.quanta@univ-alger.dz",
                             },
                           ].map((item) => (
                             <div
                               key={item.addr}
-                              className="p-2.5 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-1.5"
+                              className="p-2 sm:p-2.5 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-1.5"
                             >
                               <div className="min-w-0">
-                                <span className="block text-[9.5px] font-mono uppercase tracking-wider text-slate-400 truncate">
+                                <span className="block text-[9px] font-mono uppercase tracking-wider text-slate-400 truncate">
                                   {item.label}
                                 </span>
                                 <a
@@ -1387,6 +1385,24 @@ export default function WelcomeSplashPage() {
                     </button>
                   </div>
                 ) : null}
+              </div>
+            )}
+
+            {authOpen && (
+              <div className="hidden lg:block pt-1">
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2" />
+                <div className="flex items-center justify-between px-2">
+                  <img
+                    src="/brand/univ_quanta_asset2.png"
+                    alt="Quanta Scientific Club"
+                    className="h-6 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+                  />
+                  <img
+                    src="/brand/QUANTERS_white_logo.svg"
+                    alt="Faculty of Sciences - University of Algiers 1"
+                    className="h-8 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
+                  />
+                </div>
               </div>
             )}
           </footer>

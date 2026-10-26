@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Archive,
   ArrowRight,
   Calendar,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Clock,
+  Download,
   GraduationCap,
   MapPin,
   QrCode,
@@ -92,6 +94,79 @@ export default function MobileHomeHubPage() {
     deliverTask(deliverModalTaskId, member.id, proofText.trim());
     setDeliverModalTaskId(null);
     setProofText("");
+  };
+
+  // PWA / App Installation Detection Algorithm
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState<boolean>(true); // default true to avoid flash
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Check if running in standalone display mode (already installed & opened as app)
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+      document.referrer.includes("android-app://");
+
+    // 2. Check cached installation verification
+    const cachedInstall = localStorage.getItem("quanters_app_installed") === "true";
+
+    if (isStandalone || cachedInstall) {
+      setIsAppInstalled(true);
+      return;
+    }
+
+    // Uninstalled: display the download box
+    setIsAppInstalled(false);
+
+    // 3. Listen for browser install prompt
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsAppInstalled(false);
+    };
+
+    // 4. Listen for appinstalled (fires when app is successfully installed)
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      localStorage.setItem("quanters_app_installed", "true");
+      setDeferredPrompt(null);
+      setShowInstallGuide(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === "accepted") {
+          setIsAppInstalled(true);
+          localStorage.setItem("quanters_app_installed", "true");
+        }
+        setDeferredPrompt(null);
+      } catch {
+        setShowInstallGuide(true);
+      }
+    } else {
+      setShowInstallGuide((prev) => !prev);
+    }
+  };
+
+  const markInstalledManually = () => {
+    setIsAppInstalled(true);
+    localStorage.setItem("quanters_app_installed", "true");
+    setShowInstallGuide(false);
   };
 
   return (
@@ -183,6 +258,85 @@ export default function MobileHomeHubPage() {
             </Link>
           </div>
         </div>
+
+        {/* =====================================================================
+            SMART APP DOWNLOAD / INSTALL BOX (Disappears automatically when installed)
+           ===================================================================== */}
+        {!isAppInstalled && (
+          <div
+            data-testid="pwa-install-box"
+            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0C1D38] via-[#08152B] to-[#040C1A] border border-[#38BDF8]/40 p-3.5 sm:p-4 text-white shadow-[0_12px_32px_rgba(0,0,0,0.35)] animate-rise"
+            style={{ animationDelay: "20ms" }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1D63EB] to-[#0B2564] border border-[#38E4FF]/40 flex items-center justify-center shrink-0 shadow-inner">
+                  <Download className="w-5 h-5 text-[#38E4FF]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-display font-black text-xs sm:text-sm text-white tracking-tight truncate">
+                      Download QUANTERS App
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded-full bg-[#38E4FF]/15 border border-[#38E4FF]/30 text-[9px] font-mono font-bold text-[#38E4FF] shrink-0">
+                      OFFLINE &amp; FAST
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 font-sans truncate">
+                    Install on your home screen for 1-tap optical check-in and updates.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleInstallApp}
+                className="shrink-0 h-9 px-3.5 rounded-xl bg-[#38E4FF] hover:bg-[#2DD4BF] text-[#061326] font-display font-black text-xs shadow-[0_4px_16px_rgba(56,228,255,0.35)] active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Install</span>
+              </button>
+            </div>
+
+            {/* In-Place Browser Installation Helper for iOS / Desktop Fallback */}
+            {showInstallGuide && (
+              <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-xs animate-rise">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#38E4FF]">
+                    Browser Installation Guide
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowInstallGuide(false)}
+                    className="text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300 text-[11px] leading-relaxed">
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="font-bold text-white block mb-0.5">iOS (Safari):</span>
+                    Tap Share <span className="font-mono text-[#38E4FF]">⎋</span> at the bottom, then choose <span className="font-bold text-white">Add to Home Screen ⊞</span>.
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="font-bold text-white block mb-0.5">Android / Chrome:</span>
+                    Tap the menu <span className="font-mono text-[#38E4FF]">⋮</span> and choose <span className="font-bold text-white">Install App</span> or <span className="font-bold text-white">Add to Home screen</span>.
+                  </div>
+                </div>
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={markInstalledManually}
+                    className="text-xs font-mono font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>I've installed the app (Dismiss)</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card */}
         <div
