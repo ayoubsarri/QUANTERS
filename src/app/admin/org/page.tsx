@@ -298,7 +298,7 @@ export default function AdminOrgStructurePage() {
               <span>Departments</span>
             </h2>
             <span className="font-mono text-xs font-bold text-slate-400">
-              {departments.length} Fixed
+              {departments.length} Departments
             </span>
           </div>
 

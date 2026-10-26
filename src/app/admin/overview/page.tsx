@@ -172,38 +172,85 @@ export default function AdminOverviewPage() {
         </div>
       </header>
 
-      {/* 2. Signature Member-App Cosmic Hero Banner */}
-      <section className="relative rounded-2xl overflow-hidden bg-[#060E1E] text-white border border-[#2B4875]/65 shadow-[0_14px_34px_rgba(9,21,40,0.22)]">
+      {/* 2. Signature Wide-Format Cosmic Observatory Banner (Fitted to Horizontal Box) */}
+      <section className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#061022] via-[#0D2142] to-[#15325E] text-white border border-[#38BDF8]/30 shadow-[0_14px_34px_rgba(9,21,40,0.22)]">
+        {/* Fitted Wide Cosmic Grid, Nebula Glow & Orbital Geometry */}
+        <div className="absolute inset-0 bg-quanta-grid-dark opacity-35 pointer-events-none" />
+        <div
+          className="absolute right-[-4%] -top-24 w-[540px] h-[360px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(56,228,255,0.28) 0%, rgba(2,132,199,0.14) 45%, transparent 72%)",
+          }}
+        />
+        <div
+          className="absolute left-[28%] -bottom-24 w-[420px] h-[260px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(56,189,248,0.16) 0%, transparent 70%)",
+          }}
+        />
         <img
-          src="/brand/hero_rank_banner.webp"
+          src="/brand/cosmic_galaxy_emblem.webp"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-right opacity-85 pointer-events-none select-none"
+          className="absolute right-[26%] -top-16 w-80 h-80 object-contain opacity-75 mix-blend-screen pointer-events-none select-none hidden md:block"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071120]/96 via-[#0F1E36]/88 to-[#182C4E]/50 pointer-events-none" />
+        <svg
+          viewBox="0 0 700 200"
+          fill="none"
+          aria-hidden="true"
+          className="absolute right-0 inset-y-0 h-full w-auto opacity-55 pointer-events-none select-none hidden sm:block"
+        >
+          <ellipse
+            cx="450"
+            cy="100"
+            rx="220"
+            ry="72"
+            transform="rotate(-12 450 100)"
+            stroke="#38E4FF"
+            strokeWidth="1.25"
+            strokeDasharray="5 6"
+          />
+          <ellipse
+            cx="450"
+            cy="100"
+            rx="155"
+            ry="48"
+            transform="rotate(15 450 100)"
+            stroke="#7DD3FC"
+            strokeWidth="1.1"
+            strokeOpacity="0.75"
+          />
+          <circle cx="290" cy="64" r="3.2" fill="#38E4FF" />
+          <circle cx="585" cy="138" r="2.8" fill="#7DD3FC" />
+          <circle cx="495" cy="42" r="2.4" fill="#FFE500" />
+          <circle cx="365" cy="148" r="2" fill="#38E4FF" />
+        </svg>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#061022]/92 via-[#0B1B36]/65 to-transparent pointer-events-none" />
 
         <div className="relative z-10 p-5 sm:p-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
-          <div className="space-y-2 max-w-xl">
+          <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#132542]/90 border border-[#38BDF8]/35 text-[#7DD3FC] text-[10px] font-mono font-bold tracking-[0.12em] uppercase">
               <Sparkles className="w-3 h-3 shrink-0" />
               <span>QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1</span>
             </div>
-            <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-white">
-              6 Fixed Departments &amp; {activeTeams.length} Scientific Teams Active
+            <h2 className="font-display text-lg sm:text-xl lg:text-[22px] font-black tracking-tight text-white whitespace-nowrap">
+              6 Departments &amp; {activeTeams.length} Scientific Teams Active
             </h2>
-            <div className="flex items-center gap-3 pt-0.5">
+            <div className="flex items-center gap-2.5 pt-0.5">
               <img
                 src="/brand/univ_quanta_asset2.png"
                 alt="University of Algiers 1 & Quanta"
-                className="h-8 w-auto object-contain"
+                className="h-[18px] w-auto object-contain opacity-95"
               />
-              <span className="h-5 w-px bg-white/20" />
+              <span className="h-3.5 w-px bg-white/20" />
               <img
                 src="/brand/univ_logo.svg"
                 alt="Faculty of Sciences"
-                className="h-8 w-auto object-contain"
+                className="h-[18px] w-auto object-contain opacity-95"
               />
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-200">
+              <span className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-slate-300">
                 FACULTY OF SCIENCES
               </span>
             </div>

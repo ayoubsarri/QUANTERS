@@ -53,8 +53,8 @@ export function QuantaLogo({
   const subColor = isLight ? "text-slate-500" : "text-[#7DD3FC]";
 
   const iconSize = Math.max(24, size);
-  const wordmarkHeight = Math.max(22, Math.round(iconSize * 0.85));
-  const subFontSize = Math.max(9.5, Math.round(wordmarkHeight * 0.36));
+  const wordmarkHeight = Math.max(24, Math.round(iconSize * 0.92));
+  const subFontSize = Math.max(9.5, Math.round(wordmarkHeight * 0.34));
 
   if (!showWordmark) {
     return (
@@ -75,6 +75,15 @@ export function QuantaLogo({
         centered ? "items-center text-center" : "items-start"
       } leading-none select-none ${className}`}
     >
+      {showSubtitle && (
+        <span
+          className={`mb-1.5 tracking-[0.2em] font-display font-extrabold uppercase ${subColor}`}
+          style={{ fontSize: `${subFontSize}px` }}
+        >
+          BY QUANTA · ALGIERS 1
+        </span>
+      )}
+
       <div className="inline-flex items-center gap-1.5">
         <QuantersVectorWordmark height={wordmarkHeight} variant={variant} />
 
@@ -84,15 +93,6 @@ export function QuantaLogo({
           </span>
         )}
       </div>
-
-      {showSubtitle && (
-        <span
-          className={`mt-1.5 tracking-[0.22em] font-display font-bold uppercase ${subColor}`}
-          style={{ fontSize: `${subFontSize}px` }}
-        >
-          BY QUANTA · ALGIERS 1
-        </span>
-      )}
     </div>
   );
 }

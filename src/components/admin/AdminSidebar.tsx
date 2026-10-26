@@ -192,7 +192,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
       <div className="px-4 pt-5 pb-3.5 border-b border-[#2B4875]/45">
         <div className="flex items-center justify-between">
           <Link href="/admin/overview" onClick={onCloseMobile} className="hover:opacity-95 transition">
-            <QuantaLogo size={31} showSubtitle={true} variant="dark" />
+            <QuantaLogo size={34} showSubtitle={true} variant="dark" />
           </Link>
           {onCloseMobile && (
             <button
@@ -316,15 +316,15 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           <img
             src="/brand/univ_quanta_asset2.png"
             alt="University of Algiers 1 & Quanta"
-            className="h-6 w-auto object-contain"
+            className="h-[18px] w-auto object-contain opacity-95"
           />
-          <div className="flex items-center gap-2 pl-2 border-l border-white/15">
+          <div className="flex items-center gap-1.5 pl-2 border-l border-white/15">
             <img
               src="/brand/univ_logo.svg"
               alt="Faculty of Sciences"
-              className="h-7 w-auto object-contain"
+              className="h-[18px] w-auto object-contain opacity-95"
             />
-            <span className="font-mono text-[9px] font-semibold tracking-wider text-slate-300 uppercase">
+            <span className="font-mono text-[8.5px] font-semibold tracking-wider text-slate-300 uppercase">
               ALGIERS 1
             </span>
           </div>

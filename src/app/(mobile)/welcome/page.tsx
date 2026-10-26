@@ -567,20 +567,21 @@ export default function WelcomeSplashPage() {
           <header className="w-full space-y-3 animate-rise">
             <div className="flex items-center justify-between gap-3">
               <div className="flex flex-col items-start">
-                <QuantersVectorWordmark
-                  height={40}
-                  variant="dark"
-                  className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
-                />
-                <div className="mt-2 flex items-center gap-2 whitespace-nowrap">
-                  <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
+                <div className="mb-1.5 flex items-center gap-2 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] shadow-[0_0_8px_#38E4FF]" />
+                  <span className="font-display text-[11px] sm:text-xs font-extrabold tracking-[0.22em] text-[#38E4FF] uppercase leading-none">
                     BY QUANTA
                   </span>
-                  <span className="text-white/25">•</span>
-                  <span className="font-mono text-xs font-medium tracking-[0.08em] text-slate-300/90 leading-none">
+                  <span className="text-white/30">•</span>
+                  <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.12em] text-slate-300/95 uppercase leading-none">
                     ALGIERS 1
                   </span>
                 </div>
+                <QuantersVectorWordmark
+                  height={48}
+                  variant="dark"
+                  className="drop-shadow-[0_2px_14px_rgba(0,0,0,0.88)]"
+                />
               </div>
             </div>
 

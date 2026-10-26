@@ -96,12 +96,12 @@ export default function MobileHomeHubPage() {
       <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
         {/* Top Editorial & Technical Greeting Header (Unified for Member & Alumni) */}
         <div
-          className="flex items-center justify-between gap-2 animate-rise"
+          className="flex items-center justify-between gap-1.5 sm:gap-2 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-2.5 flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
             <Link href="/profile" className="relative shrink-0 group">
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-[#182C4E]/30 bg-[#101F38] shadow-[0_4px_12px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-[#182C4E]/30 bg-[#101F38] shadow-[0_4px_12px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
@@ -112,7 +112,7 @@ export default function MobileHomeHubPage() {
             </Link>
 
             <div className="flex-1 min-w-0 overflow-hidden">
-              <div className="flex items-center gap-1 font-mono text-[11px] sm:text-xs text-slate-500 uppercase tracking-wider">
+              <div className="flex items-center gap-1 font-mono text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider truncate">
                 <span className="font-bold text-[#0284C7] shrink-0">
                   {isAlumni
                     ? `ALUMNI ’${member.graduationYear?.slice(-2) || "26"}`
@@ -122,16 +122,25 @@ export default function MobileHomeHubPage() {
                 <span className="shrink-0 hidden sm:inline">{member.quanterId}</span>
               </div>
 
-              <h1 className="text-base sm:text-lg font-black font-display text-[#0F1E36] tracking-tight leading-snug mt-0.5">
+              <h1 className="text-[15px] sm:text-lg font-black font-display text-[#0F1E36] tracking-tight leading-tight whitespace-nowrap truncate mt-0.5">
                 {member.fullName}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <Link
+              href="/admin/overview"
+              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[9.5px] sm:text-[11px] font-mono font-bold text-white flex items-center gap-1 sm:gap-1.5 justify-center transition active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
+              title="Open Admin Console"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shrink-0" />
+              <span>Open Admin Console</span>
+            </Link>
+
             <Link
               href="/manager"
-              className="h-8 px-2.5 rounded-lg bg-white border border-slate-200/90 text-[11px] font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
+              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-white border border-slate-200/90 text-[10px] sm:text-[11px] font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
               title="Department & Team Operations"
             >
               <span>Desk</span>
@@ -139,7 +148,7 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/notifications"
-              className="relative w-8 h-8 rounded-lg bg-white border border-slate-200/90 text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs group shrink-0"
+              className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200/90 text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs group shrink-0"
               aria-label="Notifications"
             >
               <svg
