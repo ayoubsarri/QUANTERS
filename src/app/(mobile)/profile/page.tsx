@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertCircle,
   Award,
   BookOpen,
   Building2,
@@ -24,14 +25,17 @@ import {
   Mail,
   MapPin,
   Orbit,
+  PauseCircle,
   Pencil,
   Plus,
   QrCode,
   RotateCcw,
   Scale,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Star,
+  UserMinus,
   Users,
   X,
 } from "lucide-react";
@@ -46,6 +50,8 @@ import {
   AvailabilityGrid,
   CommuteDuration,
   DayOfWeek,
+  GrievanceCategory,
+  GrievanceUrgency,
   HousingType,
   TimeSlot,
 } from "@/lib/types/erp";
@@ -109,6 +115,10 @@ export default function MobileProfilePage() {
   );
   const submitPointsAppeal = useQuantersStore((s) => s.submitPointsAppeal);
   const changeMemberPassword = useQuantersStore((s) => s.changeMemberPassword);
+  const pauseOrResignMembershipSelf = useQuantersStore(
+    (s) => s.pauseOrResignMembershipSelf
+  );
+  const submitGrievance = useQuantersStore((s) => s.submitGrievance);
   const logout = useQuantersStore((s) => s.logout);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
   const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
@@ -143,6 +153,25 @@ export default function MobileProfilePage() {
   const [newPasswordVal, setNewPasswordVal] = useState("");
   const [confirmPasswordVal, setConfirmPasswordVal] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Pause or Resign Membership modal state
+  const [pauseResignModalOpen, setPauseResignModalOpen] = useState(false);
+  const [prAction, setPrAction] = useState<"pause" | "resign">("pause");
+  const [prMotif, setPrMotif] = useState("");
+  const [prPassword, setPrPassword] = useState("");
+  const [prPauseDuration, setPrPauseDuration] = useState("Until end of semester");
+  const [prConfirmed, setPrConfirmed] = useState(false);
+  const [prError, setPrError] = useState<string | null>(null);
+
+  // Confidential Grievance (تقديم شكوى) modal state
+  const [grievanceModalOpen, setGrievanceModalOpen] = useState(false);
+  const [grvSubject, setGrvSubject] = useState("");
+  const [grvCategory, setGrvCategory] =
+    useState<GrievanceCategory>("Workload & Tasks");
+  const [grvUrgency, setGrvUrgency] = useState<GrievanceUrgency>("Standard");
+  const [grvDetails, setGrvDetails] = useState("");
+  const [grvAnonymous, setGrvAnonymous] = useState(false);
+  const [grvError, setGrvError] = useState<string | null>(null);
 
   const activeQuote = getActiveDailyQuote(dailyQuotes, settings);
 
@@ -796,6 +825,42 @@ export default function MobileProfilePage() {
             <span>Change Password</span>
           </button>
 
+          {/* Submit Confidential Grievance (تقديم شكوى) */}
+          <button
+            type="button"
+            onClick={() => {
+              setGrvSubject("");
+              setGrvCategory("Workload & Tasks");
+              setGrvUrgency("Standard");
+              setGrvDetails("");
+              setGrvAnonymous(false);
+              setGrvError(null);
+              setGrievanceModalOpen(true);
+            }}
+            className="w-full h-10 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 hover:brightness-95 border border-amber-200 text-amber-900 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer shadow-2xs"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+            <span>Confidential Grievance · تقديم شكوى</span>
+          </button>
+
+          {/* Pause or Resign Membership */}
+          <button
+            type="button"
+            onClick={() => {
+              setPrAction("pause");
+              setPrMotif("");
+              setPrPassword("");
+              setPrPauseDuration("Until end of semester");
+              setPrConfirmed(false);
+              setPrError(null);
+              setPauseResignModalOpen(true);
+            }}
+            className="w-full h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
+          >
+            <PauseCircle className="w-3.5 h-3.5 text-slate-500" />
+            <span>Pause or Resign Membership · تجميد أو استقالة</span>
+          </button>
+
           {member.roles.some((r) =>
             ["Super Admin", "Executive", "HR Head"].includes(r)
           ) && (
@@ -963,6 +1028,408 @@ export default function MobileProfilePage() {
                   className="flex-1 h-9 rounded-xl bg-[#182C4E] text-white font-extrabold text-xs cursor-pointer"
                 >
                   Save Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Pause or Resign Membership Modal */}
+      {pauseResignModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[420px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                  Internal Governance · Art. 12
+                </span>
+                <h3 className="text-base font-black font-display text-slate-900 leading-tight">
+                  Pause or Resign Membership
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  تجميد العضوية أو الاستقالة من نادي كوانتا
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPauseResignModalOpen(false)}
+                aria-label="Close modal"
+                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {prError && (
+              <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{prError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setPrError(null);
+
+                if (!prMotif.trim()) {
+                  setPrError("Please write a reason (motif) for this action.");
+                  return;
+                }
+                if (!prPassword.trim()) {
+                  setPrError("Please enter your account password to verify identity.");
+                  return;
+                }
+                if (!prConfirmed) {
+                  setPrError("Please check the confirmation box below to proceed.");
+                  return;
+                }
+
+                const res = pauseOrResignMembershipSelf({
+                  memberId: member.id,
+                  action: prAction,
+                  motif: prMotif.trim(),
+                  passwordConfirm: prPassword.trim(),
+                  pauseUntilDate: prAction === "pause" ? prPauseDuration : undefined,
+                });
+
+                if (!res.ok) {
+                  setPrError(res.message);
+                  return;
+                }
+
+                setPauseResignModalOpen(false);
+                setScheduleToast(res.message);
+                setTimeout(() => setScheduleToast(null), 4000);
+              }}
+              className="space-y-3 text-xs"
+            >
+              {/* Action Switcher */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPrAction("pause")}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    prAction === "pause"
+                      ? "bg-white text-amber-900 shadow-xs border border-amber-200"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <span>Pause Membership</span>
+                  <span className="text-[10px] font-normal text-amber-700">
+                    تجميد مؤقت
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrAction("resign")}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    prAction === "resign"
+                      ? "bg-white text-rose-900 shadow-xs border border-rose-200"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <span>Resign from Club</span>
+                  <span className="text-[10px] font-normal text-rose-700">
+                    استقالة نهائية
+                  </span>
+                </button>
+              </div>
+
+              {prAction === "pause" ? (
+                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
+                  <p className="text-[11.5px] text-amber-900 leading-relaxed font-medium">
+                    Pausing temporarily suspends mandatory attendance and tasks
+                    (ideal during university exams or personal leave). Your
+                    record and badges remain saved.
+                  </p>
+                  <div>
+                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-amber-800 mb-1">
+                      Expected Return / Pause Duration
+                    </label>
+                    <select
+                      value={prPauseDuration}
+                      onChange={(e) => setPrPauseDuration(e.target.value)}
+                      className="w-full h-8 px-2.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-slate-800 focus:outline-none"
+                    >
+                      <option value="Until end of semester">Until end of semester</option>
+                      <option value="1 Month">1 Month</option>
+                      <option value="2 Months">2 Months</option>
+                      <option value="Exam Period (3 Weeks)">Exam Period (3 Weeks)</option>
+                      <option value="Next Academic Term">Next Academic Term</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-rose-50/80 border border-rose-200 space-y-1">
+                  <p className="text-[11.5px] text-rose-900 leading-relaxed font-medium">
+                    Voluntary resignation formally removes your active membership
+                    and assigned club roles. Your earned badges and history will
+                    be archived in the alumni / former registry.
+                  </p>
+                </div>
+              )}
+
+              {/* Motif / Reason (Required) */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Reason / Motif (Required) · سبب الطلب
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={prMotif}
+                  onChange={(e) => setPrMotif(e.target.value)}
+                  placeholder={
+                    prAction === "pause"
+                      ? "e.g., Final exam preparation, engineering project deadline, medical leave..."
+                      : "e.g., Graduation, moving out of Algiers, personal reasons..."
+                  }
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
+                />
+              </div>
+
+              {/* Password Confirmation */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Confirm Account Password · تأكيد كلمة المرور
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={prPassword}
+                  onChange={(e) => setPrPassword(e.target.value)}
+                  placeholder="Enter your password to verify"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#182C4E]"
+                />
+              </div>
+
+              {/* Checkbox Confirmation */}
+              <label className="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prConfirmed}
+                  onChange={(e) => setPrConfirmed(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-300 text-[#0284C7] focus:ring-0"
+                />
+                <span className="text-[11px] text-slate-700 leading-tight">
+                  I confirm that I understand this action and wish to{" "}
+                  <strong className={prAction === "resign" ? "text-rose-600" : "text-amber-700"}>
+                    {prAction === "pause" ? "pause" : "resign from"}
+                  </strong>{" "}
+                  my membership in QUANTA Club.
+                </span>
+              </label>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setPauseResignModalOpen(false)}
+                  className="flex-1 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`flex-1 h-9 rounded-xl font-extrabold text-xs text-white transition cursor-pointer shadow-xs ${
+                    prAction === "pause"
+                      ? "bg-amber-600 hover:bg-amber-700"
+                      : "bg-rose-600 hover:bg-rose-700"
+                  }`}
+                >
+                  {prAction === "pause" ? "Confirm Pause" : "Confirm Resignation"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confidential HR Grievance (تقديم شكوى) Modal */}
+      {grievanceModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[440px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-600 shrink-0">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black font-display text-slate-900 leading-tight">
+                    Submit Confidential Grievance
+                  </h3>
+                  <p className="text-[11px] text-[#C2410C] font-semibold">
+                    تقديم شكوى سرية لإدارة الموارد البشرية
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGrievanceModalOpen(false)}
+                aria-label="Close modal"
+                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Privacy Guarantee Banner */}
+            <div className="p-3 rounded-xl bg-slate-900 text-white space-y-1 mb-3">
+              <div className="flex items-center gap-1.5 text-[#38E4FF] font-mono text-[10px] font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Strictly Confidential · HR Eyes Only</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                This grievance is encrypted and strictly accessible only by the HR
+                Head and Executive Bureau. Department managers, co-managers, and team
+                leaders have ZERO access to view or inspect this submission.
+              </p>
+            </div>
+
+            {grvError && (
+              <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{grvError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setGrvError(null);
+
+                if (!grvSubject.trim() || !grvDetails.trim()) {
+                  setGrvError("Please fill in both the subject and description of your complaint.");
+                  return;
+                }
+
+                const res = submitGrievance({
+                  subject: grvSubject.trim(),
+                  category: grvCategory,
+                  urgency: grvUrgency,
+                  details: grvDetails.trim(),
+                  isAnonymous: grvAnonymous,
+                });
+
+                if (!res.ok) {
+                  setGrvError(res.message);
+                  return;
+                }
+
+                setGrievanceModalOpen(false);
+                setScheduleToast("Grievance securely submitted to HR!");
+                setTimeout(() => setScheduleToast(null), 4000);
+              }}
+              className="space-y-3 text-xs"
+            >
+              {/* Anonymous Toggle */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div>
+                  <span className="block font-bold text-slate-800 text-[11.5px]">
+                    Submit Anonymously (إخفاء هويتي)
+                  </span>
+                  <span className="block text-[10.5px] text-slate-500">
+                    {grvAnonymous
+                      ? "Your name and Quanter ID will be completely hidden from HR."
+                      : "HR will see your name to contact you directly if needed."}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setGrvAnonymous(!grvAnonymous)}
+                  className={`w-11 h-6 rounded-full transition cursor-pointer relative shrink-0 ${
+                    grvAnonymous ? "bg-[#0284C7]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`block w-5 h-5 rounded-full bg-white shadow-xs transition transform ${
+                      grvAnonymous ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Subject */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Subject / Topic · موضوع الشكوى
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={grvSubject}
+                  onChange={(e) => setGrvSubject(e.target.value)}
+                  placeholder="e.g. Unfair task distribution / Schedule conflict"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#182C4E]"
+                />
+              </div>
+
+              {/* Category & Urgency */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
+                    Category · التصنيف
+                  </label>
+                  <select
+                    value={grvCategory}
+                    onChange={(e) => setGrvCategory(e.target.value as GrievanceCategory)}
+                    className="w-full h-8 px-2 rounded-lg border border-slate-200 text-[11px] text-slate-800 font-semibold focus:outline-none"
+                  >
+                    <option value="Workload & Tasks">Workload &amp; Tasks</option>
+                    <option value="Interpersonal & Respect">Interpersonal &amp; Respect</option>
+                    <option value="Fairness & Evaluation">Fairness &amp; Evaluation</option>
+                    <option value="Misconduct / Harassment">Misconduct / Harassment</option>
+                    <option value="Governance Conflict">Governance Conflict</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
+                    Urgency · درجة الأهمية
+                  </label>
+                  <select
+                    value={grvUrgency}
+                    onChange={(e) => setGrvUrgency(e.target.value as GrievanceUrgency)}
+                    className="w-full h-8 px-2 rounded-lg border border-slate-200 text-[11px] text-slate-800 font-semibold focus:outline-none"
+                  >
+                    <option value="Standard">Standard (عادية)</option>
+                    <option value="Important">Important (مهمة)</option>
+                    <option value="Urgent">Urgent (عاجلة جداً)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Detailed Grievance · تفاصيل الشكوى والوقائع
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={grvDetails}
+                  onChange={(e) => setGrvDetails(e.target.value)}
+                  placeholder="Please describe the issue clearly with dates, context, and any relevant details..."
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setGrievanceModalOpen(false)}
+                  className="flex-1 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-9 rounded-xl bg-[#09192F] hover:bg-[#132C4E] text-white font-extrabold text-xs transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-[#38E4FF]" />
+                  <span>Submit to HR Desk</span>
                 </button>
               </div>
             </form>

@@ -19,12 +19,67 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { activeAdminRole, members, messages, celebration, triggerCelebration, logout } =
-    useQuantersStore();
+  const {
+    activeAdminRole,
+    currentMemberId,
+    members,
+    messages,
+    celebration,
+    triggerCelebration,
+    logout,
+  } = useQuantersStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dismissedMobileNotice, setDismissedMobileNotice] = useState(false);
+
+  const currentMember = members.find((m) => m.id === currentMemberId);
+  const hasAdminAccess =
+    currentMember?.roles.some((r) =>
+      [
+        "Super Admin",
+        "Executive",
+        "HR Head",
+        "Department Head",
+        "Co-Manager",
+        "KPI Viewer",
+        "Editor",
+      ].includes(r)
+    ) ||
+    [
+      "Super Admin",
+      "Executive",
+      "HR Head",
+      "Department Head",
+      "KPI Viewer",
+    ].includes(activeAdminRole);
+
+  if (!hasAdminAccess) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#071326] p-6 text-white text-center">
+        <div className="max-w-md w-full bg-[#0B1A33] border border-[#2B4875] rounded-2xl p-6 sm:p-8 space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 mx-auto">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="font-display font-black text-lg text-white">
+              Admin Console Restricted
+            </h1>
+            <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+              This console is reserved exclusively for Club Executives, HR Heads, and
+              Department Managers. You are currently signed in as a regular member.
+            </p>
+          </div>
+          <Link
+            href="/home"
+            className="inline-flex items-center justify-center w-full h-11 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:brightness-110 text-white text-xs font-display font-extrabold shadow-md transition"
+          >
+            Return to Member App
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const unreadCount = messages.filter((m) => m.unread && !m.archived).length;
 

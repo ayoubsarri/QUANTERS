@@ -14,6 +14,7 @@ import {
   SEED_DEPARTMENTS,
   SEED_EXAMS,
   SEED_EXPLORE_POSTS,
+  SEED_GRIEVANCES,
   SEED_INVITATIONS,
   SEED_LEDGER,
   SEED_MEMBERS,
@@ -44,6 +45,7 @@ export type ErpCollectionKey =
   | "invitations"
   | "accessGrants"
   | "auditLogs"
+  | "grievances"
   | "settings";
 
 export interface ItemDeltaPatch {
@@ -71,6 +73,7 @@ export interface ErpDatabaseSnapshot {
   invitations: typeof SEED_INVITATIONS;
   accessGrants: typeof SEED_ACCESS_GRANTS;
   auditLogs: typeof SEED_AUDIT_LOGS;
+  grievances: typeof SEED_GRIEVANCES;
   settings: typeof SEED_SETTINGS;
 }
 
@@ -96,6 +99,7 @@ export const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
   "invitations",
   "accessGrants",
   "auditLogs",
+  "grievances",
 ];
 
 function buildInitialCollectionVersions(stamp: string): Record<string, string> {
@@ -131,6 +135,7 @@ function createInitialSnapshot(): ErpDatabaseSnapshot {
     invitations: SEED_INVITATIONS,
     accessGrants: SEED_ACCESS_GRANTS,
     auditLogs: SEED_AUDIT_LOGS,
+    grievances: SEED_GRIEVANCES,
     settings: SEED_SETTINGS,
   };
 }

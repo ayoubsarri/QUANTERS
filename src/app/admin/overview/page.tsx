@@ -218,13 +218,11 @@ export default function AdminOverviewPage() {
                 className="h-[20px] w-auto object-contain opacity-95"
               />
               <span className="h-3.5 w-px bg-white/20" />
-              <div className="bg-white rounded-md px-1.5 py-0.5 shadow-xs flex items-center justify-center shrink-0">
-                <img
-                  src="/brand/univ_logo.svg"
-                  alt="Faculty of Sciences"
-                  className="h-[16px] w-auto object-contain"
-                />
-              </div>
+              <img
+                src="/brand/univ_logo.svg"
+                alt="Faculty of Sciences"
+                className="h-[18px] w-auto object-contain opacity-95 shrink-0"
+              />
               <span className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-slate-300">
                 FACULTY OF SCIENCES
               </span>

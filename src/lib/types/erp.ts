@@ -636,6 +636,39 @@ export interface ClubMessage {
   actionLink?: string;
 }
 
+export type GrievanceCategory =
+  | "Interpersonal & Respect"
+  | "Workload & Tasks"
+  | "Fairness & Evaluation"
+  | "Misconduct / Harassment"
+  | "Governance Conflict"
+  | "Other";
+
+export type GrievanceUrgency = "Standard" | "Important" | "Urgent";
+export type GrievanceStatus =
+  | "Pending HR Review"
+  | "Under Investigation"
+  | "Resolved"
+  | "Dismissed";
+
+export interface MemberGrievance {
+  id: string;
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  memberDepartmentId?: string;
+  isAnonymous: boolean;
+  subject: string;
+  category: GrievanceCategory;
+  urgency: GrievanceUrgency;
+  details: string;
+  submittedAt: string;
+  status: GrievanceStatus;
+  hrNotes?: string;
+  hrHandledBy?: string;
+  resolvedAt?: string;
+}
+
 export interface AuditLogEntry {
   id: string;
   actorName: string;

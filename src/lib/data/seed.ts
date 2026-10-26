@@ -17,6 +17,7 @@ import {
   ExplorePost,
   Invitation,
   Member,
+  MemberGrievance,
   PointRule,
   PointsLedgerEntry,
   ProjectSubmission,
@@ -2933,3 +2934,39 @@ export const SEED_SETTINGS: SystemSettings = {
   disableVideoOnCellular: true,
   autoCompactHistoryLimit: 100,
 };
+
+export const SEED_GRIEVANCES: MemberGrievance[] = [
+  {
+    id: "grv-1",
+    memberId: "mem-walid",
+    memberName: "Walid Meziani",
+    memberEmail: "walid.meziani@univ-alger.dz",
+    memberDepartmentId: "dept-logistics",
+    isAnonymous: false,
+    subject: "Workload distribution conflict during Lab Setup shift",
+    category: "Workload & Tasks",
+    urgency: "Important",
+    details:
+      "I was assigned three consecutive Saturday shifts without rotation while other team members were not scheduled. Requesting HR assistance to rebalance the shift roster equitably.",
+    submittedAt: "2026-10-24 14:30",
+    status: "Pending HR Review",
+  },
+  {
+    id: "grv-2",
+    memberId: "mem-confidential",
+    memberName: "Confidential Member",
+    memberEmail: "confidential@univ-alger.dz",
+    memberDepartmentId: "dept-media",
+    isAnonymous: true,
+    subject: "Uncredited design contributions in national science day campaign",
+    category: "Fairness & Evaluation",
+    urgency: "Standard",
+    details:
+      "My vector illustrations and social media banners were published without crediting my work in the media roster credits. Would appreciate HR reminder to team leads regarding attribution policy.",
+    submittedAt: "2026-10-25 11:15",
+    status: "Under Investigation",
+    hrNotes: "Contacted Media Lead to verify contributor logs.",
+    hrHandledBy: "Yasmine Bouzid (HR Head)",
+  },
+];
+

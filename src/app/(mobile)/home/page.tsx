@@ -39,6 +39,9 @@ export default function MobileHomeHubPage() {
     members.find((m) => m.id === currentMemberId) || members[0];
   const isAlumni = member.status === "Alumni";
   const dept = departments.find((d) => d.id === member.departmentId);
+  const isAdmin = member.roles.some((r) =>
+    ["Super Admin", "Executive", "HR Head", "Department Head"].includes(r)
+  );
 
   const motmMember =
     members.find((m) => m.recognitionLabels.includes("Member of the Month")) ||
@@ -129,14 +132,16 @@ export default function MobileHomeHubPage() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            <Link
-              href="/admin/overview"
-              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[9.5px] sm:text-[11px] font-mono font-bold text-white flex items-center gap-1 sm:gap-1.5 justify-center transition active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
-              title="Open Admin Console"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shrink-0" />
-              <span>Open Admin Console</span>
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/overview"
+                className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[9.5px] sm:text-[11px] font-mono font-bold text-white flex items-center gap-1 sm:gap-1.5 justify-center transition active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
+                title="Open Admin Console"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shrink-0" />
+                <span>Open Admin Console</span>
+              </Link>
+            )}
 
             <Link
               href="/manager"

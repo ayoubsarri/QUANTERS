@@ -75,12 +75,12 @@ export function QuantaLogo({
 
   return (
     <div
-      className={`inline-flex flex-col items-stretch ${
-        centered ? "mx-auto" : ""
+      className={`inline-flex flex-col items-start ${
+        centered ? "mx-auto items-center" : ""
       } leading-none select-none ${className}`}
     >
       {/* Upper Row: Official QUANTERS Vector Logo */}
-      <div className="inline-flex items-center justify-between gap-2">
+      <div className="inline-flex items-center gap-2">
         <QuantersVectorWordmark height={wordmarkHeight} variant={variant} />
 
         {showBadge && (
@@ -90,21 +90,18 @@ export function QuantaLogo({
         )}
       </div>
 
-      {/* Lower Row: Architectural Subtitle Flush-Aligned with Q and S + Connecting Rule Line */}
+      {/* Lower Row: Subtitle Flush-Aligned with Q (Left) */}
       {showSubtitle && (
         <div
-          className="w-full flex items-center justify-between gap-2 mt-1.5"
+          className="inline-flex items-center gap-2 mt-1.5"
           style={{ fontSize: `${subFontSize}px` }}
         >
           <span
-            className={`font-display font-extrabold tracking-[0.18em] uppercase leading-none whitespace-nowrap ${primarySubColor}`}
+            className={`font-display font-extrabold tracking-[0.2em] uppercase leading-none whitespace-nowrap ${primarySubColor}`}
           >
             BY QUANTA
           </span>
-          <span
-            className={`flex-1 h-px bg-gradient-to-r ${ruleGradient} min-w-[12px]`}
-            aria-hidden="true"
-          />
+          <span className="opacity-35 leading-none">·</span>
           <span
             className={`font-mono font-bold tracking-[0.14em] uppercase leading-none whitespace-nowrap ${secondarySubColor}`}
           >
