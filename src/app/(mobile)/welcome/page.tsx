@@ -4,8 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
+  BookmarkCheck,
   Check,
-  ChevronDown,
+  CheckCircle2,
   Download,
   Eye,
   EyeOff,
@@ -17,6 +18,8 @@ import {
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { QuantersVectorWordmark } from "@/components/shared/QuantaLogo";
+import { Member } from "@/lib/types/erp";
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -37,46 +40,6 @@ function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
         fill="#EA4335"
         d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96Z"
       />
-    </svg>
-  );
-}
-
-/**
- * Custom Architectural Orbital Crest for QUANTA Scientific Club · University of Algiers 1
- */
-function UniversityOrbitalCrestSvg({ className = "w-8 h-8" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 36 36" fill="none" className={className} aria-hidden="true">
-      <circle
-        cx="18"
-        cy="18"
-        r="16"
-        className="fill-[#081A36]/80 stroke-[#38E4FF]/35"
-        strokeWidth="1.2"
-      />
-      <ellipse
-        cx="18"
-        cy="18"
-        rx="11.5"
-        ry="4.8"
-        transform="rotate(-28 18 18)"
-        stroke="#38E4FF"
-        strokeWidth="1.35"
-        strokeOpacity="0.9"
-      />
-      <ellipse
-        cx="18"
-        cy="18"
-        rx="11.5"
-        ry="4.8"
-        transform="rotate(28 18 18)"
-        stroke="#60A5FA"
-        strokeWidth="1.35"
-        strokeOpacity="0.65"
-      />
-      <circle cx="18" cy="18" r="2.6" fill="#FFE500" />
-      <circle cx="26.5" cy="13.5" r="1.5" fill="#38E4FF" />
-      <circle cx="9.5" cy="22.5" r="1.4" fill="#38E4FF" />
     </svg>
   );
 }
@@ -111,8 +74,6 @@ function getOrLoadVideoBlobUrl(src: string): Promise<string | null> {
 
 /**
  * Dual-Buffered Zero-Saccade Seamless Loop Video Player
- * Combines the 211-frame optical-flow morphed video with an A/B pre-decoded
- * standby buffer swap so the browser never performs a visible EOF seek.
  */
 function SeamlessLoopVideo({
   src = "/brand/welcome_loop.mp4",
@@ -226,25 +187,44 @@ export default function WelcomeSplashPage() {
   const {
     departments,
     teams,
+    members,
     loginWithEmail,
     loginWithGoogle,
     registerAccount,
+    changeMemberPassword,
     syncWithServer,
   } = useQuantersStore();
 
   // In-page Login Drawer state
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "register" | "password">("signin");
 
   // Auth form fields
   const [email, setEmail] = useState("ayoub.sarri@univ-alger.dz");
   const [password, setPassword] = useState("quanta2026");
   const [fullName, setFullName] = useState("");
   const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
-  const [saveForQuickAccess, setSaveForQuickAccess] = useState(true);
   const [savedLogins, setSavedLogins] = useState<SavedLoginEntry[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Change Password by Old Email fields
+  const [oldEmailInput, setOldEmailInput] = useState("");
+  const [newEmailInput, setNewEmailInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+
+  // Google Sign-In picker state
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
+  const [customGoogleName, setCustomGoogleName] = useState("");
+
+  // Post-Login "Save Login?" prompt state (Appears AFTER successful login!)
+  const [pendingPostLogin, setPendingPostLogin] = useState<{
+    member: Member;
+    redirectPath: string;
+  } | null>(null);
 
   // Download App state & native install prompt capture
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
@@ -295,7 +275,7 @@ export default function WelcomeSplashPage() {
     status?: string;
     departmentId?: string;
   }) => {
-    if (!saveForQuickAccess || !memberObj) return;
+    if (!memberObj) return;
     try {
       const entry: SavedLoginEntry = {
         email: memberObj.email,
@@ -367,22 +347,43 @@ export default function WelcomeSplashPage() {
     setShowDownloadModal(true);
   };
 
+  const completeAuthenticatedTransition = async (
+    member: Member | undefined,
+    redirectPath: string
+  ) => {
+    await syncWithServer();
+    if (!member) {
+      router.push(redirectPath);
+      return;
+    }
+    const alreadySaved = savedLogins.some(
+      (item) => item.email.toLowerCase() === member.email.toLowerCase()
+    );
+    if (alreadySaved) {
+      persistSavedLogin(member);
+      router.push(redirectPath);
+      return;
+    }
+    // Show "Save Login?" prompt AFTER login succeeds
+    setPendingPostLogin({ member, redirectPath });
+  };
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     const res = loginWithEmail(email, password);
     if (!res.ok) {
       setErrorMsg(res.message || "Invalid credentials.");
       return;
     }
-    persistSavedLogin(res.member);
-    await syncWithServer();
-    router.push(res.redirectPath);
+    await completeAuthenticatedTransition(res.member, res.redirectPath);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     if (!fullName.trim() || !email.trim()) {
       setErrorMsg("Please provide your full name and email.");
       return;
@@ -397,14 +398,89 @@ export default function WelcomeSplashPage() {
       setErrorMsg(res.message || "Could not create account.");
       return;
     }
-    persistSavedLogin(res.member);
-    await syncWithServer();
-    router.push(res.redirectPath);
+    await completeAuthenticatedTransition(res.member, res.redirectPath);
+  };
+
+  const handleGoogleAccountSelect = async (
+    targetEmail: string,
+    targetName?: string,
+    targetAvatar?: string
+  ) => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    const clean = targetEmail.trim();
+    if (!clean) {
+      setErrorMsg("Please enter your Google email address.");
+      return;
+    }
+    const res = loginWithGoogle(clean, targetName, targetAvatar);
+    setShowGooglePicker(false);
+    await completeAuthenticatedTransition(res.member, res.redirectPath);
+  };
+
+  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!oldEmailInput.trim()) {
+      setErrorMsg("Please write your old / registered email address.");
+      return;
+    }
+    if (newPasswordInput.trim().length < 4) {
+      setErrorMsg("New password must be at least 4 characters.");
+      return;
+    }
+    if (newPasswordInput.trim() !== confirmPasswordInput.trim()) {
+      setErrorMsg("New password and confirmation do not match.");
+      return;
+    }
+
+    const res = changeMemberPassword({
+      oldEmail: oldEmailInput,
+      newEmail: newEmailInput,
+      newPassword: newPasswordInput,
+    });
+
+    if (!res.ok) {
+      setErrorMsg(res.message);
+      return;
+    }
+
+    // Update saved logins if email changed
+    if (res.member && newEmailInput.trim()) {
+      try {
+        const updated = savedLogins.map((s) =>
+          s.email.toLowerCase() === oldEmailInput.trim().toLowerCase()
+            ? { ...s, email: res.member!.email }
+            : s
+        );
+        setSavedLogins(updated);
+        window.localStorage.setItem(
+          SAVED_LOGINS_STORAGE_KEY,
+          JSON.stringify(updated)
+        );
+      } catch {
+        // ignore
+      }
+    }
+
+    setEmail(res.member?.email || oldEmailInput.trim());
+    setPassword(newPasswordInput.trim());
+    setSuccessMsg(res.message);
+    setAuthMode("signin");
   };
 
   const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
     setErrorMsg(null);
-    const res = loginWithEmail(saved.email, "quanta2026");
+    setSuccessMsg(null);
+    const matchingMember = members.find(
+      (m) => m.email.toLowerCase() === saved.email.toLowerCase()
+    );
+    const res = loginWithEmail(
+      saved.email,
+      matchingMember?.password || "quanta2026"
+    );
     if (!res.ok) {
       const gRes = loginWithGoogle(saved.email, saved.fullName, saved.avatarUrl);
       await syncWithServer();
@@ -415,12 +491,16 @@ export default function WelcomeSplashPage() {
     router.push(res.redirectPath);
   };
 
+  const googleQuickAccounts = [
+    members.find((m) => m.id === "mem-ayoub") || members[0],
+    members.find((m) => m.id === "mem-lotfi") || members[1],
+    members.find((m) => m.id === "mem-alumni-1") || members[2],
+  ].filter(Boolean);
+
   return (
     <div className="min-h-dvh w-full bg-[#030812] text-white relative overflow-hidden select-none flex flex-col justify-between">
       {/* =====================================================================
           1. AMBIENT VIDEO BACKDROP
-          - Phone (< lg): Full-bleed crystal-clear 9:16 crocheted astronaut loop
-          - PC (lg+): Softly blurred atmospheric cosmos behind the 2-column stage
          ===================================================================== */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <SeamlessLoopVideo
@@ -433,10 +513,8 @@ export default function WelcomeSplashPage() {
           }`}
         />
 
-        {/* Subtle architectural dot grid on desktop */}
         <div className="hidden lg:block absolute inset-0 bg-quanta-grid-dark opacity-30" />
 
-        {/* Phone Top & Bottom Vignettes (Leaves center 60% clear for the astronaut & galaxy) */}
         <div className="lg:hidden absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#030812]/90 via-[#030812]/40 to-transparent" />
         <div
           className={`lg:hidden absolute inset-x-0 bottom-0 transition-all duration-500 ${
@@ -449,13 +527,9 @@ export default function WelcomeSplashPage() {
 
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
-          - Phone (< lg): Full-height vertical column (Top Brand -> Astronaut -> Bottom Dock)
-          - PC (lg+): 12-Column Split Stage (Left 9:16 Uncropped Video Portal | Right Brand & Auth)
          ===================================================================== */}
       <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between">
-        {/* -------------------------------------------------------------------
-            LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal
-           ------------------------------------------------------------------- */}
+        {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
             <SeamlessLoopVideo
@@ -463,11 +537,9 @@ export default function WelcomeSplashPage() {
               poster="/brand/welcome_keyframe_1.png"
             />
 
-            {/* Subtle top & bottom cinema frame gradients */}
             <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#030812]/65 to-transparent pointer-events-none" />
             <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#030812]/90 via-[#030812]/35 to-transparent pointer-events-none" />
 
-            {/* Clean Minimal Bottom Signature inside the PC Video Frame */}
             <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
               <div>
                 <div className="flex items-center gap-1.5">
@@ -489,14 +561,11 @@ export default function WelcomeSplashPage() {
           </div>
         </div>
 
-        {/* -------------------------------------------------------------------
-            RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns)
-           ------------------------------------------------------------------- */}
+        {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
-          {/* A. ORIGINAL EDITORIAL BRAND LOCKUP & 4-PILLAR HAIRLINE BAR */}
+          {/* A. TOP BRAND LOCKUP WITH OFFICIAL QUANTERS_vector_v2.svg */}
           <header className="w-full space-y-3 animate-rise">
             <div className="flex items-center justify-between gap-3">
-              {/* Left: Pure Emblem + Geometric Wordmark */}
               <div className="flex items-center gap-3">
                 <div className="relative w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
                   <div className="absolute inset-0 rounded-full bg-[#38E4FF]/20 blur-md pointer-events-none" />
@@ -508,13 +577,14 @@ export default function WelcomeSplashPage() {
                 </div>
 
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-display font-black text-2xl sm:text-3xl lg:text-[32px] tracking-[-0.03em] text-white leading-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
-                      QUANTERS
-                    </span>
-                    <span className="w-2 h-2 rounded-full bg-[#38E4FF] shadow-[0_0_10px_#38E4FF]" />
+                  <div className="flex items-center gap-2">
+                    <QuantersVectorWordmark
+                      height={26}
+                      variant="dark"
+                      className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+                    />
                   </div>
-                  <div className="mt-1 flex items-center gap-2 whitespace-nowrap">
+                  <div className="mt-1.5 flex items-center gap-2 whitespace-nowrap">
                     <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
                       BY QUANTA
                     </span>
@@ -527,7 +597,6 @@ export default function WelcomeSplashPage() {
               </div>
             </div>
 
-            {/* Single-Line Architectural 4-Pillar Hairline Bar + Open Editorial Download Row (Zero AI Boxes) */}
             {!authOpen && (
               <div className="space-y-0">
                 <div className="flex items-center justify-between border-y border-white/15 py-2 px-0.5 text-xs font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
@@ -540,7 +609,6 @@ export default function WelcomeSplashPage() {
                   <span className="text-slate-200">BELONG</span>
                 </div>
 
-                {/* Open Unboxed Horizontal Download App Strip right under header text */}
                 <button
                   type="button"
                   onClick={handleDownloadAppClick}
@@ -582,9 +650,7 @@ export default function WelcomeSplashPage() {
             )}
           </header>
 
-          {/* B. CENTER STAGE
-              - On Phone (< lg): Open transparent window so the floating crocheted astronaut & galaxy shine unobstructed
-              - On PC (lg+): High-impact Editorial Manifesto Headline when Login is closed */}
+          {/* B. CENTER STAGE */}
           {!authOpen ? (
             <div className="my-auto py-4 lg:py-6">
               <div className="hidden lg:block space-y-4 max-w-[540px] animate-rise">
@@ -610,9 +676,7 @@ export default function WelcomeSplashPage() {
             />
           )}
 
-          {/* C. BOTTOM INTERACTIVE DOCK
-              - State 1 (!authOpen): Editorial Callout + [Start] Button + Creative Institutional Crest
-              - State 2 (authOpen): In-Page Slide-Up Login & Account Sheet */}
+          {/* C. BOTTOM INTERACTIVE DOCK */}
           <footer className="w-full space-y-3.5">
             {!authOpen ? (
               <div className="w-full space-y-3.5 animate-rise">
@@ -626,10 +690,13 @@ export default function WelcomeSplashPage() {
                   </p>
                 </div>
 
-                {/* Primary Bottom Start Button (Substantial 56px Height) */}
+                {/* Primary Bottom Start Button */}
                 <button
                   type="button"
-                  onClick={() => setAuthOpen(true)}
+                  onClick={() => {
+                    setAuthOpen(true);
+                    setPendingPostLogin(null);
+                  }}
                   className="w-full h-14 px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
@@ -647,13 +714,23 @@ export default function WelcomeSplashPage() {
                   </div>
                 </button>
 
-                {/* Creative Architectural Institutional Signature (Zero Heavy Box):
-                    QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1 */}
+                {/* Institutional Signature with Official University of Algiers 1 & Faculty of Sciences Logos */}
                 <div className="pt-1">
                   <div className="h-px w-full bg-gradient-to-r from-transparent via-[#38E4FF]/35 to-transparent mb-3" />
                   <div className="flex items-center justify-between gap-3 px-1">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <UniversityOrbitalCrestSvg className="w-8 h-8 shrink-0" />
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <img
+                          src="/brand/univ_logo_d.svg"
+                          alt="University of Algiers 1"
+                          className="w-8 h-8 object-contain shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
+                        />
+                        <img
+                          src="/brand/univ_logo_darkmode.svg"
+                          alt="Faculty of Sciences"
+                          className="w-8 h-8 object-contain shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
+                        />
+                      </div>
                       <div className="min-w-0">
                         <div className="font-display font-extrabold text-xs tracking-[0.14em] text-white uppercase truncate">
                           QUANTA SCIENTIFIC CLUB
@@ -664,7 +741,7 @@ export default function WelcomeSplashPage() {
                       </div>
                     </div>
 
-                    <div className="hidden sm:block shrink-0 pl-3 border-l border-white/15 text-right">
+                    <div className="hidden sm:flex items-center gap-2 shrink-0 pl-3 border-l border-white/15 text-right">
                       <div className="font-mono text-xs font-semibold tracking-[0.1em] text-slate-300 uppercase">
                         FAC. SCIENCES
                       </div>
@@ -672,8 +749,91 @@ export default function WelcomeSplashPage() {
                   </div>
                 </div>
               </div>
+            ) : pendingPostLogin ? (
+              /* ==============================================================
+                 POST-LOGIN "SAVE LOGIN?" STEP (Appears AFTER Login Succeeds)
+                 ============================================================== */
+              <div
+                data-modal="true"
+                role="dialog"
+                aria-label="Save Login for Quick Access"
+                className="w-full bg-gradient-to-b from-[#132441]/95 via-[#0E1B31]/98 to-[#091324]/98 backdrop-blur-2xl border border-[#38BDF8]/45 rounded-2xl p-4 sm:p-5 shadow-[0_24px_64px_rgba(3,8,18,0.88)] space-y-3.5 text-left animate-rise"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-[0.12em] text-emerald-300">
+                      Signed In Successfully
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push(pendingPostLogin.redirectPath)}
+                    aria-label="Skip saving login"
+                    className="w-7 h-7 rounded-lg bg-[#0B1528] hover:bg-[#182C4E] border border-[#2B4875] text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Signed-in Account Preview */}
+                <div className="p-3 rounded-xl bg-[#081223] border border-[#2B4875]/80 flex items-center gap-3">
+                  <img
+                    src={pendingPostLogin.member.avatarUrl}
+                    alt={pendingPostLogin.member.fullName}
+                    className="w-10 h-10 rounded-full object-cover border border-[#38BDF8]/50 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-display font-black text-white truncate">
+                      {pendingPostLogin.member.fullName}
+                    </p>
+                    <p className="text-[11px] font-mono text-[#7DD3FC] truncate">
+                      {deriveMemberRoleBadge(pendingPostLogin.member)} ·{" "}
+                      {pendingPostLogin.member.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="font-display text-sm sm:text-base font-black text-white">
+                    Save login on this device?
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Add your account to{" "}
+                    <span className="text-[#7DD3FC] font-semibold">
+                      Quick Access
+                    </span>{" "}
+                    so you can sign in with one tap next time you open QUANTERS.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => router.push(pendingPostLogin.redirectPath)}
+                    className="h-10 rounded-xl bg-[#081223] hover:bg-[#11203A] border border-[#2B4875] text-slate-300 hover:text-white font-display font-bold text-xs transition cursor-pointer"
+                  >
+                    Not Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      persistSavedLogin(pendingPostLogin.member);
+                      router.push(pendingPostLogin.redirectPath);
+                    }}
+                    className="h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-[0_8px_24px_rgba(2,132,199,0.3)] transition cursor-pointer"
+                  >
+                    <BookmarkCheck className="w-4 h-4 text-[#7DD3FC]" />
+                    <span>Save Login</span>
+                  </button>
+                </div>
+              </div>
             ) : (
-              /* STATE B: Redesigned In-Page Login & Account Box */
+              /* ==============================================================
+                 STATE B: In-Page Login, Google OAuth, Registration & Password Box
+                 ============================================================== */
               <div
                 data-modal="true"
                 role="dialog"
@@ -687,13 +847,20 @@ export default function WelcomeSplashPage() {
                       QUANTERS PORTAL
                     </span>
                     <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
-                      {authMode === "signin" ? "Member Sign In" : "Create Account"}
+                      {authMode === "signin"
+                        ? "Member Sign In"
+                        : authMode === "register"
+                        ? "Create Account"
+                        : "Change Password"}
                     </h2>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setAuthOpen(false)}
+                    onClick={() => {
+                      setAuthOpen(false);
+                      setShowGooglePicker(false);
+                    }}
                     aria-label="Close login panel"
                     className="w-8 h-8 rounded-lg bg-[#0B1528] hover:bg-[#182C4E] border border-[#2B4875] text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
                   >
@@ -701,15 +868,17 @@ export default function WelcomeSplashPage() {
                   </button>
                 </div>
 
-                {/* Segmented Mode Switcher */}
-                <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#081223] border border-[#2B4875]/60">
+                {/* Segmented 3-Mode Switcher */}
+                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[#081223] border border-[#2B4875]/60">
                   <button
                     type="button"
                     onClick={() => {
                       setAuthMode("signin");
+                      setShowGooglePicker(false);
                       setErrorMsg(null);
+                      setSuccessMsg(null);
                     }}
-                    className={`py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    className={`py-1.5 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
                       authMode === "signin"
                         ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
                         : "text-slate-400 hover:text-white"
@@ -721,9 +890,11 @@ export default function WelcomeSplashPage() {
                     type="button"
                     onClick={() => {
                       setAuthMode("register");
+                      setShowGooglePicker(false);
                       setErrorMsg(null);
+                      setSuccessMsg(null);
                     }}
-                    className={`py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    className={`py-1.5 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
                       authMode === "register"
                         ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
                         : "text-slate-400 hover:text-white"
@@ -731,10 +902,27 @@ export default function WelcomeSplashPage() {
                   >
                     Create Account
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("password");
+                      setShowGooglePicker(false);
+                      setOldEmailInput(email);
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className={`py-1.5 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
+                      authMode === "password"
+                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Password
+                  </button>
                 </div>
 
                 {/* Quick Access: ONLY Rendered When User Has Saved Logins */}
-                {savedLogins.length > 0 && authMode === "signin" && (
+                {savedLogins.length > 0 && authMode === "signin" && !showGooglePicker && (
                   <div className="p-2.5 rounded-xl bg-[#081223]/90 border border-[#2B4875]/60 space-y-1.5">
                     <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC]">
                       <span>Quick Access · Saved Logins</span>
@@ -792,136 +980,313 @@ export default function WelcomeSplashPage() {
                   </div>
                 )}
 
-                {authMode === "signin" ? (
-                  <form onSubmit={handleEmailSignIn} className="space-y-2.5">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Email or Quanter ID
-                      </label>
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="text"
-                          name="email"
-                          aria-label="Email or Quanter ID"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="name@univ-alger.dz"
-                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                        />
+                {successMsg && (
+                  <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200 text-xs font-semibold text-center flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                    <span>{successMsg}</span>
+                  </div>
+                )}
+
+                {showGooglePicker ? (
+                  /* GOOGLE ACCOUNT PICKER */
+                  <div className="p-3 rounded-xl bg-[#081223] border border-[#2B4875]/80 space-y-2.5 animate-rise">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <GoogleLogoSvg className="w-4 h-4" />
+                        <span className="text-xs font-display font-extrabold text-white">
+                          Choose a Google Account
+                        </span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowGooglePicker(false)}
+                        className="text-[11px] font-mono text-slate-400 hover:text-white cursor-pointer"
+                      >
+                        Back
+                      </button>
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name="password"
-                          aria-label="Password"
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Password"
-                          className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                        />
+                    <div className="space-y-1.5">
+                      {googleQuickAccounts.map((acc) => (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          onClick={() =>
+                            handleGoogleAccountSelect(
+                              acc.email,
+                              acc.fullName,
+                              acc.avatarUrl
+                            )
+                          }
+                          className="w-full p-2 rounded-lg bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/70 flex items-center justify-between gap-2 text-left transition cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img
+                              src={acc.avatarUrl}
+                              alt={acc.fullName}
+                              className="w-7 h-7 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-white truncate">
+                                {acc.fullName}
+                              </p>
+                              <p className="text-[10px] font-mono text-[#7DD3FC] truncate">
+                                {acc.email}
+                              </p>
+                            </div>
+                          </div>
+                          <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC] shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="pt-2 border-t border-white/10 space-y-2">
+                      <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                        Or enter another Google account
+                      </p>
+                      <input
+                        type="email"
+                        value={customGoogleEmail}
+                        onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                        placeholder="your.email@gmail.com or @univ-alger.dz"
+                        className="w-full h-9 px-3 rounded-lg bg-[#050C18] border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
+                      />
+                      <input
+                        type="text"
+                        value={customGoogleName}
+                        onChange={(e) => setCustomGoogleName(e.target.value)}
+                        placeholder="Your Full Name (optional)"
+                        className="w-full h-9 px-3 rounded-lg bg-[#050C18] border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleGoogleAccountSelect(
+                            customGoogleEmail,
+                            customGoogleName
+                          )
+                        }
+                        className="w-full h-9 rounded-lg bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                      >
+                        <GoogleLogoSvg className="w-3.5 h-3.5" />
+                        <span>Continue with Google</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : authMode === "signin" ? (
+                  <div className="space-y-2.5">
+                    <form onSubmit={handleEmailSignIn} className="space-y-2.5">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Email or Quanter ID
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type="text"
+                            name="email"
+                            aria-label="Email or Quanter ID"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="name@univ-alger.dz"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[11px] font-bold text-slate-300">
+                            Password
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("password");
+                              setOldEmailInput(email);
+                              setErrorMsg(null);
+                              setSuccessMsg(null);
+                            }}
+                            className="text-[10.5px] font-mono font-semibold text-[#7DD3FC] hover:text-white transition cursor-pointer"
+                          >
+                            Change password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            aria-label="Password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                            aria-label="Toggle password visibility"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Sign In</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </form>
+
+                    {/* Divider + Continue with Google */}
+                    <div className="flex items-center gap-2.5 py-0.5">
+                      <span className="h-px flex-1 bg-[#2B4875]/60" />
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
+                        OR
+                      </span>
+                      <span className="h-px flex-1 bg-[#2B4875]/60" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                        setShowGooglePicker(true);
+                      }}
+                      className="w-full h-10 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs shadow-sm active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <GoogleLogoSvg className="w-4 h-4" />
+                      <span>Continue with Google</span>
+                    </button>
+                  </div>
+                ) : authMode === "register" ? (
+                  <div className="space-y-2.5">
+                    <form onSubmit={handleRegister} className="space-y-2.5">
+                      <div className="grid grid-cols-2 gap-1.5">
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-                          aria-label="Toggle password visibility"
+                          onClick={() => setRegisterAsAlumni(false)}
+                          className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                            !registerAsAlumni
+                              ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
+                              : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                          }`}
                         >
-                          {showPassword ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
+                          Student Member
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsAlumni(true)}
+                          className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                            registerAsAlumni
+                              ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
+                              : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                          }`}
+                        >
+                          QUANTA Alumni
                         </button>
                       </div>
-                    </div>
 
-                    {/* Save login for Quick Access checkbox */}
-                    <label className="flex items-center gap-2 pt-0.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={saveForQuickAccess}
-                        onChange={(e) => setSaveForQuickAccess(e.target.checked)}
-                        className="w-3.5 h-3.5 rounded border-[#2B4875] bg-[#081223] accent-[#38BDF8]"
-                      />
-                      <span className="text-[11px] font-medium text-slate-300">
-                        Save login for Quick Access on this device
-                      </span>
-                    </label>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Full Name
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="e.g. Ayoub Sarri"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Email Address
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="name@univ-alger.dz"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="At least 6 characters"
+                            className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Create Account &amp; Continue</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </form>
 
                     <button
-                      type="submit"
-                      className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                        setShowGooglePicker(true);
+                      }}
+                      className="w-full h-10 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs shadow-sm active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <span>Sign In</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <GoogleLogoSvg className="w-4 h-4" />
+                      <span>Sign up with Google</span>
                     </button>
-                  </form>
+                  </div>
                 ) : (
-                  <form onSubmit={handleRegister} className="space-y-2.5">
-                    {/* Member vs Alumni Track Selector */}
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setRegisterAsAlumni(false)}
-                        className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
-                          !registerAsAlumni
-                            ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
-                            : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
-                        }`}
-                      >
-                        Student Member
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRegisterAsAlumni(true)}
-                        className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
-                          registerAsAlumni
-                            ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
-                            : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
-                        }`}
-                      >
-                        QUANTA Alumni
-                      </button>
-                    </div>
-
+                  /* CHANGE PASSWORD BY WRITING OLD EMAIL */
+                  <form onSubmit={handleChangePasswordSubmit} className="space-y-2.5">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Full Name
-                      </label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="text"
-                          required
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="e.g. Ayoub Sarri"
-                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Email Address
+                        Old / Registered Email Address
                       </label>
                       <div className="relative">
                         <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
-                          type="email"
+                          type="text"
                           required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="name@univ-alger.dz"
+                          value={oldEmailInput}
+                          onChange={(e) => setOldEmailInput(e.target.value)}
+                          placeholder="Write your registered email (e.g. ayoub.sarri@univ-alger.dz)"
                           className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                       </div>
@@ -929,18 +1294,54 @@ export default function WelcomeSplashPage() {
 
                     <div>
                       <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                        Password
+                        New Email Address{" "}
+                        <span className="text-slate-500 font-normal">(optional)</span>
                       </label>
                       <div className="relative">
-                        <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
-                          type={showPassword ? "text" : "password"}
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="At least 6 characters"
-                          className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          type="email"
+                          value={newEmailInput}
+                          onChange={(e) => setNewEmailInput(e.target.value)}
+                          placeholder="Leave blank to keep your current email"
+                          className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875]/70 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          New Password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={newPasswordInput}
+                            onChange={(e) => setNewPasswordInput(e.target.value)}
+                            placeholder="New password"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Confirm Password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={confirmPasswordInput}
+                            onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                            placeholder="Repeat password"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -948,8 +1349,8 @@ export default function WelcomeSplashPage() {
                       type="submit"
                       className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <span>Create Account &amp; Continue</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Update Password</span>
                     </button>
                   </form>
                 )}
@@ -959,7 +1360,7 @@ export default function WelcomeSplashPage() {
         </div>
       </div>
 
-      {/* Download App Modal (Zero mention of PWA) */}
+      {/* Download App Modal */}
       {showDownloadModal && (
         <div
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"

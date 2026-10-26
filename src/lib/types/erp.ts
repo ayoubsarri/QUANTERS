@@ -209,6 +209,7 @@ export interface Member {
   quanterId: string; // e.g. QT-26-0248
   handle: string; // e.g. @quanter0248
   email: string;
+  password?: string;
   fullName: string;
   phone: string;
   avatarUrl: string;

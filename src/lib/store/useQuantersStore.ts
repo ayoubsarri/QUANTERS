@@ -123,6 +123,11 @@ interface QuantersStoreState {
     password?: string;
     isAlumni?: boolean;
   }) => { ok: boolean; redirectPath: string; member?: Member; message?: string };
+  changeMemberPassword: (payload: {
+    oldEmail: string;
+    newEmail?: string;
+    newPassword: string;
+  }) => { ok: boolean; message: string; member?: Member };
   logout: () => void;
   syncWithServer: (force?: boolean) => Promise<void>;
   setUserLowDataMode: (enabled: boolean) => void;
@@ -464,11 +469,18 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     );
 
     if (password !== undefined) {
-      const cleanPass = password.trim().toLowerCase();
+      const rawPass = password.trim();
+      const cleanPass = rawPass.toLowerCase();
       const firstToken = existing
         ? existing.fullName.replace(/^dr\.\s*/i, "").split(" ")[0].toLowerCase()
         : "";
+      const matchesCustomPass = Boolean(
+        existing?.password &&
+          (rawPass === existing.password ||
+            cleanPass === existing.password.toLowerCase())
+      );
       const validPass =
+        matchesCustomPass ||
         cleanPass === "quanta2026" ||
         cleanPass === "123456" ||
         cleanPass === "password" ||
@@ -477,7 +489,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         return {
           ok: false,
           redirectPath: "/welcome",
-          message: "Invalid password. Use quanta2026 (or <firstname>123).",
+          message: "Invalid password. Please check your password or use Change Password.",
         };
       }
     }
@@ -621,7 +633,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     return { ok: true, redirectPath, member: newMember };
   },
 
-  registerAccount: ({ fullName, email, isAlumni }) => {
+  registerAccount: ({ fullName, email, password, isAlumni }) => {
     const cleanEmail = email.trim().toLowerCase();
     const state = get();
     if (!isAlumni && !state.settings.registrationOpen) {
@@ -649,6 +661,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       quanterId: isAlumni ? `QT-23-0${num}` : `QT-26-0${num}`,
       handle: `@quanter0${num}`,
       email: cleanEmail,
+      password: password?.trim() || "quanta2026",
       fullName: fullName.trim() || "New Quanter",
       phone: "+213 550 00 00 00",
       avatarUrl:
@@ -706,6 +719,66 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       isAuthenticated: true,
     });
     return { ok: true, redirectPath, member: newMember };
+  },
+
+  changeMemberPassword: ({ oldEmail, newEmail, newPassword }) => {
+    const cleanOldEmail = oldEmail.trim().toLowerCase();
+    const cleanNewEmail = newEmail?.trim().toLowerCase() || "";
+    const cleanPass = newPassword.trim();
+
+    if (!cleanOldEmail) {
+      return { ok: false, message: "Please enter your registered email address." };
+    }
+    if (cleanPass.length < 4) {
+      return { ok: false, message: "New password must be at least 4 characters." };
+    }
+
+    const state = get();
+    const target = state.members.find(
+      (m) =>
+        m.email.toLowerCase() === cleanOldEmail ||
+        m.quanterId.toLowerCase() === cleanOldEmail ||
+        m.handle.toLowerCase() === cleanOldEmail ||
+        m.handle.replace("@", "").toLowerCase() === cleanOldEmail
+    );
+
+    if (!target) {
+      return {
+        ok: false,
+        message: "No account found matching that email address.",
+      };
+    }
+
+    const updatedMember: Member = {
+      ...target,
+      email: cleanNewEmail || target.email,
+      password: cleanPass,
+    };
+
+    set((s) => ({
+      members: s.members.map((m) => (m.id === target.id ? updatedMember : m)),
+      auditLogs: [
+        {
+          id: `aud-${Date.now()}`,
+          timestamp: nowStamp(),
+          actorName: target.fullName,
+          actorRole: target.roles[0] || "Member",
+          actionCategory: "Settings Changed",
+          targetLabel: target.fullName,
+          oldValue: "Password",
+          newValue: "Updated via email verification",
+          reason: `Password changed for ${updatedMember.email}`,
+        },
+        ...s.auditLogs,
+      ],
+    }));
+
+    get().saveToLocalCache();
+    return {
+      ok: true,
+      message: "Password updated successfully. You can now sign in with your new password.",
+      member: updatedMember,
+    };
   },
 
   logout: () =>

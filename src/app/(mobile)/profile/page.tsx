@@ -17,9 +17,11 @@ import {
   Globe,
   History,
   Home,
+  KeyRound,
   LayoutDashboard,
   Linkedin,
   LogOut,
+  Mail,
   MapPin,
   Orbit,
   Pencil,
@@ -106,11 +108,13 @@ export default function MobileProfilePage() {
     (s) => s.updateMemberProfileSelf
   );
   const submitPointsAppeal = useQuantersStore((s) => s.submitPointsAppeal);
+  const changeMemberPassword = useQuantersStore((s) => s.changeMemberPassword);
   const logout = useQuantersStore((s) => s.logout);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
   const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
   const setUserLowDataMode = useQuantersStore((s) => s.setUserLowDataMode);
   const isOnline = useQuantersStore((s) => s.isOnline);
+  const setOnlineStatus = useQuantersStore((s) => s.setOnlineStatus);
   const pendingSyncCount = useQuantersStore((s) => s.pendingSyncCount);
   const lastSyncedAt = useQuantersStore((s) => s.lastSyncedAt);
 
@@ -131,6 +135,14 @@ export default function MobileProfilePage() {
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleToast, setScheduleToast] = useState<string | null>(null);
+
+  // Change Password by Old Email modal state
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [oldEmailVerify, setOldEmailVerify] = useState("");
+  const [newEmailOptional, setNewEmailOptional] = useState("");
+  const [newPasswordVal, setNewPasswordVal] = useState("");
+  const [confirmPasswordVal, setConfirmPasswordVal] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const activeQuote = getActiveDailyQuote(dailyQuotes, settings);
 
@@ -763,36 +775,60 @@ export default function MobileProfilePage() {
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
-                  Offline App Cache &amp; Data Saver
+                  Offline Mode &amp; Data Saver
                 </h3>
                 <span
-                  className={`px-1.5 py-0.5 rounded font-mono text-xs font-bold border ${
+                  className={`px-1.5 py-0.5 rounded font-mono text-[10px] font-bold border ${
                     isOnline
                       ? "bg-[#F0F6FF] text-[#0284C7] border-[#D5E3F5]"
-                      : "bg-slate-100 text-slate-600 border-slate-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
                   }`}
                 >
                   {isOnline ? "ONLINE · CACHED" : "OFFLINE MODE"}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                {userLowDataMode
+                {!isOnline
+                  ? "Working 100% from local device cache · Changes auto-sync when back online"
+                  : userLowDataMode
                   ? "Low-Data Quota Saver ON · Batches syncs & skips heavy video"
                   : "All app screens & member pass cached on device for offline use"}
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setUserLowDataMode(!userLowDataMode)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer shrink-0 ${
-                userLowDataMode
-                  ? "bg-[#182C4E] text-white border-[#2B4875]"
-                  : "bg-[#F8FAFC] text-slate-700 border-slate-200 hover:bg-[#F0F6FF]"
-              }`}
-            >
-              {userLowDataMode ? "Quota Saver: ON" : "Enable Data Saver"}
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isOnline;
+                  setOnlineStatus(next);
+                  try {
+                    window.localStorage.setItem(
+                      "quanters_offline_mode_manual",
+                      next ? "0" : "1"
+                    );
+                  } catch {}
+                }}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  !isOnline
+                    ? "bg-amber-500 text-white border-amber-600"
+                    : "bg-[#F8FAFC] text-slate-700 border-slate-200 hover:bg-[#F0F6FF]"
+                }`}
+              >
+                {!isOnline ? "Go Online" : "Offline Mode"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserLowDataMode(!userLowDataMode)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  userLowDataMode
+                    ? "bg-[#182C4E] text-white border-[#2B4875]"
+                    : "bg-[#F8FAFC] text-slate-700 border-slate-200 hover:bg-[#F0F6FF]"
+                }`}
+              >
+                {userLowDataMode ? "Data Saver: ON" : "Data Saver"}
+              </button>
+            </div>
           </div>
 
           {(pendingSyncCount > 0 || lastSyncedAt) && (
@@ -826,6 +862,22 @@ export default function MobileProfilePage() {
             </span>
           </div>
 
+          <button
+            type="button"
+            onClick={() => {
+              setOldEmailVerify("");
+              setNewEmailOptional("");
+              setNewPasswordVal("");
+              setConfirmPasswordVal("");
+              setPasswordError(null);
+              setPasswordModalOpen(true);
+            }}
+            className="w-full h-10 rounded-xl bg-[#F0F6FF] hover:bg-[#E2EEFC] border border-[#D5E3F5] text-[#182C4E] text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-[#0284C7]" />
+            <span>Change Password</span>
+          </button>
+
           {member.roles.some((r) =>
             ["Super Admin", "Executive", "HR Head"].includes(r)
           ) && (
@@ -851,6 +903,154 @@ export default function MobileProfilePage() {
           </button>
         </div>
       </div>
+
+      {/* Change Password by Old Email Modal */}
+      {passwordModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">
+                  Change Password
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Verify by writing your registered email address
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPasswordModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                {passwordError}
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setPasswordError(null);
+                if (
+                  oldEmailVerify.trim().toLowerCase() !==
+                  member.email.toLowerCase()
+                ) {
+                  setPasswordError(
+                    "Please enter your exact registered email address to verify."
+                  );
+                  return;
+                }
+                if (newPasswordVal.trim().length < 4) {
+                  setPasswordError(
+                    "New password must be at least 4 characters."
+                  );
+                  return;
+                }
+                if (newPasswordVal.trim() !== confirmPasswordVal.trim()) {
+                  setPasswordError(
+                    "New password and confirmation do not match."
+                  );
+                  return;
+                }
+                const res = changeMemberPassword({
+                  oldEmail: oldEmailVerify,
+                  newEmail: newEmailOptional,
+                  newPassword: newPasswordVal,
+                });
+                if (!res.ok) {
+                  setPasswordError(res.message);
+                  return;
+                }
+                await syncWithServer();
+                setPasswordModalOpen(false);
+                setScheduleToast("Password updated successfully!");
+                setTimeout(() => setScheduleToast(null), 3500);
+              }}
+              className="space-y-2.5 text-xs"
+            >
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Old / Registered Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={oldEmailVerify}
+                    onChange={(e) => setOldEmailVerify(e.target.value)}
+                    placeholder={member.email}
+                    className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  New Email Address{" "}
+                  <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={newEmailOptional}
+                  onChange={(e) => setNewEmailOptional(e.target.value)}
+                  placeholder="Leave blank to keep current email"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPasswordVal}
+                  onChange={(e) => setNewPasswordVal(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPasswordVal}
+                  onChange={(e) => setConfirmPasswordVal(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalOpen(false)}
+                  className="flex-1 h-9 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-9 rounded-xl bg-[#182C4E] text-white font-extrabold text-xs cursor-pointer"
+                >
+                  Save Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Personal Digital ID QR Modal */}
       <PersonalQRModal

@@ -1,10 +1,10 @@
 /**
- * QUANTERS Universal Offline-First Service Worker (v3.2)
+ * QUANTERS Universal Offline-First & Notification Service Worker (v4.0)
  * Provides multi-device PWA caching, offline route navigation,
- * API snapshot fallback, and aggressive bandwidth/quota reduction.
+ * API snapshot fallback, and native Push / System notifications.
  */
 
-const CACHE_VERSION = "quanters-pwa-v3.2";
+const CACHE_VERSION = "quanters-pwa-v4.0";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -12,7 +12,6 @@ const API_CACHE = `${CACHE_VERSION}-api`;
 const CORE_PRECACHE_URLS = [
   "/",
   "/welcome",
-  "/login",
   "/home",
   "/workshops",
   "/explore",
@@ -31,6 +30,13 @@ const CORE_PRECACHE_URLS = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/brand/logo_quanta_opt.webp",
+  "/brand/quanters_vector_v2.svg",
+  "/brand/univ_logo_d.svg",
+  "/brand/univ_logo_darkmode.svg",
+  "/brand/univ_logo.svg",
+  "/brand/hero_rank_banner.png",
+  "/brand/checkin_cosmic_banner.png",
+  "/brand/welcome_keyframe_1.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -74,20 +80,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (!event.data) return;
+
   if (event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+
   if (event.data.type === "WARM_ROUTES" && Array.isArray(event.data.routes)) {
     event.waitUntil(
       caches.open(PAGES_CACHE).then(async (cache) => {
         for (const r of event.data.routes) {
           try {
-            const existing = await cache.match(r);
-            if (!existing) {
-              const resp = await fetch(r, { credentials: "same-origin" });
-              if (resp && resp.ok) {
-                await cache.put(r, resp.clone());
-              }
+            const resp = await fetch(r, { credentials: "same-origin" });
+            if (resp && resp.ok) {
+              await cache.put(r, resp.clone());
             }
           } catch {
             // Ignore offline errors during background warm
@@ -96,6 +101,74 @@ self.addEventListener("message", (event) => {
       })
     );
   }
+
+  if (event.data.type === "SHOW_NOTIFICATION" && event.data.payload) {
+    const { title, body, url, tag, priority } = event.data.payload;
+    if (self.registration && self.registration.showNotification) {
+      event.waitUntil(
+        self.registration.showNotification(title || "QUANTERS Notification", {
+          body: body || "You have a new update in QUANTERS.",
+          icon: "/icons/icon-192.png",
+          badge: "/icons/icon-96.png",
+          tag: tag || `quanters-${Date.now()}`,
+          renotify: true,
+          requireInteraction: priority === "Action needed",
+          data: { url: url || "/notifications" },
+        })
+      );
+    }
+  }
+});
+
+self.addEventListener("push", (event) => {
+  let payload = {
+    title: "QUANTERS · QUANTA Scientific Club",
+    body: "New club dispatch available in your inbox.",
+    url: "/notifications",
+  };
+  try {
+    if (event.data) {
+      const parsed = event.data.json();
+      payload = { ...payload, ...parsed };
+    }
+  } catch {
+    if (event.data) {
+      payload.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-96.png",
+      data: { url: payload.url || "/notifications" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || "/notifications";
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ("focus" in client) {
+            client.focus();
+            if ("navigate" in client) {
+              client.navigate(targetUrl).catch(() => {});
+            }
+            return;
+          }
+        }
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl);
+        }
+      })
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -103,8 +176,6 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-
-  // Skip external non-HTTPS or browser-extension requests
   if (!url.protocol.startsWith("http")) return;
 
   // 1. API Snapshot Endpoint (/api/erp) -> Network-First with Offline Snapshot Fallback
@@ -130,7 +201,7 @@ self.addEventListener("fetch", (event) => {
               telemetry: {
                 dbSizeBytes: 0,
                 dbSizeKB: 0,
-                memberCount: 11,
+                memberCount: 13,
                 quotaUsedPercent: 0,
               },
             }),
@@ -148,7 +219,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Immutable Static Assets (/_next/static/*, /icons/*, /brand/*, Google Fonts) -> Cache-First (Saves Quota)
+  // 2. Immutable Static Assets -> Cache-First
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
@@ -194,7 +265,6 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResp;
         } catch {
-          // Offline fallback lookup: exact request -> pathname -> /home app shell
           const exactMatch = await pagesCache.match(request);
           if (exactMatch) return exactMatch;
 
@@ -222,7 +292,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 4. All other GET requests (images, avatars, etc.) -> Stale-While-Revalidate
+  // 4. All other GET requests -> Stale-While-Revalidate
   event.respondWith(
     (async () => {
       const staticCache = await caches.open(STATIC_CACHE);

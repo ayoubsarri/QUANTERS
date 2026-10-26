@@ -1,26 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
   Check,
   CheckCheck,
   CheckCircle2,
+  CloudOff,
   ExternalLink,
   Inbox,
   Mail,
   Orbit,
+  RefreshCw,
   RotateCcw,
   Search,
+  Settings2,
   ShieldAlert,
   Sparkles,
   Users,
+  Wifi,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { ClubMessage, NotificationPriority } from "@/lib/types/erp";
+import {
+  dispatchSystemNotification,
+  loadNotificationPrefs,
+  NOTIFICATION_PREFS_KEY,
+  NotificationPrefs,
+  OFFLINE_WARM_ROUTES,
+} from "@/components/shared/PwaOfflineManager";
 
 type FilterTab = "Inbox" | "HR Notices" | "Archived";
 
@@ -54,9 +65,14 @@ export default function NotificationsPage() {
   const archiveAllReadMessages = useQuantersStore(
     (s) => s.archiveAllReadMessages
   );
+  const isOnline = useQuantersStore((s) => s.isOnline);
+  const setOnlineStatus = useQuantersStore((s) => s.setOnlineStatus);
+  const saveToLocalCache = useQuantersStore((s) => s.saveToLocalCache);
+  const syncWithServer = useQuantersStore((s) => s.syncWithServer);
 
   const [activeTab, setActiveTab] = useState<FilterTab>("Inbox");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
@@ -64,6 +80,83 @@ export default function NotificationsPage() {
   const [justArchivedBanner, setJustArchivedBanner] = useState<string | null>(
     null
   );
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>({
+    pushEnabled: true,
+    hrNotices: true,
+    departmentTasks: true,
+    workshopReminders: true,
+    dailyQuizAndXp: true,
+  });
+  const [browserPerm, setBrowserPerm] = useState<string>("default");
+  const [cachingOffline, setCachingOffline] = useState(false);
+
+  useEffect(() => {
+    setNotifPrefs(loadNotificationPrefs());
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setBrowserPerm(Notification.permission);
+    }
+  }, []);
+
+  const updatePref = (key: keyof NotificationPrefs, value: boolean) => {
+    const next = { ...notifPrefs, [key]: value };
+    setNotifPrefs(next);
+    try {
+      window.localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(next));
+    } catch {}
+  };
+
+  const handleRequestPushPermission = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      updatePref("pushEnabled", true);
+      setJustArchivedBanner("In-App Notifications enabled on this device");
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      setBrowserPerm(perm);
+      updatePref("pushEnabled", perm === "granted");
+      if (perm === "granted") {
+        await dispatchSystemNotification({
+          title: "QUANTERS Push Notifications Enabled",
+          body: "You will now receive instant alerts for workshops, tasks, and HR notices.",
+          priority: "Info",
+          url: "/notifications",
+        });
+      }
+    } catch {
+      updatePref("pushEnabled", true);
+    }
+  };
+
+  const handleSendTestAlert = async () => {
+    await dispatchSystemNotification({
+      title: "QUANTA Live Dispatch Test",
+      body: "Push notifications & offline sync are active on your device.",
+      priority: "Info",
+      url: "/notifications",
+    });
+    setJustArchivedBanner("Test notification dispatched!");
+  };
+
+  const handleWarmOfflineCache = async () => {
+    setCachingOffline(true);
+    saveToLocalCache();
+    try {
+      if ("serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.active?.postMessage({
+          type: "WARM_ROUTES",
+          routes: OFFLINE_WARM_ROUTES,
+        });
+      }
+    } catch {}
+    setTimeout(() => {
+      setCachingOffline(false);
+      setJustArchivedBanner(
+        `Offline cache updated (${OFFLINE_WARM_ROUTES.length} screens cached on device)`
+      );
+    }, 600);
+  };
 
   const unreadCount = messages.filter((m) => !m.archived && m.unread).length;
   const archivedCount = messages.filter((m) => m.archived || !m.unread).length;
@@ -180,6 +273,19 @@ export default function NotificationsPage() {
             </button>
             <button
               type="button"
+              onClick={() => setSettingsOpen((v) => !v)}
+              className={`w-8 h-8 rounded-lg border flex items-center justify-center active:scale-[0.98] transition cursor-pointer ${
+                settingsOpen
+                  ? "bg-[#182C4E] text-white border-[#2B4875]"
+                  : "bg-white border-slate-200/90 text-slate-600 hover:text-[#182C4E]"
+              }`}
+              aria-label="Notification and offline settings"
+              title="Notifications & Offline Mode Settings"
+            >
+              <Settings2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setSearchOpen((v) => !v)}
               className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition cursor-pointer"
               aria-label="Search messages"
@@ -188,6 +294,144 @@ export default function NotificationsPage() {
             </button>
           </div>
         </div>
+
+        {/* Compact Status & Config Strip */}
+        <div className="mb-3 p-2.5 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between gap-2 text-xs shadow-2xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isOnline ? "bg-emerald-500" : "bg-amber-500"
+              }`}
+            />
+            <span className="font-bold text-[#0F1E36] truncate">
+              {isOnline ? "Online · Push & Offline Ready" : "Offline Mode Active"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleSendTestAlert}
+              className="px-2.5 py-1 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] border border-[#D5E3F5] text-[10.5px] font-bold text-[#182C4E] transition cursor-pointer"
+            >
+              Test Alert
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((v) => !v)}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-[10.5px] font-bold text-slate-700 transition cursor-pointer"
+            >
+              {settingsOpen ? "Hide Config" : "Configure"}
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible Notifications & Offline Mode Configuration Panel */}
+        {settingsOpen && (
+          <div className="mb-3.5 p-3.5 rounded-xl bg-white border border-[#2B4875]/35 shadow-sm space-y-3 animate-rise">
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div>
+                <h2 className="font-display text-xs font-black uppercase tracking-wider text-[#0F1E36]">
+                  Notifications &amp; Offline Mode
+                </h2>
+                <p className="text-[11px] text-slate-500">
+                  Manage push alerts and local offline app caching
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRequestPushPermission}
+                className="px-2.5 py-1 rounded-lg bg-[#182C4E] text-white text-[10.5px] font-bold cursor-pointer"
+              >
+                {browserPerm === "granted"
+                  ? "Push Active"
+                  : "Enable Push Alerts"}
+              </button>
+            </div>
+
+            {/* Channel Toggles */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              {(
+                [
+                  { key: "hrNotices", label: "Official HR & Club Notices" },
+                  { key: "departmentTasks", label: "Department & Task Alerts" },
+                  {
+                    key: "workshopReminders",
+                    label: "Workshop & Check-In Alerts",
+                  },
+                  { key: "dailyQuizAndXp", label: "Daily Quiz & XP Milestones" },
+                ] as const
+              ).map((item) => (
+                <label
+                  key={item.key}
+                  className="p-2 rounded-lg bg-[#F8FAFC] border border-slate-200/80 flex items-center justify-between gap-2 cursor-pointer select-none"
+                >
+                  <span className="font-semibold text-slate-700 text-[11px]">
+                    {item.label}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={notifPrefs[item.key]}
+                    onChange={(e) => updatePref(item.key, e.target.checked)}
+                    className="w-3.5 h-3.5 accent-[#182C4E] rounded cursor-pointer"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Offline Mode & Cache Controls */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                {isOnline ? (
+                  <Wifi className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <CloudOff className="w-4 h-4 text-amber-600" />
+                )}
+                <span className="text-[11px] font-bold text-slate-700">
+                  {isOnline
+                    ? `${OFFLINE_WARM_ROUTES.length} screens cached for offline use`
+                    : "Working offline from device storage"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleWarmOfflineCache}
+                  disabled={cachingOffline}
+                  className="px-2.5 py-1 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[10.5px] font-bold text-[#182C4E] inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw
+                    className={`w-3 h-3 ${cachingOffline ? "animate-spin" : ""}`}
+                  />
+                  <span>Refresh Cache</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !isOnline;
+                    setOnlineStatus(next);
+                    try {
+                      window.localStorage.setItem(
+                        "quanters_offline_mode_manual",
+                        next ? "0" : "1"
+                      );
+                    } catch {}
+                    if (next) {
+                      syncWithServer(true);
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold border transition cursor-pointer ${
+                    !isOnline
+                      ? "bg-amber-500 text-white border-amber-600"
+                      : "bg-slate-100 text-slate-700 border-slate-200"
+                  }`}
+                >
+                  {!isOnline ? "Switch to Online" : "Simulate Offline"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search Input */}
         {searchOpen && (
