@@ -1286,14 +1286,15 @@ export default function WelcomeSplashPage() {
                 ) : authMode === "register" ? (
                   <div className="space-y-2.5">
                     <form onSubmit={handleRegister} className="space-y-2.5">
-                      <div className="grid grid-cols-2 gap-1.5">
+                      {/* Clean Role Tabs (No Chunky Double Boxes) */}
+                      <div className="flex items-center gap-5 border-b border-white/10 pb-2">
                         <button
                           type="button"
                           onClick={() => setRegisterAsAlumni(false)}
-                          className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                          className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                             !registerAsAlumni
-                              ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
-                              : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                              ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                              : "text-slate-400 hover:text-slate-200"
                           }`}
                         >
                           Student Member
@@ -1301,10 +1302,10 @@ export default function WelcomeSplashPage() {
                         <button
                           type="button"
                           onClick={() => setRegisterAsAlumni(true)}
-                          className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                          className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                             registerAsAlumni
-                              ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
-                              : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                              ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                              : "text-slate-400 hover:text-slate-200"
                           }`}
                         >
                           QUANTA Alumni
@@ -1312,64 +1313,86 @@ export default function WelcomeSplashPage() {
                       </div>
 
                       <div>
-                        <label className="block text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                           Full Name
                         </label>
                         <div className="relative">
-                          <User className="w-3.5 h-3.5 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <User className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
                             required
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             placeholder="e.g. Ayoub Sarri"
-                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                           Email Address
                         </label>
                         <div className="relative">
-                          <Mail className="w-3.5 h-3.5 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="name@univ-alger.dz"
-                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                           Password
                         </label>
                         <div className="relative">
-                          <KeyRound className="w-3.5 h-3.5 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type={showPassword ? "text" : "password"}
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="At least 6 characters"
-                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                            aria-label="Toggle password visibility"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
                         </div>
                       </div>
 
+                      {/* Primary Create Account Button: Identical to Sign In Button */}
                       <button
                         type="submit"
-                        className="w-full h-9.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#0A47A8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs shadow-[0_6px_20px_rgba(2,132,199,0.35)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <span>Create Account &amp; Continue</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     </form>
+
+                    {/* Divider + Sign up with Google: Identical to Sign In */}
+                    <div className="flex items-center gap-3 py-1.5">
+                      <span className="h-px flex-1 bg-white/10" />
+                      <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400">
+                        OR
+                      </span>
+                      <span className="h-px flex-1 bg-white/10" />
+                    </div>
 
                     <button
                       type="button"
@@ -1378,7 +1401,7 @@ export default function WelcomeSplashPage() {
                         setSuccessMsg(null);
                         setShowGooglePicker(true);
                       }}
-                      className="w-full h-9.5 rounded-xl bg-[#0B172A] hover:bg-[#11233F] border border-white/15 text-white font-display font-bold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                      className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 font-display font-extrabold text-sm text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                     >
                       <GoogleLogoSvg className="w-4 h-4" />
                       <span>Sign up with Google</span>
