@@ -506,10 +506,8 @@ export default function WelcomeSplashPage() {
           <header className={`w-full space-y-2.5 transition-all duration-700 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
             <div className={`w-full flex transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
               <div className="inline-flex flex-col select-none items-start text-left">
-                <img
-                  src="/brand/quanters_vector_v2.svg"
-                  alt="QUANTERS"
-                  className="h-14 sm:h-16 md:h-18 lg:h-20 w-auto object-contain object-left block select-none drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out"
+                <QuantersVectorWordmark
+                  className="h-14 sm:h-16 lg:h-20 w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out"
                 />
                 <div className="inline-flex items-center gap-2 mt-2 justify-start text-left">
                   <span className="font-display text-xs sm:text-[13px] font-black tracking-[0.2em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
