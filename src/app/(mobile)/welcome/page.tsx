@@ -14,12 +14,14 @@ import {
   Mail,
   Monitor,
   Smartphone,
+  Sparkles,
   User,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { QuantersVectorWordmark } from "@/components/shared/QuantaLogo";
 import { Member } from "@/lib/types/erp";
+import { sendFirebasePasswordReset } from "@/lib/firebase/auth";
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -195,8 +197,14 @@ export default function WelcomeSplashPage() {
   const [customGoogleEmail, setCustomGoogleEmail] = useState("");
   const [customGoogleName, setCustomGoogleName] = useState("");
 
-  // Forgot Password contact panel state
+  // Forgot Password contact panel state & Firebase Auth recovery
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordStatus, setForgotPasswordStatus] = useState<{
+    type: "success" | "error" | "google_account";
+    message: string;
+  } | null>(null);
   const [copiedRecoveryEmail, setCopiedRecoveryEmail] = useState<string | null>(
     null
   );
@@ -380,6 +388,62 @@ export default function WelcomeSplashPage() {
       return;
     }
     await completeAuthenticatedTransition(res.member, res.redirectPath);
+  };
+
+  const handleFirebasePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = forgotPasswordEmail.trim().toLowerCase();
+    if (!cleanEmail) {
+      setForgotPasswordStatus({
+        type: "error",
+        message: "Please enter your email address to reset password.",
+      });
+      return;
+    }
+
+    setForgotPasswordLoading(true);
+    setForgotPasswordStatus(null);
+
+    // 1. Check if the email belongs to a member registered with Google
+    const existingMember = members.find(
+      (m) => m.email.toLowerCase() === cleanEmail
+    );
+
+    if (
+      existingMember &&
+      (existingMember.authProvider === "google" ||
+        !existingMember.password ||
+        existingMember.password === "google")
+    ) {
+      setForgotPasswordLoading(false);
+      setForgotPasswordStatus({
+        type: "google_account",
+        message:
+          "This email is connected with Google Authentication. Please use 'Continue with Google' to sign in. If you have lost access to your Google account or need credential assistance, please contact the administrator below.",
+      });
+      return;
+    }
+
+    // 2. Dispatch official Firebase password reset
+    const res = await sendFirebasePasswordReset(cleanEmail);
+    setForgotPasswordLoading(false);
+
+    if (res.success) {
+      setForgotPasswordStatus({
+        type: "success",
+        message:
+          res.message ||
+          "Firebase password reset email dispatched! Please check your inbox and spam folder for the secure reset link.",
+      });
+    } else {
+      setForgotPasswordStatus({
+        type: "error",
+        message:
+          res.errorCode === "USER_NOT_FOUND"
+            ? "This email is not registered with an active password or Google account. Please verify your address or contact the club administrator below."
+            : res.message,
+      });
+    }
   };
 
   const handleGoogleAccountSelect = async (
@@ -646,41 +710,20 @@ export default function WelcomeSplashPage() {
                   </div>
                 </button>
 
-                {/* Institutional Signature with Official Asset 2.png (Univ Algiers 1 + Quanta) & Faculty of Sciences Logo */}
-                <div className="pt-1">
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-[#38E4FF]/35 to-transparent mb-3" />
-                  <div className="flex items-center justify-between gap-2.5 px-1">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <img
-                        src="/brand/univ_quanta_asset2.png"
-                        alt="University of Algiers 1 & Quanta Scientific Club"
-                        className="h-8 sm:h-9 w-auto object-contain shrink-0"
-                      />
-                      <div className="hidden sm:block min-w-0 pl-2.5 border-l border-white/15">
-                        <div className="font-display font-extrabold text-[11px] tracking-[0.14em] text-white uppercase truncate">
-                          QUANTA SCIENTIFIC CLUB
-                        </div>
-                        <div className="font-mono text-[10px] font-semibold tracking-[0.08em] text-[#38E4FF] uppercase truncate">
-                          UNIVERSITY OF ALGIERS 1
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 shrink-0 pl-2.5 border-l border-white/15">
-                      <img
-                        src="/brand/univ_logo.svg"
-                        alt="Faculty of Sciences"
-                        className="h-7 sm:h-8 w-auto object-contain shrink-0 opacity-95"
-                      />
-                      <div className="text-right">
-                        <div className="font-mono text-[10px] sm:text-xs font-semibold tracking-[0.1em] text-slate-200 uppercase leading-tight">
-                          FAC. SCIENCES
-                        </div>
-                        <div className="sm:hidden font-mono text-[9px] font-semibold tracking-[0.08em] text-[#38E4FF] uppercase leading-tight">
-                          ALGIERS 1
-                        </div>
-                      </div>
-                    </div>
+                {/* Institutional Partner Emblems (Clean, Spacious, Zero Condensed Clutter) */}
+                <div className="pt-2">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2.5" />
+                  <div className="flex items-center justify-between px-2">
+                    <img
+                      src="/brand/univ_quanta_asset2.png"
+                      alt="University of Algiers 1 & Quanta"
+                      className="h-6 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                    />
+                    <img
+                      src="/brand/univ_logo.svg"
+                      alt="Faculty of Sciences"
+                      className="h-6 sm:h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                    />
                   </div>
                 </div>
               </div>
@@ -775,16 +818,15 @@ export default function WelcomeSplashPage() {
                 aria-label="Member Sign In"
                 className="w-full bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/35 hover:border-[#38BDF8]/50 rounded-2xl p-5 sm:p-6 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] space-y-3.5 text-left animate-rise transition-all"
               >
-                {/* Top Row: Refined Portal Header */}
-                <div className="flex items-center justify-between gap-3 pb-1 border-b border-white/8">
-                  <div className="space-y-1">
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#0F2342]/90 border border-[#38BDF8]/35 text-[#7DD3FC] text-[10px] font-mono font-bold tracking-[0.14em] uppercase">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
-                      <span>QUANTA ACCESS PORTAL</span>
-                    </div>
+                {/* Header (Clean, Zero Redundant Box Badges) */}
+                <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/8">
+                  <div>
                     <h2 className="font-display text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
                       {authMode === "signin" ? "Member Authentication" : "Create New Account"}
                     </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {authMode === "signin" ? "Sign in to access your QUANTA club portal" : "Register your credentials to join QUANTERS"}
+                    </p>
                   </div>
 
                   <button
@@ -801,8 +843,8 @@ export default function WelcomeSplashPage() {
                   </button>
                 </div>
 
-                {/* Segmented 2-Mode Switcher */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#030812]/90 border border-white/10">
+                {/* Modern Clean Tabs (No Clunky Boxes) */}
+                <div className="flex items-center gap-6 border-b border-white/10 pt-1 pb-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -812,10 +854,10 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`py-2 rounded-lg text-xs font-display font-extrabold transition cursor-pointer ${
+                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "signin"
-                        ? "bg-gradient-to-r from-[#182C4E] to-[#1E3A66] text-white border border-[#38BDF8]/45 shadow-xs"
-                        : "text-slate-400 hover:text-white"
+                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
                     Sign In
@@ -829,10 +871,10 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`py-2 rounded-lg text-xs font-display font-extrabold transition cursor-pointer ${
+                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "register"
-                        ? "bg-gradient-to-r from-[#182C4E] to-[#1E3A66] text-white border border-[#38BDF8]/45 shadow-xs"
-                        : "text-slate-400 hover:text-white"
+                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
                     Create Account
@@ -993,86 +1035,154 @@ export default function WelcomeSplashPage() {
                   </div>
                 ) : authMode === "signin" ? (
                   showForgotPassword ? (
-                    <div className="p-3.5 rounded-xl bg-[#081223] border border-[#38BDF8]/40 space-y-3 animate-rise">
+                    <div className="space-y-3.5 animate-rise">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
                             <KeyRound className="w-3.5 h-3.5" />
                           </span>
                           <div>
-                            <h3 className="font-display font-black text-xs sm:text-sm text-white leading-tight">
-                              Forgot Your Password?
+                            <h3 className="font-display font-black text-sm text-white leading-tight">
+                              Reset Account Password
                             </h3>
-                            <p className="text-[10.5px] text-[#7DD3FC] font-mono">
-                              Account &amp; Password Recovery
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              Official Firebase Authentication Recovery
                             </p>
                           </div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => setShowForgotPassword(false)}
-                          className="text-[11px] font-mono font-bold text-slate-400 hover:text-white cursor-pointer"
+                          onClick={() => {
+                            setShowForgotPassword(false);
+                            setForgotPasswordStatus(null);
+                          }}
+                          className="text-xs font-mono font-bold text-[#38E4FF] hover:underline cursor-pointer"
                         >
-                          Back
+                          Back to Sign In
                         </button>
                       </div>
 
-                      <p className="text-xs text-slate-300 leading-relaxed">
-                        To reset your password or recover access to your account,
-                        please contact the QUANTA Administration or HR Desk:
-                      </p>
+                      {/* Interactive Email Reset Form */}
+                      <form onSubmit={handleFirebasePasswordReset} className="space-y-2.5">
+                        <div>
+                          <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1">
+                            Account Email Address
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={forgotPasswordEmail}
+                            onChange={(e) => {
+                              setForgotPasswordEmail(e.target.value);
+                              if (forgotPasswordStatus) setForgotPasswordStatus(null);
+                            }}
+                            placeholder="e.g. name@univ-alger.dz or user@gmail.com"
+                            className="w-full h-10 px-3 rounded-xl bg-[#081223] border border-white/15 focus:border-[#38BDF8] text-white text-xs font-mono placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#38BDF8]/40"
+                          />
+                        </div>
 
-                      <div className="space-y-1.5">
-                        {[
-                          {
-                            label: "QUANTA Club Admin",
-                            addr: "quantaclubdz@gmail.com",
-                          },
-                          {
-                            label: "HR Department Desk",
-                            addr: "hr.quanta@univ-alger.dz",
-                          },
-                        ].map((item) => (
-                          <div
-                            key={item.addr}
-                            className="p-2.5 rounded-lg bg-[#11203A] border border-[#2B4875]/80 flex items-center justify-between gap-2"
-                          >
-                            <div className="min-w-0">
-                              <span className="block text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                                {item.label}
-                              </span>
-                              <a
-                                href={`mailto:${item.addr}?subject=QUANTERS%20Password%20Recovery`}
-                                className="text-xs font-mono font-bold text-[#38E4FF] hover:underline break-all"
-                              >
-                                {item.addr}
-                              </a>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                try {
-                                  navigator.clipboard.writeText(item.addr);
-                                  setCopiedRecoveryEmail(item.addr);
-                                  setTimeout(
-                                    () => setCopiedRecoveryEmail(null),
-                                    2200
-                                  );
-                                } catch {}
-                              }}
-                              className="px-2.5 py-1 rounded-md bg-[#081223] hover:bg-[#182C4E] border border-[#38BDF8]/35 text-[10.5px] font-mono font-bold text-white shrink-0 cursor-pointer transition"
-                            >
-                              {copiedRecoveryEmail === item.addr
-                                ? "Copied"
-                                : "Copy"}
-                            </button>
+                        <button
+                          type="submit"
+                          disabled={forgotPasswordLoading}
+                          className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
+                        >
+                          {forgotPasswordLoading ? (
+                            <span>Dispatching Firebase Reset...</span>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5 text-[#7DD3FC]" />
+                              <span>Send Password Reset Email</span>
+                            </>
+                          )}
+                        </button>
+                      </form>
+
+                      {/* Status Feedback Banner */}
+                      {forgotPasswordStatus && (
+                        <div
+                          className={`p-3 rounded-xl text-xs leading-relaxed border ${
+                            forgotPasswordStatus.type === "success"
+                              ? "bg-emerald-500/15 border-emerald-400/40 text-emerald-200"
+                              : forgotPasswordStatus.type === "google_account"
+                              ? "bg-amber-500/15 border-amber-400/40 text-amber-200"
+                              : "bg-rose-500/15 border-rose-400/40 text-rose-200"
+                          }`}
+                        >
+                          <div className="font-bold flex items-center gap-1.5 mb-1">
+                            {forgotPasswordStatus.type === "success" ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            ) : forgotPasswordStatus.type === "google_account" ? (
+                              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                            ) : (
+                              <X className="w-4 h-4 text-rose-400 shrink-0" />
+                            )}
+                            <span>
+                              {forgotPasswordStatus.type === "success"
+                                ? "Reset Link Dispatched"
+                                : forgotPasswordStatus.type === "google_account"
+                                ? "Google Authentication Account"
+                                : "Unable to Reset Password"}
+                            </span>
                           </div>
-                        ))}
+                          <p>{forgotPasswordStatus.message}</p>
+                        </div>
+                      )}
+
+                      {/* Fallback Contact Section */}
+                      <div className="pt-2 border-t border-white/10 space-y-2">
+                        <div className="text-[11px] font-mono text-slate-400">
+                          If your email is not linked with Google or you need admin help:
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[
+                            {
+                              label: "QUANTA Administration",
+                              addr: "quantaclubdz@gmail.com",
+                            },
+                            {
+                              label: "HR Department Desk",
+                              addr: "hr.quanta@univ-alger.dz",
+                            },
+                          ].map((item) => (
+                            <div
+                              key={item.addr}
+                              className="p-2.5 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-1.5"
+                            >
+                              <div className="min-w-0">
+                                <span className="block text-[9.5px] font-mono uppercase tracking-wider text-slate-400 truncate">
+                                  {item.label}
+                                </span>
+                                <a
+                                  href={`mailto:${item.addr}?subject=QUANTERS%20Account%20Recovery`}
+                                  className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline truncate block"
+                                >
+                                  {item.addr}
+                                </a>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  try {
+                                    navigator.clipboard.writeText(item.addr);
+                                    setCopiedRecoveryEmail(item.addr);
+                                    setTimeout(() => setCopiedRecoveryEmail(null), 2000);
+                                  } catch {}
+                                }}
+                                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white shrink-0 cursor-pointer transition"
+                              >
+                                {copiedRecoveryEmail === item.addr ? "Copied" : "Copy"}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <button
                         type="button"
-                        onClick={() => setShowForgotPassword(false)}
+                        onClick={() => {
+                          setShowForgotPassword(false);
+                          setForgotPasswordStatus(null);
+                        }}
                         className="w-full h-9 rounded-xl bg-[#182C4E] hover:brightness-110 border border-[#38BDF8]/35 text-white font-display font-bold text-xs transition cursor-pointer"
                       >
                         Back to Sign In

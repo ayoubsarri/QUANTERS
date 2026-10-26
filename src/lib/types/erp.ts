@@ -220,6 +220,7 @@ export interface Member {
   handle: string; // e.g. @quanter0248
   email: string;
   password?: string;
+  authProvider?: "google" | "credentials";
   fullName: string;
   phone: string;
   avatarUrl: string;
