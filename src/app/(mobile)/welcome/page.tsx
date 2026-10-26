@@ -502,9 +502,9 @@ export default function WelcomeSplashPage() {
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
-          {/* A. TOP BRAND LOCKUP: LEFT-ALIGNED NORMALLY, ANIMATES/SLIDES TO CENTER WHEN PORTAL OPENS */}
-          <header className={`w-full space-y-2.5 transition-all duration-700 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
-            <div className={`w-full flex transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
+          {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT UNDER ALL CONDITIONS */}
+          <header className={`w-full space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
+            <div className="w-full flex justify-start text-left">
               <div className="inline-flex flex-col select-none items-start text-left">
                 <QuantersVectorWordmark
                   className="h-14 sm:h-16 lg:h-20 w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out"
