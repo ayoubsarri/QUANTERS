@@ -21,6 +21,7 @@ import {
   Monitor,
   Phone,
   Plus,
+  QrCode,
   ShieldAlert,
   Sparkles,
   User,
@@ -29,6 +30,7 @@ import {
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { DayOfWeek, MemberStatus, TimeSlot } from "@/lib/types/erp";
+import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
 
 const DAYS: DayOfWeek[] = [
   "Saturday",
@@ -62,6 +64,7 @@ export default function AdminMemberDetailCardPage() {
 
   const member = members.find((m) => m.id === memberId) || members[0];
   const [activeTab, setActiveTab] = useState<TabId>("profile");
+  const [showDigitalIdModal, setShowDigitalIdModal] = useState(false);
 
   // Award Badge Manually modal state
   const [awardModalOpen, setAwardModalOpen] = useState(false);
@@ -191,6 +194,14 @@ export default function AdminMemberDetailCardPage() {
                   <span className={`w-2 h-2 rounded-full ${healthDotColor}`} />
                   Health {member.healthScore}%
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setShowDigitalIdModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#091730] hover:bg-[#12264C] text-[#38E4FF] hover:text-white border border-[#38BDF8]/40 text-xs font-mono font-bold shadow-xs transition cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>Digital ID Pass</span>
+                </button>
               </div>
 
               <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-3">
@@ -259,120 +270,257 @@ export default function AdminMemberDetailCardPage() {
           </div>
         </div>
 
-        {/* Trainee 3-Ring Confirmation Tracker */}
-        <div className="bg-[#F4F7FB] rounded-2xl p-4 border border-slate-200/90 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-5">
-            <div>
-              <div className="text-xs font-extrabold text-[#0F1E36] uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
-                Trainee 3-Ring Qualification Tracker
-              </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                3-Month Qualification: Time (90d) + Attendance (≥75%) + On-Time Tasks + Head &amp;
-                Co-Manager Evaluation
-              </p>
-            </div>
-
-            {/* Ring 1: Time 3m */}
-            <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90">
-              <div className="w-8 h-8 rounded-full border-2 border-[#182C4E] flex items-center justify-center text-[10px] font-extrabold text-[#0284C7] tabular-nums">
-                {timeRingPct}%
+        {/* Trainee 3-Ring Qualification Tracker (Structured 4-Column Executive Grid) */}
+        <div className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0]/60 rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs space-y-4">
+          {/* Top Header Row: Title, Internal Law Rule & Verification Verdict */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#182C4E] text-[#38BDF8] flex items-center justify-center shrink-0 shadow-xs">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[11px] font-bold text-[#0F1E36]">Ring 1 · Time (3m)</div>
-                <div className="text-[10px] text-slate-500 tabular-nums">
-                  {member.traineeDaysElapsed} / 90 days
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#0F1E36]">
+                    Trainee 3-Ring Qualification Tracker
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
+                    3-Month Milestone
+                  </span>
                 </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Internal Law Art. 12: Qualification requires 90 days tenure, ≥75% attendance, on-time task delivery, and leadership endorsement.
+                </p>
               </div>
             </div>
 
-            {/* Ring 2: Attendance >= 75% */}
-            <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90">
-              <div
-                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-extrabold tabular-nums ${
-                  attRingOk
-                    ? "border-emerald-500 text-emerald-600"
-                    : "border-amber-500 text-amber-600"
-                }`}
-              >
-                {member.attendanceRate}%
-              </div>
-              <div>
-                <div className="text-[11px] font-bold text-[#0F1E36]">Ring 2 · Attendance</div>
-                <div className="text-[10px] text-slate-500">Target ≥75%</div>
-              </div>
-            </div>
-
-            {/* Ring 3: Tasks on time */}
-            <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-slate-200/90">
-              <div
-                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-[10px] font-extrabold tabular-nums ${
-                  taskRingOk
-                    ? "border-emerald-500 text-emerald-600"
-                    : "border-amber-500 text-amber-600"
-                }`}
-              >
-                {member.onTimeTaskRate}%
-              </div>
-              <div>
-                <div className="text-[11px] font-bold text-[#0F1E36]">Ring 3 · Tasks On-Time</div>
-                <div className="text-[10px] text-slate-500">
-                  {member.lateTasksThisMonth} late this month
-                </div>
-              </div>
+            {/* Verdict Action CTA / Verified Status Badge */}
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+              {member.status === "Trainee" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    confirmTraineeToActive(
+                      member.id,
+                      "Confirmed as Official Active Member from 6-Tab Member Card."
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Confirm as Active Member</span>
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold shadow-2xs">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Official {member.status} Member</span>
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Head / Co-Manager Evaluation Box + 1-Click Confirm as Active */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-white px-3 py-2 rounded-xl border border-slate-200/90 text-[11px]">
-              <div className="font-bold text-slate-800 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1">
-                  Head:{" "}
-                  {member.traineeEvaluation.headEndorsed ? (
-                    <span className="inline-flex items-center gap-0.5 text-emerald-700">
-                      <Check className="w-3 h-3" /> Endorsed
-                    </span>
-                  ) : (
-                    "Pending"
-                  )}
+          {/* 4 Clean Metric Cards: Ring 1, Ring 2, Ring 3, and Endorsement */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Card 1: Ring 1 · Tenure (90 Days) */}
+            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  Ring 1 · Tenure Time
                 </span>
-                <span>·</span>
-                <span className="inline-flex items-center gap-1">
-                  Co-Mgr:{" "}
-                  {member.traineeEvaluation.coManagerEndorsed ? (
-                    <span className="inline-flex items-center gap-0.5 text-emerald-700">
-                      <Check className="w-3 h-3" /> Endorsed
-                    </span>
-                  ) : (
-                    "Pending"
-                  )}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    timeRingPct >= 100
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-sky-50 text-sky-700 border border-sky-200"
+                  }`}
+                >
+                  {timeRingPct >= 100 ? "Completed" : "In Progress"}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-500 truncate max-w-[220px]">
-                {member.traineeEvaluation.notes || "Awaiting end-of-cycle evaluation note."}
+              <div className="flex items-center gap-3 mt-3">
+                <div className="relative w-11 h-11 shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-slate-100"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#0284C7]"
+                      strokeDasharray={`${timeRingPct}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold text-[#0284C7] tabular-nums">
+                    {timeRingPct}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-[#0F1E36]">3-Month Window</div>
+                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                    {member.traineeDaysElapsed} / 90 days
+                  </div>
+                </div>
               </div>
             </div>
 
-            {member.status === "Trainee" ? (
-              <button
-                type="button"
-                onClick={() =>
-                  confirmTraineeToActive(
-                    member.id,
-                    "Confirmed as Official Active Member from 6-Tab Member Card."
-                  )
-                }
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition cursor-pointer"
-              >
-                Confirm as Active
-              </button>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold">
-                <Check className="w-3.5 h-3.5" />
-                Official {member.status}
-              </span>
-            )}
+            {/* Card 2: Ring 2 · Attendance Rate (Target >= 75%) */}
+            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  Ring 2 · Attendance
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    attRingOk
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                  }`}
+                >
+                  {attRingOk ? "Qualified" : "Below Target"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="relative w-11 h-11 shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-slate-100"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className={attRingOk ? "text-emerald-500" : "text-amber-500"}
+                      strokeDasharray={`${member.attendanceRate}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold tabular-nums ${
+                      attRingOk ? "text-emerald-600" : "text-amber-600"
+                    }`}
+                  >
+                    {member.attendanceRate}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-[#0F1E36]">Workshop Presence</div>
+                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                    Target: ≥ 75% rate
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Ring 3 · Tasks On-Time */}
+            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  Ring 3 · Task Punctuality
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    taskRingOk
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                  }`}
+                >
+                  {taskRingOk ? "0 Late" : `${member.lateTasksThisMonth} Late`}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="relative w-11 h-11 shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-slate-100"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className={taskRingOk ? "text-emerald-500" : "text-amber-500"}
+                      strokeDasharray={`${member.onTimeTaskRate}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold tabular-nums ${
+                      taskRingOk ? "text-emerald-600" : "text-amber-600"
+                    }`}
+                  >
+                    {member.onTimeTaskRate}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-[#0F1E36]">On-Time Delivery</div>
+                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                    {member.lateTasksThisMonth} late this month
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Leadership Endorsement */}
+            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  Leadership Review
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    member.traineeEvaluation.headEndorsed &&
+                    member.traineeEvaluation.coManagerEndorsed
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                  }`}
+                >
+                  {member.traineeEvaluation.headEndorsed &&
+                  member.traineeEvaluation.coManagerEndorsed
+                    ? "2/2 Endorsed"
+                    : "Pending"}
+                </span>
+              </div>
+              <div className="mt-2.5 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">Head:</span>
+                  {member.traineeEvaluation.headEndorsed ? (
+                    <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold">
+                      <Check className="w-3 h-3" /> Endorsed
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 font-medium">Pending</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">Co-Manager:</span>
+                  {member.traineeEvaluation.coManagerEndorsed ? (
+                    <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold">
+                      <Check className="w-3 h-3" /> Endorsed
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 font-medium">Pending</span>
+                  )}
+                </div>
+                <div className="text-[10px] text-slate-500 line-clamp-1 italic pt-1 border-t border-slate-100">
+                  &ldquo;{member.traineeEvaluation.notes || "Awaiting evaluation note"}&rdquo;
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1268,6 +1416,14 @@ export default function AdminMemberDetailCardPage() {
           </div>
         </div>
       )}
+      {/* Official Member Digital ID Pass Modal */}
+      <PersonalQRModal
+        open={showDigitalIdModal}
+        onClose={() => setShowDigitalIdModal(false)}
+        member={member}
+        departmentName={department?.name || "Unassigned"}
+        teamName={team?.name}
+      />
     </>
   );
 }
