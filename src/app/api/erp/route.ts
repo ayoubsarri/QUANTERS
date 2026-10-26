@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readErpDatabase, writeErpDatabase } from "@/lib/server/db";
+import {
+  computeDeltaErpDatabase,
+  readErpDatabase,
+  writeErpDatabase,
+} from "@/lib/server/db";
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB strict payload ceiling
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute window
@@ -41,13 +45,13 @@ function computeQuotaTelemetry(
   preset: "standard" | "aggressive" | "ultra" = "aggressive"
 ) {
   // Firebase Spark Free-Tier Limits: 50,000 reads/day, 20,000 writes/day
-  const readsPerUser = preset === "ultra" ? 4 : preset === "aggressive" ? 10 : 65;
-  const writesPerUser = preset === "ultra" ? 2 : preset === "aggressive" ? 5 : 28;
+  const readsPerUser = preset === "ultra" ? 2 : preset === "aggressive" ? 5 : 40;
+  const writesPerUser = preset === "ultra" ? 1 : preset === "aggressive" ? 3 : 18;
   const maxByReads = Math.floor(50000 / readsPerUser);
   const maxByWrites = Math.floor(20000 / writesPerUser);
   const firebaseSparkMaxUsers = Math.min(maxByReads, maxByWrites);
   const quotaReductionPercent =
-    preset === "ultra" ? 94 : preset === "aggressive" ? 85 : 0;
+    preset === "ultra" ? 96 : preset === "aggressive" ? 90 : 0;
 
   return {
     ...baseTelemetry,
@@ -64,6 +68,7 @@ export async function GET(req: NextRequest) {
   const etag = `W/"${snapshot.updatedAt}-${telemetry.dbSizeBytes}"`;
   const ifNoneMatch = req.headers.get("if-none-match");
   const sinceParam = req.nextUrl.searchParams.get("since");
+  const versionsParam = req.nextUrl.searchParams.get("versions");
 
   if (
     (ifNoneMatch && ifNoneMatch === etag) ||
@@ -84,10 +89,55 @@ export async function GET(req: NextRequest) {
     snapshot.settings.quotaSaverPreset || "aggressive"
   );
 
+  // If client sends known `versions`, return ONLY the exact collections that changed
+  if (versionsParam) {
+    try {
+      const clientVersions = JSON.parse(versionsParam) as Record<string, string>;
+      const { changedKeys, delta, collectionVersions, updatedAt } =
+        computeDeltaErpDatabase(clientVersions);
+
+      if (changedKeys.length === 0) {
+        return new NextResponse(null, {
+          status: 304,
+          headers: {
+            ETag: etag,
+            "Cache-Control": "private, max-age=0, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      }
+
+      return NextResponse.json(
+        {
+          ok: true,
+          isDelta: true,
+          etag,
+          updatedAt,
+          changedKeys,
+          collectionVersions,
+          telemetry: enrichedTelemetry,
+          delta,
+        },
+        {
+          headers: {
+            ETag: etag,
+            "Cache-Control": "private, max-age=0, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+          },
+        }
+      );
+    } catch {
+      // Fallback to full snapshot if versions param was malformed
+    }
+  }
+
   return NextResponse.json(
     {
       ok: true,
+      isDelta: false,
       etag,
+      updatedAt: snapshot.updatedAt,
+      collectionVersions: snapshot.collectionVersions,
       telemetry: enrichedTelemetry,
       data: snapshot,
     },
@@ -223,8 +273,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const payload = body.data && typeof body.data === "object" ? body.data : body;
-    const updated = writeErpDatabase(payload);
+    const payload = body.data && typeof body.data === "object" ? body.data : {};
+    const itemDeltas =
+      body.itemDeltas && typeof body.itemDeltas === "object"
+        ? body.itemDeltas
+        : undefined;
+    const clientVersions =
+      body.clientVersions && typeof body.clientVersions === "object"
+        ? (body.clientVersions as Record<string, string>)
+        : undefined;
+
+    const { snapshot: updated, changedKeys } = writeErpDatabase(payload, itemDeltas);
     const { telemetry } = readErpDatabase();
     const etag = `W/"${updated.updatedAt}-${telemetry.dbSizeBytes}"`;
     const enrichedTelemetry = computeQuotaTelemetry(
@@ -232,12 +291,30 @@ export async function POST(req: NextRequest) {
       updated.settings.quotaSaverPreset || "aggressive"
     );
 
+    // Compute any server-side updates that occurred in other collections unknown to client
+    let serverDelta: Record<string, unknown> | undefined;
+    if (clientVersions) {
+      const mergedClientVersions = { ...clientVersions };
+      for (const k of changedKeys) {
+        if (updated.collectionVersions?.[k]) {
+          mergedClientVersions[k] = updated.collectionVersions[k];
+        }
+      }
+      const diff = computeDeltaErpDatabase(mergedClientVersions);
+      if (diff.changedKeys.length > 0) {
+        serverDelta = diff.delta as Record<string, unknown>;
+      }
+    }
+
     return NextResponse.json(
       {
         ok: true,
         etag,
-        telemetry: enrichedTelemetry,
         updatedAt: updated.updatedAt,
+        changedKeys,
+        collectionVersions: updated.collectionVersions,
+        serverDelta,
+        telemetry: enrichedTelemetry,
       },
       {
         headers: {

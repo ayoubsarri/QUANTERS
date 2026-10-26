@@ -195,6 +195,12 @@ export default function WelcomeSplashPage() {
   const [customGoogleEmail, setCustomGoogleEmail] = useState("");
   const [customGoogleName, setCustomGoogleName] = useState("");
 
+  // Forgot Password contact panel state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [copiedRecoveryEmail, setCopiedRecoveryEmail] = useState<string | null>(
+    null
+  );
+
   // Post-Login "Save Login?" prompt state (Appears AFTER successful login!)
   const [pendingPostLogin, setPendingPostLogin] = useState<{
     member: Member;
@@ -782,6 +788,7 @@ export default function WelcomeSplashPage() {
                     onClick={() => {
                       setAuthOpen(false);
                       setShowGooglePicker(false);
+                      setShowForgotPassword(false);
                     }}
                     aria-label="Close login panel"
                     className="w-8 h-8 rounded-lg bg-[#0B1528] hover:bg-[#182C4E] border border-[#2B4875] text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
@@ -797,6 +804,7 @@ export default function WelcomeSplashPage() {
                     onClick={() => {
                       setAuthMode("signin");
                       setShowGooglePicker(false);
+                      setShowForgotPassword(false);
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
@@ -813,6 +821,7 @@ export default function WelcomeSplashPage() {
                     onClick={() => {
                       setAuthMode("register");
                       setShowGooglePicker(false);
+                      setShowForgotPassword(false);
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
@@ -979,89 +988,189 @@ export default function WelcomeSplashPage() {
                     </div>
                   </div>
                 ) : authMode === "signin" ? (
-                  <div className="space-y-2.5">
-                    <form onSubmit={handleEmailSignIn} className="space-y-2.5">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Email or Quanter ID
-                        </label>
-                        <div className="relative">
-                          <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            type="text"
-                            name="email"
-                            aria-label="Email or Quanter ID"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@univ-alger.dz"
-                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                          />
+                  showForgotPassword ? (
+                    <div className="p-3.5 rounded-xl bg-[#081223] border border-[#38BDF8]/40 space-y-3 animate-rise">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
+                            <KeyRound className="w-3.5 h-3.5" />
+                          </span>
+                          <div>
+                            <h3 className="font-display font-black text-xs sm:text-sm text-white leading-tight">
+                              Forgot Your Password?
+                            </h3>
+                            <p className="text-[10.5px] text-[#7DD3FC] font-mono">
+                              Account &amp; Password Recovery
+                            </p>
+                          </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPassword(false)}
+                          className="text-[11px] font-mono font-bold text-slate-400 hover:text-white cursor-pointer"
+                        >
+                          Back
+                        </button>
                       </div>
 
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            aria-label="Password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-                            aria-label="Toggle password visibility"
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        To reset your password or recover access to your account,
+                        please contact the QUANTA Administration or HR Desk:
+                      </p>
+
+                      <div className="space-y-1.5">
+                        {[
+                          {
+                            label: "QUANTA Club Admin",
+                            addr: "quantaclubdz@gmail.com",
+                          },
+                          {
+                            label: "HR Department Desk",
+                            addr: "hr.quanta@univ-alger.dz",
+                          },
+                        ].map((item) => (
+                          <div
+                            key={item.addr}
+                            className="p-2.5 rounded-lg bg-[#11203A] border border-[#2B4875]/80 flex items-center justify-between gap-2"
                           >
-                            {showPassword ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
+                            <div className="min-w-0">
+                              <span className="block text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                                {item.label}
+                              </span>
+                              <a
+                                href={`mailto:${item.addr}?subject=QUANTERS%20Password%20Recovery`}
+                                className="text-xs font-mono font-bold text-[#38E4FF] hover:underline break-all"
+                              >
+                                {item.addr}
+                              </a>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  navigator.clipboard.writeText(item.addr);
+                                  setCopiedRecoveryEmail(item.addr);
+                                  setTimeout(
+                                    () => setCopiedRecoveryEmail(null),
+                                    2200
+                                  );
+                                } catch {}
+                              }}
+                              className="px-2.5 py-1 rounded-md bg-[#081223] hover:bg-[#182C4E] border border-[#38BDF8]/35 text-[10.5px] font-mono font-bold text-white shrink-0 cursor-pointer transition"
+                            >
+                              {copiedRecoveryEmail === item.addr
+                                ? "Copied"
+                                : "Copy"}
+                            </button>
+                          </div>
+                        ))}
                       </div>
 
                       <button
-                        type="submit"
-                        className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        type="button"
+                        onClick={() => setShowForgotPassword(false)}
+                        className="w-full h-9 rounded-xl bg-[#182C4E] hover:brightness-110 border border-[#38BDF8]/35 text-white font-display font-bold text-xs transition cursor-pointer"
                       >
-                        <span>Sign In</span>
-                        <ArrowRight className="w-4 h-4" />
+                        Back to Sign In
                       </button>
-                    </form>
-
-                    {/* Divider + Continue with Google */}
-                    <div className="flex items-center gap-2.5 py-0.5">
-                      <span className="h-px flex-1 bg-[#2B4875]/60" />
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
-                        OR
-                      </span>
-                      <span className="h-px flex-1 bg-[#2B4875]/60" />
                     </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      <form onSubmit={handleEmailSignIn} className="space-y-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            Email or Quanter ID
+                          </label>
+                          <div className="relative">
+                            <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="text"
+                              name="email"
+                              aria-label="Email or Quanter ID"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="name@univ-alger.dz"
+                              className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                            />
+                          </div>
+                        </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setErrorMsg(null);
-                        setSuccessMsg(null);
-                        setShowGooglePicker(true);
-                      }}
-                      className="w-full h-10 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs shadow-sm active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <GoogleLogoSvg className="w-4 h-4" />
-                      <span>Continue with Google</span>
-                    </button>
-                  </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold text-slate-300">
+                              Password
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setErrorMsg(null);
+                                setShowForgotPassword(true);
+                              }}
+                              className="text-[11px] font-bold text-[#38E4FF] hover:text-white transition cursor-pointer"
+                            >
+                              Forgot password?
+                            </button>
+                          </div>
+                          <div className="relative">
+                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              name="password"
+                              aria-label="Password"
+                              required
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="Password"
+                              className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                              aria-label="Toggle password visibility"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <span>Sign In</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </form>
+
+                      {/* Divider + Continue with Google */}
+                      <div className="flex items-center gap-2.5 py-0.5">
+                        <span className="h-px flex-1 bg-[#2B4875]/60" />
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
+                          OR
+                        </span>
+                        <span className="h-px flex-1 bg-[#2B4875]/60" />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErrorMsg(null);
+                          setSuccessMsg(null);
+                          setShowGooglePicker(true);
+                        }}
+                        className="w-full h-10 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs shadow-sm active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <GoogleLogoSvg className="w-4 h-4" />
+                        <span>Continue with Google</span>
+                      </button>
+                    </div>
+                  )
                 ) : authMode === "register" ? (
                   <div className="space-y-2.5">
                     <form onSubmit={handleRegister} className="space-y-2.5">

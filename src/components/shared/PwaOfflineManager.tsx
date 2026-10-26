@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCircle2, CloudOff, RefreshCw, Wifi, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export const OFFLINE_WARM_ROUTES = [
@@ -107,20 +107,16 @@ export async function dispatchSystemNotification(payload: {
 export function PwaOfflineManager() {
   const router = useRouter();
   const {
-    isOnline,
-    pendingSyncCount,
     userLowDataMode,
-    lastServerEtag,
     settings,
     messages,
     setOnlineStatus,
     hydrateFromLocalCache,
     saveToLocalCache,
     syncWithServer,
+    pullExactUpdatesFromServer,
   } = useQuantersStore();
 
-  const [reconnectedToast, setReconnectedToast] = useState(false);
-  const [syncingNow, setSyncingNow] = useState(false);
   const [liveToast, setLiveToast] = useState<{
     title: string;
     body: string;
@@ -129,7 +125,7 @@ export function PwaOfflineManager() {
 
   const prevMessagesCountRef = useRef<number>(messages.length);
 
-  // 1. Hydrate local cache & register Service Worker automatically for seamless offline operation
+  // 1. Hydrate local cache, register Service Worker, and pull ONLY exact delta updates
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -140,7 +136,6 @@ export function PwaOfflineManager() {
     hydrateFromLocalCache();
     setOnlineStatus(navigator.onLine);
 
-    // Register Offline-First Service Worker automatically
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
@@ -160,44 +155,29 @@ export function PwaOfflineManager() {
         .catch(() => {});
     }
 
-    // Conditional ETag check respecting Client Cache TTL
+    // Quota-Saver Exact Delta Check: fetch only collections whose version changed
     const ttlMs = (settings.clientCacheTtlMinutes || 15) * 60 * 1000;
     const lastCheck = Number(
       window.sessionStorage.getItem("quanters-last-etag-check") || "0"
     );
     if (navigator.onLine && Date.now() - lastCheck > ttlMs) {
       window.sessionStorage.setItem("quanters-last-etag-check", String(Date.now()));
-      const headers: Record<string, string> = {};
-      if (lastServerEtag) {
-        headers["If-None-Match"] = lastServerEtag;
-      }
-      fetch("/api/erp", { headers })
-        .then(async (res) => {
-          if (res.status === 304) return;
-          if (res.ok) {
-            const json = await res.json();
-            if (json?.etag) {
-              useQuantersStore.setState({ lastServerEtag: json.etag });
-              saveToLocalCache();
-            }
-          }
-        })
-        .catch(() => {});
+      pullExactUpdatesFromServer().catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Listen to real network Online / Offline transitions & live notifications
+  // 2. Silently auto-sync delta updates when connection returns
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const handleOnline = async () => {
       setOnlineStatus(true);
-      setReconnectedToast(true);
       if (useQuantersStore.getState().pendingSyncCount > 0) {
         await syncWithServer(true);
+      } else {
+        await pullExactUpdatesFromServer();
       }
-      setTimeout(() => setReconnectedToast(false), 3500);
     };
 
     const handleOffline = () => {
@@ -230,7 +210,12 @@ export function PwaOfflineManager() {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("quanters:live-notification", handleLiveNotif);
     };
-  }, [setOnlineStatus, saveToLocalCache, syncWithServer]);
+  }, [
+    setOnlineStatus,
+    saveToLocalCache,
+    syncWithServer,
+    pullExactUpdatesFromServer,
+  ]);
 
   // 3. Watch store messages for newly sent dispatches and notify
   useEffect(() => {
@@ -248,7 +233,7 @@ export function PwaOfflineManager() {
     prevMessagesCountRef.current = messages.length;
   }, [messages]);
 
-  // 4. Auto-save store changes to localStorage so offline refreshes never lose state
+  // 4. Silently persist store changes to localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     const unsub = useQuantersStore.subscribe(() => {
@@ -257,100 +242,47 @@ export function PwaOfflineManager() {
     return () => unsub();
   }, [saveToLocalCache]);
 
-  const handleManualFlush = async () => {
-    setSyncingNow(true);
-    await syncWithServer(true);
-    setSyncingNow(false);
-  };
-
-  if (isOnline && !reconnectedToast && pendingSyncCount === 0 && !liveToast) {
+  if (!liveToast) {
     return null;
   }
 
   return (
     <div className="fixed top-2.5 left-1/2 -translate-x-1/2 z-[180] px-3 w-full max-w-[440px] space-y-2 pointer-events-none">
-      {liveToast && (
-        <div
-          onClick={() => {
-            const target = liveToast.url || "/notifications";
-            setLiveToast(null);
-            router.push(target);
-          }}
-          role="button"
-          tabIndex={0}
-          className="pointer-events-auto bg-[#0B192E]/95 backdrop-blur-md text-white border border-[#38BDF8]/45 rounded-xl px-3.5 py-2.5 shadow-2xl flex items-start justify-between gap-2.5 text-xs cursor-pointer animate-rise"
-        >
-          <div className="flex items-start gap-2.5 min-w-0">
-            <span className="w-7 h-7 rounded-lg bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0 mt-0.5">
-              <Bell className="w-3.5 h-3.5" />
-            </span>
-            <div className="min-w-0">
-              <div className="font-display font-black text-xs text-white truncate">
-                {liveToast.title}
-              </div>
-              <div className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
-                {liveToast.body}
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLiveToast(null);
-            }}
-            className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
-            aria-label="Dismiss notification"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      {!isOnline ? (
-        <div className="pointer-events-auto bg-[#06182C]/95 backdrop-blur-md text-white border border-amber-400/40 rounded-xl px-3.5 py-2 shadow-lg flex items-center justify-between gap-2.5 text-xs">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
-              <CloudOff className="w-3.5 h-3.5" />
-            </span>
-            <div className="truncate">
-              <div className="font-extrabold text-[11px] text-amber-200 leading-tight">
-                Working Offline Automatically
-              </div>
-              <div className="text-[10px] text-slate-300 truncate">
-                {pendingSyncCount > 0
-                  ? `${pendingSyncCount} action(s) saved locally · Auto-syncs when connection returns`
-                  : "No internet connection · Working from local cache"}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : reconnectedToast ? (
-        <div className="pointer-events-auto bg-emerald-950/95 backdrop-blur-md text-white border border-emerald-400/40 rounded-xl px-3.5 py-2 shadow-lg flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="font-bold text-[11px]">
-              Back Online · Local offline changes synced
-            </span>
-          </div>
-          <Wifi className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        </div>
-      ) : pendingSyncCount > 0 ? (
-        <div className="pointer-events-auto bg-[#06182C]/95 backdrop-blur-md text-white border border-sky-400/30 rounded-xl px-3.5 py-1.5 shadow-lg flex items-center justify-between gap-2 text-xs">
-          <span className="text-[11px] font-semibold text-sky-200">
-            Quota-Saver: {pendingSyncCount} batched change(s) queued
+      <div
+        onClick={() => {
+          const target = liveToast.url || "/notifications";
+          setLiveToast(null);
+          router.push(target);
+        }}
+        role="button"
+        tabIndex={0}
+        className="pointer-events-auto bg-[#0B192E]/95 backdrop-blur-md text-white border border-[#38BDF8]/45 rounded-xl px-3.5 py-2.5 shadow-2xl flex items-start justify-between gap-2.5 text-xs cursor-pointer animate-rise"
+      >
+        <div className="flex items-start gap-2.5 min-w-0">
+          <span className="w-7 h-7 rounded-lg bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0 mt-0.5">
+            <Bell className="w-3.5 h-3.5" />
           </span>
-          <button
-            type="button"
-            onClick={handleManualFlush}
-            disabled={syncingNow}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#182C4E] hover:brightness-110 text-white text-[10.5px] font-bold cursor-pointer transition"
-          >
-            <RefreshCw className={`w-3 h-3 ${syncingNow ? "animate-spin" : ""}`} />
-            <span>Sync Now</span>
-          </button>
+          <div className="min-w-0">
+            <div className="font-display font-black text-xs text-white truncate">
+              {liveToast.title}
+            </div>
+            <div className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+              {liveToast.body}
+            </div>
+          </div>
         </div>
-      ) : null}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLiveToast(null);
+          }}
+          className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
+          aria-label="Dismiss notification"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

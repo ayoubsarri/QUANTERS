@@ -81,6 +81,7 @@ interface QuantersStoreState {
   pendingSyncCount: number;
   lastSyncedAt: string | null;
   lastServerEtag: string | null;
+  collectionVersions: Record<string, string>;
 
   // Core ERP collections
   departments: Department[];
@@ -130,6 +131,7 @@ interface QuantersStoreState {
   }) => { ok: boolean; message: string; member?: Member };
   logout: () => void;
   syncWithServer: (force?: boolean) => Promise<void>;
+  pullExactUpdatesFromServer: () => Promise<void>;
   setUserLowDataMode: (enabled: boolean) => void;
   setOnlineStatus: (online: boolean) => void;
   saveToLocalCache: () => void;
@@ -374,6 +376,107 @@ const nowStamp = () => {
   return `${d.toISOString().slice(0, 10)} ${d.toTimeString().slice(0, 5)}`;
 };
 
+const DELTA_ARRAY_KEYS = [
+  "departments",
+  "teams",
+  "members",
+  "workshops",
+  "tasks",
+  "pointRules",
+  "ledger",
+  "badges",
+  "exams",
+  "projectSubmissions",
+  "proposals",
+  "explorePosts",
+  "messages",
+  "invitations",
+  "accessGrants",
+  "auditLogs",
+] as const;
+
+let lastSyncedBaselineMap: Record<string, Map<string, string>> | null = null;
+let lastSyncedSettingsJson: string | null = null;
+
+function captureBaselineFromState(s: QuantersStoreState) {
+  const nextMap: Record<string, Map<string, string>> = {};
+  for (const key of DELTA_ARRAY_KEYS) {
+    const itemMap = new Map<string, string>();
+    const list = (s[key] as unknown as Array<{ id?: string }>) || [];
+    for (const item of list) {
+      if (item && typeof item.id === "string") {
+        itemMap.set(item.id, JSON.stringify(item));
+      }
+    }
+    nextMap[key] = itemMap;
+  }
+  lastSyncedBaselineMap = nextMap;
+  lastSyncedSettingsJson = JSON.stringify(s.settings);
+}
+
+function computeClientDeltas(s: QuantersStoreState): {
+  itemDeltas: Record<
+    string,
+    { upserted?: Record<string, unknown>[]; deletedIds?: string[] }
+  >;
+  settingsPatch?: SystemSettings;
+  hasChanges: boolean;
+} {
+  if (!lastSyncedBaselineMap) {
+    captureBaselineFromState(s);
+    return { itemDeltas: {}, hasChanges: false };
+  }
+
+  const itemDeltas: Record<
+    string,
+    { upserted?: Record<string, unknown>[]; deletedIds?: string[] }
+  > = {};
+  let hasChanges = false;
+
+  for (const key of DELTA_ARRAY_KEYS) {
+    const prevMap = lastSyncedBaselineMap[key] || new Map<string, string>();
+    const list =
+      (s[key] as unknown as Array<Record<string, unknown> & { id?: string }>) || [];
+    const currentIds = new Set<string>();
+    const upserted: Record<string, unknown>[] = [];
+
+    for (const item of list) {
+      if (!item || typeof item.id !== "string") continue;
+      currentIds.add(item.id);
+      const serialized = JSON.stringify(item);
+      if (prevMap.get(item.id) !== serialized) {
+        upserted.push(item);
+      }
+    }
+
+    const deletedIds: string[] = [];
+    if (key !== "auditLogs") {
+      for (const oldId of prevMap.keys()) {
+        if (!currentIds.has(oldId)) {
+          deletedIds.push(oldId);
+        }
+      }
+    }
+
+    if (upserted.length > 0 || deletedIds.length > 0) {
+      itemDeltas[key] = {
+        ...(upserted.length > 0 ? { upserted } : {}),
+        ...(deletedIds.length > 0 ? { deletedIds } : {}),
+      };
+      hasChanges = true;
+    }
+  }
+
+  let settingsPatch: SystemSettings | undefined;
+  const currentSettingsJson = JSON.stringify(s.settings);
+  if (lastSyncedSettingsJson !== currentSettingsJson) {
+    settingsPatch = s.settings;
+    hasChanges = true;
+  }
+
+  return { itemDeltas, settingsPatch, hasChanges };
+}
+
 const resolveRoleAndRedirect = (member: Member): {
   adminRole: RoleTemplateName;
   redirectPath: string;
@@ -414,6 +517,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   pendingSyncCount: 0,
   lastSyncedAt: null,
   lastServerEtag: null,
+  collectionVersions: {},
 
   departments: SEED_DEPARTMENTS,
   teams: SEED_TEAMS,
@@ -489,7 +593,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         return {
           ok: false,
           redirectPath: "/welcome",
-          message: "Invalid password. Please check your password or use Change Password.",
+          message:
+            "Invalid password. Forgot your password? Contact quantaclubdz@gmail.com or hr.quanta@univ-alger.dz.",
         };
       }
     }
@@ -811,6 +916,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         pendingSyncCount: s.pendingSyncCount,
         lastSyncedAt: s.lastSyncedAt,
         lastServerEtag: s.lastServerEtag,
+        collectionVersions: s.collectionVersions,
         departments: s.departments,
         teams: s.teams,
         members: s.members,
@@ -861,6 +967,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           pendingSyncCount: parsed.pendingSyncCount || 0,
           lastSyncedAt: parsed.lastSyncedAt || null,
           lastServerEtag: parsed.lastServerEtag || null,
+          collectionVersions: parsed.collectionVersions || {},
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
           members: parsed.members,
@@ -932,6 +1039,62 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     };
   },
 
+  pullExactUpdatesFromServer: async () => {
+    const s = get();
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      set({ isOnline: false });
+      return;
+    }
+
+    try {
+      const headers: Record<string, string> = {};
+      if (s.lastServerEtag) {
+        headers["If-None-Match"] = s.lastServerEtag;
+      }
+      const hasKnownVersions =
+        s.collectionVersions && Object.keys(s.collectionVersions).length > 0;
+      const url = hasKnownVersions
+        ? `/api/erp?versions=${encodeURIComponent(
+            JSON.stringify(s.collectionVersions)
+          )}`
+        : "/api/erp";
+
+      const res = await fetch(url, { headers });
+      if (res.status === 304) {
+        set({ isOnline: true });
+        return;
+      }
+      if (!res.ok) return;
+
+      const json = await res.json().catch(() => null);
+      if (!json?.ok) return;
+
+      const payload = json.isDelta ? json.delta : json.data;
+      const patchState: Partial<QuantersStoreState> = {
+        isOnline: true,
+        lastServerEtag: json.etag || s.lastServerEtag,
+        collectionVersions: json.collectionVersions || s.collectionVersions,
+      };
+
+      if (payload && typeof payload === "object") {
+        for (const key of DELTA_ARRAY_KEYS) {
+          if (Array.isArray(payload[key])) {
+            (patchState as Record<string, unknown>)[key] = payload[key];
+          }
+        }
+        if (payload.settings && typeof payload.settings === "object") {
+          patchState.settings = { ...s.settings, ...payload.settings };
+        }
+      }
+
+      set(patchState);
+      captureBaselineFromState(get());
+      get().saveToLocalCache();
+    } catch {
+      // Silent background fallback
+    }
+  },
+
   syncWithServer: async (force = false) => {
     const s = get();
     s.saveToLocalCache();
@@ -955,34 +1118,27 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return;
     }
 
+    const { itemDeltas, settingsPatch, hasChanges } = computeClientDeltas(s);
+
+    // Quota-Saver: If nothing changed locally and not forced, only pull unseen server deltas
+    if (!hasChanges && !force && s.pendingSyncCount === 0) {
+      await get().pullExactUpdatesFromServer();
+      return;
+    }
+
     try {
       const resp = await fetch("/api/erp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          data: {
-            departments: s.departments,
-            teams: s.teams,
-            members: s.members,
-            workshops: s.workshops,
-            tasks: s.tasks,
-            pointRules: s.pointRules,
-            ledger: s.ledger,
-            badges: s.badges,
-            exams: s.exams,
-            projectSubmissions: s.projectSubmissions,
-            proposals: s.proposals,
-            explorePosts: s.explorePosts,
-            messages: s.messages,
-            accessGrants: s.accessGrants,
-            auditLogs: s.auditLogs,
-            settings: s.settings,
-          },
+          itemDeltas,
+          data: settingsPatch ? { settings: settingsPatch } : {},
+          clientVersions: s.collectionVersions,
         }),
       });
       if (resp.ok) {
         const json = await resp.json().catch(() => null);
-        set({
+        const patchState: Partial<QuantersStoreState> = {
           isOnline: true,
           pendingSyncCount: 0,
           lastSyncedAt: new Date().toLocaleTimeString([], {
@@ -990,7 +1146,30 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             minute: "2-digit",
           }),
           lastServerEtag: json?.etag || s.lastServerEtag,
-        });
+          collectionVersions: json?.collectionVersions || s.collectionVersions,
+        };
+
+        // Apply any concurrent server delta for collections modified on the server
+        if (json?.serverDelta && typeof json.serverDelta === "object") {
+          for (const key of DELTA_ARRAY_KEYS) {
+            if (Array.isArray(json.serverDelta[key])) {
+              (patchState as Record<string, unknown>)[key] =
+                json.serverDelta[key];
+            }
+          }
+          if (
+            json.serverDelta.settings &&
+            typeof json.serverDelta.settings === "object"
+          ) {
+            patchState.settings = {
+              ...s.settings,
+              ...json.serverDelta.settings,
+            };
+          }
+        }
+
+        set(patchState);
+        captureBaselineFromState(get());
         get().saveToLocalCache();
       }
     } catch {

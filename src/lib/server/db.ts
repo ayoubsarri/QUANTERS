@@ -1,7 +1,8 @@
 /**
- * QUANTERS v3.0 — Zero-Quota Atomic Server-Side Persistence Engine
- * Stores full ERP state in compact JSON-WAL format (`data/quanters-db.json`)
- * with in-memory caching, atomic temp-file rename, and storage footprint telemetry.
+ * QUANTERS — Zero-Quota Atomic Server-Side Persistence & Exact Delta Engine
+ * Stores ERP state in compact JSON-WAL format (`data/quanters-db.json`)
+ * with per-collection versioning and item-level delta patching so clients
+ * only push and pull the exact records that changed.
  */
 
 import fs from "fs";
@@ -26,9 +27,34 @@ import {
   SEED_WORKSHOPS,
 } from "../data/seed";
 
+export type ErpCollectionKey =
+  | "departments"
+  | "teams"
+  | "members"
+  | "workshops"
+  | "tasks"
+  | "pointRules"
+  | "ledger"
+  | "badges"
+  | "exams"
+  | "projectSubmissions"
+  | "proposals"
+  | "explorePosts"
+  | "messages"
+  | "invitations"
+  | "accessGrants"
+  | "auditLogs"
+  | "settings";
+
+export interface ItemDeltaPatch {
+  upserted?: Record<string, unknown>[];
+  deletedIds?: string[];
+}
+
 export interface ErpDatabaseSnapshot {
   version: string;
   updatedAt: string;
+  collectionVersions?: Record<string, string>;
   departments: typeof SEED_DEPARTMENTS;
   teams: typeof SEED_TEAMS;
   members: typeof SEED_MEMBERS;
@@ -53,10 +79,39 @@ const DB_FILE = path.join(DATA_DIR, "quanters-db.json");
 
 let memoryCache: ErpDatabaseSnapshot | null = null;
 
+export const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
+  "departments",
+  "teams",
+  "members",
+  "workshops",
+  "tasks",
+  "pointRules",
+  "ledger",
+  "badges",
+  "exams",
+  "projectSubmissions",
+  "proposals",
+  "explorePosts",
+  "messages",
+  "invitations",
+  "accessGrants",
+  "auditLogs",
+];
+
+function buildInitialCollectionVersions(stamp: string): Record<string, string> {
+  const versions: Record<string, string> = { settings: stamp };
+  for (const key of ALLOWED_ARRAY_KEYS) {
+    versions[String(key)] = stamp;
+  }
+  return versions;
+}
+
 function createInitialSnapshot(): ErpDatabaseSnapshot {
+  const now = new Date().toISOString();
   return {
     version: "3.2.0",
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
+    collectionVersions: buildInitialCollectionVersions(now),
     departments: SEED_DEPARTMENTS,
     teams: SEED_TEAMS,
     members: SEED_MEMBERS,
@@ -101,11 +156,16 @@ export function readErpDatabase(): {
     } else if (!memoryCache) {
       const raw = fs.readFileSync(DB_FILE, "utf-8");
       const parsed = JSON.parse(raw) as ErpDatabaseSnapshot;
-      if (parsed.version !== "3.2.0") {
+      if (parsed.version !== "3.2.0" && parsed.version !== "3.0.0") {
         const fresh = createInitialSnapshot();
         fs.writeFileSync(DB_FILE, JSON.stringify(fresh), "utf-8");
         memoryCache = fresh;
       } else {
+        if (!parsed.collectionVersions) {
+          parsed.collectionVersions = buildInitialCollectionVersions(
+            parsed.updatedAt || new Date().toISOString()
+          );
+        }
         memoryCache = parsed;
       }
     }
@@ -114,6 +174,10 @@ export function readErpDatabase(): {
   }
 
   const snapshot = memoryCache!;
+  if (!snapshot.collectionVersions) {
+    snapshot.collectionVersions = buildInitialCollectionVersions(snapshot.updatedAt);
+  }
+
   let dbSizeBytes = 0;
   try {
     if (fs.existsSync(DB_FILE)) {
@@ -128,8 +192,10 @@ export function readErpDatabase(): {
   const dbSizeKB = Math.round((dbSizeBytes / 1024) * 10) / 10;
   const memberCount = snapshot.members.length;
   const avgRecordBytes = memberCount > 0 ? Math.round(dbSizeBytes / memberCount) : 0;
-  // Compare against a 50 MB lightweight free-tier storage budget
-  const quotaUsedPercent = Math.min(100, Math.round((dbSizeBytes / (50 * 1024 * 1024)) * 10000) / 100);
+  const quotaUsedPercent = Math.min(
+    100,
+    Math.round((dbSizeBytes / (50 * 1024 * 1024)) * 10000) / 100
+  );
 
   return {
     snapshot,
@@ -143,42 +209,176 @@ export function readErpDatabase(): {
   };
 }
 
-const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
-  "departments",
-  "teams",
-  "members",
-  "workshops",
-  "tasks",
-  "pointRules",
-  "ledger",
-  "badges",
-  "exams",
-  "projectSubmissions",
-  "proposals",
-  "explorePosts",
-  "messages",
-  "invitations",
-  "accessGrants",
-  "auditLogs",
-];
+/**
+ * Computes ONLY the exact collections that have changed relative to `clientVersions`.
+ * Reduces read payload and quota consumption to the exact updated slices.
+ */
+export function computeDeltaErpDatabase(
+  clientVersions?: Record<string, string> | null
+): {
+  changedKeys: string[];
+  delta: Partial<ErpDatabaseSnapshot>;
+  collectionVersions: Record<string, string>;
+  updatedAt: string;
+} {
+  const { snapshot } = readErpDatabase();
+  const serverVersions =
+    snapshot.collectionVersions || buildInitialCollectionVersions(snapshot.updatedAt);
 
-export function writeErpDatabase(partial: Partial<ErpDatabaseSnapshot>): ErpDatabaseSnapshot {
+  if (!clientVersions || Object.keys(clientVersions).length === 0) {
+    const allKeys = [...ALLOWED_ARRAY_KEYS.map(String), "settings"];
+    const fullDelta: Partial<ErpDatabaseSnapshot> = { settings: snapshot.settings };
+    for (const k of ALLOWED_ARRAY_KEYS) {
+      (fullDelta as Record<string, unknown>)[k] = snapshot[k];
+    }
+    return {
+      changedKeys: allKeys,
+      delta: fullDelta,
+      collectionVersions: serverVersions,
+      updatedAt: snapshot.updatedAt,
+    };
+  }
+
+  const changedKeys: string[] = [];
+  const delta: Partial<ErpDatabaseSnapshot> = {};
+
+  for (const key of ALLOWED_ARRAY_KEYS) {
+    const kStr = String(key);
+    if (clientVersions[kStr] !== serverVersions[kStr]) {
+      changedKeys.push(kStr);
+      (delta as Record<string, unknown>)[kStr] = snapshot[key];
+    }
+  }
+
+  if (clientVersions.settings !== serverVersions.settings) {
+    changedKeys.push("settings");
+    delta.settings = snapshot.settings;
+  }
+
+  return {
+    changedKeys,
+    delta,
+    collectionVersions: serverVersions,
+    updatedAt: snapshot.updatedAt,
+  };
+}
+
+export function writeErpDatabase(
+  partial: Partial<ErpDatabaseSnapshot>,
+  itemDeltas?: Record<string, ItemDeltaPatch>
+): {
+  snapshot: ErpDatabaseSnapshot;
+  changedKeys: string[];
+} {
   const current = readErpDatabase().snapshot;
+  const now = new Date().toISOString();
+  const nextVersions: Record<string, string> = {
+    ...(current.collectionVersions || buildInitialCollectionVersions(current.updatedAt)),
+  };
   const sanitized: Partial<ErpDatabaseSnapshot> = {};
+  const changedKeys: string[] = [];
 
+  // 1. Apply granular item-level deltas first (upserted & deletedIds by item.id)
+  if (itemDeltas && typeof itemDeltas === "object" && !Array.isArray(itemDeltas)) {
+    for (const key of ALLOWED_ARRAY_KEYS) {
+      const kStr = String(key);
+      const patch = itemDeltas[kStr];
+      if (!patch || typeof patch !== "object") continue;
+
+      const currentList = Array.isArray(current[key])
+        ? ([...(current[key] as unknown[])] as Record<string, unknown>[])
+        : [];
+
+      let modified = false;
+      const deletedSet = new Set(
+        Array.isArray(patch.deletedIds) && key !== "auditLogs"
+          ? patch.deletedIds.filter((id) => typeof id === "string")
+          : []
+      );
+
+      let nextList =
+        deletedSet.size > 0
+          ? currentList.filter((item) => !deletedSet.has(String(item?.id)))
+          : currentList;
+
+      if (deletedSet.size > 0 && nextList.length !== currentList.length) {
+        modified = true;
+      }
+
+      if (Array.isArray(patch.upserted) && patch.upserted.length > 0) {
+        const indexMap = new Map<string, number>();
+        nextList.forEach((item, idx) => {
+          if (item && typeof item.id === "string") {
+            indexMap.set(item.id, idx);
+          }
+        });
+
+        const prependedNew: Record<string, unknown>[] = [];
+        for (const incomingItem of patch.upserted) {
+          if (!incomingItem || typeof incomingItem !== "object") continue;
+          const id = incomingItem.id;
+          if (typeof id !== "string") continue;
+
+          if (key === "auditLogs" && indexMap.has(id)) {
+            // Audit log entries are immutable once created
+            continue;
+          }
+
+          const existingIdx = indexMap.get(id);
+          if (existingIdx !== undefined) {
+            nextList[existingIdx] = {
+              ...nextList[existingIdx],
+              ...incomingItem,
+            };
+            modified = true;
+          } else {
+            prependedNew.push(incomingItem);
+            modified = true;
+          }
+        }
+
+        if (prependedNew.length > 0) {
+          nextList = [...prependedNew, ...nextList];
+        }
+      }
+
+      if (modified) {
+        (sanitized as Record<string, unknown>)[kStr] = nextList;
+        nextVersions[kStr] = now;
+        changedKeys.push(kStr);
+      }
+    }
+  }
+
+  // 2. Apply any full-collection replacements (only marking changed if serialized content differs)
   if (partial && typeof partial === "object" && !Array.isArray(partial)) {
     for (const key of ALLOWED_ARRAY_KEYS) {
+      const kStr = String(key);
+      if (changedKeys.includes(kStr)) continue; // already patched via itemDeltas
       const incoming = partial[key];
       if (Array.isArray(incoming)) {
         if (key === "auditLogs") {
-          // Immutable Audit Log Guarantee: preserve all existing server audit logs and append new ones
           const existingIds = new Set(current.auditLogs.map((a) => a.id));
           const newEntries = (incoming as typeof current.auditLogs).filter(
-            (a) => a && typeof a === "object" && typeof a.id === "string" && !existingIds.has(a.id)
+            (a) =>
+              a &&
+              typeof a === "object" &&
+              typeof a.id === "string" &&
+              !existingIds.has(a.id)
           );
-          sanitized.auditLogs = [...newEntries, ...current.auditLogs];
+          if (newEntries.length > 0) {
+            sanitized.auditLogs = [...newEntries, ...current.auditLogs];
+            nextVersions.auditLogs = now;
+            changedKeys.push("auditLogs");
+          }
         } else {
-          (sanitized as Record<string, unknown>)[key] = incoming;
+          const prevJson = JSON.stringify(current[key]);
+          const nextJson = JSON.stringify(incoming);
+          if (prevJson !== nextJson) {
+            (sanitized as Record<string, unknown>)[kStr] = incoming;
+            nextVersions[kStr] = now;
+            changedKeys.push(kStr);
+          }
         }
       }
     }
@@ -189,6 +389,7 @@ export function writeErpDatabase(partial: Partial<ErpDatabaseSnapshot>): ErpData
       !Array.isArray(partial.settings)
     ) {
       const nextSettings = { ...current.settings };
+      let settingsChanged = false;
       for (const [sKey, sVal] of Object.entries(partial.settings)) {
         if (
           sKey !== "__proto__" &&
@@ -196,18 +397,34 @@ export function writeErpDatabase(partial: Partial<ErpDatabaseSnapshot>): ErpData
           sKey !== "prototype" &&
           Object.prototype.hasOwnProperty.call(current.settings, sKey)
         ) {
-          (nextSettings as Record<string, unknown>)[sKey] = sVal;
+          if (
+            JSON.stringify(
+              (current.settings as unknown as Record<string, unknown>)[sKey]
+            ) !== JSON.stringify(sVal)
+          ) {
+            (nextSettings as unknown as Record<string, unknown>)[sKey] = sVal;
+            settingsChanged = true;
+          }
         }
       }
-      sanitized.settings = nextSettings;
+      if (settingsChanged) {
+        sanitized.settings = nextSettings;
+        nextVersions.settings = now;
+        changedKeys.push("settings");
+      }
     }
+  }
+
+  if (changedKeys.length === 0) {
+    return { snapshot: current, changedKeys: [] };
   }
 
   const next: ErpDatabaseSnapshot = {
     ...current,
     ...sanitized,
-    version: "3.0.0",
-    updatedAt: new Date().toISOString(),
+    version: "3.2.0",
+    updatedAt: now,
+    collectionVersions: nextVersions,
   };
   memoryCache = next;
   try {
@@ -220,5 +437,5 @@ export function writeErpDatabase(partial: Partial<ErpDatabaseSnapshot>): ErpData
   } catch {
     // Fallback if file system is read-only in serverless edge
   }
-  return next;
+  return { snapshot: next, changedKeys };
 }
