@@ -11,6 +11,8 @@ import {
   BadgeExam,
   ClubMessage,
   ClubTask,
+  DailyQuizItem,
+  DailyQuoteItem,
   Department,
   ExplorePost,
   Invitation,
@@ -23,6 +25,9 @@ import {
   SystemSettings,
   Workshop,
 } from "../types/erp";
+import { SEED_DAILY_QUOTES_365 } from "./dailyQuotes365";
+
+export { SEED_DAILY_QUOTES_365 };
 
 export const DEFAULT_AVAILABILITY: AvailabilityGrid = {
   Saturday: ["Morning", "Afternoon"],
@@ -2699,6 +2704,205 @@ export const SEED_AUDIT_LOGS: AuditLogEntry[] = [
   },
 ];
 
+export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [
+  {
+    id: "lc-1",
+    domain: "ASTROPHYSICS · JWST SPECTROSCOPY",
+    icon: "astronomy",
+    telemetry: "λ = 3.3–4.8 μm · Transit Depth 0.84%",
+    scenario:
+      "During an exoplanet atmospheric transit scan, your spectrometer detects a sharp absorption dip at 4.3 μm alongside a weak feature near 3.3 μm.",
+    question: "Which protocol confirms whether this is a true biosignature?",
+    options: [
+      {
+        id: "a",
+        label: "Require ≥5σ multi-instrument transit verification",
+        detail: "Cross-check NIRSpec & MIRI to rule out abiotic photochemical methane/CO₂ overlap",
+      },
+      {
+        id: "b",
+        label: "Declare dimethyl sulfide (DMS) from a single transit",
+        detail: "Rely on the 3.3 μm peak amplitude alone without secondary eclipse baseline",
+      },
+      {
+        id: "c",
+        label: "Apply optical broadband smoothing",
+        detail: "Average out narrow molecular absorption lines across the infrared band",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "5σ Multi-Band Verification Confirmed",
+    explanation:
+      "Abiotic UV photolysis routinely mimics organic peaks at low SNR. Only ≥5σ multi-epoch confirmation across independent spectral channels separates true biosignatures from CO₂/CH₄ contamination.",
+    xpReward: 15,
+    dateLabel: "Today",
+    isPinnedToday: true,
+    active: true,
+  },
+  {
+    id: "lc-2",
+    domain: "QUANTUM COMPUTING · COHERENCE",
+    icon: "quantum",
+    telemetry: "T₁ = 118 μs · Physical Gate Error 0.42%",
+    scenario:
+      "Your superconducting processor reaches 64 physical qubits, but deep circuit outputs still drift toward uniform thermal noise after 40 gate layers.",
+    question: "What unlocks reliable quantum advantage on this hardware?",
+    options: [
+      {
+        id: "a",
+        label: "Double the clock frequency of microwave pulses",
+        detail: "Drive Rabi oscillations faster without error syndromes",
+      },
+      {
+        id: "b",
+        label: "Encode logical qubits below the surface-code threshold",
+        detail: "Use syndrome extraction so logical error suppresses exponentially with code distance",
+      },
+      {
+        id: "c",
+        label: "Increase readout resonator power by 10 dB",
+        detail: "Boost measurement photon number during active gate execution",
+      },
+    ],
+    correctId: "b",
+    verdictTitle: "Fault-Tolerant Logical Encoding",
+    explanation:
+      "Adding raw physical qubits increases cross-talk unless gate errors stay below the ~1% surface-code threshold, allowing syndrome decoding to suppress logical decoherence.",
+    xpReward: 15,
+    dateLabel: "Day 2",
+    isPinnedToday: false,
+    active: true,
+  },
+  {
+    id: "lc-3",
+    domain: "AI & SCIENTIFIC MODELING",
+    icon: "ai-ml",
+    telemetry: "Navier-Stokes PDE · Reynolds Re = 10⁴",
+    scenario:
+      "A standard neural network trained on fluid velocity frames predicts turbulent vortices that violate conservation of mass and momentum after 15 timesteps.",
+    question: "How do you enforce physical validity in the model?",
+    options: [
+      {
+        id: "a",
+        label: "Embed PDE conservation residuals into the loss function",
+        detail: "Use Physics-Informed Neural Network (PINN) divergence-free constraints",
+      },
+      {
+        id: "b",
+        label: "Remove activation functions in hidden layers",
+        detail: "Convert the network into a purely linear matrix projection",
+      },
+      {
+        id: "c",
+        label: "Train with higher JPEG compression on flow images",
+        detail: "Quantize velocity fields to 8-bit pixel intensities",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "Physics-Informed Conservation Law",
+    explanation:
+      "Penalizing non-zero divergence (∇·u = 0) and Navier-Stokes momentum residuals directly in the objective guarantees physically admissible trajectories and 3.2× higher domain accuracy.",
+    xpReward: 15,
+    dateLabel: "Day 3",
+    isPinnedToday: false,
+    active: true,
+  },
+  {
+    id: "lc-4",
+    domain: "EMBEDDED SYSTEMS · IOT LAB",
+    icon: "arduino",
+    telemetry: "I²C Bus 400 kHz · VCC = 3.3V",
+    scenario:
+      "Three environmental sensors share a single I²C bus on your prototype rover, but data frames freeze intermittently whenever the motor driver engages.",
+    question: "What is the primary hardware fix for bus lockups?",
+    options: [
+      {
+        id: "a",
+        label: "Remove all ground connections between modules",
+        detail: "Let each sensor float at an independent reference potential",
+      },
+      {
+        id: "b",
+        label: "Size pull-up resistors (2.2–4.7 kΩ) & decouple motor rails",
+        detail: "Add 100 nF ceramic bypass capacitors and proper SDA/SCL termination",
+      },
+      {
+        id: "c",
+        label: "Drive the 3.3V logic pins directly from the 12V battery",
+        detail: "Bypass the voltage regulator to raise logic thresholds",
+      },
+    ],
+    correctId: "b",
+    verdictTitle: "Signal Integrity & Rail Decoupling",
+    explanation:
+      "Inductive motor spikes corrupt open-drain I²C lines when pull-up impedance is too weak. Proper 3.3 kΩ pull-ups paired with local 100 nF decoupling restores clean clock edges.",
+    xpReward: 15,
+    dateLabel: "Day 4",
+    isPinnedToday: false,
+    active: true,
+  },
+  {
+    id: "lc-5",
+    domain: "DATA SCIENCE · EXPERIMENTAL STATS",
+    icon: "data",
+    telemetry: "n = 18 Samples · 42 Tested Features",
+    scenario:
+      "A student research team tests 42 independent variables against a small 18-sample dataset and finds one correlation with p = 0.038.",
+    question: "How should the team evaluate this finding before publishing?",
+    options: [
+      {
+        id: "a",
+        label: "Apply Benjamini-Hochberg / Bonferroni correction",
+        detail: "Account for multiple-hypothesis testing inflation and validate on held-out data",
+      },
+      {
+        id: "b",
+        label: "Drop the 41 non-significant variables from the report",
+        detail: "Present the single p = 0.038 feature as an isolated primary hypothesis",
+      },
+      {
+        id: "c",
+        label: "Interpolate synthetic duplicates to triple sample size",
+        detail: "Copy existing rows before running the t-test",
+      },
+    ],
+    correctId: "a",
+    verdictTitle: "False Discovery Rate Control",
+    explanation:
+      "Testing 42 random hypotheses at α = 0.05 yields ~2 false positives by chance alone (1 - 0.95⁴² = 88.4%). Controlling the False Discovery Rate prevents p-hacking artifacts.",
+    xpReward: 15,
+    dateLabel: "Day 5",
+    isPinnedToday: false,
+    active: true,
+  },
+];
+
+export function getCurrentDayOfYear(offsetDays = 0): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const rawDay = Math.floor(diff / oneDay) + offsetDays;
+  return ((((rawDay - 1) % 365) + 365) % 365) + 1;
+}
+
+export function getActiveDailyQuote(
+  quotes: DailyQuoteItem[],
+  settings?: SystemSettings
+): DailyQuoteItem {
+  const list = quotes && quotes.length > 0 ? quotes : SEED_DAILY_QUOTES_365;
+  if (settings?.dailyQuoteMode === "pinned" && settings.pinnedQuoteId) {
+    const pinned = list.find((q) => q.id === settings.pinnedQuoteId);
+    if (pinned) return pinned;
+  }
+  const day = getCurrentDayOfYear(settings?.dailyQuoteDayOffset || 0);
+  return (
+    list.find((q) => q.dayOfYear === day) ||
+    list[(day - 1) % list.length] ||
+    SEED_DAILY_QUOTES_365[0]
+  );
+}
+
 export const SEED_SETTINGS: SystemSettings = {
   registrationOpen: true,
   invitationValidityDays: 7,
@@ -2720,6 +2924,8 @@ export const SEED_SETTINGS: SystemSettings = {
   healthWeightRecent: 15,
   maxImageDimensionPx: 256,
   webpCompressionQuality: 78,
+  dailyQuoteMode: "auto_365",
+  dailyQuoteDayOffset: 0,
   quotaSaverPreset: "aggressive",
   syncStrategy: "debounced_30s",
   clientCacheTtlMinutes: 15,

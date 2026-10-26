@@ -13,6 +13,8 @@ import {
   Capability,
   ClubMessage,
   ClubTask,
+  DailyQuizItem,
+  DailyQuoteItem,
   Department,
   ExplorePost,
   FieldIconKey,
@@ -38,6 +40,8 @@ import {
   SEED_ACCESS_GRANTS,
   SEED_AUDIT_LOGS,
   SEED_BADGES,
+  SEED_DAILY_QUIZZES,
+  SEED_DAILY_QUOTES_365,
   SEED_DEPARTMENTS,
   SEED_EXAMS,
   SEED_EXPLORE_POSTS,
@@ -92,6 +96,8 @@ interface QuantersStoreState {
   projectSubmissions: ProjectSubmission[];
   proposals: Proposal[];
   explorePosts: ExplorePost[];
+  dailyQuizzes: DailyQuizItem[];
+  dailyQuotes: DailyQuoteItem[];
   messages: ClubMessage[];
   accessGrants: AccessGrant[];
   auditLogs: AuditLogEntry[];
@@ -334,6 +340,16 @@ interface QuantersStoreState {
   createExplorePost: (post: Omit<ExplorePost, "id">) => void;
   updateExplorePostStatus: (postId: string, status: ExplorePost["status"]) => void;
 
+  // Daily Quiz & 365-Day Quote Library Actions
+  createDailyQuiz: (quiz: Omit<DailyQuizItem, "id">) => void;
+  updateDailyQuiz: (id: string, updates: Partial<DailyQuizItem>) => void;
+  deleteDailyQuiz: (id: string) => void;
+  pinDailyQuiz: (id: string) => void;
+  createDailyQuote: (quote: Omit<DailyQuoteItem, "id">) => void;
+  updateDailyQuote: (id: string, updates: Partial<DailyQuoteItem>) => void;
+  deleteDailyQuote: (id: string) => void;
+  setPinnedDailyQuote: (quoteId: string | null) => void;
+
   // §8 & §6.5: Smart Access Delegation & Super Admin Settings
   grantAccess: (grant: {
     memberId: string;
@@ -407,6 +423,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   projectSubmissions: SEED_PROJECT_SUBMISSIONS,
   proposals: SEED_PROPOSALS,
   explorePosts: SEED_EXPLORE_POSTS,
+  dailyQuizzes: SEED_DAILY_QUIZZES,
+  dailyQuotes: SEED_DAILY_QUOTES_365,
   messages: SEED_MESSAGES.map((m) => ({ ...m, archived: m.archived ?? !m.unread })),
   accessGrants: SEED_ACCESS_GRANTS,
   auditLogs: SEED_AUDIT_LOGS,
@@ -732,12 +750,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         projectSubmissions: s.projectSubmissions,
         proposals: s.proposals,
         explorePosts: s.explorePosts,
+        dailyQuizzes: s.dailyQuizzes,
+        customDailyQuotes: s.dailyQuotes.filter((q) => q.isCustom),
         messages: s.messages,
         accessGrants: s.accessGrants,
         auditLogs: s.auditLogs,
         settings: s.settings,
       };
-      window.localStorage.setItem("quanters-offline-cache-v5", JSON.stringify(snapshot));
+      window.localStorage.setItem("quanters-offline-cache-v6", JSON.stringify(snapshot));
     } catch {
       // Ignore quota exceeded
     }
@@ -747,13 +767,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (typeof window === "undefined") return;
     try {
       const lowDataRaw = window.localStorage.getItem("quanters-low-data-mode");
-      const raw = window.localStorage.getItem("quanters-offline-cache-v5");
+      const raw = window.localStorage.getItem("quanters-offline-cache-v6");
       if (!raw) {
         if (lowDataRaw) set({ userLowDataMode: lowDataRaw === "1" });
         return;
       }
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.members) && parsed.members.length > 0) {
+        const customQuotes: DailyQuoteItem[] = Array.isArray(parsed.customDailyQuotes)
+          ? parsed.customDailyQuotes
+          : [];
+        const mergedQuotes = [
+          ...customQuotes,
+          ...SEED_DAILY_QUOTES_365.filter((sq) => !customQuotes.some((cq) => cq.id === sq.id)),
+        ];
         set({
           currentMemberId: parsed.currentMemberId || get().currentMemberId,
           activeAdminRole: parsed.activeAdminRole || get().activeAdminRole,
@@ -773,6 +800,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           proposals: parsed.proposals || get().proposals,
           explorePosts: parsed.explorePosts || get().explorePosts,
+          dailyQuizzes: parsed.dailyQuizzes || get().dailyQuizzes,
+          dailyQuotes: mergedQuotes,
           messages: parsed.messages || get().messages,
           accessGrants: parsed.accessGrants || get().accessGrants,
           auditLogs: parsed.auditLogs || get().auditLogs,
@@ -2347,6 +2376,94 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set((state) => ({
       explorePosts: state.explorePosts.map((p) => (p.id === postId ? { ...p, status } : p)),
     })),
+
+  createDailyQuiz: (quiz) => {
+    set((state) => {
+      const nextItem: DailyQuizItem = {
+        ...quiz,
+        id: `lc-${Date.now()}`,
+      };
+      const existing = quiz.isPinnedToday
+        ? state.dailyQuizzes.map((q) => ({ ...q, isPinnedToday: false }))
+        : state.dailyQuizzes;
+      return {
+        dailyQuizzes: [nextItem, ...existing],
+      };
+    });
+    get().saveToLocalCache();
+  },
+
+  updateDailyQuiz: (id, updates) => {
+    set((state) => ({
+      dailyQuizzes: state.dailyQuizzes.map((q) =>
+        q.id === id ? { ...q, ...updates } : q
+      ),
+    }));
+    get().saveToLocalCache();
+  },
+
+  deleteDailyQuiz: (id) => {
+    set((state) => ({
+      dailyQuizzes: state.dailyQuizzes.filter((q) => q.id !== id),
+    }));
+    get().saveToLocalCache();
+  },
+
+  pinDailyQuiz: (id) => {
+    set((state) => ({
+      dailyQuizzes: state.dailyQuizzes.map((q) => ({
+        ...q,
+        isPinnedToday: q.id === id,
+        active: q.id === id ? true : q.active,
+      })),
+    }));
+    get().saveToLocalCache();
+  },
+
+  createDailyQuote: (quote) => {
+    set((state) => {
+      const newQuote: DailyQuoteItem = {
+        ...quote,
+        id: `quote-custom-${Date.now()}`,
+        isCustom: true,
+      };
+      return {
+        dailyQuotes: [newQuote, ...state.dailyQuotes],
+      };
+    });
+    get().saveToLocalCache();
+  },
+
+  updateDailyQuote: (id, updates) => {
+    set((state) => ({
+      dailyQuotes: state.dailyQuotes.map((q) =>
+        q.id === id ? { ...q, ...updates, isCustom: true } : q
+      ),
+    }));
+    get().saveToLocalCache();
+  },
+
+  deleteDailyQuote: (id) => {
+    set((state) => ({
+      dailyQuotes: state.dailyQuotes.filter((q) => q.id !== id),
+      settings:
+        state.settings.pinnedQuoteId === id
+          ? { ...state.settings, dailyQuoteMode: "auto_365", pinnedQuoteId: undefined }
+          : state.settings,
+    }));
+    get().saveToLocalCache();
+  },
+
+  setPinnedDailyQuote: (quoteId) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        dailyQuoteMode: quoteId ? "pinned" : "auto_365",
+        pinnedQuoteId: quoteId || undefined,
+      },
+    }));
+    get().saveToLocalCache();
+  },
 
   grantAccess: ({ memberId, capability, level, scopeType, scopeLabel, expiresAt, reason }) =>
     set((state) => {

@@ -129,10 +129,10 @@ const NAV_GROUPS: NavGroup[] = [
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "Editor"],
       },
       {
-        label: "Explore Feed",
+        label: "Explore, Quiz & Quotes",
         href: "/admin/explore",
         icon: BookOpen,
-        allowedRoles: ["Super Admin", "Executive", "HR Head", "Editor"],
+        allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "Editor"],
       },
     ],
   },

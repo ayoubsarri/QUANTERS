@@ -568,6 +568,47 @@ export interface ExplorePost {
   externalUrl?: string;
 }
 
+export interface DailyQuizOption {
+  id: string;
+  label: string;
+  detail?: string;
+}
+
+export interface DailyQuizItem {
+  id: string;
+  domain: string;
+  icon: FieldIconKey;
+  telemetry?: string;
+  scenario?: string;
+  question: string;
+  options: DailyQuizOption[];
+  correctId: string;
+  verdictTitle: string;
+  explanation: string;
+  xpReward: number;
+  dateLabel?: string;
+  isPinnedToday?: boolean;
+  active: boolean;
+}
+
+export type QuoteCategory =
+  | "Quran & Revelation"
+  | "Prophet Muhammad ﷺ"
+  | "Algerian Scholars"
+  | "Muslim Scientists"
+  | "Ancient Greece & Antiquity"
+  | "World Scientists";
+
+export interface DailyQuoteItem {
+  id: string;
+  dayOfYear: number; // 1..365
+  text: string;
+  author: string;
+  eraOrRole: string;
+  category: QuoteCategory;
+  isCustom?: boolean;
+}
+
 export type NotificationPriority = "Action needed" | "Official notice" | "Info" | "Message";
 
 export interface ClubMessage {
@@ -652,6 +693,10 @@ export interface SystemSettings {
   examFreezeMode?: boolean;
   quietHoursEnabled?: boolean;
   weeklyWorkloadCapHours?: number;
+  // Daily Quote (365-Day Library) & Quiz Controls
+  dailyQuoteMode?: "auto_365" | "pinned";
+  pinnedQuoteId?: string;
+  dailyQuoteDayOffset?: number;
   // Firebase Free-Tier & User Quota Optimization Controls
   quotaSaverPreset?: "standard" | "aggressive" | "ultra";
   syncStrategy?: "instant" | "debounced_30s" | "manual_offline";
