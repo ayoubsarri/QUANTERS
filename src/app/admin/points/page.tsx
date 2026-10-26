@@ -126,21 +126,24 @@ export default function AdminPointsPage() {
   return (
     <>
       <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-        {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        {/* Top Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
-          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            MERIT LEDGER &amp; MONTHLY RECOGNITION
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
             Points &amp; Honours
           </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Audit ledger entries, configure point rules, review appeals, and crown monthly winners
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Audit ledger entries, configure point rules, review appeals, and crown monthly winners.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setManualOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-sm transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Manual Entry</span>
@@ -160,13 +163,13 @@ export default function AdminPointsPage() {
       )}
 
       {/* 4-Tab Switcher */}
-      <div className="bg-white p-1.5 rounded-2xl border border-[#E2EDF8] shadow-sm flex flex-wrap gap-1.5">
+      <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-wrap gap-1.5">
         <button
           type="button"
           onClick={() => setActiveTab("ledger")}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "ledger"
-              ? "bg-[#1D63EB] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -179,7 +182,7 @@ export default function AdminPointsPage() {
           onClick={() => setActiveTab("rules")}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "rules"
-              ? "bg-[#1D63EB] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -192,7 +195,7 @@ export default function AdminPointsPage() {
           onClick={() => setActiveTab("appeals")}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "appeals"
-              ? "bg-[#1D63EB] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -210,7 +213,7 @@ export default function AdminPointsPage() {
           onClick={() => setActiveTab("motm")}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "motm"
-              ? "bg-[#1D63EB] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -224,7 +227,7 @@ export default function AdminPointsPage() {
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900">
+              <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 Immutable Points Ledger (+ / − Transactions)
               </h3>
               <p className="text-xs text-slate-500">
@@ -255,7 +258,7 @@ export default function AdminPointsPage() {
                       key={entry.id}
                       className={`hover:bg-slate-50/60 ${isReversed ? "opacity-60 bg-slate-50" : ""}`}
                     >
-                      <td className="py-3.5 px-4 font-bold text-slate-900">{entry.memberName}</td>
+                      <td className="py-3.5 px-4 font-bold text-[#0F1E36]">{entry.memberName}</td>
                       <td className="py-3.5 px-4 tabular-nums">
                         <span
                           className={
@@ -325,7 +328,7 @@ export default function AdminPointsPage() {
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900">
+              <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 16 Official QUANTA Point Rules (Earning +10 to +50 · Deduction −10 to −40)
               </h3>
               <p className="text-xs text-slate-500">
@@ -367,7 +370,7 @@ export default function AdminPointsPage() {
                           {rule.category}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-bold text-slate-900">{rule.label}</td>
+                      <td className="py-3 px-4 font-bold text-[#0F1E36]">{rule.label}</td>
                       <td className="py-3 px-4 text-xs text-slate-600">{rule.description}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
@@ -390,7 +393,7 @@ export default function AdminPointsPage() {
                                 [rule.id]: Number(e.target.value),
                               }))
                             }
-                            className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold tabular-nums bg-slate-50/70 focus:bg-white focus:border-[#1D63EB] focus:outline-none"
+                            className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold tabular-nums bg-slate-50/70 focus:bg-white focus:border-[#182C4E] focus:outline-none"
                           />
                         </div>
                       </td>
@@ -401,7 +404,7 @@ export default function AdminPointsPage() {
                             updatePointRule(rule.id, Number(currentVal), rule.label);
                             setBanner(`Updated point rule '${rule.label}' to ${currentVal} XP.`);
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold"
                         >
                           <Save className="w-3.5 h-3.5" />
                           Save
@@ -420,7 +423,7 @@ export default function AdminPointsPage() {
       {activeTab === "appeals" && (
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-            <h3 className="text-base font-extrabold text-slate-900">
+            <h3 className="text-base font-extrabold text-[#0F1E36]">
               48-Hour Member Point Deduction Appeals Queue
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -452,7 +455,7 @@ export default function AdminPointsPage() {
                   </span>
                   <span className="text-xs text-slate-400 tabular-nums">{item.date}</span>
                 </div>
-                <div className="text-base font-extrabold text-slate-900">
+                <div className="text-base font-extrabold text-[#0F1E36]">
                   {item.memberName} — Appeal against &ldquo;{item.ruleLabel}&rdquo;
                 </div>
                 <p className="text-xs text-slate-600">
@@ -517,9 +520,9 @@ export default function AdminPointsPage() {
       {activeTab === "motm" && (
         <div className="space-y-4">
           {/* Compact Honours Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-base font-extrabold text-slate-900">
+              <h2 className="font-display text-base font-extrabold text-[#0F1E36]">
                 Monthly Honours Selection
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -538,12 +541,12 @@ export default function AdminPointsPage() {
           </div>
 
           {/* 6 Department Champions Table */}
-          <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
-            <div className="p-3.5 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+            <div className="p-3.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600">
                 Department Nominees &amp; Overall Winners
               </h3>
-              <span className="text-[11px] font-semibold text-[#1D63EB]">
+              <span className="text-[11px] font-semibold text-[#0284C7]">
                 {selectedMotmIds.length} candidate(s) selected
               </span>
             </div>
@@ -551,7 +554,7 @@ export default function AdminPointsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F8FAFD] border-b border-[#E2EDF8] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  <tr className="bg-[#F8FAFD] border-b border-slate-200/90 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                     <th className="py-3 px-4">Department</th>
                     <th className="py-3 px-4">Top Candidate</th>
                     <th className="py-3 px-4 text-center">Monthly XP</th>
@@ -573,7 +576,7 @@ export default function AdminPointsPage() {
                       <tr key={dept.id} className="hover:bg-[#F8FAFD] transition-colors">
                         <td className="py-3 px-4 font-bold text-slate-800">{dept.name}</td>
                         <td className="py-3 px-4">
-                          <div className="font-extrabold text-slate-900">{candidate.fullName}</div>
+                          <div className="font-extrabold text-[#0F1E36]">{candidate.fullName}</div>
                           <div className="text-[10px] text-slate-400 font-mono">
                             {candidate.quanterId}
                           </div>
@@ -598,7 +601,7 @@ export default function AdminPointsPage() {
                                 [candidate.id]: Number(e.target.value),
                               }))
                             }
-                            className="w-16 px-2 py-1 rounded-lg border border-[#E2EDF8] text-xs font-mono font-bold text-center"
+                            className="w-16 px-2 py-1 rounded-lg border border-slate-200/90 text-xs font-mono font-bold text-center"
                           />
                         </td>
                         <td className="py-3 px-4 text-right">
@@ -607,11 +610,11 @@ export default function AdminPointsPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleMotmSelect(candidate.id)}
-                              className="w-4 h-4 text-[#1D63EB] rounded cursor-pointer"
+                              className="w-4 h-4 text-[#0284C7] rounded cursor-pointer"
                             />
                             <span
                               className={`text-[11px] font-bold ${
-                                isSelected ? "text-[#1D63EB]" : "text-slate-400"
+                                isSelected ? "text-[#0284C7]" : "text-slate-400"
                               }`}
                             >
                               {isSelected ? "Selected" : "Select"}
@@ -633,7 +636,7 @@ export default function AdminPointsPage() {
       {manualOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-extrabold">+ Manual Point Entry</h2>
                 <p className="text-xs text-sky-200">
@@ -730,7 +733,7 @@ export default function AdminPointsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#1D63EB] hover:bg-blue-700 text-white"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
                 >
                   Append Ledger Entry
                 </button>

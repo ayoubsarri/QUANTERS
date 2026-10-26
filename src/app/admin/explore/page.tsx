@@ -289,21 +289,19 @@ export default function AdminExplorePage() {
   return (
     <>
       <div className="space-y-5 animate-rise">
-        {/* Top Header & 3-Tab Switcher */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Top Header & 3-Tab Switcher — Member App Editorial Style */}
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E0F0FF] text-[#1D63EB]">
-                  Explore, Daily Quiz &amp; 365-Day Quote Engine
-                </span>
-                <span className="text-xs text-slate-500 font-medium">
-                  Powers Member App News, Collapsible Daily Quiz &amp; Daily Quote of the Day
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+                EXPLORE · DAILY QUIZ &amp; 365-DAY QUOTES ENGINE
+              </span>
+              <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
                 Editorial Dispatches, Daily Quiz &amp; 365-Day Quotes
               </h1>
+              <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+                Powers Member App news dispatches, collapsible daily quiz, and the 365-day quote library.
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -311,7 +309,7 @@ export default function AdminExplorePage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Create Explore Post</span>
@@ -424,7 +422,7 @@ export default function AdminExplorePage() {
                       onClick={() => setStatusFilter(st)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                         statusFilter === st
-                          ? "bg-[#061E47] text-white"
+                          ? "bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
@@ -445,7 +443,7 @@ export default function AdminExplorePage() {
                     onClick={() => setCategoryFilter(cat)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                       categoryFilter === cat
-                        ? "bg-[#1D63EB] text-white"
+                        ? "bg-[#182C4E] text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
@@ -469,7 +467,7 @@ export default function AdminExplorePage() {
                         className="w-full h-full object-cover opacity-90"
                       />
                       <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#061E47]/90 text-[#29D2FF] backdrop-blur-sm">
+                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E]/90 text-[#29D2FF] backdrop-blur-sm">
                           {post.tagLabel}
                         </span>
                         {post.featuredInCarousel && (
@@ -482,7 +480,7 @@ export default function AdminExplorePage() {
 
                     <div className="p-5 space-y-2">
                       <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-bold text-[#1D63EB]">
+                        <span className="font-bold text-[#0284C7]">
                           {post.category}
                         </span>
                         <span>
@@ -490,7 +488,7 @@ export default function AdminExplorePage() {
                         </span>
                       </div>
 
-                      <h3 className="font-extrabold text-slate-900 text-base leading-snug">
+                      <h3 className="font-extrabold text-[#0F1E36] text-base leading-snug">
                         {post.title}
                       </h3>
                       <p className="text-xs text-slate-600 line-clamp-3">
@@ -559,7 +557,7 @@ export default function AdminExplorePage() {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-slate-500">
                   Active in Member App:{" "}
-                  <strong className="text-slate-900">
+                  <strong className="text-[#0F1E36]">
                     {dailyQuizzes.filter((q) => q.active).length}
                   </strong>
                 </span>
@@ -650,7 +648,7 @@ export default function AdminExplorePage() {
                       </div>
                     </div>
 
-                    <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
+                    <h3 className="text-sm font-extrabold text-[#0F1E36] leading-snug">
                       {quiz.question}
                     </h3>
 
@@ -874,7 +872,7 @@ export default function AdminExplorePage() {
                         </span>
                       </div>
 
-                      <p className="text-xs sm:text-sm italic font-editorial text-slate-900 leading-relaxed">
+                      <p className="text-xs sm:text-sm italic font-editorial text-[#0F1E36] leading-relaxed">
                         &ldquo;{q.text}&rdquo;
                       </p>
                     </div>
@@ -927,8 +925,8 @@ export default function AdminExplorePage() {
             {totalQuotePages > 1 && (
               <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-slate-500">
-                  Page <strong className="text-slate-900">{currentQuotePage}</strong> of{" "}
-                  <strong className="text-slate-900">{totalQuotePages}</strong> ·{" "}
+                  Page <strong className="text-[#0F1E36]">{currentQuotePage}</strong> of{" "}
+                  <strong className="text-[#0F1E36]">{totalQuotePages}</strong> ·{" "}
                   {filteredQuotes.length} quotes
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -965,7 +963,7 @@ export default function AdminExplorePage() {
       {createOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-extrabold">
                   Create Explore Article / Opportunity
@@ -1104,7 +1102,7 @@ export default function AdminExplorePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#1D63EB] hover:bg-blue-700 text-white"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
                 >
                   Publish Article
                 </button>

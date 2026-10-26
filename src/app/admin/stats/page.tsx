@@ -106,20 +106,23 @@ export default function AdminStatsPage() {
 
   return (
     <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+      {/* Top Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
-          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            CLUB TELEMETRY &amp; FAIRNESS METRICS
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
             Platform Statistics
           </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Key telemetry, department engagement, and member leaderboards
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Key telemetry, department engagement, and member leaderboards.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Period Selector Pills */}
-          <div className="flex items-center gap-1 p-1 bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl">
+          <div className="flex items-center gap-1 p-1 bg-[#F4F7FB] border border-slate-200/90 rounded-xl">
             {(["This Month", "Semester", "Season"] as PeriodKey[]).map((p) => (
               <button
                 key={p}
@@ -127,8 +130,8 @@ export default function AdminStatsPage() {
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                   period === p
-                    ? "bg-[#1D63EB] text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-[#182C4E] text-white shadow-xs"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 {p}
@@ -139,7 +142,7 @@ export default function AdminStatsPage() {
           <button
             type="button"
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer shadow-xs"
           >
             <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
             <span>Export CSV</span>
@@ -161,11 +164,11 @@ export default function AdminStatsPage() {
 
       {/* 4 Executive KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
           <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
             Total XP ({period})
           </div>
-          <div className="text-xl sm:text-2xl font-black text-[#1D63EB] mt-1 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-[#0284C7] mt-1 tabular-nums">
             {totalClubXp.toLocaleString()} XP
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-0.5">
@@ -173,7 +176,7 @@ export default function AdminStatsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
           <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
             Avg Attendance
           </div>
@@ -185,11 +188,11 @@ export default function AdminStatsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
           <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
             On-Time Task Delivery
           </div>
-          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-[#0F1E36] mt-1 tabular-nums">
             {avgTaskOnTime}%
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-0.5">
@@ -197,11 +200,11 @@ export default function AdminStatsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
           <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
             Credentials Issued
           </div>
-          <div className="text-xl sm:text-2xl font-black text-[#0D5BD9] mt-1 tabular-nums">
+          <div className="text-xl sm:text-2xl font-black text-[#0284C7] mt-1 tabular-nums">
             {totalBadgesAwarded}
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-0.5">
@@ -213,10 +216,10 @@ export default function AdminStatsPage() {
       {/* Two-Column Analytics: Departments & Scientific Teams */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Departments Performance */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#E2EDF8]">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#1D63EB]" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200/90">
+            <h2 className="text-sm font-extrabold text-[#0F1E36] flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#0284C7]" />
               <span>Department Engagement</span>
             </h2>
             <div className="flex items-center gap-1 text-[11px]">
@@ -225,7 +228,7 @@ export default function AdminStatsPage() {
                 onClick={() => setDeptSortBy("avg")}
                 className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
                   deptSortBy === "avg"
-                    ? "bg-[#1D63EB] text-white"
+                    ? "bg-[#182C4E] text-white"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -236,7 +239,7 @@ export default function AdminStatsPage() {
                 onClick={() => setDeptSortBy("total")}
                 className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
                   deptSortBy === "total"
-                    ? "bg-[#1D63EB] text-white"
+                    ? "bg-[#182C4E] text-white"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -273,10 +276,10 @@ export default function AdminStatsPage() {
         </div>
 
         {/* Scientific Teams Activity */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#E2EDF8]">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#1D63EB]" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200/90">
+            <h2 className="text-sm font-extrabold text-[#0F1E36] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#0284C7]" />
               <span>Scientific Teams Ranking</span>
             </h2>
             <span className="font-mono text-xs text-slate-400 font-bold">
@@ -288,7 +291,7 @@ export default function AdminStatsPage() {
             {teamRankings.map((t, idx) => (
               <div key={t.team.id} className="py-2.5 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-slate-900">
+                  <div className="font-bold text-[#0F1E36]">
                     {idx + 1}. {t.team.name}
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
@@ -310,8 +313,8 @@ export default function AdminStatsPage() {
       </div>
 
       {/* Top 10 Contributors Leaderboard Table */}
-      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
-        <div className="p-3.5 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="p-3.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
           <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
             Top 10 Contributors · {period}
           </h2>
@@ -321,7 +324,7 @@ export default function AdminStatsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFD] border-b border-[#E2EDF8] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-[#F8FAFD] border-b border-slate-200/90 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-3 px-4 w-12 text-center">#</th>
                 <th className="py-3 px-4">Member</th>
                 <th className="py-3 px-4">Department</th>
@@ -345,10 +348,10 @@ export default function AdminStatsPage() {
                         <img
                           src={m.avatarUrl}
                           alt={m.fullName}
-                          className="w-7 h-7 rounded-full object-cover border border-[#E2EDF8] shrink-0"
+                          className="w-7 h-7 rounded-full object-cover border border-slate-200/90 shrink-0"
                         />
                         <div>
-                          <div className="font-extrabold text-slate-900">{m.fullName}</div>
+                          <div className="font-extrabold text-[#0F1E36]">{m.fullName}</div>
                           <div className="text-[10px] text-slate-400 font-mono">{m.quanterId}</div>
                         </div>
                       </div>

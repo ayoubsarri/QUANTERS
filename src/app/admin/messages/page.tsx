@@ -73,14 +73,17 @@ export default function AdminMessagesPage() {
 
   return (
     <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+      {/* Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
-          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            OFFICIAL COMMUNICATIONS &amp; PUSH DISPATCH
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
             Messages &amp; Announcements
           </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Broadcast messages via in-app push and university email
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Broadcast messages via in-app push and university email.
           </p>
         </div>
       </div>
@@ -100,7 +103,7 @@ export default function AdminMessagesPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
         {/* LEFT: DUAL-CHANNEL COMPOSER */}
         <div className="xl:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-[#061E47] text-white">
+          <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white">
             <h2 className="text-base font-extrabold">Dual-Channel Message Composer</h2>
             <p className="text-xs text-sky-200">
               Simultaneously delivers to Member Mobile App and University Email
@@ -129,7 +132,7 @@ export default function AdminMessagesPage() {
                     onClick={() => handleRecipientTypeChange(rt)}
                     className={`px-2.5 py-2 rounded-xl text-xs font-bold border transition ${
                       recipientType === rt
-                        ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                        ? "bg-[#182C4E] text-white border-[#182C4E]"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -259,7 +262,7 @@ export default function AdminMessagesPage() {
                 <label
                   className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-extrabold cursor-pointer ${
                     inApp
-                      ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                      ? "bg-blue-50 border-[#182C4E] text-[#0284C7]"
                       : "bg-slate-50 border-slate-200 text-slate-600"
                   }`}
                 >
@@ -267,7 +270,7 @@ export default function AdminMessagesPage() {
                     type="checkbox"
                     checked={inApp}
                     onChange={(e) => setInApp(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#1D63EB]"
+                    className="w-4 h-4 rounded text-[#0284C7]"
                   />
                   <Bell className="w-4 h-4" />
                   <span>In-App Notification</span>
@@ -276,7 +279,7 @@ export default function AdminMessagesPage() {
                 <label
                   className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-extrabold cursor-pointer ${
                     email
-                      ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                      ? "bg-blue-50 border-[#182C4E] text-[#0284C7]"
                       : "bg-slate-50 border-slate-200 text-slate-600"
                   }`}
                 >
@@ -284,7 +287,7 @@ export default function AdminMessagesPage() {
                     type="checkbox"
                     checked={email}
                     onChange={(e) => setEmail(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#1D63EB]"
+                    className="w-4 h-4 rounded text-[#0284C7]"
                   />
                   <Mail className="w-4 h-4" />
                   <span>Send via Email</span>
@@ -323,7 +326,7 @@ export default function AdminMessagesPage() {
 
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-sm font-extrabold shadow-sm transition"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-sm font-extrabold shadow-sm transition"
             >
               <Send className="w-4 h-4" />
               Send Message ({selectedTarget})
@@ -335,7 +338,7 @@ export default function AdminMessagesPage() {
         <div className="xl:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
           <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900">
+              <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 Sent Messages & Real-Time Delivery Tracker ({messages.length})
               </h3>
               <p className="text-xs text-slate-500">
@@ -389,7 +392,7 @@ export default function AdminMessagesPage() {
                           </span>
                           <span className="text-[11px] font-mono text-slate-400 whitespace-nowrap shrink-0">{msg.timeAgo}</span>
                         </div>
-                        <div className="text-xs font-bold text-slate-900 mt-1.5">{msg.title}</div>
+                        <div className="text-xs font-bold text-[#0F1E36] mt-1.5">{msg.title}</div>
                         <p className="text-[11px] text-slate-500 line-clamp-1 max-w-xs mt-0.5">
                           {msg.body}
                         </p>
@@ -405,7 +408,7 @@ export default function AdminMessagesPage() {
                       <td className="py-3.5 px-4 align-top">
                         <div className="flex flex-col gap-1 text-[11px] font-bold">
                           {msg.channels.inApp && (
-                            <span className="inline-flex items-center gap-1 text-[#1D63EB]">
+                            <span className="inline-flex items-center gap-1 text-[#0284C7]">
                               <Check className="w-3 h-3" /> In-App
                             </span>
                           )}
@@ -422,7 +425,7 @@ export default function AdminMessagesPage() {
                           <span>
                             {msg.stats.inAppReadCount} / {msg.stats.totalRecipients} Read
                           </span>
-                          <span className="text-[#1D63EB]">{readPct}%</span>
+                          <span className="text-[#0284C7]">{readPct}%</span>
                         </div>
                         <div className="w-32 h-2 rounded-full bg-slate-100 overflow-hidden">
                           <div

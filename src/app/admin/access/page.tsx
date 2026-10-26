@@ -89,21 +89,24 @@ export default function AdminAccessPage() {
   return (
     <>
       <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-        {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        {/* Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
-          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            ORGANIGRAMME ROLE AUTHORITY &amp; DELEGATION
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
             Access &amp; Permissions
           </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Manage administrative roles, department leads, and privileges
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Manage administrative roles, department leads, and scoped privileges.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setGrantModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Grant Access</span>
@@ -124,8 +127,8 @@ export default function AdminAccessPage() {
 
       {/* Primary Role Reference Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-1">
-          <div className="flex items-center gap-2 text-[#1D63EB] font-bold text-xs">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-2 text-[#0284C7] font-bold text-xs">
             <Shield className="w-3.5 h-3.5" />
             <span>Super Admin</span>
           </div>
@@ -134,7 +137,7 @@ export default function AdminAccessPage() {
           </p>
         </div>
 
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-1">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs">
             <Shield className="w-3.5 h-3.5" />
             <span>HR Head</span>
@@ -144,8 +147,8 @@ export default function AdminAccessPage() {
           </p>
         </div>
 
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-1">
-          <div className="flex items-center gap-2 text-[#0D5BD9] font-bold text-xs">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm space-y-1">
+          <div className="flex items-center gap-2 text-[#0284C7] font-bold text-xs">
             <Shield className="w-3.5 h-3.5" />
             <span>Department Head</span>
           </div>
@@ -154,7 +157,7 @@ export default function AdminAccessPage() {
           </p>
         </div>
 
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-1">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-slate-700 font-bold text-xs">
             <Shield className="w-3.5 h-3.5" />
             <span>KPI Viewer</span>
@@ -166,8 +169,8 @@ export default function AdminAccessPage() {
       </div>
 
       {/* Privileged Staff Table */}
-      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
-        <div className="p-3.5 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="p-3.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
           <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
             Administrative Staff ({privilegedMembers.length} Members)
           </h2>
@@ -177,7 +180,7 @@ export default function AdminAccessPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFD] border-b border-[#E2EDF8] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-[#F8FAFD] border-b border-slate-200/90 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-3 px-4">Member</th>
                 <th className="py-3 px-4">Department</th>
                 <th className="py-3 px-4">Assigned Roles</th>
@@ -196,10 +199,10 @@ export default function AdminAccessPage() {
                         <img
                           src={m.avatarUrl}
                           alt={m.fullName}
-                          className="w-7 h-7 rounded-full object-cover border border-[#E2EDF8] shrink-0"
+                          className="w-7 h-7 rounded-full object-cover border border-slate-200/90 shrink-0"
                         />
                         <div>
-                          <div className="font-extrabold text-slate-900">{m.fullName}</div>
+                          <div className="font-extrabold text-[#0F1E36]">{m.fullName}</div>
                           <div className="text-[10px] text-slate-400 font-mono">{m.quanterId}</div>
                         </div>
                       </div>
@@ -214,7 +217,7 @@ export default function AdminAccessPage() {
                         {adminRoles.map((r) => (
                           <span
                             key={r}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E0F0FF] text-[#1D63EB] border border-sky-200"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F0F6FF] text-[#0284C7] border border-sky-200"
                           >
                             <span>{r}</span>
                             {r !== "Super Admin" && (
@@ -239,7 +242,7 @@ export default function AdminAccessPage() {
                           setSelectedMemberId(m.id);
                           setGrantModalOpen(true);
                         }}
-                        className="text-xs font-bold text-[#1D63EB] hover:underline cursor-pointer"
+                        className="text-xs font-bold text-[#0284C7] hover:underline cursor-pointer"
                       >
                         + Add Role
                       </button>
@@ -258,7 +261,7 @@ export default function AdminAccessPage() {
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-[400px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">Grant Administrative Role</h3>
+              <h3 className="text-sm font-black text-[#0F1E36]">Grant Administrative Role</h3>
               <button
                 type="button"
                 onClick={() => setGrantModalOpen(false)}
@@ -282,7 +285,7 @@ export default function AdminAccessPage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, sortedMembers, setSelectedMemberId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800"
                 >
                   {sortedMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -297,7 +300,7 @@ export default function AdminAccessPage() {
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as RoleTemplateName)}
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-bold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-bold"
                 >
                   {ROLES.map((r) => (
                     <option key={r} value={r}>
@@ -317,7 +320,7 @@ export default function AdminAccessPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#1D63EB] text-white rounded-xl"
+                  className="flex-1 py-2 text-xs font-bold bg-[#182C4E] text-white rounded-xl"
                 >
                   Confirm Grant
                 </button>

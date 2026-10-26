@@ -129,17 +129,18 @@ export function PwaOfflineManager() {
 
   const prevMessagesCountRef = useRef<number>(messages.length);
 
-  // 1. Hydrate local cache & register Service Worker
+  // 1. Hydrate local cache & register Service Worker automatically for seamless offline operation
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    try {
+      window.localStorage.removeItem("quanters_offline_mode_manual");
+    } catch {}
+
     hydrateFromLocalCache();
+    setOnlineStatus(navigator.onLine);
 
-    const manualOffline =
-      window.localStorage.getItem("quanters_offline_mode_manual") === "1";
-    setOnlineStatus(manualOffline ? false : navigator.onLine);
-
-    // Register Offline-First Service Worker
+    // Register Offline-First Service Worker automatically
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
@@ -147,7 +148,7 @@ export function PwaOfflineManager() {
           const conn = (navigator as unknown as { connection?: { saveData?: boolean } })
             .connection;
           const saveData = Boolean(conn?.saveData) || userLowDataMode;
-          if (!saveData && navigator.onLine && !manualOffline) {
+          if (!saveData && navigator.onLine) {
             setTimeout(() => {
               reg.active?.postMessage({
                 type: "WARM_ROUTES",
@@ -164,7 +165,7 @@ export function PwaOfflineManager() {
     const lastCheck = Number(
       window.sessionStorage.getItem("quanters-last-etag-check") || "0"
     );
-    if (navigator.onLine && !manualOffline && Date.now() - lastCheck > ttlMs) {
+    if (navigator.onLine && Date.now() - lastCheck > ttlMs) {
       window.sessionStorage.setItem("quanters-last-etag-check", String(Date.now()));
       const headers: Record<string, string> = {};
       if (lastServerEtag) {
@@ -186,12 +187,11 @@ export function PwaOfflineManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Listen to network Online / Offline transitions & live notifications
+  // 2. Listen to real network Online / Offline transitions & live notifications
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const handleOnline = async () => {
-      window.localStorage.setItem("quanters_offline_mode_manual", "0");
       setOnlineStatus(true);
       setReconnectedToast(true);
       if (useQuantersStore.getState().pendingSyncCount > 0) {
@@ -263,18 +263,6 @@ export function PwaOfflineManager() {
     setSyncingNow(false);
   };
 
-  const handleGoOnlineFromBanner = async () => {
-    try {
-      window.localStorage.setItem("quanters_offline_mode_manual", "0");
-    } catch {}
-    setOnlineStatus(true);
-    setReconnectedToast(true);
-    if (pendingSyncCount > 0) {
-      await syncWithServer(true);
-    }
-    setTimeout(() => setReconnectedToast(false), 3200);
-  };
-
   if (isOnline && !reconnectedToast && pendingSyncCount === 0 && !liveToast) {
     return null;
   }
@@ -327,22 +315,15 @@ export function PwaOfflineManager() {
             </span>
             <div className="truncate">
               <div className="font-extrabold text-[11px] text-amber-200 leading-tight">
-                Offline Mode Active
+                Working Offline Automatically
               </div>
               <div className="text-[10px] text-slate-300 truncate">
                 {pendingSyncCount > 0
-                  ? `${pendingSyncCount} action(s) saved locally · Auto-syncs when online`
-                  : "Working from device cache · All screens available"}
+                  ? `${pendingSyncCount} action(s) saved locally · Auto-syncs when connection returns`
+                  : "No internet connection · Working from local cache"}
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleGoOnlineFromBanner}
-            className="px-2 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 font-mono text-[10px] font-bold text-amber-200 shrink-0 cursor-pointer transition"
-          >
-            Reconnect
-          </button>
         </div>
       ) : reconnectedToast ? (
         <div className="pointer-events-auto bg-emerald-950/95 backdrop-blur-md text-white border border-emerald-400/40 rounded-xl px-3.5 py-2 shadow-lg flex items-center justify-between gap-2 text-xs">
@@ -363,7 +344,7 @@ export function PwaOfflineManager() {
             type="button"
             onClick={handleManualFlush}
             disabled={syncingNow}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1D63EB] hover:bg-blue-600 text-white text-[10.5px] font-bold cursor-pointer transition"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#182C4E] hover:brightness-110 text-white text-[10.5px] font-bold cursor-pointer transition"
           >
             <RefreshCw className={`w-3 h-3 ${syncingNow ? "animate-spin" : ""}`} />
             <span>Sync Now</span>

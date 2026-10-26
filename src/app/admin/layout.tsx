@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Bell,
   CheckCircle2,
+  ExternalLink,
   LogOut,
   Menu,
   Monitor,
@@ -40,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       : [];
 
   return (
-    <div className="h-screen w-full flex bg-[#F4F7FB] text-[#09192F] overflow-hidden">
+    <div className="h-screen w-full flex bg-[#F4F7FB] text-[#0F1E36] overflow-hidden">
       {/* Responsive Admin Sidebar (Fixed on PC, Slide-over Drawer on Mobile) */}
       <AdminSidebar
         mobileOpen={mobileMenuOpen}
@@ -49,14 +50,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content Area (Independent scroll container) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        {/* Top Header Bar */}
-        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-[#E2EAF4] px-4 lg:px-6 flex items-center justify-between gap-3 sticky top-0 z-30">
+        {/* Top Header Bar matching Member App Style */}
+        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-[0_2px_10px_rgba(15,30,54,0.03)]">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Mobile Hamburger Button */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-[#F4F7FB] border border-[#E2EAF4] text-slate-700 hover:text-[#1D63EB]"
+              className="lg:hidden p-2 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] hover:bg-[#E2EEFF] transition"
               aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
@@ -72,11 +73,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search member by name, Quanter ID, or email..."
-                className="w-full pl-9 pr-4 py-2 text-xs font-medium bg-[#F4F7FB] border border-[#E2EAF4] rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1D63EB] focus:bg-white transition"
+                className="w-full pl-9 pr-4 py-2 text-xs font-medium bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition"
               />
               {searchFocused && quickResults.length > 0 && (
-                <div className="absolute left-0 right-0 top-11 bg-white rounded-xl border border-[#E2EAF4] shadow-xl py-1.5 z-50">
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="absolute left-0 right-0 top-11 bg-white rounded-2xl border border-slate-200/90 shadow-[0_14px_34px_rgba(15,30,54,0.12)] py-1.5 z-50">
+                  <div className="px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-[#0284C7]">
                     Member Directory
                   </div>
                   {quickResults.map((m) => (
@@ -93,18 +94,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <img
                           src={m.avatarUrl}
                           alt={m.fullName}
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
+                          className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200"
                         />
                         <div className="truncate">
-                          <div className="text-xs font-bold text-slate-900 truncate">
+                          <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate">
                             {m.fullName}
                           </div>
-                          <div className="text-[10px] text-slate-500 truncate">
+                          <div className="text-[10px] font-mono text-slate-500 truncate">
                             {m.quanterId} · {m.email}
                           </div>
                         </div>
                       </div>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#E0F0FF] text-[#1D63EB] shrink-0">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] shrink-0">
                         {m.status}
                       </span>
                     </button>
@@ -115,22 +116,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* Active Role Badge */}
-            <div className="hidden sm:inline-flex items-center gap-1.5 bg-[#E0F0FF] text-[#094C9C] border border-[#1D63EB]/20 px-3 py-1.5 rounded-xl text-xs font-bold">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#1D63EB]" />
+            <div className="hidden sm:inline-flex items-center gap-1.5 bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] px-3 py-1.5 rounded-xl text-xs font-display font-extrabold">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>{activeAdminRole}</span>
             </div>
+
+            {/* Member App Quick Switch */}
+            <Link
+              href="/home"
+              className="hidden md:inline-flex items-center gap-1.5 bg-white hover:bg-[#F0F6FF] text-[#182C4E] border border-slate-200/90 px-3 py-1.5 rounded-xl text-xs font-display font-bold transition"
+              title="Open Member App"
+            >
+              <span>Member App</span>
+              <ExternalLink className="w-3.5 h-3.5 text-[#0284C7]" />
+            </Link>
 
             {/* Notification Bell */}
             <Link
               href="/admin/messages"
-              className="relative p-2 rounded-xl bg-[#F4F7FB] border border-[#E2EAF4] text-slate-600 hover:text-[#1D63EB] hover:bg-[#E0F0FF]/50 transition"
+              className="relative p-2 rounded-xl bg-white border border-slate-200/90 text-[#182C4E] hover:bg-[#F0F6FF] transition"
               title="Messages & Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center tabular-nums">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center tabular-nums">
                   {unreadCount}
                 </span>
               )}
@@ -143,23 +154,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 logout();
                 router.push("/welcome");
               }}
-              className="inline-flex items-center gap-1.5 bg-[#09192F] hover:bg-rose-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-display font-extrabold px-3 py-2 rounded-xl shadow-xs transition cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5 text-[#29D2FF]" />
+              <LogOut className="w-3.5 h-3.5 text-[#7DD3FC]" />
               <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </header>
 
-        {/* Mobile Device Notice: Recommends PC for Admin ERP while keeping everything 100% openable */}
+        {/* Mobile Device Notice */}
         {!dismissedMobileNotice && (
-          <div className="lg:hidden mx-4 mt-4 p-3.5 rounded-2xl bg-[#09192F] text-white border border-[#1D63EB]/40 shadow-md flex items-start justify-between gap-3">
+          <div className="lg:hidden mx-4 mt-4 p-3.5 rounded-2xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/65 shadow-md flex items-start justify-between gap-3">
             <div className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#1D63EB]/25 border border-[#29D2FF]/30 flex items-center justify-center shrink-0 mt-0.5">
-                <Monitor className="w-4 h-4 text-[#29D2FF]" />
+              <div className="w-8 h-8 rounded-xl bg-[#0B1528] border border-[#38BDF8]/30 flex items-center justify-center shrink-0 mt-0.5">
+                <Monitor className="w-4 h-4 text-[#7DD3FC]" />
               </div>
               <div>
-                <div className="text-xs font-bold text-white">
+                <div className="font-display text-xs font-extrabold text-white">
                   Admin Console is optimized for PC &amp; Desktop
                 </div>
                 <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
@@ -169,7 +180,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <button
                     type="button"
                     onClick={() => setDismissedMobileNotice(true)}
-                    className="px-2.5 py-1 rounded-lg bg-[#1D63EB] text-white text-[11px] font-bold"
+                    className="px-2.5 py-1 rounded-lg bg-[#0284C7] text-white text-[11px] font-display font-bold"
                   >
                     Continue on Mobile
                   </button>
@@ -196,14 +207,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Admin Celebration / Confirmation Toast Modal */}
       {celebration?.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl border border-[#E2EAF4] shadow-2xl max-w-md w-full p-6 text-center animate-rise">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-md w-full p-6 text-center animate-rise">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900">{celebration.title}</h3>
+            <h3 className="font-display text-lg font-black text-[#0F1E36]">{celebration.title}</h3>
             <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{celebration.subtitle}</p>
             {celebration.xpEarned > 0 && (
-              <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#D8F3E5] text-[#0D7A49] text-xs font-extrabold tabular-nums">
+              <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono text-xs font-bold tabular-nums">
                 +{celebration.xpEarned} XP Awarded
               </div>
             )}
@@ -211,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <button
                 type="button"
                 onClick={() => triggerCelebration(null)}
-                className="w-full py-2.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white font-display text-xs font-extrabold transition"
               >
                 Continue
               </button>

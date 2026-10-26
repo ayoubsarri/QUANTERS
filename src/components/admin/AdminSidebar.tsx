@@ -10,6 +10,7 @@ import {
   Building2,
   Calendar,
   CheckSquare,
+  ExternalLink,
   FileSpreadsheet,
   KeyRound,
   LayoutDashboard,
@@ -186,12 +187,12 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
     members[0];
 
   const sidebarContent = (
-    <div className="w-60 shrink-0 bg-[#06182C] text-white flex flex-col h-screen border-r border-slate-800/80 select-none overflow-hidden">
-      {/* Brand Header */}
-      <div className="px-5 pt-5 pb-4 border-b border-white/10">
+    <div className="w-64 shrink-0 bg-gradient-to-b from-[#081223] via-[#0E1B31] to-[#060D1A] text-white flex flex-col h-screen border-r border-[#2B4875]/45 select-none overflow-hidden">
+      {/* Brand Header matching Member App */}
+      <div className="px-4 pt-5 pb-3.5 border-b border-[#2B4875]/45">
         <div className="flex items-center justify-between">
           <Link href="/admin/overview" onClick={onCloseMobile} className="hover:opacity-95 transition">
-            <QuantaLogo size={28} showSubtitle={true} />
+            <QuantaLogo size={24} showSubtitle={true} variant="dark" />
           </Link>
           {onCloseMobile && (
             <button
@@ -205,19 +206,19 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           )}
         </div>
 
-        {/* Compact Admin User Card */}
-        <div className="mt-3.5 bg-[#0B2341] border border-white/10 rounded-xl p-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+        {/* Compact Admin Identity Card in Member App Deep Navy Style */}
+        <div className="mt-3.5 bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/75 rounded-xl p-2.5 flex items-center justify-between gap-2 shadow-[0_6px_18px_rgba(3,8,18,0.4)]">
+          <div className="flex items-center gap-2.5 min-w-0">
             <img
               src={adminUser.avatarUrl}
               alt={adminUser.fullName}
-              className="w-7 h-7 rounded-full object-cover border border-[#29D2FF]/50 shrink-0"
+              className="w-8 h-8 rounded-full object-cover border border-[#38BDF8]/50 shrink-0"
             />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold text-white truncate">
+              <div className="font-display text-xs font-black text-white truncate leading-tight">
                 {adminUser.fullName}
               </div>
-              <div className="text-[9.5px] font-semibold text-[#29D2FF] truncate flex items-center gap-1">
+              <div className="text-[10px] font-mono font-semibold text-[#7DD3FC] truncate flex items-center gap-1 mt-0.5">
                 <UserCheck className="w-2.5 h-2.5 shrink-0" />
                 <span>{activeAdminRole}</span>
               </div>
@@ -231,15 +232,15 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
               router.push("/welcome");
             }}
             title="Sign Out"
-            className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 transition cursor-pointer shrink-0"
+            className="p-1.5 rounded-lg bg-[#081223]/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-[#2B4875]/70 transition cursor-pointer shrink-0"
           >
-            <LogOut className="w-3 h-3" />
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Scrollable Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-3.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-3.5">
         {NAV_GROUPS.map((group) => {
           const visibleItems = group.items.filter(
             (item) => !item.allowedRoles || item.allowedRoles.includes(activeAdminRole)
@@ -248,7 +249,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
 
           return (
             <div key={group.groupLabel}>
-              <div className="px-2 mb-1 text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400/80">
+              <div className="px-2.5 mb-1 text-[9.5px] font-mono font-bold uppercase tracking-[0.14em] text-[#7DD3FC]/70">
                 {group.groupLabel}
               </div>
               <div className="space-y-0.5">
@@ -264,16 +265,16 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                       key={item.href}
                       href={item.href}
                       onClick={onCloseMobile}
-                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all ${
+                      className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-display font-bold transition-all ${
                         isActive
-                          ? "bg-[#1D63EB] text-white shadow-sm"
-                          : "text-slate-300 hover:bg-white/5 hover:text-white"
+                          ? "bg-gradient-to-r from-[#182C4E] to-[#122340] text-white border border-[#38BDF8]/40 shadow-[0_4px_14px_rgba(3,8,18,0.45)]"
+                          : "text-slate-300/90 hover:bg-[#132441]/60 hover:text-white border border-transparent"
                       }`}
                     >
-                      <span className="flex items-center gap-2 truncate">
+                      <span className="flex items-center gap-2.5 truncate">
                         <Icon
                           className={`w-3.5 h-3.5 shrink-0 ${
-                            isActive ? "text-[#38E4FF]" : "text-slate-400"
+                            isActive ? "text-[#7DD3FC]" : "text-slate-400"
                           }`}
                         />
                         <span className="truncate">{item.label}</span>
@@ -282,10 +283,10 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                         {item.restricted && <Lock className="w-2.5 h-2.5 text-slate-400/80" />}
                         {count !== undefined && (
                           <span
-                            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full tabular-nums ${
+                            className={`text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded-md tabular-nums ${
                               isActive
-                                ? "bg-white/20 text-white"
-                                : "bg-white/10 text-slate-300"
+                                ? "bg-[#38BDF8]/20 text-[#7DD3FC] border border-[#38BDF8]/30"
+                                : "bg-white/8 text-slate-300"
                             }`}
                           >
                             {count}
@@ -300,13 +301,42 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           );
         })}
       </nav>
+
+      {/* Bottom Institutional Bar with Official Asset 2.png (Univ Algiers 1 + Quanta) & Member App Link */}
+      <div className="px-3.5 py-3 border-t border-[#2B4875]/45 bg-[#060E1C]/90 space-y-2.5">
+        <Link
+          href="/home"
+          className="w-full py-2 px-3 rounded-xl bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/80 flex items-center justify-between text-[11px] font-display font-bold text-[#7DD3FC] hover:text-white transition"
+        >
+          <span>Open Member App</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
+
+        <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5">
+          <img
+            src="/brand/univ_quanta_asset2.png"
+            alt="University of Algiers 1 & Quanta"
+            className="h-6 w-auto object-contain"
+          />
+          <div className="flex items-center gap-1.5 pl-2 border-l border-white/15">
+            <img
+              src="/brand/univ_logo.svg"
+              alt="Faculty of Sciences"
+              className="w-5 h-5 object-contain"
+            />
+            <span className="font-mono text-[9px] font-semibold tracking-wider text-slate-300 uppercase">
+              ALGIERS 1
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
   return (
     <>
-      {/* Desktop Fixed Sidebar (PC-First) */}
-      <aside className="hidden lg:flex w-60 h-screen shrink-0 select-none overflow-hidden">{sidebarContent}</aside>
+      {/* Desktop Fixed Sidebar */}
+      <aside className="hidden lg:flex w-64 h-screen shrink-0 select-none overflow-hidden">{sidebarContent}</aside>
 
       {/* Mobile Slide-Over Sidebar Drawer */}
       {mobileOpen && (

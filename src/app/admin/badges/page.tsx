@@ -168,7 +168,7 @@ export default function AdminBadgesPage() {
   };
 
   const categoryChipStyle: Record<string, string> = {
-    Science: "bg-sky-50 text-[#1D63EB] border-sky-200/80",
+    Science: "bg-sky-50 text-[#0284C7] border-sky-200/80",
     Technology: "bg-indigo-50 text-indigo-700 border-indigo-200/80",
     "Soft Skills": "bg-amber-50 text-amber-800 border-amber-200/80",
     "Hard Skills": "bg-blue-50 text-blue-700 border-blue-200/80",
@@ -185,14 +185,17 @@ export default function AdminBadgesPage() {
   return (
     <>
       <div className="space-y-3.5 max-w-[1500px] mx-auto animate-rise">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        {/* Header — Member App Editorial Style */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div>
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+              SKILL VERIFICATION &amp; ASSESSMENTS
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Badges &amp; Credentials
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              Manage skill badges, online assessment exams, and student project reviews
+            <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+              Manage skill badges, online assessment exams, and student project reviews.
             </p>
           </div>
 
@@ -203,7 +206,7 @@ export default function AdminBadgesPage() {
                 setAssigningBadge(badges[0] || null);
                 setSelectedMemberIds(["mem-ayoub"]);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Award className="w-3.5 h-3.5 text-[#38E4FF]" />
               <span>Award Manually</span>
@@ -212,7 +215,7 @@ export default function AdminBadgesPage() {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Badge</span>
@@ -233,14 +236,14 @@ export default function AdminBadgesPage() {
         )}
 
         {/* 3-Tab Switcher + Category Quick Filters */}
-        <div className="bg-white p-1.5 rounded-2xl border border-[#E2EDF8] shadow-sm flex flex-wrap items-center justify-between gap-2">
+        <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
               onClick={() => setActiveTab("library")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === "library"
-                  ? "bg-[#1D63EB] text-white shadow-sm"
+                  ? "bg-[#182C4E] text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -253,7 +256,7 @@ export default function AdminBadgesPage() {
               onClick={() => setActiveTab("exams")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === "exams"
-                  ? "bg-[#1D63EB] text-white shadow-sm"
+                  ? "bg-[#182C4E] text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -266,7 +269,7 @@ export default function AdminBadgesPage() {
               onClick={() => setActiveTab("projects")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 activeTab === "projects"
-                  ? "bg-[#1D63EB] text-white shadow-sm"
+                  ? "bg-[#182C4E] text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -286,8 +289,8 @@ export default function AdminBadgesPage() {
                     onClick={() => setSkillTypeFilter(st)}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                       skillTypeFilter === st
-                        ? "bg-white text-[#1D63EB] shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-white text-[#0284C7] shadow-xs"
+                        : "text-slate-600 hover:text-[#0F1E36]"
                     }`}
                   >
                     {st === "All" ? "All Skills" : st === "Hard Skill" ? "Hard Skills" : "Soft Skills"}
@@ -324,7 +327,7 @@ export default function AdminBadgesPage() {
               return (
                 <div
                   key={badge.id}
-                  className={`p-3.5 rounded-2xl bg-white border border-[#E2EDF8] shadow-xs hover:border-[#BFD9FB] transition flex flex-col justify-between ${
+                  className={`p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-[#BFD9FB] transition flex flex-col justify-between ${
                     badge.archived ? "opacity-60 bg-slate-50/70" : ""
                   }`}
                 >
@@ -357,7 +360,7 @@ export default function AdminBadgesPage() {
                             +{badge.xpReward} XP
                           </span>
                         </div>
-                        <h3 className="font-extrabold text-slate-900 text-xs leading-snug mt-1 truncate">
+                        <h3 className="font-extrabold text-[#0F1E36] text-xs leading-snug mt-1 truncate">
                           {badge.name}
                         </h3>
                       </div>
@@ -402,7 +405,7 @@ export default function AdminBadgesPage() {
                         setAssigningBadge(badge);
                         setSelectedMemberIds(["mem-ayoub"]);
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#1D63EB] hover:bg-blue-700 text-white text-[11px] font-bold transition cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-[11px] font-bold transition cursor-pointer"
                     >
                       <Award className="w-3 h-3" />
                       <span>Award</span>
@@ -461,14 +464,14 @@ export default function AdminBadgesPage() {
 
         {/* TAB 2: ONLINE EXAMS MANAGER (COMPACT) */}
         {activeTab === "exams" && (
-          <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm p-4 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2EDF8] pb-3.5">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/90 pb-3.5">
               <div className="flex items-center gap-2.5">
                 <label className="text-xs font-bold text-slate-700">Select Exam:</label>
                 <select
                   value={selectedExamId}
                   onChange={(e) => setSelectedExamId(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-[#E2EDF8] bg-[#F4F7FB] text-xs font-bold text-slate-800"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200/90 bg-[#F4F7FB] text-xs font-bold text-slate-800"
                 >
                   {exams.map((ex) => (
                     <option key={ex.id} value={ex.id}>
@@ -485,7 +488,7 @@ export default function AdminBadgesPage() {
                     `Saved Online Exam settings: ${examDuration} min duration, ${examPassingScore}% pass mark, ${examMaxAttempts} max attempts.`
                   )
                 }
-                className="px-3.5 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 Save Configuration
               </button>
@@ -541,7 +544,7 @@ export default function AdminBadgesPage() {
                     key={q.id}
                     className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2"
                   >
-                    <div className="font-bold text-xs text-slate-900">
+                    <div className="font-bold text-xs text-[#0F1E36]">
                       Q{idx + 1}. {q.question}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -611,11 +614,11 @@ export default function AdminBadgesPage() {
             {projectSubmissions.map((sub) => (
               <div
                 key={sub.id}
-                className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-sm space-y-3"
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm space-y-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200/80">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-[#0284C7] border border-sky-200/80">
                       Target Badge: {sub.badgeTitle}
                     </span>
                     <span
@@ -636,7 +639,7 @@ export default function AdminBadgesPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900">{sub.projectTitle}</h3>
+                  <h3 className="text-sm font-extrabold text-[#0F1E36]">{sub.projectTitle}</h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     Submitted by <strong className="text-slate-800">{sub.memberName}</strong> · Team:{" "}
                     {sub.teamMembers.join(", ") || "Solo"}
@@ -655,7 +658,7 @@ export default function AdminBadgesPage() {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-bold text-[#1D63EB] hover:underline"
+                      className="inline-flex items-center gap-1 font-bold text-[#0284C7] hover:underline"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       {sub.repoUrl}
@@ -666,7 +669,7 @@ export default function AdminBadgesPage() {
                       key={fn}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700"
                     >
-                      <FileCode2 className="w-3 h-3 text-[#1D63EB]" />
+                      <FileCode2 className="w-3 h-3 text-[#0284C7]" />
                       {fn}
                     </span>
                   ))}
@@ -744,7 +747,7 @@ export default function AdminBadgesPage() {
       {createOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base sm:text-lg font-extrabold">New Skill Badge</h2>
                 <p className="text-xs text-sky-200">
@@ -861,7 +864,7 @@ export default function AdminBadgesPage() {
                       title={f.label}
                       className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border transition ${
                         newBadgeIcon === f.key
-                          ? "bg-[#E0F0FF] border-[#1D63EB] ring-2 ring-[#1D63EB]/20"
+                          ? "bg-[#F0F6FF] border-[#182C4E] ring-2 ring-[#1D63EB]/20"
                           : "bg-white border-slate-200/80 hover:border-slate-300"
                       }`}
                     >
@@ -886,7 +889,7 @@ export default function AdminBadgesPage() {
                       onClick={() => toggleEarningMethod(m)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border uppercase ${
                         newBadgeMethods.includes(m)
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                          ? "bg-[#182C4E] text-white border-[#182C4E]"
                           : "bg-slate-50 text-slate-600 border-slate-200"
                       }`}
                     >
@@ -919,7 +922,7 @@ export default function AdminBadgesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#1D63EB] hover:bg-blue-700 text-white"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
                 >
                   Create Badge
                 </button>
@@ -933,7 +936,7 @@ export default function AdminBadgesPage() {
       {assigningBadge && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#FBB03B]" />
                 <div>
@@ -980,7 +983,7 @@ export default function AdminBadgesPage() {
                   <label className="block text-xs font-bold text-slate-700 uppercase">
                     Select Recipients ({selectedMemberIds.length} selected)
                   </label>
-                  <span className="text-[10px] font-semibold text-[#1D63EB]">
+                  <span className="text-[10px] font-semibold text-[#0284C7]">
                     Press A–Z to jump to name
                   </span>
                 </div>
@@ -1000,7 +1003,7 @@ export default function AdminBadgesPage() {
                         data-member-id={m.id}
                         className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold cursor-pointer border ${
                           checked
-                            ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                            ? "bg-blue-50 border-[#182C4E] text-[#0284C7]"
                             : "bg-white border-slate-200 text-slate-700"
                         }`}
                       >
@@ -1039,7 +1042,7 @@ export default function AdminBadgesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#1D63EB] hover:bg-blue-700 text-white"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
                 >
                   Mint Badge &amp; Credit +{assigningBadge.xpReward} XP
                 </button>

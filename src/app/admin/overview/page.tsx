@@ -8,7 +8,6 @@ import {
   Calendar,
   Check,
   CheckCircle2,
-  ClipboardPlus,
   Clock,
   Flame,
   Mail,
@@ -17,10 +16,8 @@ import {
   Sparkles,
   Star,
   UserCheck,
-  UserPlus,
   Users,
 } from "lucide-react";
-import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { DayOfWeek, TimeSlot } from "@/lib/types/erp";
 
@@ -125,10 +122,10 @@ export default function AdminOverviewPage() {
   const motmLeader = leaderboard[0];
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto animate-rise">
+    <div className="space-y-5 max-w-[1600px] mx-auto animate-rise">
       {/* Action Feedback Toast */}
       {actionToast && (
-        <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between text-xs font-bold animate-rise">
+        <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between text-xs font-display font-bold animate-rise">
           <span className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{actionToast}</span>
@@ -143,97 +140,127 @@ export default function AdminOverviewPage() {
         </div>
       )}
 
-      {/* 1. Concise Club Pulse Top Hero Bar */}
-      <section className="bg-hero-cobalt rounded-2xl p-5 sm:p-6 text-white shadow-[0_14px_34px_rgba(6,30,71,0.22)] relative overflow-hidden">
-        <div className="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-[#29D2FF]/10 blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <div className="shrink-0">
-              <PlanetEmblem size={56} />
+      {/* 1. Member-App Style Editorial Header */}
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            EXECUTIVE CONSOLE · ACADEMIC CYCLE 2026 / 2027
+          </span>
+          <h1 className="font-display text-2xl sm:text-[26px] font-black text-[#0F1E36] tracking-tight leading-tight">
+            Club Pulse &amp; Governance
+          </h1>
+          <p className="font-editorial italic text-slate-500 text-sm sm:text-base mt-0.5">
+            Real-time roster telemetry, availability matrix, and operational queues.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/admin/workshops"
+            className="inline-flex items-center gap-2 bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white font-display font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-[0_6px_16px_rgba(15,30,54,0.16)] transition"
+          >
+            <QrCode className="w-3.5 h-3.5 text-[#7DD3FC]" />
+            <span>Workshops &amp; QR</span>
+          </Link>
+          <Link
+            href="/admin/members"
+            className="inline-flex items-center gap-2 bg-[#F0F6FF] hover:bg-[#E2EEFF] text-[#182C4E] border border-[#D5E3F5] font-display font-extrabold text-xs px-4 py-2.5 rounded-xl transition"
+          >
+            <Users className="w-3.5 h-3.5 text-[#0284C7]" />
+            <span>Member Directory</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* 2. Signature Member-App Cosmic Hero Banner */}
+      <section className="relative rounded-2xl overflow-hidden bg-[#060E1E] text-white border border-[#2B4875]/65 shadow-[0_14px_34px_rgba(9,21,40,0.22)]">
+        <img
+          src="/brand/hero_rank_banner.webp"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-right opacity-85 pointer-events-none select-none"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071120]/96 via-[#0F1E36]/88 to-[#182C4E]/50 pointer-events-none" />
+
+        <div className="relative z-10 p-5 sm:p-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#132542]/90 border border-[#38BDF8]/35 text-[#7DD3FC] text-[10px] font-mono font-bold tracking-[0.12em] uppercase">
+              <Sparkles className="w-3 h-3 shrink-0" />
+              <span>QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1</span>
             </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[#29D2FF] text-[10px] font-bold tracking-wider uppercase mb-1.5">
-                <Sparkles className="w-3 h-3 shrink-0" />
-                <span>Club Pulse · 2026/2027</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                Executive Command Center
-              </h1>
+            <h2 className="font-display text-xl sm:text-2xl font-black tracking-tight text-white">
+              6 Fixed Departments &amp; {activeTeams.length} Scientific Teams Active
+            </h2>
+            <div className="flex items-center gap-3 pt-0.5">
+              <img
+                src="/brand/univ_quanta_asset2.png"
+                alt="University of Algiers 1 & Quanta"
+                className="h-7 w-auto object-contain"
+              />
+              <span className="h-4 w-px bg-white/20" />
+              <img
+                src="/brand/univ_logo.svg"
+                alt="Faculty of Sciences"
+                className="w-6 h-6 object-contain"
+              />
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-300">
+                FACULTY OF SCIENCES
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* 4 Key Numbers */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#041226]/50 border border-white/15 rounded-2xl px-4 py-3 backdrop-blur-md w-full sm:w-auto">
-              <div className="px-2 sm:border-r border-white/10">
-                <div className="text-[10px] uppercase tracking-wider text-blue-200/80 font-semibold">
-                  Active
-                </div>
-                <div className="text-xl font-black tabular-nums text-white mt-0.5">
-                  {activeCount}
-                </div>
+          {/* 4 Key Telemetry Counters */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#081223]/85 border border-[#2B4875]/75 rounded-2xl px-4 py-3.5 backdrop-blur-md w-full xl:w-auto">
+            <div className="px-2.5 sm:border-r border-[#2B4875]/60">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                Active Members
               </div>
-              <div className="px-2 sm:border-r border-white/10">
-                <div className="text-[10px] uppercase tracking-wider text-blue-200/80 font-semibold">
-                  Trainees
-                </div>
-                <div className="text-xl font-black tabular-nums text-[#29D2FF] mt-0.5">
-                  {traineeCount}
-                </div>
-              </div>
-              <div className="px-2 sm:border-r border-white/10">
-                <div className="text-[10px] uppercase tracking-wider text-blue-200/80 font-semibold">
-                  Attendance
-                </div>
-                <div className="text-xl font-black tabular-nums text-emerald-300 mt-0.5">
-                  {avgAttendance}%
-                </div>
-              </div>
-              <div className="px-2">
-                <div className="text-[10px] uppercase tracking-wider text-blue-200/80 font-semibold">
-                  Teams
-                </div>
-                <div className="text-xl font-black tabular-nums text-amber-300 mt-0.5">
-                  {activeTeams.length}
-                </div>
+              <div className="font-display text-2xl font-black tabular-nums text-white mt-0.5">
+                {activeCount}
               </div>
             </div>
-
-            {/* 2 Quick CTA Buttons */}
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <Link
-                href="/admin/workshops"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-[#29D2FF] hover:bg-[#38E4FF] text-[#041226] font-extrabold text-xs px-4 py-3 rounded-xl shadow-md transition"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>Workshops &amp; QR</span>
-              </Link>
-              <Link
-                href="/admin/members"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 font-bold text-xs px-4 py-3 rounded-xl transition"
-              >
-                <Users className="w-4 h-4 text-[#29D2FF]" />
-                <span>Member Directory</span>
-              </Link>
+            <div className="px-2.5 sm:border-r border-[#2B4875]/60">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                Trainees
+              </div>
+              <div className="font-display text-2xl font-black tabular-nums text-[#7DD3FC] mt-0.5">
+                {traineeCount}
+              </div>
+            </div>
+            <div className="px-2.5 sm:border-r border-[#2B4875]/60">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                Attendance
+              </div>
+              <div className="font-display text-2xl font-black tabular-nums text-emerald-300 mt-0.5">
+                {avgAttendance}%
+              </div>
+            </div>
+            <div className="px-2.5">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                Sci. Teams
+              </div>
+              <div className="font-display text-2xl font-black tabular-nums text-amber-300 mt-0.5">
+                {activeTeams.length}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. 4 Spacious Executive KPI Cards */}
+      {/* 3. 4 Executive KPI Cards in Member-App Card Style */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card 1: Current Roster */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E2EDF8] shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-600">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Current Roster
             </span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center text-[#1D63EB]">
+            <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#182C4E]">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="my-3">
-            <div className="text-3xl font-black text-slate-900 tabular-nums">
+            <div className="font-display text-3xl font-black text-[#0F1E36] tabular-nums">
               {currentMembers.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
@@ -241,12 +268,12 @@ export default function AdminOverviewPage() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-slate-400">
+            <span className="text-slate-400 font-mono text-[10px]">
               {inactiveCount} Inactive · {suspendedCount} Susp.
             </span>
             <Link
               href="/admin/members"
-              className="text-[#1D63EB] hover:underline inline-flex items-center gap-1 shrink-0"
+              className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0 transition"
             >
               <span>View Roster</span>
               <ArrowRight className="w-3 h-3" />
@@ -255,17 +282,17 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Card 2: Trainees Ready to Confirm */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E2EDF8] shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-600">
-              Trainees Ready to Confirm
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Ready to Confirm
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
               <UserCheck className="w-4 h-4" />
             </div>
           </div>
           <div className="my-3">
-            <div className="text-3xl font-black text-emerald-600 tabular-nums">
+            <div className="font-display text-3xl font-black text-emerald-700 tabular-nums">
               {traineesReadyToConfirm.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1">
@@ -273,12 +300,12 @@ export default function AdminOverviewPage() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+            <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
               3-Month Track
             </span>
             <Link
               href="/admin/members?status=Trainee"
-              className="text-emerald-700 hover:underline inline-flex items-center gap-1 shrink-0"
+              className="text-emerald-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
               <span>Review</span>
               <ArrowRight className="w-3 h-3" />
@@ -287,17 +314,17 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Card 3: Attention Needed / At Risk */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E2EDF8] shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-600">
-              Attention Needed / At Risk
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Attention Needed
             </span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="my-3">
-            <div className="text-3xl font-black text-rose-600 tabular-nums">
+            <div className="font-display text-3xl font-black text-rose-600 tabular-nums">
               {membersAtRisk.length + traineesWithoutFirstTask.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1">
@@ -305,12 +332,12 @@ export default function AdminOverviewPage() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md">
+            <span className="text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
               HR Follow-up
             </span>
             <Link
               href="/admin/members?status=Inactive"
-              className="text-rose-700 hover:underline inline-flex items-center gap-1 shrink-0"
+              className="text-rose-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
               <span>Inspect</span>
               <ArrowRight className="w-3 h-3" />
@@ -319,17 +346,17 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Card 4: Pending Reviews */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E2EDF8] shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold text-slate-600">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Pending Reviews
             </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#0284C7]">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div className="my-3">
-            <div className="text-3xl font-black text-indigo-600 tabular-nums">
+            <div className="font-display text-3xl font-black text-[#182C4E] tabular-nums">
               {totalPendingReviews}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
@@ -338,12 +365,12 @@ export default function AdminOverviewPage() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+            <span className="text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-md font-mono text-[10px]">
               Review Queue
             </span>
             <Link
               href="/admin/proposals"
-              className="text-indigo-700 hover:underline inline-flex items-center gap-1 shrink-0"
+              className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
               <span>Open Queue</span>
               <ArrowRight className="w-3 h-3" />
@@ -352,24 +379,27 @@ export default function AdminOverviewPage() {
         </div>
       </section>
 
-      {/* 3. Main Two-Column Executive Grid: Left Visual Heatmap | Right Action Queue + Top Contributors */}
+      {/* 4. Main Two-Column Executive Grid: Left Visual Heatmap | Right Action Queue + Top Contributors */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* Left 7 Cols: True Visual 7-Day Club Availability Heatmap */}
-        <section className="xl:col-span-7 bg-white rounded-2xl border border-[#E2EDF8] p-5 sm:p-6 shadow-sm space-y-5">
+        {/* Left 7 Cols: 7-Day Club Availability Heatmap */}
+        <section className="xl:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-5">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#1D63EB]" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+                SCHEDULE TELEMETRY
+              </span>
+              <h2 className="font-display text-base font-black text-[#0F1E36] flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#0284C7]" />
                 <span>7-Day Club Availability Heatmap (Saturday – Friday)</span>
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Click any slot block to view available members in the directory ({currentMembers.length} active roster)
+                Click any slot block to filter available members in the directory ({currentMembers.length} active roster)
               </p>
             </div>
 
             <Link
               href="/admin/members"
-              className="text-xs font-bold text-[#1D63EB] hover:underline inline-flex items-center gap-1"
+              className="text-xs font-display font-extrabold text-[#0284C7] hover:text-[#182C4E] inline-flex items-center gap-1 transition"
             >
               <span>Slot Finder</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -381,13 +411,13 @@ export default function AdminOverviewPage() {
             <div className="min-w-[620px] space-y-2.5">
               {/* Column Headers: Sat - Fri */}
               <div className="grid grid-cols-8 gap-2.5 items-center">
-                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 px-1">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 px-1">
                   Time Slot
                 </div>
                 {DAYS.map((d) => (
                   <div
                     key={d.key}
-                    className="text-center text-xs font-extrabold text-slate-700 py-1"
+                    className="text-center font-display text-xs font-black text-[#0F1E36] py-1"
                   >
                     {d.short}
                   </div>
@@ -402,7 +432,7 @@ export default function AdminOverviewPage() {
                 >
                   {/* Row Label */}
                   <div className="flex flex-col justify-center pr-2">
-                    <span className="text-xs font-extrabold text-slate-800">
+                    <span className="font-display text-xs font-extrabold text-[#0F1E36]">
                       {slot.label}
                     </span>
                     <span className="text-[10px] font-mono text-slate-400">
@@ -423,12 +453,12 @@ export default function AdminOverviewPage() {
 
                     const heatClass =
                       pct >= 75
-                        ? "bg-[#0B357D] text-white shadow-sm"
+                        ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/75 shadow-xs"
                         : pct >= 50
-                        ? "bg-[#1D63EB] text-white"
+                        ? "bg-[#0284C7] text-white border border-[#0369A1]"
                         : pct >= 25
-                        ? "bg-[#DBEAFE] text-[#1E40AF]"
-                        : "bg-slate-100 text-slate-500";
+                        ? "bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]"
+                        : "bg-slate-100 text-slate-500 border border-slate-200/80";
 
                     return (
                       <Link
@@ -437,7 +467,7 @@ export default function AdminOverviewPage() {
                         title={`${day.key} ${slot.label}: ${count} members free (${pct}%)`}
                         className={`rounded-xl p-3 flex flex-col items-center justify-center transition hover:scale-[1.03] ${heatClass}`}
                       >
-                        <span className="text-lg font-black tabular-nums leading-none">
+                        <span className="font-display text-lg font-black tabular-nums leading-none">
                           {count}
                         </span>
                         <span className="text-[10px] font-mono font-bold opacity-85 mt-1 tabular-nums">
@@ -452,21 +482,24 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* Heatmap Legend */}
-          <div className="pt-3 border-t border-[#E2EDF8] flex items-center justify-between gap-3 flex-wrap text-xs text-slate-500">
+          <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-3 flex-wrap text-xs text-slate-500">
             <span className="font-semibold text-slate-600">
-              Best workshop windows: <strong className="text-slate-900">Saturday &amp; Thursday Afternoon</strong>
+              Best workshop windows:{" "}
+              <strong className="font-display font-black text-[#0F1E36]">
+                Saturday &amp; Thursday Afternoon
+              </strong>
             </span>
-            <div className="flex items-center gap-3 flex-wrap text-[11px] font-semibold">
+            <div className="flex items-center gap-3 flex-wrap text-[11px] font-mono font-semibold">
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-[#0B357D]" />
+                <span className="w-3 h-3 rounded bg-[#182C4E]" />
                 <span>Peak (≥75%)</span>
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-[#1D63EB]" />
+                <span className="w-3 h-3 rounded bg-[#0284C7]" />
                 <span>High (50–74%)</span>
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-[#DBEAFE] border border-blue-200" />
+                <span className="w-3 h-3 rounded bg-[#E0F2FE] border border-[#BAE6FD]" />
                 <span>Moderate (25–49%)</span>
               </span>
               <span className="inline-flex items-center gap-1.5">
@@ -480,11 +513,11 @@ export default function AdminOverviewPage() {
         {/* Right 5 Cols: Compact HR Action Queue + Top Contributors */}
         <div className="xl:col-span-5 space-y-6">
           {/* Compact HR Action Queue */}
-          <section className="bg-white rounded-2xl border border-[#E2EDF8] p-5 shadow-sm">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E2EDF8]">
+          <section className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
-                <h2 className="text-sm font-extrabold text-slate-900">
+                <h2 className="font-display text-sm font-black text-[#0F1E36]">
                   HR Action Queue
                 </h2>
               </div>
@@ -497,10 +530,10 @@ export default function AdminOverviewPage() {
               {/* Action 1: Karim Hadj */}
               <div className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-slate-900 truncate">
+                  <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate">
                     Karim Hadj · Ready to Confirm
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-[11px] font-mono text-slate-500">
                     {karim?.traineeDaysElapsed ?? 96}d elapsed · {karim?.attendanceRate ?? 84}% attendance
                   </div>
                 </div>
@@ -515,13 +548,13 @@ export default function AdminOverviewPage() {
                         );
                         showToast("Karim Hadj confirmed as Active Member (+50 XP)!");
                       }}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-display text-xs font-bold transition cursor-pointer"
                     >
                       <UserCheck className="w-3.5 h-3.5" />
                       <span>Confirm</span>
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono text-xs font-bold">
                       <Check className="w-3.5 h-3.5" />
                       <span>Confirmed</span>
                     </span>
@@ -532,7 +565,7 @@ export default function AdminOverviewPage() {
               {/* Action 2: Walid Meziani */}
               <div className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-slate-900 truncate">
+                  <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate">
                     Walid Meziani · Day 26 Onboarding
                   </div>
                   <div className="text-[11px] text-slate-500">
@@ -547,12 +580,12 @@ export default function AdminOverviewPage() {
                         assignBuddyToMember("mem-walid", "mem-ayoub");
                         showToast("Assigned Ayoub Sarri as Buddy for Walid Meziani!");
                       }}
-                      className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-display text-xs font-bold transition cursor-pointer"
                     >
                       + Buddy
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-mono font-bold">
                       <Check className="w-3 h-3" />
                       <span>Buddy</span>
                     </span>
@@ -573,7 +606,7 @@ export default function AdminOverviewPage() {
                         });
                         showToast("Assigned Starter Task (+20 pts) to Walid Meziani!");
                       }}
-                      className="px-2.5 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white font-display text-xs font-bold transition cursor-pointer"
                     >
                       + Task
                     </button>
@@ -584,10 +617,10 @@ export default function AdminOverviewPage() {
               {/* Action 3: Riad Touati */}
               <div className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-slate-900 truncate">
+                  <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate">
                     Riad Touati · {riad?.daysSinceLastActivity ?? 34}d Silent
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-[11px] font-mono text-slate-500">
                     Health score {riad?.healthScore ?? 39}% · Inactive flag
                   </div>
                 </div>
@@ -604,7 +637,7 @@ export default function AdminOverviewPage() {
                     });
                     showToast("HR Check-In sent to Riad Touati!");
                   }}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 transition cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-display text-xs font-bold shrink-0 transition cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>Check-In</span>
@@ -614,7 +647,7 @@ export default function AdminOverviewPage() {
               {/* Action 4: Nesrine Khelifi */}
               <div className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-slate-900 truncate flex items-center gap-1.5">
+                  <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate flex items-center gap-1.5">
                     <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                     <span>Nesrine Khelifi · Board Policy</span>
                   </div>
@@ -624,7 +657,7 @@ export default function AdminOverviewPage() {
                 </div>
                 <Link
                   href="/admin/members/mem-nesrine"
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0 transition"
+                  className="px-3 py-1.5 rounded-xl bg-[#F0F6FF] hover:bg-[#E2EEFF] text-[#182C4E] border border-[#D5E3F5] font-display text-xs font-bold shrink-0 transition"
                 >
                   Review
                 </Link>
@@ -633,15 +666,15 @@ export default function AdminOverviewPage() {
           </section>
 
           {/* Top Contributors */}
-          <section className="bg-white rounded-2xl border border-[#E2EDF8] p-5 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <h2 className="font-display text-sm font-black text-[#0F1E36] flex items-center gap-2">
                 <Flame className="w-4 h-4 text-amber-500" />
                 <span>Top Contributors</span>
               </h2>
               <Link
                 href="/admin/points"
-                className="text-xs font-bold text-[#1D63EB] hover:underline inline-flex items-center gap-1"
+                className="text-xs font-display font-extrabold text-[#0284C7] hover:text-[#182C4E] inline-flex items-center gap-1"
               >
                 <span>Points Ledger</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -649,28 +682,28 @@ export default function AdminOverviewPage() {
             </div>
 
             {motmLeader && (
-              <div className="bg-gradient-to-r from-[#061E47] via-[#0B3B8C] to-[#1D63EB] rounded-2xl p-3.5 text-white mb-3 flex items-center justify-between gap-3">
+              <div className="bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] border border-[#2B4875]/75 rounded-2xl p-3.5 text-white mb-3 flex items-center justify-between gap-3 shadow-sm">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={motmLeader.avatarUrl}
                     alt={motmLeader.fullName}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-amber-300 shrink-0"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-[#7DD3FC] shrink-0"
                   />
                   <div className="min-w-0">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC] flex items-center gap-1">
                       <Star className="w-3 h-3 fill-current" />
                       <span>Monthly Star Leader</span>
                     </div>
-                    <div className="text-xs font-extrabold truncate">
+                    <div className="font-display text-xs font-black truncate">
                       {motmLeader.fullName}
                     </div>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-sm font-black text-emerald-300 tabular-nums">
+                  <div className="font-mono text-sm font-black text-emerald-300 tabular-nums">
                     +{motmLeader.xpMonth} XP
                   </div>
-                  <div className="text-[10px] text-blue-200 tabular-nums">
+                  <div className="text-[10px] font-mono text-slate-300 tabular-nums">
                     {motmLeader.xpTotal} Total
                   </div>
                 </div>
@@ -687,19 +720,19 @@ export default function AdminOverviewPage() {
                     className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-[#F4F7FB] transition"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-4 text-xs font-extrabold text-slate-400 tabular-nums">
+                      <span className="w-4 font-mono text-xs font-extrabold text-slate-400 tabular-nums">
                         #{idx + 2}
                       </span>
                       <img
                         src={m.avatarUrl}
                         alt={m.fullName}
-                        className="w-7 h-7 rounded-full object-cover shrink-0"
+                        className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200"
                       />
                       <div className="truncate">
-                        <div className="text-xs font-bold text-slate-900 truncate">
+                        <div className="font-display text-xs font-bold text-[#0F1E36] truncate">
                           {m.fullName}
                         </div>
-                        <div className="text-[10px] text-slate-400 truncate">
+                        <div className="text-[10px] font-mono text-slate-400 truncate">
                           {dept?.shortName}
                         </div>
                       </div>

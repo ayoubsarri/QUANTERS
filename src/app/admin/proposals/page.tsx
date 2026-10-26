@@ -68,7 +68,7 @@ export default function AdminProposalsPage() {
       case "Approved":
         return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "Under Review":
-        return "bg-blue-50 text-[#1D63EB] border-blue-200";
+        return "bg-blue-50 text-[#0284C7] border-blue-200";
       case "Submitted":
         return "bg-sky-50 text-sky-700 border-sky-200";
       case "Changes Requested":
@@ -83,19 +83,22 @@ export default function AdminProposalsPage() {
   return (
     <>
       <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        {/* Header — Member App Editorial Style */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div>
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+              INITIATIVE &amp; GOVERNANCE QUEUE
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Proposals Review
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              Review member initiatives, workshop proposals, and collaboration requests
+            <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+              Review member initiatives, workshop proposals, and collaboration requests.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-slate-500 bg-[#F4F7FB] px-3 py-1.5 rounded-xl border border-[#E2EDF8]">
+            <span className="font-mono text-xs font-bold text-slate-500 bg-[#F4F7FB] px-3 py-1.5 rounded-xl border border-slate-200/90">
               {filteredProposals.length} Proposals
             </span>
           </div>
@@ -140,7 +143,7 @@ export default function AdminProposalsPage() {
                   onClick={() => setStateFilter(st)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                     stateFilter === st
-                      ? "bg-[#1D63EB] text-white"
+                      ? "bg-[#182C4E] text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -159,7 +162,7 @@ export default function AdminProposalsPage() {
                 onClick={() => setTypeFilter(tp)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   typeFilter === tp
-                    ? "bg-[#061E47] text-white"
+                    ? "bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -208,7 +211,7 @@ export default function AdminProposalsPage() {
                   )}
 
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900">{prop.title}</h3>
+                    <h3 className="text-base font-extrabold text-[#0F1E36]">{prop.title}</h3>
                     <p className="text-xs text-slate-600 mt-1">{prop.description}</p>
                   </div>
 
@@ -226,7 +229,7 @@ export default function AdminProposalsPage() {
 
                   {prop.reviewerComment && (
                     <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-slate-700">
-                      <strong className="text-[#1D63EB]">Reviewer Note:</strong>{" "}
+                      <strong className="text-[#0284C7]">Reviewer Note:</strong>{" "}
                       {prop.reviewerComment}
                     </div>
                   )}
@@ -235,7 +238,7 @@ export default function AdminProposalsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-4 mt-4 border-t border-slate-100">
                   <div className="text-xs text-slate-500">
                     Submitted by <strong className="text-slate-800">{prop.submitterName}</strong> ·{" "}
-                    <strong className="text-[#1D63EB]">{prop.reviewerScope}</strong>
+                    <strong className="text-[#0284C7]">{prop.reviewerScope}</strong>
                   </div>
 
                   <button
@@ -247,7 +250,7 @@ export default function AdminProposalsPage() {
                           "Reviewed against club feasibility and scheduling criteria."
                       );
                     }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-sm transition cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>Review &amp; Decide</span>
@@ -263,7 +266,7 @@ export default function AdminProposalsPage() {
       {reviewingProposal && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-extrabold">
                   Review Proposal — {reviewingProposal.type}
@@ -283,7 +286,7 @@ export default function AdminProposalsPage() {
 
             <div className="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-extrabold text-[#0F1E36]">
                   {reviewingProposal.title}
                 </h3>
                 <p className="text-xs text-slate-600 mt-1">{reviewingProposal.description}</p>
@@ -310,7 +313,7 @@ export default function AdminProposalsPage() {
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   placeholder="Provide feedback or decision note for the submitter..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#1D63EB]"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
 
@@ -345,7 +348,7 @@ export default function AdminProposalsPage() {
                     type="button"
                     disabled={!reviewComment.trim()}
                     onClick={() => handleDecision("Approved", true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-extrabold shadow-sm disabled:opacity-40 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-extrabold shadow-sm disabled:opacity-40 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Approve &amp; Publish Workshop</span>

@@ -153,26 +153,26 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2EDF8] shadow-sm">
+      {/* Top Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            SYSTEM CONFIGURATION · {formState.currentSeasonLabel}
+          </span>
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Platform &amp; Governance Settings
             </h1>
-            <span className="px-2 py-0.5 rounded-md bg-sky-50 text-[#1D63EB] border border-sky-200/80 font-mono text-[10px] font-bold">
-              {formState.currentSeasonLabel}
-            </span>
           </div>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Access gates, QR security protocols, academic protection rules, and HR qualification thresholds
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Access gates, QR security protocols, academic protection rules, and HR qualification thresholds.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => handleSaveAllThresholds()}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
         >
           <Save className="w-3.5 h-3.5" />
           <span>Save All Changes</span>
@@ -194,10 +194,10 @@ export default function AdminSettingsPage() {
       {/* 4-SECTION GOVERNANCE CONSOLE GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* SECTION 1: ACCESS & REGISTRATION CONTROLS */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#1D63EB]" />
+              <Users className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
                 1. Access &amp; Registration Controls
               </h2>
@@ -209,7 +209,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">Member Registration Gate</span>
+                  <span className="text-xs font-bold text-[#0F1E36]">Member Registration Gate</span>
                   <span
                     className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
                       regOpen
@@ -272,11 +272,11 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">Alumni Portal Access</span>
+                  <span className="text-xs font-bold text-[#0F1E36]">Alumni Portal Access</span>
                   <span
                     className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
                       alumniActive
-                        ? "bg-sky-50 text-[#1D63EB] border-sky-200"
+                        ? "bg-sky-50 text-[#0284C7] border-sky-200"
                         : "bg-slate-100 text-slate-600 border-slate-200"
                     }`}
                   >
@@ -300,7 +300,7 @@ export default function AdminSettingsPage() {
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition cursor-pointer shrink-0 ${
                   alumniActive
                     ? "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
-                    : "bg-[#1D63EB] text-white border-[#1D63EB]"
+                    : "bg-[#182C4E] text-white border-[#182C4E]"
                 }`}
               >
                 {alumniActive ? "Mute" : "Activate"}
@@ -310,7 +310,7 @@ export default function AdminSettingsPage() {
             {/* Row 3: Onboarding Admission Mode */}
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">Onboarding Admission Mode</div>
+                <div className="text-xs font-bold text-[#0F1E36]">Onboarding Admission Mode</div>
                 <p className="text-[11px] text-slate-500">
                   Auto-admit applicants as Trainees or require manual HR approval
                 </p>
@@ -327,7 +327,7 @@ export default function AdminSettingsPage() {
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    autoApprove ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                    autoApprove ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                   }`}
                 >
                   Auto-Trainee
@@ -342,7 +342,7 @@ export default function AdminSettingsPage() {
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    !autoApprove ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                    !autoApprove ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                   }`}
                 >
                   HR Approval
@@ -353,7 +353,7 @@ export default function AdminSettingsPage() {
             {/* Row 4: University Email Domain Filter */}
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">
+                <div className="text-xs font-bold text-[#0F1E36]">
                   University Email Domain Filter
                 </div>
                 <p className="text-[11px] text-slate-500">
@@ -372,7 +372,7 @@ export default function AdminSettingsPage() {
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    restrictEmail ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                    restrictEmail ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                   }`}
                 >
                   @univ-alger.dz
@@ -387,7 +387,7 @@ export default function AdminSettingsPage() {
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    !restrictEmail ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                    !restrictEmail ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                   }`}
                 >
                   All Domains
@@ -398,10 +398,10 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* SECTION 2: ATTENDANCE & QR SECURITY */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-[#1D63EB]" />
+              <QrCode className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
                 2. Attendance &amp; QR Security
               </h2>
@@ -412,7 +412,7 @@ export default function AdminSettingsPage() {
             {/* Row 1: Projector QR Rotation Interval */}
             <div className="flex items-center justify-between gap-3 pt-0">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">
+                <div className="text-xs font-bold text-[#0F1E36]">
                   Projector QR Rotation Interval
                 </div>
                 <p className="text-[11px] text-slate-500">
@@ -433,7 +433,7 @@ export default function AdminSettingsPage() {
                       )
                     }
                     className={`px-2.5 py-1 rounded-md font-mono text-[11px] font-bold transition cursor-pointer ${
-                      qrSec === sec ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                      qrSec === sec ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                     }`}
                   >
                     {sec}s
@@ -445,7 +445,7 @@ export default function AdminSettingsPage() {
             {/* Row 2: Check-In Grace Window */}
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">Check-In Grace Window</div>
+                <div className="text-xs font-bold text-[#0F1E36]">Check-In Grace Window</div>
                 <p className="text-[11px] text-slate-500">
                   Allowed arrival window after session start before marking late
                 </p>
@@ -464,7 +464,7 @@ export default function AdminSettingsPage() {
                       )
                     }
                     className={`px-2.5 py-1 rounded-md font-mono text-[11px] font-bold transition cursor-pointer ${
-                      graceMin === min ? "bg-white text-[#1D63EB] shadow-2xs" : "text-slate-600"
+                      graceMin === min ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                     }`}
                   >
                     {min} min
@@ -477,7 +477,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-bold text-[#0F1E36]">
                     Campus Geofence Verification
                   </span>
                   <span
@@ -518,11 +518,11 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">Waitlist Auto-Promotion</span>
+                  <span className="text-xs font-bold text-[#0F1E36]">Waitlist Auto-Promotion</span>
                   <span
                     className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
                       waitlistAuto
-                        ? "bg-sky-50 text-[#1D63EB] border-sky-200"
+                        ? "bg-sky-50 text-[#0284C7] border-sky-200"
                         : "bg-slate-100 text-slate-600 border-slate-200"
                     }`}
                   >
@@ -545,7 +545,7 @@ export default function AdminSettingsPage() {
                 }
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition cursor-pointer shrink-0 ${
                   waitlistAuto
-                    ? "bg-sky-50 text-[#1D63EB] border-sky-200 hover:bg-sky-100"
+                    ? "bg-sky-50 text-[#0284C7] border-sky-200 hover:bg-sky-100"
                     : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                 }`}
               >
@@ -556,10 +556,10 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* SECTION 3: ACADEMIC PROTECTION & WORKLOAD GOVERNANCE */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Moon className="w-4 h-4 text-[#1D63EB]" />
+              <Moon className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
                 3. Academic Protection &amp; Workload Governance
               </h2>
@@ -571,7 +571,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-bold text-[#0F1E36]">
                     University Exam-Freeze Mode
                   </span>
                   <span
@@ -612,7 +612,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-bold text-[#0F1E36]">
                     Nocturnal Quiet Hours (23:00 – 07:30)
                   </span>
                   <span
@@ -652,7 +652,7 @@ export default function AdminSettingsPage() {
             {/* Row 3: Max Simultaneous Active Tasks per Member */}
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">
+                <div className="text-xs font-bold text-[#0F1E36]">
                   Max Simultaneous Active Tasks per Member
                 </div>
                 <p className="text-[11px] text-slate-500">
@@ -672,7 +672,7 @@ export default function AdminSettingsPage() {
                       maxActiveTasksPerMember: Math.max(1, Math.min(5, Number(e.target.value))),
                     })
                   }
-                  className="w-16 px-2.5 py-1 rounded-lg bg-[#F4F7FB] border border-[#E2EDF8] font-mono text-xs font-extrabold text-slate-900 text-center tabular-nums"
+                  className="w-16 px-2.5 py-1 rounded-lg bg-[#F4F7FB] border border-slate-200/90 font-mono text-xs font-extrabold text-[#0F1E36] text-center tabular-nums"
                 />
                 <span className="text-[11px] font-mono font-bold text-slate-400">tasks</span>
               </div>
@@ -681,7 +681,7 @@ export default function AdminSettingsPage() {
             {/* Row 4: Weekly Student Workload Cap (Hours) */}
             <div className="flex items-center justify-between gap-3 pt-3">
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900">
+                <div className="text-xs font-bold text-[#0F1E36]">
                   Weekly Student Workload Cap (Hours)
                 </div>
                 <p className="text-[11px] text-slate-500">
@@ -701,7 +701,7 @@ export default function AdminSettingsPage() {
                       weeklyWorkloadCapHours: Math.max(3, Math.min(10, Number(e.target.value))),
                     })
                   }
-                  className="w-16 px-2.5 py-1 rounded-lg bg-[#F4F7FB] border border-[#E2EDF8] font-mono text-xs font-extrabold text-slate-900 text-center tabular-nums"
+                  className="w-16 px-2.5 py-1 rounded-lg bg-[#F4F7FB] border border-slate-200/90 font-mono text-xs font-extrabold text-[#0F1E36] text-center tabular-nums"
                 />
                 <span className="text-[11px] font-mono font-bold text-slate-400">hrs/wk</span>
               </div>
@@ -710,10 +710,10 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* SECTION 4: HR QUALIFICATION & POINTS THRESHOLDS */}
-        <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#1D63EB]" />
+              <Sliders className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
                 4. HR Qualification &amp; Points Thresholds
               </h2>
@@ -723,7 +723,7 @@ export default function AdminSettingsPage() {
           <form onSubmit={handleSaveAllThresholds} className="p-4 space-y-3 flex-1 flex flex-col justify-between">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Trainee Qualification Period */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Trainee Period</div>
                   <div className="text-[10px] text-slate-400">Months before Active</div>
@@ -747,7 +747,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Minimum Attendance Rate */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Min Attendance Rate</div>
                   <div className="text-[10px] text-slate-400">Qualification target</div>
@@ -771,7 +771,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Active Confirmation Bonus (XP) */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Confirmation Bonus</div>
                   <div className="text-[10px] text-slate-400">Trainee → Active XP</div>
@@ -794,7 +794,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Inactivity Flag Threshold (Days) */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Inactivity Flag</div>
                   <div className="text-[10px] text-slate-400">Auto-flag in HR Cases</div>
@@ -818,7 +818,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Points Appeal Window (Hours) */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Points Appeal Window</div>
                   <div className="text-[10px] text-slate-400">Deduction contest limit</div>
@@ -842,7 +842,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Scientific Team Target Size (Min - Max) */}
-              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[11px] font-bold text-slate-800">Team Target Size</div>
                   <div className="text-[10px] text-slate-400">Min – Max members</div>
@@ -879,7 +879,7 @@ export default function AdminSettingsPage() {
               </span>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#38E4FF]" />
                 <span>Apply Thresholds</span>
@@ -890,10 +890,10 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* SECTION 5: FIREBASE FREE-TIER & USER QUOTA OPTIMIZER */}
-      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex flex-wrap items-center justify-between gap-2">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#1D63EB]" />
+            <Sparkles className="w-4 h-4 text-[#0284C7]" />
             <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
               5. Firebase Free-Tier &amp; User Quota Optimizer
             </h2>
@@ -909,7 +909,7 @@ export default function AdminSettingsPage() {
           <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600">
             <span>
               Est. Spark Free-Tier Capacity:{" "}
-              <strong className="text-[#1D63EB]">
+              <strong className="text-[#0284C7]">
                 {formState.quotaSaverPreset === "ultra"
                   ? "10,000"
                   : formState.quotaSaverPreset === "aggressive"
@@ -982,19 +982,19 @@ export default function AdminSettingsPage() {
                   }
                   className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                     active
-                      ? "bg-[#EBF3FC] border-[#1D63EB] shadow-xs"
-                      : "bg-[#F8FAFD] border-[#E2EDF8] hover:border-slate-300"
+                      ? "bg-[#EBF3FC] border-[#182C4E] shadow-xs"
+                      : "bg-[#F8FAFD] border-slate-200/90 hover:border-slate-300"
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold text-slate-900">
+                      <span className="text-xs font-extrabold text-[#0F1E36]">
                         {item.title}
                       </span>
                       <span
                         className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold ${
                           active
-                            ? "bg-[#1D63EB] text-white"
+                            ? "bg-[#182C4E] text-white"
                             : "bg-slate-200/80 text-slate-700"
                         }`}
                       >
@@ -1013,7 +1013,7 @@ export default function AdminSettingsPage() {
           {/* Row B: Fine-Grained Quota & Offline Controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
             {/* Write Sync Strategy */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
               <div>
                 <div className="text-[11px] font-bold text-slate-800">Write Sync Strategy</div>
                 <div className="text-[10px] text-slate-500">Controls Firestore write frequency</div>
@@ -1038,7 +1038,7 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Client Local Cache TTL */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
               <div>
                 <div className="text-[11px] font-bold text-slate-800">Client Read Cache TTL</div>
                 <div className="text-[10px] text-slate-500">Serves tab switches from local PWA cache</div>
@@ -1057,7 +1057,7 @@ export default function AdminSettingsPage() {
                     }
                     className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
                       (formState.clientCacheTtlMinutes ?? 15) === mins
-                        ? "bg-[#1D63EB] text-white border-[#1D63EB]"
+                        ? "bg-[#182C4E] text-white border-[#182C4E]"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -1068,7 +1068,7 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Avatar Compression Cap */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
               <div>
                 <div className="text-[11px] font-bold text-slate-800">Avatar WebP Dimension Cap</div>
                 <div className="text-[10px] text-slate-500">Zero Firebase Storage bucket overhead</div>
@@ -1087,7 +1087,7 @@ export default function AdminSettingsPage() {
                     }
                     className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
                       formState.maxImageDimensionPx === px
-                        ? "bg-[#06182C] text-white border-[#06182C]"
+                        ? "bg-[#182C4E] text-white border-[#06182C]"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -1098,7 +1098,7 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Compact & Prune Clutter Action */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex flex-col justify-between gap-2">
+            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
               <div>
                 <div className="text-[11px] font-bold text-slate-800">Payload Compaction</div>
                 <div className="text-[10px] text-slate-500">Prunes stale read notices &amp; shrinks URLs</div>
@@ -1123,14 +1123,14 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* COMPACT DATABASE & BACKUP BAR */}
-      <div className="bg-white p-3.5 sm:px-5 rounded-2xl border border-[#E2EDF8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-3.5 sm:px-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-[#1D63EB]">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-[#0284C7]">
             <Database className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-slate-900">
+              <span className="text-xs font-extrabold text-[#0F1E36]">
                 Database &amp; State Snapshot Engine
               </span>
               <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -1158,7 +1158,7 @@ export default function AdminSettingsPage() {
           <button
             type="button"
             onClick={handleExportBackup}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
             <span>Export Full State JSON</span>

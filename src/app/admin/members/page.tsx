@@ -272,19 +272,19 @@ function AdminMembersContent() {
 
   return (
     <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-      {/* Top Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-[#E2EDF8] shadow-sm">
+      {/* Top Header & Actions — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            PEOPLE &amp; ROSTER · {displayedList.length} RECORDS
+          </span>
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Members Directory
             </h1>
-            <span className="font-mono text-xs font-bold text-slate-400">
-              ({displayedList.length} members)
-            </span>
           </div>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Overview and records of active club members, trainees, and alumni
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Overview and records of active club members, trainees, and alumni.
           </p>
         </div>
 
@@ -302,7 +302,7 @@ function AdminMembersContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               formLinkCopied
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-[#06182C] hover:bg-[#0B2E59] text-white"
+                : "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
             }`}
           >
             {formLinkCopied ? (
@@ -324,7 +324,7 @@ function AdminMembersContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               emailsCopied
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-[#1D63EB] hover:bg-blue-700 text-white"
+                : "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
             }`}
           >
             {emailsCopied ? (
@@ -343,7 +343,7 @@ function AdminMembersContent() {
       </div>
 
       {/* Sub-Tab Navigation: Active & Trainees vs Former Members & Alumni */}
-      <div className="flex items-center gap-2 border-b border-[#E2EDF8] pb-1">
+      <div className="flex items-center gap-2 border-b border-slate-200/90 pb-1">
         <button
           type="button"
           onClick={() => {
@@ -352,8 +352,8 @@ function AdminMembersContent() {
           }}
           className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
             activeTab === "ACTIVE"
-              ? "bg-[#1D63EB] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:text-slate-900 border border-[#E2EDF8]"
+              ? "bg-[#182C4E] text-white shadow-sm"
+              : "bg-white text-slate-600 hover:text-[#0F1E36] border border-slate-200/90"
           }`}
         >
           Active &amp; Trainees ({activeRoster.length})
@@ -367,8 +367,8 @@ function AdminMembersContent() {
           }}
           className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
             activeTab === "FORMER"
-              ? "bg-[#1D63EB] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:text-slate-900 border border-[#E2EDF8]"
+              ? "bg-[#182C4E] text-white shadow-sm"
+              : "bg-white text-slate-600 hover:text-[#0F1E36] border border-slate-200/90"
           }`}
         >
           Former Members &amp; Alumni ({formerRoster.length})
@@ -376,7 +376,7 @@ function AdminMembersContent() {
       </div>
 
       {/* Filter Strip */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-[#E2EDF8] shadow-sm flex flex-wrap items-center gap-2.5">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/90 shadow-sm flex flex-wrap items-center gap-2.5">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -384,7 +384,7 @@ function AdminMembersContent() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, ID, or major..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl focus:outline-none focus:border-[#1D63EB]"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl focus:outline-none focus:border-[#182C4E]"
           />
         </div>
 
@@ -392,7 +392,7 @@ function AdminMembersContent() {
           value={deptFilter}
           onChange={(e) => setDeptFilter(e.target.value)}
           aria-label="Department Filter"
-          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
         >
           <option value="ALL">All Departments</option>
           {departments.map((d) => (
@@ -406,7 +406,7 @@ function AdminMembersContent() {
           value={teamFilter}
           onChange={(e) => setTeamFilter(e.target.value)}
           aria-label="Scientific Team Filter"
-          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
         >
           <option value="ALL">All Scientific Teams</option>
           {teams.map((t) => (
@@ -420,7 +420,7 @@ function AdminMembersContent() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           aria-label="Status Filter"
-          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
         >
           <option value="ALL">All Statuses</option>
           {currentTabStatuses.map((st) => (
@@ -434,7 +434,7 @@ function AdminMembersContent() {
           value={yearFilter}
           onChange={(e) => setYearFilter(e.target.value)}
           aria-label="Academic Year Filter"
-          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
         >
           <option value="ALL">All Years</option>
           {ACADEMIC_YEARS.map((yr) => (
@@ -448,7 +448,7 @@ function AdminMembersContent() {
           value={freeDay}
           onChange={(e) => setFreeDay(e.target.value as DayOfWeek | "ALL")}
           aria-label="Free Day Filter"
-          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+          className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
         >
           <option value="ALL">Any Day</option>
           {DAYS.map((day) => (
@@ -463,7 +463,7 @@ function AdminMembersContent() {
             value={freeSlot}
             onChange={(e) => setFreeSlot(e.target.value as TimeSlot | "ALL")}
             aria-label="Free Slot Filter"
-            className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700"
+            className="px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700"
           >
             <option value="ALL">All Slots</option>
             {SLOTS.map((slot) => (
@@ -485,16 +485,16 @@ function AdminMembersContent() {
 
       {/* Active Filter Bar */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-[#EBF3FF] border border-[#1D63EB]/25 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-[#EBF3FF] border border-[#182C4E]/25 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 font-extrabold text-[#0B357D]">
-              <Filter className="w-3.5 h-3.5 text-[#1D63EB]" />
+              <Filter className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>Filtered by:</span>
             </span>
             {activeFilterLabels.map((label) => (
               <span
                 key={label}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-white text-[#1D63EB] font-bold border border-[#1D63EB]/20 shadow-2xs"
+                className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-white text-[#0284C7] font-bold border border-[#182C4E]/20 shadow-2xs"
               >
                 {label}
               </span>
@@ -513,11 +513,11 @@ function AdminMembersContent() {
       )}
 
       {/* Main Members Table */}
-      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#E2EDF8] bg-[#F8FAFD] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-200/90 bg-[#F8FAFD] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-3 px-4">Member</th>
                 <th className="py-3 px-3">Status</th>
                 <th className="py-3 px-3">Department</th>
@@ -551,10 +551,10 @@ function AdminMembersContent() {
                           <img
                             src={m.avatarUrl}
                             alt={m.fullName}
-                            className="w-9 h-9 rounded-full object-cover border border-[#E2EDF8] shrink-0"
+                            className="w-9 h-9 rounded-full object-cover border border-slate-200/90 shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 truncate">
+                            <div className="font-extrabold text-[#0F1E36] truncate">
                               {m.fullName}
                             </div>
                             <div className="text-[10px] text-slate-400 font-mono truncate">
@@ -603,7 +603,7 @@ function AdminMembersContent() {
                         {activeTab === "ACTIVE" ? (
                           <Link
                             href={`/admin/members/${m.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-[#1D63EB] text-slate-700 hover:text-white text-xs font-bold transition"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-[#182C4E] text-slate-700 hover:text-white text-xs font-bold transition"
                           >
                             <span>Manage</span>
                             <ExternalLink className="w-3 h-3" />

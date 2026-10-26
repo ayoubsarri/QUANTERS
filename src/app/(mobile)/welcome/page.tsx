@@ -553,9 +553,9 @@ export default function WelcomeSplashPage() {
                 </div>
               </div>
               <img
-                src="/brand/logo_quanta_opt.webp"
-                alt="QUANTA"
-                className="w-7 h-7 object-contain opacity-90 drop-shadow-[0_2px_8px_rgba(56,228,255,0.4)]"
+                src="/brand/univ_quanta_asset2.png"
+                alt="University of Algiers 1 & Quanta"
+                className="h-6 w-auto object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
               />
             </div>
           </div>
@@ -566,33 +566,22 @@ export default function WelcomeSplashPage() {
           {/* A. TOP BRAND LOCKUP WITH OFFICIAL QUANTERS_vector_v2.svg */}
           <header className="w-full space-y-3 animate-rise">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="relative w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
-                  <div className="absolute inset-0 rounded-full bg-[#38E4FF]/20 blur-md pointer-events-none" />
-                  <img
-                    src="/brand/logo_quanta_opt.webp"
-                    alt="QUANTA Logo"
-                    className="w-10 h-10 sm:w-11 sm:h-11 object-contain relative z-10 drop-shadow-[0_4px_14px_rgba(56,228,255,0.5)]"
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <QuantersVectorWordmark
+                    height={28}
+                    variant="dark"
+                    className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
                   />
                 </div>
-
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <QuantersVectorWordmark
-                      height={26}
-                      variant="dark"
-                      className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
-                    />
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-2 whitespace-nowrap">
-                    <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
-                      BY QUANTA
-                    </span>
-                    <span className="text-white/25">•</span>
-                    <span className="font-mono text-xs font-medium tracking-[0.08em] text-slate-300/90 leading-none">
-                      ALGIERS 1
-                    </span>
-                  </div>
+                <div className="mt-1.5 flex items-center gap-2 whitespace-nowrap">
+                  <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
+                    BY QUANTA
+                  </span>
+                  <span className="text-white/25">•</span>
+                  <span className="font-mono text-xs font-medium tracking-[0.08em] text-slate-300/90 leading-none">
+                    ALGIERS 1
+                  </span>
                 </div>
               </div>
             </div>
@@ -714,36 +703,39 @@ export default function WelcomeSplashPage() {
                   </div>
                 </button>
 
-                {/* Institutional Signature with Official University of Algiers 1 & Faculty of Sciences Logos */}
+                {/* Institutional Signature with Official Asset 2.png (Univ Algiers 1 + Quanta) & Faculty of Sciences Logo */}
                 <div className="pt-1">
                   <div className="h-px w-full bg-gradient-to-r from-transparent via-[#38E4FF]/35 to-transparent mb-3" />
-                  <div className="flex items-center justify-between gap-3 px-1">
+                  <div className="flex items-center justify-between gap-2.5 px-1">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <img
-                          src="/brand/univ_logo_d.svg"
-                          alt="University of Algiers 1"
-                          className="w-8 h-8 object-contain shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
-                        />
-                        <img
-                          src="/brand/univ_logo_darkmode.svg"
-                          alt="Faculty of Sciences"
-                          className="w-8 h-8 object-contain shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-display font-extrabold text-xs tracking-[0.14em] text-white uppercase truncate">
+                      <img
+                        src="/brand/univ_quanta_asset2.png"
+                        alt="University of Algiers 1 & Quanta Scientific Club"
+                        className="h-8 sm:h-9 w-auto object-contain shrink-0"
+                      />
+                      <div className="hidden sm:block min-w-0 pl-2.5 border-l border-white/15">
+                        <div className="font-display font-extrabold text-[11px] tracking-[0.14em] text-white uppercase truncate">
                           QUANTA SCIENTIFIC CLUB
                         </div>
-                        <div className="font-mono text-xs font-semibold tracking-[0.08em] text-[#38E4FF] uppercase truncate">
+                        <div className="font-mono text-[10px] font-semibold tracking-[0.08em] text-[#38E4FF] uppercase truncate">
                           UNIVERSITY OF ALGIERS 1
                         </div>
                       </div>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-2 shrink-0 pl-3 border-l border-white/15 text-right">
-                      <div className="font-mono text-xs font-semibold tracking-[0.1em] text-slate-300 uppercase">
-                        FAC. SCIENCES
+                    <div className="flex items-center gap-2 shrink-0 pl-2.5 border-l border-white/15">
+                      <img
+                        src="/brand/univ_logo.svg"
+                        alt="Faculty of Sciences"
+                        className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0"
+                      />
+                      <div className="text-right">
+                        <div className="font-mono text-[10px] sm:text-xs font-semibold tracking-[0.1em] text-slate-200 uppercase leading-tight">
+                          FAC. SCIENCES
+                        </div>
+                        <div className="sm:hidden font-mono text-[9px] font-semibold tracking-[0.08em] text-[#38E4FF] uppercase leading-tight">
+                          ALGIERS 1
+                        </div>
                       </div>
                     </div>
                   </div>

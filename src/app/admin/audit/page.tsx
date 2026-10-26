@@ -113,26 +113,29 @@ export default function AdminAuditPage() {
 
   return (
     <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+      {/* Header — Member App Editorial Style */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>
-          <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+            IMMUTABLE GOVERNANCE LOG
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
             Audit Trail
           </h1>
-          <p className="text-xs font-medium text-slate-500 mt-0.5">
-            Append-only historical records of administrative actions, approvals, and date-scoped JSON exports
+          <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+            Append-only historical records of administrative actions, approvals, and date-scoped JSON exports.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs font-bold text-slate-600 bg-[#F4F7FB] px-3 py-2 rounded-xl border border-[#E2EDF8] tabular-nums">
+          <span className="font-mono text-xs font-bold text-slate-600 bg-[#F4F7FB] px-3 py-2 rounded-xl border border-slate-200/90 tabular-nums">
             {filtered.length} / {auditLogs.length} Records
           </span>
 
           <button
             type="button"
             onClick={handleExportJson}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-xs transition cursor-pointer"
           >
             <FileJson className="w-3.5 h-3.5" />
             <span>Export JSON ({filtered.length})</span>
@@ -154,7 +157,7 @@ export default function AdminAuditPage() {
       )}
 
       {/* Search, Category & Date Range Toolbar */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E2EDF8] shadow-sm space-y-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
         {/* Top Row: Search + Category Filter */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
@@ -164,7 +167,7 @@ export default function AdminAuditPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search actor, target, reason, or action..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl focus:outline-none focus:border-[#1D63EB]"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl focus:outline-none focus:border-[#182C4E]"
             />
           </div>
 
@@ -172,7 +175,7 @@ export default function AdminAuditPage() {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             aria-label="Filter Category"
-            className="px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-700 font-semibold"
+            className="px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-700 font-semibold"
           >
             <option value="All">All Categories</option>
             {ALL_AUDIT_CATEGORIES.map((cat) => (
@@ -187,7 +190,7 @@ export default function AdminAuditPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 mr-1">
-              <Calendar className="w-3.5 h-3.5 text-[#1D63EB]" />
+              <Calendar className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>Date Scope:</span>
             </span>
             {(
@@ -205,7 +208,7 @@ export default function AdminAuditPage() {
                 onClick={() => handlePresetSelect(preset)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                   datePreset === preset
-                    ? "bg-[#06182C] text-white shadow-2xs"
+                    ? "bg-[#182C4E] text-white shadow-2xs"
                     : "bg-[#F4F7FB] text-slate-600 hover:bg-slate-200/70"
                 }`}
               >
@@ -224,7 +227,7 @@ export default function AdminAuditPage() {
                   setStartDate(e.target.value);
                   setDatePreset("Custom Range");
                 }}
-                className="px-2.5 py-1 text-xs font-mono font-bold bg-[#F4F7FB] border border-[#E2EDF8] rounded-lg text-slate-700 focus:outline-none focus:border-[#1D63EB]"
+                className="px-2.5 py-1 text-xs font-mono font-bold bg-[#F4F7FB] border border-slate-200/90 rounded-lg text-slate-700 focus:outline-none focus:border-[#182C4E]"
               />
             </div>
 
@@ -237,7 +240,7 @@ export default function AdminAuditPage() {
                   setEndDate(e.target.value);
                   setDatePreset("Custom Range");
                 }}
-                className="px-2.5 py-1 text-xs font-mono font-bold bg-[#F4F7FB] border border-[#E2EDF8] rounded-lg text-slate-700 focus:outline-none focus:border-[#1D63EB]"
+                className="px-2.5 py-1 text-xs font-mono font-bold bg-[#F4F7FB] border border-slate-200/90 rounded-lg text-slate-700 focus:outline-none focus:border-[#182C4E]"
               />
             </div>
 
@@ -262,11 +265,11 @@ export default function AdminAuditPage() {
       </div>
 
       {/* Audit Table */}
-      <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFD] border-b border-[#E2EDF8] text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-[#F8FAFD] border-b border-slate-200/90 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                 <th className="py-3 px-4">Actor</th>
                 <th className="py-3 px-4">Time</th>
                 <th className="py-3 px-4">Category</th>
@@ -286,14 +289,14 @@ export default function AdminAuditPage() {
                 filtered.map((log) => (
                   <tr key={log.id} className="hover:bg-[#F8FAFD] transition-colors">
                     <td className="py-3 px-4">
-                      <div className="font-extrabold text-slate-900">{log.actorName}</div>
+                      <div className="font-extrabold text-[#0F1E36]">{log.actorName}</div>
                       <div className="text-[10px] text-slate-400 font-mono">{log.actorRole}</div>
                     </td>
                     <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap tabular-nums">
                       {log.timestamp}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#E0F0FF] text-[#1D63EB]">
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#F0F6FF] text-[#0284C7]">
                         {log.actionCategory}
                       </span>
                     </td>

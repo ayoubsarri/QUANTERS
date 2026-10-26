@@ -294,7 +294,7 @@ export default function AdminWorkshopsPage() {
       case "Running":
         return "bg-emerald-50 text-emerald-700 border-emerald-300";
       case "Published":
-        return "bg-sky-50 text-[#1D63EB] border-sky-300";
+        return "bg-sky-50 text-[#0284C7] border-sky-300";
       case "Completed":
         return "bg-purple-50 text-purple-700 border-purple-200";
       case "Full / Waitlist":
@@ -329,11 +329,11 @@ export default function AdminWorkshopsPage() {
                 boxed
               />
               <div className="min-w-0">
-                <div className="font-extrabold text-slate-900 leading-snug">
+                <div className="font-extrabold text-[#0F1E36] leading-snug">
                   {ws.title}
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold bg-[#E0F0FF] text-[#1D63EB]">
+                  <span className="px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold bg-[#F0F6FF] text-[#0284C7]">
                     {ws.category}
                   </span>
                   <span className="text-[10px] text-slate-400 font-medium">
@@ -409,7 +409,7 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setProjectorWorkshopId(ws.id)}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 <Maximize2 className="w-3 h-3 text-[#38E4FF]" />
                 <span>Projector Display</span>
@@ -423,7 +423,7 @@ export default function AdminWorkshopsPage() {
                 }}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
               >
-                <Users className="w-3 h-3 text-[#1D63EB]" />
+                <Users className="w-3 h-3 text-[#0284C7]" />
                 <span>Roster ({ws.attendanceRecords.length})</span>
               </button>
             </div>
@@ -435,21 +435,24 @@ export default function AdminWorkshopsPage() {
   return (
     <>
       <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-[#E2EDF8] shadow-sm">
+        {/* Top Header — Member App Editorial Style */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div>
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+              LABORATORY &amp; SESSION OPERATIONS
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Workshops &amp; Activities
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              Schedule sessions, manage lifecycle status cases, and launch live projector QR screens
+            <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+              Schedule sessions, manage lifecycle status cases, and launch live projector QR screens.
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Workshop</span>
@@ -488,7 +491,7 @@ export default function AdminWorkshopsPage() {
         )}
 
         {/* Status Case Tabs & Search Bar */}
-        <div className="bg-white rounded-2xl p-3.5 border border-[#E2EDF8] shadow-sm space-y-3">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Status Case Tabs */}
             <div className="flex flex-wrap items-center gap-1.5">
@@ -497,7 +500,7 @@ export default function AdminWorkshopsPage() {
                 onClick={() => setStatusFilter("All")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer ${
                   statusFilter === "All"
-                    ? "bg-[#06182C] text-white shadow-xs"
+                    ? "bg-[#182C4E] text-white shadow-xs"
                     : "bg-[#F4F7FB] text-slate-600 hover:bg-slate-200/70"
                 }`}
               >
@@ -512,7 +515,7 @@ export default function AdminWorkshopsPage() {
                     onClick={() => setStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                       isSelected
-                        ? "bg-[#1D63EB] text-white shadow-xs"
+                        ? "bg-[#182C4E] text-white shadow-xs"
                         : "bg-[#F4F7FB] text-slate-600 hover:bg-slate-200/70"
                     }`}
                   >
@@ -538,7 +541,7 @@ export default function AdminWorkshopsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search title, instructor, or lab..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl focus:outline-none focus:border-[#1D63EB]"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl focus:outline-none focus:border-[#182C4E]"
               />
             </div>
           </div>
@@ -556,9 +559,9 @@ export default function AdminWorkshopsPage() {
               return (
                 <div
                   key={caseStatus}
-                  className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden"
+                  className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden"
                 >
-                  <div className="px-4 py-2.5 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+                  <div className="px-4 py-2.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span
                         className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getStatusBadgeStyle(
@@ -574,7 +577,7 @@ export default function AdminWorkshopsPage() {
                     <button
                       type="button"
                       onClick={() => setStatusFilter(caseStatus)}
-                      className="text-xs font-bold text-[#1D63EB] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-[#0284C7] hover:underline cursor-pointer"
                     >
                       Open {caseStatus} Case →
                     </button>
@@ -583,7 +586,7 @@ export default function AdminWorkshopsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-[#E2EDF8] bg-white text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                        <tr className="border-b border-slate-200/90 bg-white text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                           <th className="py-2.5 px-4 min-w-[240px]">Workshop</th>
                           <th className="py-2.5 px-4 min-w-[180px]">
                             Instructor &amp; Schedule
@@ -606,8 +609,8 @@ export default function AdminWorkshopsPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-[#E2EDF8] shadow-sm overflow-hidden">
-            <div className="px-4 py-3 bg-[#F8FAFD] border-b border-[#E2EDF8] flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span
                   className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getStatusBadgeStyle(
@@ -624,7 +627,7 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setStatusFilter("All")}
-                className="text-xs font-bold text-[#1D63EB] hover:underline cursor-pointer"
+                className="text-xs font-bold text-[#0284C7] hover:underline cursor-pointer"
               >
                 Show All Cases
               </button>
@@ -638,7 +641,7 @@ export default function AdminWorkshopsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#E2EDF8] bg-white text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                    <tr className="border-b border-slate-200/90 bg-white text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                       <th className="py-3 px-4 min-w-[240px]">Workshop</th>
                       <th className="py-3 px-4 min-w-[180px]">
                         Instructor &amp; Schedule
@@ -783,7 +786,7 @@ export default function AdminWorkshopsPage() {
               <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center mx-auto">
                 <AuthenticQrCodeSvg />
                 <div className="mt-3 text-center">
-                  <div className="font-mono text-[11px] font-black uppercase tracking-widest text-slate-900">
+                  <div className="font-mono text-[11px] font-black uppercase tracking-widest text-[#0F1E36]">
                     Scan with QUANTERS App
                   </div>
                   <div className="text-[10px] font-mono text-slate-400 mt-0.5">
@@ -808,7 +811,7 @@ export default function AdminWorkshopsPage() {
           <div className="w-full max-w-[500px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-black text-[#0F1E36]">
                   Attendance Roster · {rosterWorkshop.title}
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -876,7 +879,7 @@ export default function AdminWorkshopsPage() {
                       setCorrectionMemberId
                     )
                   }
-                  className="flex-1 px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800"
+                  className="flex-1 px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800"
                 >
                   {sortedMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -891,7 +894,7 @@ export default function AdminWorkshopsPage() {
                       e.target.value as "Present" | "Excused" | "Absent"
                     )
                   }
-                  className="px-2 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl font-bold"
+                  className="px-2 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-bold"
                 >
                   <option value="Present">Present</option>
                   <option value="Excused">Excused</option>
@@ -908,7 +911,7 @@ export default function AdminWorkshopsPage() {
                       "Manual Admin Correction"
                     );
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-[#1D63EB] text-white text-xs font-bold cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-[#182C4E] text-white text-xs font-bold cursor-pointer"
                 >
                   Save
                 </button>
@@ -923,7 +926,7 @@ export default function AdminWorkshopsPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-[500px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">
+              <h3 className="text-sm font-black text-[#0F1E36]">
                 New Workshop / Activity
               </h3>
               <button
@@ -946,7 +949,7 @@ export default function AdminWorkshopsPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Introduction to Neural Networks"
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
 
@@ -960,7 +963,7 @@ export default function AdminWorkshopsPage() {
                     onChange={(e) =>
                       setActivityType(e.target.value as ActivityTypeKey)
                     }
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   >
                     <option value="Workshop">Workshop</option>
                     <option value="Scientific Activity">Scientific Activity</option>
@@ -976,7 +979,7 @@ export default function AdminWorkshopsPage() {
                   <select
                     value={linkedBadgeId}
                     onChange={(e) => setLinkedBadgeId(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   >
                     <option value="">None</option>
                     {badges.map((b) => (
@@ -992,7 +995,7 @@ export default function AdminWorkshopsPage() {
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Activity Icon ({iconType})
                 </label>
-                <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] max-h-24 overflow-y-auto">
+                <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-[#F4F7FB] border border-slate-200/90 max-h-24 overflow-y-auto">
                   {ALL_FIELD_ICONS.map((f) => (
                     <button
                       key={f.key}
@@ -1001,7 +1004,7 @@ export default function AdminWorkshopsPage() {
                       title={f.label}
                       className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition cursor-pointer ${
                         iconType === f.key
-                          ? "bg-white border-[#1D63EB] ring-2 ring-[#1D63EB]/20 text-[#1D63EB]"
+                          ? "bg-white border-[#182C4E] ring-2 ring-[#1D63EB]/20 text-[#0284C7]"
                           : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
                       }`}
                     >
@@ -1021,7 +1024,7 @@ export default function AdminWorkshopsPage() {
                     onChange={(e) =>
                       setCategory(e.target.value as Workshop["category"])
                     }
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -1037,7 +1040,7 @@ export default function AdminWorkshopsPage() {
                   <select
                     value={level}
                     onChange={(e) => setLevel(e.target.value as WorkshopLevel)}
-                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   >
                     {LEVELS.map((l) => (
                       <option key={l} value={l}>
@@ -1057,7 +1060,7 @@ export default function AdminWorkshopsPage() {
                     type="text"
                     value={instructor}
                     onChange={(e) => setInstructor(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
                 <div>
@@ -1068,7 +1071,7 @@ export default function AdminWorkshopsPage() {
                     type="text"
                     value={dateLabel}
                     onChange={(e) => setDateLabel(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
               </div>
@@ -1082,7 +1085,7 @@ export default function AdminWorkshopsPage() {
                     type="text"
                     value={timeRange}
                     onChange={(e) => setTimeRange(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
                 <div>
@@ -1093,7 +1096,7 @@ export default function AdminWorkshopsPage() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
               </div>
@@ -1109,7 +1112,7 @@ export default function AdminWorkshopsPage() {
                     max={300}
                     value={capacity}
                     onChange={(e) => setCapacity(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
                 <div>
@@ -1122,7 +1125,7 @@ export default function AdminWorkshopsPage() {
                     max={500}
                     value={xpReward}
                     onChange={(e) => setXpReward(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   />
                 </div>
               </div>
@@ -1135,7 +1138,7 @@ export default function AdminWorkshopsPage() {
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
 
@@ -1149,7 +1152,7 @@ export default function AdminWorkshopsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#1D63EB] text-white text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold cursor-pointer"
                 >
                   Publish Workshop
                 </button>

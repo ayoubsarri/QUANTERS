@@ -262,14 +262,17 @@ export default function AdminTasksPage() {
   return (
     <>
       <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2EDF8] shadow-sm">
+        {/* Header — Member App Editorial Style */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div>
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+              OPERATIONS &amp; DELIVERABLES
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Tasks &amp; Operations Matrix
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              Manage operational assignments, track deliverables, and validate scores
+            <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+              Manage operational assignments, track deliverables, and validate scores.
             </p>
           </div>
 
@@ -307,7 +310,7 @@ export default function AdminTasksPage() {
             <button
               type="button"
               onClick={() => setBulkOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#061E47] hover:bg-[#0A3780] text-white text-xs font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] hover:bg-[#0A3780] text-white text-xs font-bold transition cursor-pointer"
             >
               <Award className="w-3.5 h-3.5 text-[#FBB03B]" />
               <span>Bulk Score</span>
@@ -316,7 +319,7 @@ export default function AdminTasksPage() {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-sm cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Task</span>
@@ -343,14 +346,14 @@ export default function AdminTasksPage() {
         {/* View Switcher, Lifecycle Segmented Tab Bar & Department Filter */}
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex p-1 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8]">
+            <div className="inline-flex p-1 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
               <button
                 type="button"
                 onClick={() => setLifecycleTab("active")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   lifecycleTab === "active"
-                    ? "bg-[#1D63EB] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-[#182C4E] text-white shadow-sm"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 Active Tasks ({activeTasksCount})
@@ -360,8 +363,8 @@ export default function AdminTasksPage() {
                 onClick={() => setLifecycleTab("archived")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   lifecycleTab === "archived"
-                    ? "bg-[#1D63EB] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-[#182C4E] text-white shadow-sm"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 Done &amp; History ({archivedTasksCount})
@@ -371,8 +374,8 @@ export default function AdminTasksPage() {
                 onClick={() => setLifecycleTab("all")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   lifecycleTab === "all"
-                    ? "bg-[#1D63EB] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-[#182C4E] text-white shadow-sm"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 All Tasks ({tasks.length})
@@ -385,8 +388,8 @@ export default function AdminTasksPage() {
                 onClick={() => setViewMode("kanban")}
                 className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   viewMode === "kanban"
-                    ? "bg-white text-[#1D63EB] shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-[#0284C7] shadow-sm"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 <Kanban className="w-4 h-4" />
@@ -397,8 +400,8 @@ export default function AdminTasksPage() {
                 onClick={() => setViewMode("matrix")}
                 className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                   viewMode === "matrix"
-                    ? "bg-white text-[#1D63EB] shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-[#0284C7] shadow-sm"
+                    : "text-slate-600 hover:text-[#0F1E36]"
                 }`}
               >
                 <Table2 className="w-4 h-4" />
@@ -442,7 +445,7 @@ export default function AdminTasksPage() {
                           colStatus === "To do"
                             ? "bg-slate-400"
                             : colStatus === "In progress"
-                            ? "bg-[#1D63EB]"
+                            ? "bg-[#182C4E]"
                             : colStatus === "Delivered"
                             ? "bg-amber-500"
                             : "bg-emerald-500"
@@ -463,10 +466,10 @@ export default function AdminTasksPage() {
                       return (
                         <div
                           key={`${task.id}-${assignee.memberId}`}
-                          className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs space-y-2.5 hover:border-[#1D63EB]/40 transition"
+                          className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs space-y-2.5 hover:border-[#182C4E]/40 transition"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200/60">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-[#0284C7] border border-sky-200/60">
                               {task.category} · {dept?.shortName || "Club"}
                             </span>
                             <span className="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 tabular-nums whitespace-nowrap">
@@ -475,7 +478,7 @@ export default function AdminTasksPage() {
                           </div>
 
                           <div>
-                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-snug">
+                            <h4 className="font-bold text-[#0F1E36] text-xs sm:text-sm leading-snug">
                               {task.title}
                             </h4>
                             <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">
@@ -499,7 +502,7 @@ export default function AdminTasksPage() {
                                 <button
                                   type="button"
                                   onClick={() => confirmTaskReceipt(task.id, assignee.memberId)}
-                                  className="text-[#1D63EB] font-bold underline cursor-pointer"
+                                  className="text-[#0284C7] font-bold underline cursor-pointer"
                                 >
                                   Confirm Receipt
                                 </button>
@@ -554,7 +557,7 @@ export default function AdminTasksPage() {
                                     assignee.proposedScore
                                   )
                                 }
-                                className="flex-1 py-1.5 px-2.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                                className="flex-1 py-1.5 px-2.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-xs transition cursor-pointer"
                               >
                                 Validate &amp; Score
                               </button>
@@ -599,7 +602,7 @@ export default function AdminTasksPage() {
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900">
+                <h3 className="text-sm font-extrabold text-[#0F1E36]">
                   Event Task Matrix
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -627,7 +630,7 @@ export default function AdminTasksPage() {
                 <tbody className="divide-y divide-slate-200/70">
                   {allLines.map(({ task, assignee }) => (
                     <tr key={`${task.id}-${assignee.memberId}`} className="hover:bg-slate-50/60">
-                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                      <td className="py-3.5 px-4 font-bold text-[#0F1E36]">
                         {assignee.memberName}
                         <div className="text-[11px] font-normal text-slate-500 flex items-center gap-1 mt-0.5">
                           {task.matrixPublished ? (
@@ -642,7 +645,7 @@ export default function AdminTasksPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-slate-800">{task.title}</div>
-                        <span className="text-xs text-[#1D63EB] font-medium">
+                        <span className="text-xs text-[#0284C7] font-medium">
                           {assignee.roleInTask} ({task.category})
                         </span>
                       </td>
@@ -688,7 +691,7 @@ export default function AdminTasksPage() {
                                   assignee.proposedScore
                                 )
                               }
-                              className="px-3 py-1.5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold cursor-pointer"
                             >
                               Validate &amp; Score
                             </button>
@@ -735,7 +738,7 @@ export default function AdminTasksPage() {
       {createOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-extrabold">
                   Create Club Task &amp; Matrix Assignment
@@ -768,7 +771,7 @@ export default function AdminTasksPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Setup Lab A1 Projector & Attendance Desk"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#1D63EB]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#182C4E]"
                   />
                 </div>
 
@@ -881,7 +884,7 @@ export default function AdminTasksPage() {
                     ref={createMemberListRef}
                     tabIndex={0}
                     onKeyDown={handleMemberListContainerKeyDown}
-                    className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#1D63EB]"
+                    className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#182C4E]"
                   >
                     {sortedMembers.map((m) => {
                       const checked = selectedAssigneeIds.includes(m.id);
@@ -891,7 +894,7 @@ export default function AdminTasksPage() {
                           data-member-name={m.fullName}
                           className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold cursor-pointer border transition focus-within:ring-2 focus-within:ring-[#1D63EB] ${
                             checked
-                              ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                              ? "bg-blue-50 border-[#182C4E] text-[#0284C7]"
                               : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
                           }`}
                         >
@@ -899,7 +902,7 @@ export default function AdminTasksPage() {
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleAssignee(m.id)}
-                            className="rounded text-[#1D63EB]"
+                            className="rounded text-[#0284C7]"
                           />
                           <span className="truncate">{m.fullName}</span>
                         </label>
@@ -932,7 +935,7 @@ export default function AdminTasksPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1D63EB] hover:bg-blue-700 text-white cursor-pointer"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
                 >
                   Assign Task ({selectedAssigneeIds.length} Member(s))
                 </button>
@@ -946,7 +949,7 @@ export default function AdminTasksPage() {
       {validatingItem && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-extrabold">Validate &amp; Score Deliverable</h2>
                 <p className="text-xs text-sky-200 mt-0.5">
@@ -975,7 +978,7 @@ export default function AdminTasksPage() {
                       onClick={() => handleScoreTypeChange(tier)}
                       className={`py-2.5 px-3 rounded-xl text-xs font-extrabold border transition cursor-pointer ${
                         scoreType === tier
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB] shadow-sm"
+                          ? "bg-[#182C4E] text-white border-[#182C4E] shadow-sm"
                           : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
@@ -1037,7 +1040,7 @@ export default function AdminTasksPage() {
       {bulkOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#061E47] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-base font-extrabold">Bulk Event &amp; Task Scoring</h2>
                 <p className="text-xs text-sky-200 mt-0.5">
@@ -1062,7 +1065,7 @@ export default function AdminTasksPage() {
                   ref={bulkMemberListRef}
                   tabIndex={0}
                   onKeyDown={handleMemberListContainerKeyDown}
-                  className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#1D63EB]"
+                  className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#182C4E]"
                 >
                   {sortedMembers.map((m) => {
                     const checked = bulkMemberIds.includes(m.id);
@@ -1072,7 +1075,7 @@ export default function AdminTasksPage() {
                         data-member-name={m.fullName}
                         className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold cursor-pointer border transition focus-within:ring-2 focus-within:ring-[#1D63EB] ${
                           checked
-                            ? "bg-blue-50 border-[#1D63EB] text-[#1D63EB]"
+                            ? "bg-blue-50 border-[#182C4E] text-[#0284C7]"
                             : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
                         }`}
                       >
@@ -1125,7 +1128,7 @@ export default function AdminTasksPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-[#1D63EB] hover:bg-blue-700 text-white cursor-pointer"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
                 >
                   Credit +{bulkPoints} XP to {bulkMemberIds.length} Members
                 </button>

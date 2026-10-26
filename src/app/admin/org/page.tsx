@@ -176,7 +176,7 @@ export default function AdminOrgStructurePage() {
     {
       roleTitle: "Vice President (VP)",
       badgeText: "VICE PRESIDENT",
-      accent: "bg-sky-50 text-[#1D63EB] border-sky-200",
+      accent: "bg-sky-50 text-[#0284C7] border-sky-200",
       member: vpMember,
     },
     {
@@ -190,14 +190,17 @@ export default function AdminOrgStructurePage() {
   return (
     <>
       <div className="space-y-6 max-w-[1500px] mx-auto animate-rise">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-[#E2EDF8] shadow-sm">
+        {/* Header — Member App Editorial Style */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
           <div>
-            <h1 className="font-display text-lg sm:text-xl font-extrabold text-slate-900">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
+              ORGANIZATIONAL ARCHITECTURE · 6 DEPARTMENTS &amp; TEAMS
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Departments &amp; Scientific Teams
             </h1>
-            <p className="text-xs font-medium text-slate-500 mt-0.5">
-              Manage Executive Bureau officers, permanent operational departments, and research teams
+            <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
+              Manage Executive Bureau officers, permanent operational departments, and research teams.
             </p>
           </div>
 
@@ -212,7 +215,7 @@ export default function AdminOrgStructurePage() {
             <button
               type="button"
               onClick={openExecModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#06182C] hover:bg-[#0B2E59] text-white text-xs font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
             >
               <Crown className="w-3.5 h-3.5 text-amber-400" />
               <span>Change Executive Officers</span>
@@ -221,7 +224,7 @@ export default function AdminOrgStructurePage() {
             <button
               type="button"
               onClick={openCreateTeamModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Scientific Team</span>
@@ -232,14 +235,14 @@ export default function AdminOrgStructurePage() {
         {/* SECTION 0 — EXECUTIVE BUREAU LEADERSHIP (PRESIDENT, VP, SG) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#1D63EB]" />
+            <h2 className="text-sm font-extrabold text-[#0F1E36] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
               <span>Executive Bureau Leadership</span>
             </h2>
             <button
               type="button"
               onClick={openExecModal}
-              className="text-xs font-bold text-[#1D63EB] hover:underline cursor-pointer"
+              className="text-xs font-bold text-[#0284C7] hover:underline cursor-pointer"
             >
               Change Executive Officers →
             </button>
@@ -249,14 +252,14 @@ export default function AdminOrgStructurePage() {
             {execCards.map((card) => (
               <div
                 key={card.roleTitle}
-                className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-sm flex items-center justify-between gap-3"
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   {card.member && (
                     <img
                       src={card.member.avatarUrl}
                       alt={card.member.fullName}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-[#E2EDF8] shrink-0"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-slate-200/90 shrink-0"
                     />
                   )}
                   <div className="min-w-0">
@@ -265,7 +268,7 @@ export default function AdminOrgStructurePage() {
                     >
                       {card.badgeText}
                     </span>
-                    <div className="text-sm font-black text-slate-900 truncate mt-1">
+                    <div className="text-sm font-black text-[#0F1E36] truncate mt-1">
                       {card.member?.fullName || "Unassigned"}
                     </div>
                     <div className="text-[11px] text-slate-500 font-mono truncate">
@@ -290,8 +293,8 @@ export default function AdminOrgStructurePage() {
         {/* SECTION 1 — 6 FIXED DEPARTMENTS */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#1D63EB]" />
+            <h2 className="text-sm font-extrabold text-[#0F1E36] flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-[#0284C7]" />
               <span>Departments</span>
             </h2>
             <span className="font-mono text-xs font-bold text-slate-400">
@@ -312,14 +315,14 @@ export default function AdminOrgStructurePage() {
               return (
                 <div
                   key={dept.id}
-                  className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-sm flex flex-col justify-between space-y-3"
+                  className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col justify-between space-y-3"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-black text-slate-900">
+                      <h3 className="text-sm font-black text-[#0F1E36]">
                         {dept.name}
                       </h3>
-                      <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[#F4F7FB] text-slate-600 border border-[#E2EDF8] shrink-0">
+                      <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[#F4F7FB] text-slate-600 border border-slate-200/90 shrink-0">
                         {deptMembers.length} members
                       </span>
                     </div>
@@ -329,7 +332,7 @@ export default function AdminOrgStructurePage() {
                     </p>
 
                     {/* Leadership Card with Quick Edit */}
-                    <div className="mt-3 p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] text-xs space-y-1.5">
+                    <div className="mt-3 p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 text-xs space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="text-[10px] font-mono uppercase font-bold text-slate-400">
                           Leadership
@@ -341,7 +344,7 @@ export default function AdminOrgStructurePage() {
                             setSelectedHeadId(dept.headMemberId);
                             setSelectedCoManagerId(dept.coManagerMemberId);
                           }}
-                          className="text-[11px] font-bold text-[#1D63EB] hover:underline cursor-pointer"
+                          className="text-[11px] font-bold text-[#0284C7] hover:underline cursor-pointer"
                         >
                           Change Managers
                         </button>
@@ -363,10 +366,10 @@ export default function AdminOrgStructurePage() {
                   </div>
 
                   {/* Footer Link to Filtered Members */}
-                  <div className="pt-2 border-t border-[#E2EDF8] flex items-center justify-end">
+                  <div className="pt-2 border-t border-slate-200/90 flex items-center justify-end">
                     <Link
                       href={`/admin/members?dept=${dept.id}`}
-                      className="text-xs font-bold text-[#1D63EB] hover:underline"
+                      className="text-xs font-bold text-[#0284C7] hover:underline"
                     >
                       View Roster ({deptMembers.length}) →
                     </Link>
@@ -380,8 +383,8 @@ export default function AdminOrgStructurePage() {
         {/* SECTION 2 — SCIENTIFIC TEAMS */}
         <section className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#1D63EB]" />
+            <h2 className="text-sm font-extrabold text-[#0F1E36] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#0284C7]" />
               <span>Scientific Teams</span>
             </h2>
             <span className="font-mono text-xs font-bold text-slate-400">
@@ -400,15 +403,15 @@ export default function AdminOrgStructurePage() {
                 return (
                   <div
                     key={team.id}
-                    className="bg-white rounded-2xl border border-[#E2EDF8] p-4 shadow-sm flex flex-col justify-between space-y-3"
+                    className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col justify-between space-y-3"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="text-sm font-black text-slate-900">
+                          <h3 className="text-sm font-black text-[#0F1E36]">
                             {team.name}
                           </h3>
-                          <div className="text-[10px] font-mono font-bold text-[#1D63EB] mt-0.5">
+                          <div className="text-[10px] font-mono font-bold text-[#0284C7] mt-0.5">
                             {team.field}
                           </div>
                         </div>
@@ -426,7 +429,7 @@ export default function AdminOrgStructurePage() {
                           <button
                             type="button"
                             onClick={() => openEditTeamModal(team)}
-                            className="p-1 rounded text-slate-400 hover:text-[#1D63EB] cursor-pointer"
+                            className="p-1 rounded text-slate-400 hover:text-[#0284C7] cursor-pointer"
                             title="Edit Team"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -438,7 +441,7 @@ export default function AdminOrgStructurePage() {
                         {team.description}
                       </p>
 
-                      <div className="mt-2.5 p-2.5 rounded-xl bg-[#F8FAFD] border border-[#E2EDF8] flex items-center justify-between text-xs">
+                      <div className="mt-2.5 p-2.5 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex items-center justify-between text-xs">
                         <div>
                           <span className="text-slate-500">Lead: </span>
                           <span className="font-bold text-slate-800">
@@ -451,14 +454,14 @@ export default function AdminOrgStructurePage() {
                             setManagingTeamId(team.id);
                             setSelectedAddMemberId(activeMembers[0]?.id || "mem-ayoub");
                           }}
-                          className="text-[11px] font-bold text-[#1D63EB] hover:underline cursor-pointer"
+                          className="text-[11px] font-bold text-[#0284C7] hover:underline cursor-pointer"
                         >
                           Manage Members
                         </button>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-[#E2EDF8] flex items-center justify-between">
+                    <div className="pt-2 border-t border-slate-200/90 flex items-center justify-between">
                       <button
                         type="button"
                         onClick={() => {
@@ -472,7 +475,7 @@ export default function AdminOrgStructurePage() {
 
                       <Link
                         href={`/admin/members?team=${team.id}`}
-                        className="text-xs font-bold text-[#1D63EB] hover:underline"
+                        className="text-xs font-bold text-[#0284C7] hover:underline"
                       >
                         View Roster ({team.memberIds.length}) →
                       </Link>
@@ -495,7 +498,7 @@ export default function AdminOrgStructurePage() {
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Crown className="w-4 h-4 text-amber-500" />
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-black text-[#0F1E36]">
                   Change Executive Bureau Officers
                 </h3>
               </div>
@@ -524,7 +527,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setSelectedPresidentId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -544,7 +547,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setSelectedVpId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -564,7 +567,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setSelectedSgId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -584,7 +587,7 @@ export default function AdminOrgStructurePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#1D63EB] hover:bg-blue-700 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
                 >
                   Save Executive Bureau
                 </button>
@@ -599,7 +602,7 @@ export default function AdminOrgStructurePage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-[420px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">
+              <h3 className="text-sm font-black text-[#0F1E36]">
                 Change Managers · {editingDept.name}
               </h3>
               <button
@@ -627,7 +630,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setSelectedHeadId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -647,7 +650,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setSelectedCoManagerId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -667,7 +670,7 @@ export default function AdminOrgStructurePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#1D63EB] hover:bg-blue-700 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -682,7 +685,7 @@ export default function AdminOrgStructurePage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-[440px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">
+              <h3 className="text-sm font-black text-[#0F1E36]">
                 {editingTeam ? "Edit Scientific Team" : "New Scientific Team"}
               </h3>
               <button
@@ -705,7 +708,7 @@ export default function AdminOrgStructurePage() {
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
                   placeholder="e.g. Astrophysics & Cosmology"
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
 
@@ -719,7 +722,7 @@ export default function AdminOrgStructurePage() {
                   value={teamField}
                   onChange={(e) => setTeamField(e.target.value)}
                   placeholder="e.g. Physics / Astronomy"
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
 
@@ -738,7 +741,7 @@ export default function AdminOrgStructurePage() {
                   onKeyDown={(e) =>
                     handleMemberSelectKeyDown(e, activeMembers, setTeamLeaderId)
                   }
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl font-semibold"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-semibold"
                 >
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -757,7 +760,7 @@ export default function AdminOrgStructurePage() {
                   value={teamDesc}
                   onChange={(e) => setTeamDesc(e.target.value)}
                   placeholder="Focus and research activities..."
-                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
 
@@ -771,7 +774,7 @@ export default function AdminOrgStructurePage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#1D63EB] hover:bg-blue-700 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
                 >
                   Save Team
                 </button>
@@ -787,7 +790,7 @@ export default function AdminOrgStructurePage() {
           <div className="w-full max-w-[460px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-black text-[#0F1E36]">
                   Manage Team Members · {managingTeam.name}
                 </h3>
                 <p className="text-[11px] text-slate-500">
@@ -811,7 +814,7 @@ export default function AdminOrgStructurePage() {
                 onKeyDown={(e) =>
                   handleMemberSelectKeyDown(e, activeMembers, setSelectedAddMemberId)
                 }
-                className="flex-1 px-3 py-2 text-xs bg-[#F4F7FB] border border-[#E2EDF8] rounded-xl text-slate-800 font-semibold"
+                className="flex-1 px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
               >
                 {activeMembers.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -826,7 +829,7 @@ export default function AdminOrgStructurePage() {
                   addMemberToTeam(selectedAddMemberId, managingTeam.id);
                   triggerToast(`Added member to ${managingTeam.name}`);
                 }}
-                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Add</span>
@@ -856,10 +859,10 @@ export default function AdminOrgStructurePage() {
                           className="w-7 h-7 rounded-full object-cover shrink-0"
                         />
                         <div className="min-w-0">
-                          <div className="font-bold text-slate-900 truncate flex items-center gap-1.5">
+                          <div className="font-bold text-[#0F1E36] truncate flex items-center gap-1.5">
                             <span>{m.fullName}</span>
                             {isLeader && (
-                              <span className="text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-50 text-[#1D63EB]">
+                              <span className="text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-50 text-[#0284C7]">
                                 Lead
                               </span>
                             )}
@@ -893,7 +896,7 @@ export default function AdminOrgStructurePage() {
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <Link
                 href={`/admin/members?team=${managingTeam.id}`}
-                className="text-xs font-bold text-[#1D63EB] hover:underline"
+                className="text-xs font-bold text-[#0284C7] hover:underline"
               >
                 Open Full Roster in Directory →
               </Link>
