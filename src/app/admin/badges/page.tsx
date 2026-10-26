@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Archive,
   Award,
@@ -25,7 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { ALL_FIELD_ICONS, FieldIcon } from "@/components/shared/FieldIcon";
+import { ALL_FIELD_ICONS, FieldIcon, FieldIconMeta } from "@/components/shared/FieldIcon";
 import {
   Badge,
   BadgeCategory,
@@ -103,6 +103,8 @@ export default function AdminBadgesPage() {
   const [newBadgeCriteria, setNewBadgeCriteria] = useState("");
   const [newBadgeRequirement, setNewBadgeRequirement] = useState<BadgeRequirementType>("both");
   const [newBadgeLinkedExamId, setNewBadgeLinkedExamId] = useState<string>(exams[0]?.id || "");
+  const [badgeIconCategoryFilter, setBadgeIconCategoryFilter] = useState<string>("All");
+  const [badgeIconSearch, setBadgeIconSearch] = useState<string>("");
 
   // --- BADGE EDIT MODAL STATE ---
   const [editingBadge, setEditingBadge] = useState<Badge | null>(null);
@@ -475,6 +477,23 @@ export default function AdminBadgesPage() {
       // Error handled by validator
     }
   };
+
+  const filteredBadgeIcons = useMemo(() => {
+    return ALL_FIELD_ICONS.filter((f) => {
+      const matchesCategory =
+        badgeIconCategoryFilter === "All" || f.category === badgeIconCategoryFilter;
+      const matchesSearch =
+        !badgeIconSearch ||
+        f.label.toLowerCase().includes(badgeIconSearch.toLowerCase()) ||
+        f.code.toLowerCase().includes(badgeIconSearch.toLowerCase()) ||
+        f.key.toLowerCase().includes(badgeIconSearch.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [badgeIconCategoryFilter, badgeIconSearch]);
+
+  const selectedBadgeIconMeta = useMemo(() => {
+    return ALL_FIELD_ICONS.find((f) => f.key === newBadgeIcon) || ALL_FIELD_ICONS[0];
+  }, [newBadgeIcon]);
 
   return (
     <div className="space-y-6">
@@ -1137,25 +1156,94 @@ export default function AdminBadgesPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Badge Icon
-                </label>
-                <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-[#F4F7FB] border border-slate-200 max-h-24 overflow-y-auto">
-                  {ALL_FIELD_ICONS.map((f) => (
-                    <button
-                      key={f.key}
-                      type="button"
-                      onClick={() => setNewBadgeIcon(f.key)}
-                      className={`p-1.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                        newBadgeIcon === f.key
-                          ? "bg-[#182C4E] text-white shadow-xs"
-                          : "hover:bg-slate-200 text-slate-700"
-                      }`}
-                      title={f.label}
-                    >
-                      <FieldIcon field={f.key} size={18} />
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Badge Icon &amp; Domain
+                  </label>
+                  {/* Selected Preview */}
+                  {selectedBadgeIconMeta && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 border border-sky-200/90 text-xs font-bold text-[#0284C7] shadow-2xs">
+                      <div className={`w-4 h-4 rounded-md ${selectedBadgeIconMeta.bgTint} ${selectedBadgeIconMeta.textColor} flex items-center justify-center shrink-0`}>
+                        <FieldIcon field={selectedBadgeIconMeta.key} size={12} colored />
+                      </div>
+                      <span className="font-semibold text-slate-800">{selectedBadgeIconMeta.label}</span>
+                      <span className="text-[10px] font-mono text-sky-500">({selectedBadgeIconMeta.code})</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Category Pills & Search */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                    {(
+                      [
+                        "All",
+                        "Software & Tech",
+                        "Engineering & Hardware",
+                        "Science & Research",
+                        "Creative & Media",
+                        "Leadership & Operations",
+                      ] as const
+                    ).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setBadgeIconCategoryFilter(cat)}
+                        className={`px-2 py-0.5 rounded-lg font-medium whitespace-nowrap transition cursor-pointer ${
+                          badgeIconCategoryFilter === cat
+                            ? "bg-[#182C4E] text-white shadow-2xs"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {cat === "All" ? `All (${ALL_FIELD_ICONS.length})` : cat.split(" & ")[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={badgeIconSearch}
+                    onChange={(e) => setBadgeIconSearch(e.target.value)}
+                    placeholder="Search icon..."
+                    className="w-28 sm:w-32 px-2 py-0.5 text-[11px] bg-white border border-slate-200/90 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0284C7]"
+                  />
+                </div>
+
+                {/* Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 p-2 rounded-xl bg-[#F8FAFC] border border-slate-200/90 max-h-44 overflow-y-auto">
+                  {filteredBadgeIcons.map((f: FieldIconMeta) => {
+                    const isSelected = newBadgeIcon === f.key || newBadgeIcon === f.label;
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => setNewBadgeIcon(f.key)}
+                        className={`flex items-center gap-2 p-1.5 rounded-xl border text-left transition cursor-pointer ${
+                          isSelected
+                            ? "bg-white border-[#0284C7] ring-2 ring-[#0284C7]/20 shadow-2xs"
+                            : "bg-white/80 border-slate-200/80 hover:bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div
+                          className={`w-7 h-7 rounded-lg ${f.bgTint} ${f.textColor} border ${f.borderColor} flex items-center justify-center shrink-0`}
+                        >
+                          <FieldIcon field={f.key} size={15} colored />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className={`text-[11px] font-bold truncate ${
+                              isSelected ? "text-[#0F1E36]" : "text-slate-700"
+                            }`}
+                          >
+                            {f.label}
+                          </div>
+                          <div className="text-[9.5px] font-mono text-slate-400 truncate">
+                            {f.code} · {f.category.split(" & ")[0]}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

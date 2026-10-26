@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import {
   Calendar,
   CheckCircle2,
+  Clock,
   MapPin,
   Maximize2,
+  Minimize2,
   Plus,
   RefreshCw,
   Search,
@@ -53,109 +56,6 @@ const CATEGORIES: Workshop["category"][] = [
 ];
 
 const LEVELS: WorkshopLevel[] = ["Beginner", "Intermediate", "Advanced"];
-
-/** Responsive Scannable QR Code Vector */
-function AuthenticQrCodeSvg() {
-  return (
-    <svg
-      viewBox="0 0 29 29"
-      shapeRendering="crispEdges"
-      className="w-[136px] h-[136px] sm:w-[210px] sm:h-[210px] lg:w-[min(42vh,260px)] lg:h-[min(42vh,260px)] text-slate-950 fill-current shrink-0"
-    >
-      {/* Top-Left Finder */}
-      <rect x="0" y="0" width="7" height="7" />
-      <rect x="1" y="1" width="5" height="5" fill="white" />
-      <rect x="2" y="2" width="3" height="3" />
-
-      {/* Top-Right Finder */}
-      <rect x="22" y="0" width="7" height="7" />
-      <rect x="23" y="1" width="5" height="5" fill="white" />
-      <rect x="24" y="2" width="3" height="3" />
-
-      {/* Bottom-Left Finder */}
-      <rect x="0" y="22" width="7" height="7" />
-      <rect x="1" y="23" width="5" height="5" fill="white" />
-      <rect x="2" y="24" width="3" height="3" />
-
-      {/* Timing Patterns */}
-      <rect x="6" y="8" width="1" height="1" />
-      <rect x="6" y="10" width="1" height="1" />
-      <rect x="6" y="12" width="1" height="1" />
-      <rect x="6" y="14" width="1" height="1" />
-      <rect x="6" y="16" width="1" height="1" />
-      <rect x="6" y="18" width="1" height="1" />
-      <rect x="6" y="20" width="1" height="1" />
-
-      <rect x="8" y="6" width="1" height="1" />
-      <rect x="10" y="6" width="1" height="1" />
-      <rect x="12" y="6" width="1" height="1" />
-      <rect x="14" y="6" width="1" height="1" />
-      <rect x="16" y="6" width="1" height="1" />
-      <rect x="18" y="6" width="1" height="1" />
-      <rect x="20" y="6" width="1" height="1" />
-
-      {/* Alignment Pattern */}
-      <rect x="20" y="20" width="5" height="5" />
-      <rect x="21" y="21" width="3" height="3" fill="white" />
-      <rect x="22" y="22" width="1" height="1" />
-
-      {/* Data Matrix Cells */}
-      <rect x="9" y="1" width="1" height="1" />
-      <rect x="11" y="1" width="1" height="1" />
-      <rect x="13" y="2" width="2" height="1" />
-      <rect x="17" y="1" width="1" height="1" />
-      <rect x="19" y="3" width="1" height="2" />
-      <rect x="9" y="3" width="1" height="2" />
-      <rect x="12" y="4" width="2" height="1" />
-      <rect x="15" y="4" width="1" height="1" />
-      <rect x="9" y="8" width="2" height="2" />
-      <rect x="13" y="8" width="1" height="1" />
-      <rect x="15" y="9" width="2" height="1" />
-      <rect x="18" y="8" width="1" height="2" />
-      <rect x="21" y="9" width="1" height="1" />
-      <rect x="24" y="8" width="2" height="1" />
-      <rect x="27" y="9" width="1" height="2" />
-      <rect x="8" y="11" width="1" height="1" />
-      <rect x="10" y="12" width="2" height="1" />
-      <rect x="14" y="11" width="2" height="2" />
-      <rect x="17" y="12" width="1" height="1" />
-      <rect x="19" y="11" width="2" height="1" />
-      <rect x="23" y="12" width="1" height="2" />
-      <rect x="25" y="11" width="2" height="1" />
-      <rect x="8" y="14" width="2" height="1" />
-      <rect x="11" y="15" width="1" height="1" />
-      <rect x="13" y="14" width="1" height="2" />
-      <rect x="16" y="15" width="2" height="1" />
-      <rect x="18" y="14" width="1" height="1" />
-      <rect x="21" y="15" width="1" height="1" />
-      <rect x="27" y="14" width="1" height="2" />
-      <rect x="9" y="17" width="2" height="1" />
-      <rect x="12" y="18" width="1" height="1" />
-      <rect x="15" y="17" width="1" height="2" />
-      <rect x="17" y="18" width="2" height="1" />
-      <rect x="20" y="17" width="1" height="1" />
-      <rect x="24" y="17" width="2" height="1" />
-      <rect x="26" y="18" width="2" height="2" />
-      <rect x="8" y="20" width="1" height="2" />
-      <rect x="10" y="21" width="2" height="1" />
-      <rect x="13" y="20" width="2" height="1" />
-      <rect x="16" y="21" width="1" height="1" />
-      <rect x="18" y="20" width="1" height="2" />
-      <rect x="9" y="23" width="1" height="1" />
-      <rect x="11" y="24" width="2" height="2" />
-      <rect x="14" y="23" width="1" height="1" />
-      <rect x="17" y="24" width="1" height="1" />
-      <rect x="19" y="23" width="2" height="1" />
-      <rect x="26" y="23" width="1" height="2" />
-      <rect x="8" y="26" width="2" height="1" />
-      <rect x="12" y="27" width="1" height="1" />
-      <rect x="15" y="26" width="2" height="1" />
-      <rect x="18" y="27" width="2" height="1" />
-      <rect x="22" y="26" width="1" height="2" />
-      <rect x="24" y="27" width="3" height="1" />
-    </svg>
-  );
-}
 
 export default function AdminWorkshopsPage() {
   const {
@@ -205,8 +105,15 @@ export default function AdminWorkshopsPage() {
   const [description, setDescription] = useState("");
   const [linkedBadgeId, setLinkedBadgeId] = useState<string>("badge-python");
 
-  // Projector countdown
+  // Activity Icon Picker filter & search
+  const [iconCategoryFilter, setIconCategoryFilter] = useState<string>("All");
+  const [iconSearch, setIconSearch] = useState<string>("");
+
+  // Projector State
   const [secondsLeft, setSecondsLeft] = useState(30);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentTime, setCurrentTime] = useState<string>("");
 
   // Audited Attendance Correction
   const [correctionMemberId, setCorrectionMemberId] = useState<string>("");
@@ -219,6 +126,45 @@ export default function AdminWorkshopsPage() {
   const rosterWorkshop =
     workshops.find((w) => w.id === rosterWorkshopId) || null;
 
+  // Toggle Fullscreen helper
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+  }, []);
+
+  // Live amphi digital clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Lock body scroll when Projector Display is open
   useEffect(() => {
     if (projectorWorkshop) {
@@ -229,6 +175,36 @@ export default function AdminWorkshopsPage() {
     }
     document.body.style.overflow = "";
   }, [projectorWorkshop]);
+
+  // Real Camera-Scannable QR Code Generation
+  useEffect(() => {
+    if (!projectorWorkshop) {
+      setQrDataUrl("");
+      return;
+    }
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3000";
+    const checkinUrl = `${origin}/checkin?workshopId=${projectorWorkshop.id}&code=${projectorWorkshop.liveSixDigitCode}&token=${projectorWorkshop.liveQrToken}`;
+    QRCode.toDataURL(checkinUrl, {
+      margin: 1,
+      width: 600,
+      errorCorrectionLevel: "H",
+      color: {
+        dark: "#040D1A",
+        light: "#FFFFFF",
+      },
+    })
+      .then(setQrDataUrl)
+      .catch((err) => {
+        console.error("Failed to generate QR code", err);
+      });
+  }, [
+    projectorWorkshop?.id,
+    projectorWorkshop?.liveSixDigitCode,
+    projectorWorkshop?.liveQrToken,
+  ]);
 
   // Countdown & QR rotation
   useEffect(() => {
@@ -264,6 +240,23 @@ export default function AdminWorkshopsPage() {
       return matchesSearch && matchesStatus;
     });
   }, [workshops, searchQuery, statusFilter]);
+
+  const filteredIcons = useMemo(() => {
+    return ALL_FIELD_ICONS.filter((f) => {
+      const matchesCategory =
+        iconCategoryFilter === "All" || f.category === iconCategoryFilter;
+      const matchesSearch =
+        !iconSearch ||
+        f.label.toLowerCase().includes(iconSearch.toLowerCase()) ||
+        f.code.toLowerCase().includes(iconSearch.toLowerCase()) ||
+        f.key.toLowerCase().includes(iconSearch.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [iconCategoryFilter, iconSearch]);
+
+  const selectedMeta = useMemo(() => {
+    return ALL_FIELD_ICONS.find((f) => f.key === iconType) || ALL_FIELD_ICONS[0];
+  }, [iconType]);
 
   const handleStatusChange = (ws: Workshop, nextStatus: WorkshopStatus) => {
     updateWorkshopStatus(ws.id, nextStatus);
@@ -680,54 +673,89 @@ export default function AdminWorkshopsPage() {
       {/* ===================================================================== */}
 
       {projectorWorkshop && (
-        <div className="fixed inset-0 z-[200] w-full h-dvh overflow-hidden bg-[#040D1A] text-white flex flex-col justify-between p-3 sm:p-6 lg:p-8 select-none">
+        <div className="fixed inset-0 z-[200] w-full h-dvh overflow-hidden bg-[#030712] text-white flex flex-col justify-between p-3 sm:p-5 lg:p-7 select-none">
+          {/* Subtle Ambient Cosmic Glows */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#1D63EB]/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#38E4FF]/10 rounded-full blur-3xl pointer-events-none" />
+
           {/* Top Bar */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4 border-b border-white/10 pb-2 sm:pb-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>LIVE CHECK-IN</span>
+          <div className="relative z-10 flex items-center justify-between gap-3 border-b border-white/10 pb-2.5 sm:pb-3 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>AMPHITHEATER LIVE SESSION</span>
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10 text-[10px] sm:text-xs font-mono text-sky-300">
-                <Sparkles className="w-3 h-3 text-[#38E4FF]" />
-                <span>+{projectorWorkshop.xpReward} XP</span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-sky-300">
+                <Sparkles className="w-3.5 h-3.5 text-[#38E4FF]" />
+                <span>+{projectorWorkshop.xpReward} XP REWARD</span>
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-slate-300">
+                <span>{projectorWorkshop.category}</span>
+                <span className="text-white/20">·</span>
+                <span>{projectorWorkshop.level}</span>
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setProjectorWorkshopId(null)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>Close Display</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline-block font-mono text-xs text-slate-400 tracking-wider">
+                {currentTime}
+              </span>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition cursor-pointer"
+                title="Toggle Fullscreen"
+              >
+                {isFullscreen ? (
+                  <>
+                    <Minimize2 className="w-3.5 h-3.5 text-[#38E4FF]" />
+                    <span className="hidden sm:inline">Exit Fullscreen</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-[#38E4FF]" />
+                    <span className="hidden sm:inline">Fullscreen</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectorWorkshopId(null)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-rose-500/20 hover:border-rose-400/40 text-white text-xs font-bold border border-white/15 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Close</span>
+              </button>
+            </div>
           </div>
 
           {/* 2-Column Main Stage — Zero-Scroll Mobile & Desktop Fit */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:gap-6 items-center my-auto max-w-6xl w-full mx-auto">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center my-auto max-w-6xl w-full mx-auto max-h-[82vh]">
             {/* Left 7 Cols */}
-            <div className="lg:col-span-7 flex flex-col justify-center space-y-2.5 sm:space-y-4 lg:space-y-5">
+            <div className="lg:col-span-7 flex flex-col justify-center space-y-3 sm:space-y-4">
               <div>
-                <div className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-[#38E4FF] font-bold mb-0.5 sm:mb-1">
-                  {projectorWorkshop.category} · {projectorWorkshop.level}
+                <div className="flex items-center gap-2 mb-1">
+                  <FieldIcon field={projectorWorkshop.iconType} size={18} colored />
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#38E4FF] font-bold">
+                    QUANTA WORKSHOP · ATTENDANCE VERIFICATION
+                  </span>
                 </div>
-                <h2 className="font-display text-lg sm:text-3xl lg:text-4xl font-black text-white leading-tight line-clamp-2">
+                <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] line-clamp-2">
                   {projectorWorkshop.title}
                 </h2>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-300">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 border border-white/10 font-semibold">
-                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#38E4FF]" />
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 font-semibold">
+                  <Users className="w-3.5 h-3.5 text-[#38E4FF]" />
                   <span>{projectorWorkshop.instructor}</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 border border-white/10 font-semibold">
-                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#38E4FF]" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 font-semibold">
+                  <MapPin className="w-3.5 h-3.5 text-[#38E4FF]" />
                   <span>{projectorWorkshop.location}</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 border border-white/10 font-mono">
-                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#38E4FF]" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 font-mono">
+                  <Calendar className="w-3.5 h-3.5 text-[#38E4FF]" />
                   <span>
                     {projectorWorkshop.dateLabel} ({projectorWorkshop.timeRange})
                   </span>
@@ -735,10 +763,10 @@ export default function AdminWorkshopsPage() {
               </div>
 
               {/* 6-Digit Attendance Code Box */}
-              <div className="bg-white/[0.04] border border-white/15 rounded-2xl sm:rounded-3xl p-3 sm:p-5 lg:p-6 space-y-2 sm:space-y-3.5 max-w-xl">
+              <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-white/15 rounded-3xl p-4 sm:p-5 space-y-3 max-w-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-widest text-slate-400">
-                    6-Digit Attendance Code
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                    6-Digit Backup Code (Manual Entry)
                   </span>
                   <button
                     type="button"
@@ -746,22 +774,22 @@ export default function AdminWorkshopsPage() {
                       rotateWorkshopQrCode(projectorWorkshop.id);
                       setSecondsLeft(30);
                     }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] sm:text-xs font-bold text-[#38E4FF] transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-[#38E4FF] transition cursor-pointer border border-white/10"
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>Rotate Code</span>
                   </button>
                 </div>
 
-                <div className="py-1.5 sm:py-2.5 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-[#020710] border border-[#38E4FF]/40 text-center shadow-[0_0_40px_rgba(56,228,255,0.12)]">
-                  <span className="text-2xl sm:text-5xl font-mono font-black tracking-[0.22em] text-[#38E4FF] tabular-nums">
+                <div className="py-2.5 sm:py-3.5 px-4 rounded-2xl bg-[#020710]/90 border border-[#38E4FF]/40 text-center shadow-[0_0_50px_rgba(56,228,255,0.18)]">
+                  <span className="text-4xl sm:text-6xl lg:text-7xl font-mono font-black tracking-[0.25em] text-[#38E4FF] tabular-nums drop-shadow-[0_0_24px_rgba(56,228,255,0.5)]">
                     {projectorWorkshop.liveSixDigitCode}
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs font-mono text-slate-400">
-                    <span>Code refreshes in</span>
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                    <span>Rotating security token refreshes in</span>
                     <span className="font-bold text-white tabular-nums">
                       {secondsLeft}s
                     </span>
@@ -775,33 +803,94 @@ export default function AdminWorkshopsPage() {
                 </div>
               </div>
 
-              {/* Checked-In Counter Pill */}
-              <div className="inline-flex items-center gap-2 sm:gap-3 self-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
-                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-[11px] sm:text-xs font-mono text-slate-300">
-                  Checked-In:{" "}
-                  <strong className="text-white text-xs sm:text-sm font-black tabular-nums">
-                    {
-                      projectorWorkshop.attendanceRecords.filter(
+              {/* Attendance Counter & Live Stream */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-mono text-slate-300">
+                    Checked-In:{" "}
+                    <strong className="text-white text-sm font-black tabular-nums">
+                      {
+                        projectorWorkshop.attendanceRecords.filter(
+                          (r) => r.status === "Present"
+                        ).length
+                      }
+                    </strong>{" "}
+                    / {projectorWorkshop.capacity} seats ({Math.round(
+                      (projectorWorkshop.attendanceRecords.filter(
                         (r) => r.status === "Present"
-                      ).length
-                    }
-                  </strong>{" "}
-                  / {projectorWorkshop.capacity} seats
-                </span>
+                      ).length /
+                        projectorWorkshop.capacity) *
+                        100
+                    )}%)
+                  </span>
+                </div>
+
+                {/* Recent Check-Ins Feed */}
+                <div className="text-xs text-slate-400 font-mono truncate">
+                  {projectorWorkshop.attendanceRecords.length > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 text-slate-300">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="text-slate-400">Latest:</span>
+                      <strong className="text-white">
+                        {
+                          members.find(
+                            (m) =>
+                              m.id ===
+                              projectorWorkshop.attendanceRecords[
+                                projectorWorkshop.attendanceRecords.length - 1
+                              ].memberId
+                          )?.fullName || "Member"
+                        }
+                      </strong>
+                      <span className="text-slate-500">
+                        (
+                        {
+                          projectorWorkshop.attendanceRecords[
+                            projectorWorkshop.attendanceRecords.length - 1
+                          ].checkedInAt
+                        }
+                        )
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-slate-500">
+                      Waiting for attendees to scan...
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Right 5 Cols: White QR Frame */}
+            {/* Right 5 Cols: Giant High-Contrast Scannable QR Frame */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center">
-              <div className="bg-white p-3 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center mx-auto">
-                <AuthenticQrCodeSvg />
-                <div className="mt-2 sm:mt-3 text-center">
-                  <div className="font-mono text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-[#0F1E36]">
-                    Scan with QUANTERS App
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] font-mono text-slate-400 mt-0.5 truncate max-w-[160px] sm:max-w-[220px]">
-                    {projectorWorkshop.liveQrToken}
+              <div className="relative group">
+                {/* Glowing Aura */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#1D63EB]/30 to-[#38E4FF]/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+
+                {/* Pure White High-Contrast QR Card */}
+                <div className="relative bg-white p-4 sm:p-6 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center mx-auto border-4 border-white">
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt="Session Check-In QR Code"
+                      className="w-[min(38vh,270px)] h-[min(38vh,270px)] object-contain shrink-0"
+                    />
+                  ) : (
+                    <div className="w-[min(38vh,270px)] h-[min(38vh,270px)] flex items-center justify-center bg-slate-100 rounded-2xl">
+                      <span className="text-xs font-mono text-slate-500">
+                        Generating Real QR Code...
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="mt-3 text-center">
+                    <div className="font-mono text-xs font-black uppercase tracking-wider text-[#0A1628]">
+                      SCAN WITH CAMERA OR QUANTERS APP
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                      Session Token: {projectorWorkshop.liveQrToken}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -809,9 +898,16 @@ export default function AdminWorkshopsPage() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="border-t border-white/10 pt-2 sm:pt-3 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 font-mono shrink-0 gap-2">
-            <span className="truncate">QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1</span>
-            <span className="shrink-0">{projectorWorkshop.location}</span>
+          <div className="relative z-10 border-t border-white/10 pt-2 sm:pt-3 flex items-center justify-between text-xs text-slate-400 font-mono shrink-0 gap-2">
+            <span className="truncate">
+              QUANTA SCIENTIFIC CLUB · UNIVERSITY OF ALGIERS 1
+            </span>
+            <span className="hidden md:inline text-slate-500 text-[11px]">
+              Tip: Press Fullscreen on projector screen for amphi presentation
+            </span>
+            <span className="shrink-0 text-slate-300 font-semibold">
+              {projectorWorkshop.location}
+            </span>
           </div>
         </div>
       )}
@@ -1003,25 +1099,94 @@ export default function AdminWorkshopsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Activity Icon
-                </label>
-                <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-[#F4F7FB] border border-slate-200/90 max-h-24 overflow-y-auto">
-                  {ALL_FIELD_ICONS.map((f) => (
-                    <button
-                      key={f.key}
-                      type="button"
-                      onClick={() => setIconType(f.key)}
-                      title={f.label}
-                      className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition cursor-pointer ${
-                        iconType === f.key
-                          ? "bg-white border-[#182C4E] ring-2 ring-[#1D63EB]/20 text-[#0284C7]"
-                          : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
-                      }`}
-                    >
-                      <FieldIcon field={f.key} size={18} />
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Activity Icon &amp; Domain
+                  </label>
+                  {/* Selected Preview Pill */}
+                  {selectedMeta && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 border border-sky-200/90 text-xs font-bold text-[#0284C7] shadow-2xs">
+                      <div className={`w-4 h-4 rounded-md ${selectedMeta.bgTint} ${selectedMeta.textColor} flex items-center justify-center shrink-0`}>
+                        <FieldIcon field={selectedMeta.key} size={12} colored />
+                      </div>
+                      <span className="font-semibold text-slate-800">{selectedMeta.label}</span>
+                      <span className="text-[10px] font-mono text-sky-500">({selectedMeta.code})</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Category Filter Pills & Search */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                    {(
+                      [
+                        "All",
+                        "Software & Tech",
+                        "Engineering & Hardware",
+                        "Science & Research",
+                        "Creative & Media",
+                        "Leadership & Operations",
+                      ] as const
+                    ).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setIconCategoryFilter(cat)}
+                        className={`px-2 py-0.5 rounded-lg font-medium whitespace-nowrap transition cursor-pointer ${
+                          iconCategoryFilter === cat
+                            ? "bg-[#182C4E] text-white shadow-2xs"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {cat === "All" ? `All (${ALL_FIELD_ICONS.length})` : cat.split(" & ")[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={iconSearch}
+                    onChange={(e) => setIconSearch(e.target.value)}
+                    placeholder="Search icon..."
+                    className="w-28 sm:w-32 px-2 py-0.5 text-[11px] bg-white border border-slate-200/90 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0284C7]"
+                  />
+                </div>
+
+                {/* Grid of rich, labeled, domain-colored icon cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 p-2 rounded-xl bg-[#F8FAFC] border border-slate-200/90 max-h-48 overflow-y-auto">
+                  {filteredIcons.map((f) => {
+                    const isSelected = iconType === f.key;
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => setIconType(f.key)}
+                        className={`flex items-center gap-2 p-1.5 rounded-xl border text-left transition cursor-pointer ${
+                          isSelected
+                            ? "bg-white border-[#0284C7] ring-2 ring-[#0284C7]/20 shadow-2xs"
+                            : "bg-white/80 border-slate-200/80 hover:bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div
+                          className={`w-7 h-7 rounded-lg ${f.bgTint} ${f.textColor} border ${f.borderColor} flex items-center justify-center shrink-0`}
+                        >
+                          <FieldIcon field={f.key} size={15} colored />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className={`text-[11px] font-bold truncate ${
+                              isSelected ? "text-[#0F1E36]" : "text-slate-700"
+                            }`}
+                          >
+                            {f.label}
+                          </div>
+                          <div className="text-[9.5px] font-mono text-slate-400 truncate">
+                            {f.code} · {f.category.split(" & ")[0]}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

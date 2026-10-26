@@ -502,19 +502,27 @@ export default function WelcomeSplashPage() {
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
-          {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT UNDER ALL CONDITIONS */}
-          <header className={`w-full space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
+          {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT & RESPONSIVE SCALING */}
+          <header className={`w-full space-y-2 sm:space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
             <div className="w-full flex justify-start text-left">
               <div className="inline-flex flex-col select-none items-start text-left">
                 <QuantersVectorWordmark
-                  className="h-14 sm:h-16 lg:h-20 w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out"
+                  className={`w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out ${
+                    authOpen
+                      ? "h-7 sm:h-8 md:h-10 lg:h-12 max-w-[190px] sm:max-w-[230px] md:max-w-[280px] lg:max-w-[340px]"
+                      : "h-8 xs:h-9 sm:h-10 md:h-12 lg:h-14 max-w-[210px] xs:max-w-[240px] sm:max-w-[280px] md:max-w-[340px] lg:max-w-[400px]"
+                  }`}
                 />
-                <div className="inline-flex items-center gap-2 mt-2 justify-start text-left">
-                  <span className="font-display text-xs sm:text-[13px] font-black tracking-[0.2em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
+                <div
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 justify-start text-left transition-all duration-300 ${
+                    authOpen ? "mt-1" : "mt-1.5 sm:mt-2"
+                  }`}
+                >
+                  <span className="font-display text-[10.5px] xs:text-[11px] sm:text-xs md:text-[13px] font-black tracking-[0.18em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
                     BY QUANTA
                   </span>
-                  <span className="text-white/25 font-mono text-xs leading-none">·</span>
-                  <span className="font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.14em] text-slate-300 uppercase leading-none whitespace-nowrap">
+                  <span className="text-white/25 font-mono text-[10px] sm:text-xs leading-none">·</span>
+                  <span className="font-mono text-[9px] xs:text-[9.5px] sm:text-[10.5px] md:text-xs font-bold tracking-[0.12em] text-slate-300 uppercase leading-none whitespace-nowrap">
                     UNIVERSITY OF ALGIERS 1
                   </span>
                 </div>
