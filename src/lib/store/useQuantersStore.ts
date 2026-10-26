@@ -1595,7 +1595,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (!member) return { ok: false, message: "Member account not found." };
 
     const cleanPass = passwordConfirm.trim();
+    const isGoogleAuth = cleanPass === "GOOGLE_VERIFIED";
     const validPass =
+      isGoogleAuth ||
       (member.password && cleanPass === member.password) ||
       cleanPass === "quanta2026" ||
       cleanPass === "123456";
@@ -1604,7 +1606,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return {
         ok: false,
         message:
-          "Incorrect password. Please enter your correct account password to confirm.",
+          "Incorrect password. Please enter your correct account password or verify with Google to confirm.",
       };
     }
 

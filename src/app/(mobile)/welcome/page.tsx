@@ -502,22 +502,28 @@ export default function WelcomeSplashPage() {
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
-          {/* A. TOP BRAND LOCKUP: QUANTERS LOGO & SUBTITLE VERTICALLY FLUSH-ALIGNED (Q and B ALIGNED WITH 0px OFFSET) */}
-          <header className="w-full space-y-2.5 animate-rise">
-            <div className="inline-flex flex-col items-start select-none">
-              <img
-                src="/brand/quanters_vector_v2.svg"
-                alt="QUANTERS"
-                className="h-10 sm:h-12 w-auto object-contain object-left block select-none drop-shadow-[0_2px_14px_rgba(0,0,0,0.88)]"
-              />
-              <div className="inline-flex items-center gap-2 mt-1.5">
-                <span className="font-display text-xs sm:text-[13px] font-black tracking-[0.2em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
-                  BY QUANTA
-                </span>
-                <span className="text-white/25 font-mono text-xs leading-none">·</span>
-                <span className="font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.14em] text-slate-300 uppercase leading-none whitespace-nowrap">
-                  UNIVERSITY OF ALGIERS 1
-                </span>
+          {/* A. TOP BRAND LOCKUP: LEFT-ALIGNED NORMALLY, ANIMATES/SLIDES TO CENTER WHEN PORTAL OPENS */}
+          <header className={`w-full space-y-2.5 transition-all duration-700 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
+            <div className={`w-full flex transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
+              <div className={`inline-flex flex-col select-none transition-all duration-700 ease-out ${authOpen ? "items-center text-center" : "items-start text-left"}`}>
+                <img
+                  src="/brand/quanters_vector_v2.svg"
+                  alt="QUANTERS"
+                  className={`w-auto object-contain block select-none drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-700 ease-out ${
+                    authOpen
+                      ? "h-11 sm:h-13 object-center"
+                      : "h-12 sm:h-14 md:h-16 w-auto object-left"
+                  }`}
+                />
+                <div className={`inline-flex items-center gap-2 mt-1.5 transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
+                  <span className="font-display text-xs sm:text-[13px] font-black tracking-[0.2em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
+                    BY QUANTA
+                  </span>
+                  <span className="text-white/25 font-mono text-xs leading-none">·</span>
+                  <span className="font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.14em] text-slate-300 uppercase leading-none whitespace-nowrap">
+                    UNIVERSITY OF ALGIERS 1
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -765,17 +771,17 @@ export default function WelcomeSplashPage() {
                 data-modal="true"
                 role="dialog"
                 aria-label="Member Sign In"
-                className="w-full bg-gradient-to-b from-[#0F1E36]/95 via-[#0A1629]/98 to-[#060E1C]/98 backdrop-blur-2xl border border-[#38BDF8]/30 rounded-2xl p-4 sm:p-5 shadow-[0_24px_70px_rgba(2,6,15,0.92)] space-y-3 text-left animate-rise"
+                className="w-full bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/35 hover:border-[#38BDF8]/50 rounded-2xl p-5 sm:p-6 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] space-y-3.5 text-left animate-rise transition-all"
               >
-                {/* Top Row: Title + Close Icon */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="space-y-0.5">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#182C4E]/80 border border-[#38BDF8]/30 text-[#7DD3FC] text-[9.5px] font-mono font-bold tracking-[0.14em] uppercase">
+                {/* Top Row: Refined Portal Header */}
+                <div className="flex items-center justify-between gap-3 pb-1 border-b border-white/8">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#0F2342]/90 border border-[#38BDF8]/35 text-[#7DD3FC] text-[10px] font-mono font-bold tracking-[0.14em] uppercase">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
-                      <span>QUANTERS PORTAL</span>
+                      <span>QUANTA ACCESS PORTAL</span>
                     </div>
-                    <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
-                      {authMode === "signin" ? "Member Sign In" : "Create Account"}
+                    <h2 className="font-display text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
+                      {authMode === "signin" ? "Member Authentication" : "Create New Account"}
                     </h2>
                   </div>
 
@@ -787,14 +793,14 @@ export default function WelcomeSplashPage() {
                       setShowForgotPassword(false);
                     }}
                     aria-label="Close login panel"
-                    className="w-7 h-7 rounded-lg bg-[#0B1528] hover:bg-[#182C4E] border border-white/10 hover:border-[#38BDF8]/40 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
+                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#38BDF8]/50 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Segmented 2-Mode Switcher */}
-                <div className="grid grid-cols-2 gap-1 p-0.5 rounded-xl bg-[#06101E]/90 border border-white/10">
+                <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#030812]/90 border border-white/10">
                   <button
                     type="button"
                     onClick={() => {
@@ -804,9 +810,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`py-1.5 rounded-lg text-[11px] font-display font-extrabold transition cursor-pointer ${
+                    className={`py-2 rounded-lg text-xs font-display font-extrabold transition cursor-pointer ${
                       authMode === "signin"
-                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/40 shadow-xs"
+                        ? "bg-gradient-to-r from-[#182C4E] to-[#1E3A66] text-white border border-[#38BDF8]/45 shadow-xs"
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
@@ -821,9 +827,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`py-1.5 rounded-lg text-[11px] font-display font-extrabold transition cursor-pointer ${
+                    className={`py-2 rounded-lg text-xs font-display font-extrabold transition cursor-pointer ${
                       authMode === "register"
-                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/40 shadow-xs"
+                        ? "bg-gradient-to-r from-[#182C4E] to-[#1E3A66] text-white border border-[#38BDF8]/45 shadow-xs"
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1074,11 +1080,11 @@ export default function WelcomeSplashPage() {
                     <div className="space-y-2.5">
                       <form onSubmit={handleEmailSignIn} className="space-y-2.5">
                         <div>
-                          <label className="block text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                          <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                             Email or Quanter ID
                           </label>
                           <div className="relative">
-                            <Mail className="w-3.5 h-3.5 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               name="email"
@@ -1087,14 +1093,14 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#050D1A]/90 border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                              className="w-full h-10 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="block text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-300">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300">
                               Password
                             </label>
                             <button
@@ -1103,13 +1109,13 @@ export default function WelcomeSplashPage() {
                                 setErrorMsg(null);
                                 setShowForgotPassword(true);
                               }}
-                              className="text-[10.5px] font-mono font-semibold text-[#38E4FF] hover:text-white transition cursor-pointer"
+                              className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
                             >
                               Forgot password?
                             </button>
                           </div>
                           <div className="relative">
-                            <KeyRound className="w-3.5 h-3.5 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type={showPassword ? "text" : "password"}
                               name="password"
@@ -1118,18 +1124,18 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-9 pl-9 pr-9 rounded-xl bg-[#050D1A]/90 border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                              className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
-                                <EyeOff className="w-3.5 h-3.5" />
+                                <EyeOff className="w-4 h-4" />
                               ) : (
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-4 h-4" />
                               )}
                             </button>
                           </div>
@@ -1137,10 +1143,10 @@ export default function WelcomeSplashPage() {
 
                         <button
                           type="submit"
-                          className="w-full h-9.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#0A47A8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs shadow-[0_6px_20px_rgba(2,132,199,0.35)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full h-10.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <span>Sign In</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <ArrowRight className="w-4 h-4" />
                         </button>
                       </form>
 
@@ -1160,7 +1166,7 @@ export default function WelcomeSplashPage() {
                           setSuccessMsg(null);
                           setShowGooglePicker(true);
                         }}
-                        className="w-full h-9.5 rounded-xl bg-[#0B172A] hover:bg-[#11233F] border border-white/15 text-white font-display font-bold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                        className="w-full h-10.5 rounded-xl bg-white hover:bg-slate-100 text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>Continue with Google</span>

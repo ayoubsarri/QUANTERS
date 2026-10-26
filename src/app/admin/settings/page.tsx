@@ -39,7 +39,6 @@ export default function AdminSettingsPage() {
   const [formState, setFormState] = useState<SystemSettings>({
     ...settings,
     onboardingAutoApprove: settings.onboardingAutoApprove ?? true,
-    restrictUniversityEmail: settings.restrictUniversityEmail ?? true,
     qrRotationSeconds: settings.qrRotationSeconds ?? 30,
     checkinGraceMinutes: settings.checkinGraceMinutes ?? 15,
     geofenceVerification: settings.geofenceVerification ?? true,
@@ -143,7 +142,6 @@ export default function AdminSettingsPage() {
   const regOpen = formState.registrationOpen;
   const alumniActive = formState.alumniAccessGlobal;
   const autoApprove = formState.onboardingAutoApprove ?? true;
-  const restrictEmail = formState.restrictUniversityEmail ?? true;
   const qrSec = formState.qrRotationSeconds ?? 30;
   const graceMin = formState.checkinGraceMinutes ?? 15;
   const geofence = formState.geofenceVerification ?? true;
@@ -346,51 +344,6 @@ export default function AdminSettingsPage() {
                   }`}
                 >
                   HR Approval
-                </button>
-              </div>
-            </div>
-
-            {/* Row 4: University Email Domain Filter */}
-            <div className="flex items-center justify-between gap-3 pt-3">
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-[#0F1E36]">
-                  University Email Domain Filter
-                </div>
-                <p className="text-[11px] text-slate-500">
-                  Restrict sign-ups to official <code className="font-mono">@univ-alger.dz</code> addresses
-                </p>
-              </div>
-
-              <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 shrink-0">
-                <button
-                  type="button"
-                  onClick={() =>
-                    applyImmediatePatch(
-                      { restrictUniversityEmail: true },
-                      "Restricted registration to @univ-alger.dz domain",
-                      "Email Filter: Restricted to @univ-alger.dz"
-                    )
-                  }
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    restrictEmail ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
-                  }`}
-                >
-                  @univ-alger.dz
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    applyImmediatePatch(
-                      { restrictUniversityEmail: false },
-                      "Allowed all email domains for registration",
-                      "Email Filter: All Domains Allowed"
-                    )
-                  }
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
-                    !restrictEmail ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
-                  }`}
-                >
-                  All Domains
                 </button>
               </div>
             </div>
