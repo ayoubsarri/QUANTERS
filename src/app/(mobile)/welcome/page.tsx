@@ -81,32 +81,14 @@ function UniversityOrbitalCrestSvg({ className = "w-8 h-8" }: { className?: stri
   );
 }
 
-const QUICK_SIGNIN_ACCOUNTS = [
-  {
-    name: "Ayoub Sarri",
-    shortLabel: "Ayoub",
-    email: "ayoub.sarri@univ-alger.dz",
-    role: "Member",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=faces",
-  },
-  {
-    name: "Lotfi Benali",
-    shortLabel: "Lotfi",
-    email: "lotfi.benali@univ-alger.dz",
-    role: "Admin",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=faces",
-  },
-  {
-    name: "Dr. Amine Cherif",
-    shortLabel: "Dr. Amine",
-    email: "dr.amine.cherif@alumni-quanta.dz",
-    role: "Alumni",
-    avatar:
-      "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=128&h=128&fit=crop&crop=faces",
-  },
-];
+interface SavedLoginEntry {
+  email: string;
+  fullName: string;
+  avatarUrl: string;
+  roleLabel: string;
+}
+
+const SAVED_LOGINS_STORAGE_KEY = "quanters_saved_logins_v1";
 
 // Shared in-memory Blob URL cache so the loop never makes repeated HTTP range requests
 let sharedVideoBlobUrl: string | null = null;
@@ -242,13 +224,15 @@ export default function WelcomeSplashPage() {
   const router = useRouter();
 
   const {
+    departments,
+    teams,
     loginWithEmail,
     loginWithGoogle,
     registerAccount,
     syncWithServer,
   } = useQuantersStore();
 
-  // In-page Login Drawer state ("START BOTTOM THEN IN SAME PAGE THE LOGIN APPEAR")
+  // In-page Login Drawer state
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
 
@@ -256,14 +240,100 @@ export default function WelcomeSplashPage() {
   const [email, setEmail] = useState("ayoub.sarri@univ-alger.dz");
   const [password, setPassword] = useState("quanta2026");
   const [fullName, setFullName] = useState("");
+  const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
+  const [saveForQuickAccess, setSaveForQuickAccess] = useState(true);
+  const [savedLogins, setSavedLogins] = useState<SavedLoginEntry[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showGoogleChooser, setShowGoogleChooser] = useState(false);
 
   // Download App state & native install prompt capture
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [appDownloadedToast, setAppDownloadedToast] = useState(false);
+
+  // Hydrate saved logins from localStorage (Quick Access ONLY for saved logins)
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SAVED_LOGINS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSavedLogins(
+            parsed.filter(
+              (item) => item && typeof item.email === "string" && item.fullName
+            )
+          );
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const deriveMemberRoleBadge = (m?: {
+    id: string;
+    status?: string;
+    departmentId?: string;
+  }): string => {
+    if (!m) return "Member";
+    if (m.status === "Alumni") return "Alumni";
+    const managedDept = departments.find((d) => d.headMemberId === m.id);
+    if (managedDept) return `${managedDept.shortName} Manager`;
+    const subDept = departments.find((d) => d.coManagerMemberId === m.id);
+    if (subDept) return `${subDept.shortName} Sub-Manager`;
+    const ledTeam = teams.find((t) => !t.archived && t.leaderMemberId === m.id);
+    if (ledTeam) return "Team Leader";
+    const dept = departments.find((d) => d.id === m.departmentId);
+    return dept ? dept.shortName : "Member";
+  };
+
+  const persistSavedLogin = (memberObj?: {
+    id: string;
+    email: string;
+    fullName: string;
+    avatarUrl: string;
+    status?: string;
+    departmentId?: string;
+  }) => {
+    if (!saveForQuickAccess || !memberObj) return;
+    try {
+      const entry: SavedLoginEntry = {
+        email: memberObj.email,
+        fullName: memberObj.fullName,
+        avatarUrl: memberObj.avatarUrl,
+        roleLabel: deriveMemberRoleBadge(memberObj),
+      };
+      const updated = [
+        entry,
+        ...savedLogins.filter(
+          (item) => item.email.toLowerCase() !== entry.email.toLowerCase()
+        ),
+      ].slice(0, 6);
+      setSavedLogins(updated);
+      window.localStorage.setItem(
+        SAVED_LOGINS_STORAGE_KEY,
+        JSON.stringify(updated)
+      );
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const removeSavedLogin = (targetEmail: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const updated = savedLogins.filter(
+        (item) => item.email.toLowerCase() !== targetEmail.toLowerCase()
+      );
+      setSavedLogins(updated);
+      window.localStorage.setItem(
+        SAVED_LOGINS_STORAGE_KEY,
+        JSON.stringify(updated)
+      );
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -305,6 +375,7 @@ export default function WelcomeSplashPage() {
       setErrorMsg(res.message || "Invalid credentials.");
       return;
     }
+    persistSavedLogin(res.member);
     await syncWithServer();
     router.push(res.redirectPath);
   };
@@ -316,23 +387,30 @@ export default function WelcomeSplashPage() {
       setErrorMsg("Please provide your full name and email.");
       return;
     }
-    const res = registerAccount({ fullName, email, password });
+    const res = registerAccount({
+      fullName,
+      email,
+      password,
+      isAlumni: registerAsAlumni,
+    });
     if (!res.ok) {
       setErrorMsg(res.message || "Could not create account.");
       return;
     }
+    persistSavedLogin(res.member);
     await syncWithServer();
     router.push(res.redirectPath);
   };
 
-  const handleQuickPersonaLogin = async (
-    accEmail: string,
-    name?: string,
-    avatar?: string
-  ) => {
+  const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
     setErrorMsg(null);
-    const res = loginWithGoogle(accEmail, name, avatar);
-    setShowGoogleChooser(false);
+    const res = loginWithEmail(saved.email, "quanta2026");
+    if (!res.ok) {
+      const gRes = loginWithGoogle(saved.email, saved.fullName, saved.avatarUrl);
+      await syncWithServer();
+      router.push(gRes.redirectPath);
+      return;
+    }
     await syncWithServer();
     router.push(res.redirectPath);
   };
@@ -595,89 +673,133 @@ export default function WelcomeSplashPage() {
                 </div>
               </div>
             ) : (
-              /* STATE B: In-Page Slide-Up Login & Account Sheet */
+              /* STATE B: Redesigned In-Page Login & Account Box */
               <div
                 data-modal="true"
                 role="dialog"
                 aria-label="Member Sign In"
-                className="w-full bg-[#071428]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-5 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.85)] space-y-3.5 text-left animate-rise"
+                className="w-full bg-gradient-to-b from-[#132441]/95 via-[#0E1B31]/98 to-[#091324]/98 backdrop-blur-2xl border border-[#2B4875]/75 rounded-2xl p-4 sm:p-5 shadow-[0_24px_64px_rgba(3,8,18,0.88)] space-y-3 text-left animate-rise"
               >
-                {/* Sheet Top Header: Segmented Switcher + Collapse Button */}
+                {/* Top Row: Title + Close Icon */}
                 <div className="flex items-center justify-between gap-2">
-                  <div className="inline-flex p-1 rounded-lg bg-white/5 border border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMode("signin");
-                        setErrorMsg(null);
-                      }}
-                      className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
-                        authMode === "signin"
-                          ? "bg-[#1D63EB] text-white shadow-xs"
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMode("register");
-                        setErrorMsg(null);
-                      }}
-                      className={`px-3 py-1 rounded-md text-xs font-extrabold transition cursor-pointer ${
-                        authMode === "register"
-                          ? "bg-[#1D63EB] text-white shadow-xs"
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      Create Account
-                    </button>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#7DD3FC] block">
+                      QUANTERS PORTAL
+                    </span>
+                    <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
+                      {authMode === "signin" ? "Member Sign In" : "Create Account"}
+                    </h2>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setAuthOpen(false)}
                     aria-label="Close login panel"
-                    className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-bold inline-flex items-center gap-1 transition cursor-pointer"
+                    className="w-8 h-8 rounded-lg bg-[#0B1528] hover:bg-[#182C4E] border border-[#2B4875] text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
                   >
-                    <ChevronDown className="w-3.5 h-3.5" />
-                    <span>Back</span>
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* 1-Tap Google Sign-In Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowGoogleChooser(true)}
-                  className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99] cursor-pointer shadow-xs"
-                >
-                  <GoogleLogoSvg className="w-4 h-4" />
-                  <span>Continue with Google</span>
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <div className="h-px bg-white/10 flex-1" />
-                  <span className="font-mono text-xs uppercase font-semibold text-slate-400 whitespace-nowrap">
-                    or credentials
-                  </span>
-                  <div className="h-px bg-white/10 flex-1" />
+                {/* Segmented Mode Switcher */}
+                <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#081223] border border-[#2B4875]/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("signin");
+                      setErrorMsg(null);
+                    }}
+                    className={`py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                      authMode === "signin"
+                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("register");
+                      setErrorMsg(null);
+                    }}
+                    className={`py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                      authMode === "register"
+                        ? "bg-[#182C4E] text-white border border-[#38BDF8]/35 shadow-2xs"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Create Account
+                  </button>
                 </div>
 
+                {/* Quick Access: ONLY Rendered When User Has Saved Logins */}
+                {savedLogins.length > 0 && authMode === "signin" && (
+                  <div className="p-2.5 rounded-xl bg-[#081223]/90 border border-[#2B4875]/60 space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC]">
+                      <span>Quick Access · Saved Logins</span>
+                      <span className="text-slate-400">{savedLogins.length} saved</span>
+                    </div>
+                    <div className="space-y-1">
+                      {savedLogins.map((saved) => (
+                        <div
+                          key={saved.email}
+                          onClick={() => handleSavedAccountLogin(saved)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleSavedAccountLogin(saved);
+                            }
+                          }}
+                          className="w-full p-2 rounded-lg bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/70 flex items-center justify-between gap-2 transition cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <img
+                              src={saved.avatarUrl}
+                              alt={saved.fullName}
+                              className="w-7 h-7 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs font-extrabold text-white leading-tight truncate">
+                                {saved.fullName}
+                              </p>
+                              <p className="text-[10px] font-mono text-[#7DD3FC] leading-tight truncate">
+                                {saved.roleLabel} · {saved.email}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => removeSavedLogin(saved.email, e)}
+                            aria-label={`Remove saved login for ${saved.fullName}`}
+                            className="w-6 h-6 rounded-md hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer"
+                            title="Remove saved login"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {errorMsg && (
-                  <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center">
+                  <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs font-semibold text-center">
                     {errorMsg}
                   </div>
                 )}
 
                 {authMode === "signin" ? (
-                  <form onSubmit={handleEmailSignIn} className="space-y-3">
+                  <form onSubmit={handleEmailSignIn} className="space-y-2.5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
                         Email or Quanter ID
                       </label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
                           name="email"
@@ -686,17 +808,17 @@ export default function WelcomeSplashPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="name@univ-alger.dz"
-                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
                         Password
                       </label>
                       <div className="relative">
-                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showPassword ? "text" : "password"}
                           name="password"
@@ -705,12 +827,13 @@ export default function WelcomeSplashPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Password"
-                          className="w-full h-11 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                          className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                          aria-label="Toggle password visibility"
                         >
                           {showPassword ? (
                             <EyeOff className="w-4 h-4" />
@@ -721,166 +844,120 @@ export default function WelcomeSplashPage() {
                       </div>
                     </div>
 
+                    {/* Save login for Quick Access checkbox */}
+                    <label className="flex items-center gap-2 pt-0.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={saveForQuickAccess}
+                        onChange={(e) => setSaveForQuickAccess(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[#2B4875] bg-[#081223] accent-[#38BDF8]"
+                      />
+                      <span className="text-[11px] font-medium text-slate-300">
+                        Save login for Quick Access on this device
+                      </span>
+                    </label>
+
                     <button
                       type="submit"
-                      className="w-full h-11 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <span>Sign In to QUANTERS</span>
+                      <span>Sign In</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleRegister} className="space-y-2.5">
+                    {/* Member vs Alumni Track Selector */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setRegisterAsAlumni(false)}
+                        className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                          !registerAsAlumni
+                            ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
+                            : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                        }`}
+                      >
+                        Student Member
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRegisterAsAlumni(true)}
+                        className={`py-1.5 px-2.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                          registerAsAlumni
+                            ? "bg-[#182C4E] text-[#7DD3FC] border-[#38BDF8]/45"
+                            : "bg-[#081223] text-slate-400 border-[#2B4875]/60"
+                        }`}
+                      >
+                        QUANTA Alumni
+                      </button>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
                         Full Name
                       </label>
                       <div className="relative">
-                        <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <User className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
                           required
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           placeholder="e.g. Ayoub Sarri"
-                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
                         Email Address
                       </label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="email"
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="name@univ-alger.dz"
-                          className="w-full h-11 pl-9 pr-3 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                          className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">
                         Password
                       </label>
                       <div className="relative">
-                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showPassword ? "text" : "password"}
                           required
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="At least 6 characters"
-                          className="w-full h-11 pl-9 pr-9 rounded-xl bg-white/5 border border-white/12 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38E4FF] transition"
+                          className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#081223] border border-[#2B4875] text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] transition"
                         />
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full h-11 rounded-xl bg-[#1D63EB] hover:bg-[#2563EB] text-white font-display font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.4)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/40 text-white font-display font-extrabold text-xs shadow-[0_8px_24px_rgba(2,132,199,0.3)] active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <span>Create Account &amp; Continue</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </form>
                 )}
-
-                {/* 1-Tap Quick Demo Persona Strip */}
-                <div className="pt-2.5 border-t border-white/10 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 whitespace-nowrap">
-                    <span>QUICK ACCESS</span>
-                    <span className="text-sky-300/90">ALGIERS 1</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {QUICK_SIGNIN_ACCOUNTS.map((acc) => (
-                      <button
-                        key={acc.email}
-                        type="button"
-                        onClick={() =>
-                          handleQuickPersonaLogin(acc.email, acc.name, acc.avatar)
-                        }
-                        className="p-2 rounded-lg bg-white/5 hover:bg-white/12 border border-white/10 flex items-center gap-2 text-left transition cursor-pointer"
-                      >
-                        <img
-                          src={acc.avatar}
-                          alt={acc.name}
-                          className="w-6 h-6 rounded-full object-cover shrink-0 border border-white/20"
-                        />
-                        <div className="min-w-0">
-                          <div className="text-xs font-extrabold text-white truncate leading-tight">
-                            {acc.shortLabel}
-                          </div>
-                          <div className="text-xs font-mono text-sky-300 leading-tight truncate">
-                            {acc.role}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
           </footer>
         </div>
       </div>
-
-      {/* Google Quick Account Chooser Modal */}
-      {showGoogleChooser && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-[340px] bg-[#0A1A30] border border-white/15 rounded-2xl p-5 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <GoogleLogoSvg className="w-4 h-4" />
-                <span className="text-xs font-bold text-white">Choose account</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowGoogleChooser(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-1">
-              {QUICK_SIGNIN_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() =>
-                    handleQuickPersonaLogin(acc.email, acc.name, acc.avatar)
-                  }
-                  className="w-full p-2.5 rounded-xl hover:bg-white/10 flex items-center gap-3 text-left transition cursor-pointer"
-                >
-                  <img
-                    src={acc.avatar}
-                    alt={acc.name}
-                    className="w-8 h-8 rounded-full object-cover border border-white/20"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-white truncate">
-                      {acc.name}
-                    </div>
-                    <div className="text-xs text-slate-400 truncate">
-                      {acc.email}
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-white/10 text-sky-200">
-                    {acc.role}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Download App Modal (Zero mention of PWA) */}
       {showDownloadModal && (

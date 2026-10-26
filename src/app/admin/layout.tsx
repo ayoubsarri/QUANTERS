@@ -141,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               type="button"
               onClick={() => {
                 logout();
-                router.push("/login");
+                router.push("/welcome");
               }}
               className="inline-flex items-center gap-1.5 bg-[#09192F] hover:bg-rose-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition cursor-pointer"
             >

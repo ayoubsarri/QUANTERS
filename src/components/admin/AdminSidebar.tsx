@@ -228,7 +228,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
             type="button"
             onClick={() => {
               logout();
-              router.push("/login");
+              router.push("/welcome");
             }}
             title="Sign Out"
             className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 transition cursor-pointer shrink-0"

@@ -24,7 +24,6 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 export default function MobileHomeHubPage() {
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
-  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
   const workshops = useQuantersStore((s) => s.workshops);
   const tasks = useQuantersStore((s) => s.tasks);
   const explorePosts = useQuantersStore((s) => s.explorePosts);
@@ -130,23 +129,6 @@ export default function MobileHomeHubPage() {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* 1-Tap Alumni Option Toggle */}
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentMemberId(isAlumni ? "mem-ayoub" : "mem-alumni-1")
-              }
-              className={`h-8 px-2.5 rounded-lg border text-[11px] font-mono font-bold flex items-center gap-1 transition active:scale-95 cursor-pointer shrink-0 ${
-                isAlumni
-                  ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] border-[#2B4875]"
-                  : "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5] hover:bg-[#E0F2FE]"
-              }`}
-              title="Switch between Active Member and Alumni mode"
-            >
-              <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-              <span>{isAlumni ? "Alumni" : "Alumni"}</span>
-            </button>
-
             <Link
               href="/manager"
               className="h-8 px-2.5 rounded-lg bg-white border border-slate-200/90 text-[11px] font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"

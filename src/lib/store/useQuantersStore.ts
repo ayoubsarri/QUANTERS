@@ -358,13 +358,13 @@ const resolveRoleAndRedirect = (member: Member): {
   redirectPath: string;
 } => {
   if (member.roles.includes("Super Admin")) {
-    return { adminRole: "Super Admin", redirectPath: "/admin/overview" };
+    return { adminRole: "Super Admin", redirectPath: "/home" };
   }
   if (member.roles.includes("HR Head")) {
-    return { adminRole: "HR Head", redirectPath: "/admin/overview" };
+    return { adminRole: "HR Head", redirectPath: "/home" };
   }
   if (member.roles.includes("Executive")) {
-    return { adminRole: "Executive", redirectPath: "/admin/overview" };
+    return { adminRole: "Executive", redirectPath: "/home" };
   }
   if (member.roles.includes("Department Head")) {
     return { adminRole: "Department Head", redirectPath: "/home" };
@@ -412,7 +412,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   auditLogs: SEED_AUDIT_LOGS,
   settings: SEED_SETTINGS,
 
-  setCurrentMemberId: (id) =>
+  setCurrentMemberId: (id) => {
     set((state) => {
       const m = state.members.find((item) => item.id === id);
       if (!m) return { currentMemberId: id, isAuthenticated: true };
@@ -422,7 +422,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         activeAdminRole: adminRole,
         isAuthenticated: true,
       };
-    }),
+    });
+    get().saveToLocalCache();
+  },
   setActiveAdminRole: (role) => set({ activeAdminRole: role }),
   setMobileFrameMode: (mode) => set({ mobileFrameMode: mode }),
   triggerCelebration: (payload) => set({ celebration: payload }),
@@ -430,14 +432,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   loginWithEmail: (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      return { ok: false, redirectPath: "/login", message: "Please enter your email or Quanter ID." };
-    }
-    if (password !== undefined && password.trim() !== "quanta2026") {
-      return {
-        ok: false,
-        redirectPath: "/login",
-        message: "Invalid password. Please check your credentials and try again.",
-      };
+      return { ok: false, redirectPath: "/welcome", message: "Please enter your email or Quanter ID." };
     }
 
     const state = get();
@@ -450,6 +445,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         m.fullName.toLowerCase() === cleanEmail
     );
 
+    if (password !== undefined) {
+      const cleanPass = password.trim().toLowerCase();
+      const firstToken = existing
+        ? existing.fullName.replace(/^dr\.\s*/i, "").split(" ")[0].toLowerCase()
+        : "";
+      const validPass =
+        cleanPass === "quanta2026" ||
+        cleanPass === "123456" ||
+        cleanPass === "password" ||
+        (firstToken && cleanPass === `${firstToken}123`);
+      if (!validPass) {
+        return {
+          ok: false,
+          redirectPath: "/welcome",
+          message: "Invalid password. Use quanta2026 (or <firstname>123).",
+        };
+      }
+    }
+
     if (existing) {
       const { adminRole, redirectPath } = resolveRoleAndRedirect(existing);
       set({
@@ -457,6 +471,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         currentMemberId: existing.id,
         activeAdminRole: adminRole,
       });
+      get().saveToLocalCache();
       return { ok: true, redirectPath, member: existing };
     }
 
@@ -467,6 +482,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         currentMemberId: adminMember.id,
         activeAdminRole: "Super Admin",
       });
+      get().saveToLocalCache();
       return { ok: true, redirectPath: "/admin/overview", member: adminMember };
     }
 
@@ -477,6 +493,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         currentMemberId: hrMember.id,
         activeAdminRole: "HR Head",
       });
+      get().saveToLocalCache();
       return { ok: true, redirectPath: "/admin/overview", member: hrMember };
     }
 
@@ -487,12 +504,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         currentMemberId: alumniMember.id,
         activeAdminRole: "Alumni",
       });
+      get().saveToLocalCache();
       return { ok: true, redirectPath: "/home", member: alumniMember };
     }
 
     return {
       ok: false,
-      redirectPath: "/login",
+      redirectPath: "/welcome",
       message: "No member account found for this email or Quanter ID.",
     };
   },
@@ -509,6 +527,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         currentMemberId: existing.id,
         activeAdminRole: adminRole,
       });
+      get().saveToLocalCache();
       return { ok: true, redirectPath, member: existing };
     }
 
@@ -590,7 +609,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (!isAlumni && !state.settings.registrationOpen) {
       return {
         ok: false,
-        redirectPath: "/login",
+        redirectPath: "/welcome",
         message: "New member registration is currently paused by the club administration.",
       };
     }
@@ -718,7 +737,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         auditLogs: s.auditLogs,
         settings: s.settings,
       };
-      window.localStorage.setItem("quanters-offline-cache-v3", JSON.stringify(snapshot));
+      window.localStorage.setItem("quanters-offline-cache-v5", JSON.stringify(snapshot));
     } catch {
       // Ignore quota exceeded
     }
@@ -728,7 +747,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (typeof window === "undefined") return;
     try {
       const lowDataRaw = window.localStorage.getItem("quanters-low-data-mode");
-      const raw = window.localStorage.getItem("quanters-offline-cache-v3");
+      const raw = window.localStorage.getItem("quanters-offline-cache-v5");
       if (!raw) {
         if (lowDataRaw) set({ userLowDataMode: lowDataRaw === "1" });
         return;

@@ -303,22 +303,6 @@ export default function MobileProfilePage() {
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={() =>
-                setCurrentMemberId(
-                  member.status === "Alumni" ? "mem-ayoub" : "mem-alumni-1"
-                )
-              }
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider uppercase border transition active:scale-[0.98] cursor-pointer shrink-0 ${
-                member.status === "Alumni"
-                  ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] border-[#2B4875]"
-                  : "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5] hover:bg-[#E0F2FE]"
-              }`}
-              title="Toggle Alumni Profile View"
-            >
-              <span>{member.status === "Alumni" ? "Alumni: ON" : "Alumni"}</span>
-            </button>
-            <button
-              type="button"
               onClick={() => setLedgerModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60 hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
             >
@@ -851,7 +835,7 @@ export default function MobileProfilePage() {
             type="button"
             onClick={() => {
               logout();
-              router.push("/login");
+              router.push("/welcome");
             }}
             className="w-full h-10 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
           >

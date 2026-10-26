@@ -223,7 +223,7 @@ export default function MobileManagerWorkspacePage() {
     ledTeams[0]?.id || currentMember.teamId || "team-astro"
   );
 
-  // Sync default department / team when switching active Organigramme member
+  // Sync default department / team for signed-in member
   useEffect(() => {
     const mDept =
       departments.find((d) => d.headMemberId === currentMember.id) ||
@@ -238,6 +238,7 @@ export default function MobileManagerWorkspacePage() {
       setBrowseMode("team");
     } else {
       setSelectedDeptId(currentMember.departmentId || "dept-it");
+      setBrowseMode("department");
       if (currentMember.teamId) setSelectedTeamId(currentMember.teamId);
     }
   }, [currentMember.id, departments, activeTeams.length]);
@@ -857,7 +858,7 @@ export default function MobileManagerWorkspacePage() {
         </div>
 
         {/* Organigramme Member & Role Identity Card (Synced with Admin Dashboard) */}
-        <div className="rounded-xl bg-gradient-to-br from-[#182C4E] via-[#132441] to-[#0E1B31] text-white p-3.5 shadow-[0_10px_26px_rgba(16,31,56,0.16)] border border-[#2B4875]/60 space-y-2.5">
+        <div className="rounded-xl bg-gradient-to-br from-[#182C4E] via-[#132441] to-[#0E1B31] text-white p-3.5 shadow-[0_10px_26px_rgba(16,31,56,0.16)] border border-[#2B4875]/60">
           <div className="flex items-center gap-2.5">
             <img
               src={currentMember.avatarUrl}
@@ -871,7 +872,7 @@ export default function MobileManagerWorkspacePage() {
                 </p>
                 <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC] flex items-center gap-1 shrink-0">
                   <Shield className="w-3 h-3 text-[#38BDF8]" />
-                  <span>Organigramme</span>
+                  <span>{currentMember.quanterId}</span>
                 </span>
               </div>
 
@@ -886,34 +887,6 @@ export default function MobileManagerWorkspacePage() {
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Switch active Organigramme member */}
-          <div className="relative pt-1 border-t border-white/10">
-            <select
-              value={currentMember.id}
-              onChange={(e) => setCurrentMemberId(e.target.value)}
-              aria-label="Switch Organigramme Member"
-              className="w-full appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-[#0B1528]/80 border border-[#38BDF8]/35 text-[11px] font-bold text-[#7DD3FC] focus:outline-none cursor-pointer"
-            >
-              {members
-                .filter(
-                  (m) => m.status !== "Resigned" && m.status !== "Removed"
-                )
-                .map((m) => {
-                  const roleSummary = getMemberOrganigrammeBadges(m)[0];
-                  return (
-                    <option
-                      key={m.id}
-                      value={m.id}
-                      className="bg-[#0E1B31] text-white"
-                    >
-                      {m.fullName} · {roleSummary}
-                    </option>
-                  );
-                })}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-[#7DD3FC] pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 mt-0.5" />
           </div>
         </div>
 

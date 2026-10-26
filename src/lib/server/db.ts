@@ -55,7 +55,7 @@ let memoryCache: ErpDatabaseSnapshot | null = null;
 
 function createInitialSnapshot(): ErpDatabaseSnapshot {
   return {
-    version: "3.0.0",
+    version: "3.2.0",
     updatedAt: new Date().toISOString(),
     departments: SEED_DEPARTMENTS,
     teams: SEED_TEAMS,
@@ -101,21 +101,13 @@ export function readErpDatabase(): {
     } else if (!memoryCache) {
       const raw = fs.readFileSync(DB_FILE, "utf-8");
       const parsed = JSON.parse(raw) as ErpDatabaseSnapshot;
-      // Ensure latest seeds are present if upgrading from older snapshot
-      if (!parsed.exams || parsed.exams.length < SEED_EXAMS.length) {
-        parsed.exams = SEED_EXAMS;
+      if (parsed.version !== "3.2.0") {
+        const fresh = createInitialSnapshot();
+        fs.writeFileSync(DB_FILE, JSON.stringify(fresh), "utf-8");
+        memoryCache = fresh;
+      } else {
+        memoryCache = parsed;
       }
-      if (!parsed.workshops || parsed.workshops.length < SEED_WORKSHOPS.length) {
-        parsed.workshops = SEED_WORKSHOPS;
-      }
-      if (!parsed.badges || parsed.badges.length < SEED_BADGES.length) {
-        parsed.badges = SEED_BADGES;
-      }
-      const lina = SEED_MEMBERS.find((m) => m.id === "mem-lina");
-      if (lina && !parsed.members.some((m) => m.id === "mem-lina")) {
-        parsed.members.push(lina);
-      }
-      memoryCache = parsed;
     }
   } catch {
     memoryCache = createInitialSnapshot();
