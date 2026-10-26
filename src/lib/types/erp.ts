@@ -78,7 +78,17 @@ export type FieldIconKey =
   | "leadership"
   | "logistics"
   | "entrepreneurship"
-  | "electronics";
+  | "electronics"
+  | "optics"
+  | "materials"
+  | "health"
+  | "energy"
+  | "mechanics"
+  | "sponsorship"
+  | "documentation"
+  | "event-ops"
+  | "video"
+  | "audiovisual";
 
 export const UNIVERSITY_SPECIALTIES = [
   "Computer Science (Informatique Générale)",
@@ -323,25 +333,16 @@ export interface Workshop {
   id: string;
   title: string;
   activityType?: ActivityKind;
-  category:
-    | "Python"
-    | "Arduino"
-    | "Astronomy"
-    | "3D Printing"
-    | "Data Science"
-    | "AI"
-    | "Cybersecurity"
-    | "Quantum Physics"
-    | "Biotech & Lab"
-    | "UI/UX & Design"
-    | "Scientific Writing"
-    | "Robotics"
-    | "General";
+  category: string;
   iconType: FieldIconKey;
   level: WorkshopLevel;
   instructor: string;
   dateLabel: string;
   timeRange: string;
+  eventDate?: string;
+  planningOpenDate?: string;
+  startTime?: string;
+  endTime?: string;
   location: string;
   capacity: number;
   seatsLeft: number;
@@ -404,6 +405,10 @@ export interface ClubTask {
   teamId?: string;
   linkedWorkshopOrEvent?: string;
   deadline: string;
+  taskDate?: string;
+  planningOpenDate?: string;
+  shiftStartTime?: string;
+  shiftEndTime?: string;
   urgencyLabel: "Today" | "2 days left" | "In progress" | "To do" | "Completed";
   locationOrShift: string;
   proposedScore: number; // Within category min/max limits (§M4.2)
@@ -418,7 +423,7 @@ export interface PointRule {
   id: string;
   label: string;
   points: number; // Positive or negative
-  category: "Earning" | "Deduction";
+  category: string;
   description: string;
 }
 

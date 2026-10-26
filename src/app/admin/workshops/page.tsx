@@ -162,6 +162,9 @@ export default function AdminWorkshopsPage() {
     workshops,
     members,
     badges,
+    workshopCategories,
+    addWorkshopCategory,
+    deleteWorkshopCategory,
     createWorkshop,
     updateWorkshopStatus,
     rotateWorkshopQrCode,
@@ -179,13 +182,21 @@ export default function AdminWorkshopsPage() {
   );
   const [rosterWorkshopId, setRosterWorkshopId] = useState<string | null>(null);
 
+  // Category management state
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
   // Create form state
   const [title, setTitle] = useState("");
   const [activityType, setActivityType] = useState<ActivityTypeKey>("Workshop");
-  const [category, setCategory] = useState<Workshop["category"]>("Python");
+  const [category, setCategory] = useState<string>("Computer Science & Programming");
   const [iconType, setIconType] = useState<FieldIconKey>("python");
   const [level, setLevel] = useState<WorkshopLevel>("Beginner");
   const [instructor, setInstructor] = useState("Lotfi Benali & Ayoub Sarri");
+  const [eventDate, setEventDate] = useState("2026-11-18");
+  const [planningOpenDate, setPlanningOpenDate] = useState("2026-11-10");
+  const [startTime, setStartTime] = useState("14:00");
+  const [endTime, setEndTime] = useState("17:00");
   const [dateLabel, setDateLabel] = useState("18 Nov 2026");
   const [timeRange, setTimeRange] = useState("14:00 - 17:00");
   const [location, setLocation] = useState("Faculty of Sciences · Lab A1");
@@ -993,7 +1004,7 @@ export default function AdminWorkshopsPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Activity Icon ({iconType})
+                  Activity Icon
                 </label>
                 <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-[#F4F7FB] border border-slate-200/90 max-h-24 overflow-y-auto">
                   {ALL_FIELD_ICONS.map((f) => (
@@ -1016,17 +1027,24 @@ export default function AdminWorkshopsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Category
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setManageCategoriesOpen(true)}
+                      className="text-[10.5px] font-bold text-[#0284C7] hover:underline cursor-pointer"
+                    >
+                      Manage
+                    </button>
+                  </div>
                   <select
                     value={category}
-                    onChange={(e) =>
-                      setCategory(e.target.value as Workshop["category"])
-                    }
+                    onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                   >
-                    {CATEGORIES.map((c) => (
+                    {workshopCategories.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -1051,54 +1069,84 @@ export default function AdminWorkshopsPage() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Instructor(s)
+                </label>
+                <input
+                  type="text"
+                  value={instructor}
+                  onChange={(e) => setInstructor(e.target.value)}
+                  placeholder="e.g. Lotfi Benali & Ayoub Sarri"
+                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                />
+              </div>
+
+              {/* Precise Date Pickers: Event Date + Planning Open Date */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Instructor
+                    Event Date
                   </label>
                   <input
-                    type="text"
-                    value={instructor}
-                    onChange={(e) => setInstructor(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                    type="date"
+                    required
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Date
+                    Planning Open Date
                   </label>
                   <input
-                    type="text"
-                    value={dateLabel}
-                    onChange={(e) => setDateLabel(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                    type="date"
+                    value={planningOpenDate}
+                    onChange={(e) => setPlanningOpenDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
                   />
                 </div>
               </div>
 
+              {/* Precise Time Pickers: Start Hour & End Hour */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Time
+                    Start Time
                   </label>
                   <input
-                    type="text"
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                    type="time"
+                    required
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Location
+                    End Time
                   </label>
                   <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                    type="time"
+                    required
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1158,6 +1206,90 @@ export default function AdminWorkshopsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category CRUD Modal */}
+      {manageCategoriesOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4 animate-rise">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                  Manage Workshop Categories
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Add, view, and delete workshop categories.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManageCategoriesOpen(false)}
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Category list */}
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {workshopCategories.map((cat) => (
+                <div
+                  key={cat}
+                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
+                >
+                  <span className="font-bold text-slate-800">{cat}</span>
+                  {workshopCategories.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => deleteWorkshopCategory(cat)}
+                      className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Add new category form */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Add New Category
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="e.g. Quantum & Optics Lab"
+                  className="flex-1 h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8]"
+                />
+                <button
+                  type="button"
+                  disabled={!newCategoryName.trim()}
+                  onClick={() => {
+                    if (!newCategoryName.trim()) return;
+                    addWorkshopCategory(newCategoryName.trim());
+                    setNewCategoryName("");
+                  }}
+                  className="h-9 px-3.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setManageCategoriesOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

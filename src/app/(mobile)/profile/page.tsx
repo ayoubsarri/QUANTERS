@@ -187,7 +187,7 @@ export default function MobileProfilePage() {
   const [prConfirmed, setPrConfirmed] = useState(false);
   const [prError, setPrError] = useState<string | null>(null);
 
-  // Confidential Grievance (تقديم شكوى) modal state
+  // Confidential Grievance modal state
   const [grievanceModalOpen, setGrievanceModalOpen] = useState(false);
   const [grvSubject, setGrvSubject] = useState("");
   const [grvCategory, setGrvCategory] =
@@ -1314,7 +1314,7 @@ export default function MobileProfilePage() {
         </div>
       )}
 
-      {/* Confidential HR Grievance (تقديم شكوى) Modal */}
+      {/* Confidential HR Grievance Modal */}
       {grievanceModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-[440px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
@@ -1421,8 +1421,7 @@ export default function MobileProfilePage() {
               {/* Subject */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Subject / Topic · موضوع الشكوى
-                </label>
+                  Subject / Topic                </label>
                 <input
                   type="text"
                   required
@@ -1437,8 +1436,7 @@ export default function MobileProfilePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
-                    Category · التصنيف
-                  </label>
+                    Category                  </label>
                   <select
                     value={grvCategory}
                     onChange={(e) => setGrvCategory(e.target.value as GrievanceCategory)}
@@ -1455,16 +1453,15 @@ export default function MobileProfilePage() {
 
                 <div>
                   <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
-                    Urgency · درجة الأهمية
-                  </label>
+                    Urgency                  </label>
                   <select
                     value={grvUrgency}
                     onChange={(e) => setGrvUrgency(e.target.value as GrievanceUrgency)}
                     className="w-full h-8 px-2 rounded-lg border border-slate-200 text-[11px] text-slate-800 font-semibold focus:outline-none"
                   >
-                    <option value="Standard">Standard (عادية)</option>
-                    <option value="Important">Important (مهمة)</option>
-                    <option value="Urgent">Urgent (عاجلة جداً)</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Important">Important</option>
+                    <option value="Urgent">Urgent</option>
                   </select>
                 </div>
               </div>
@@ -1472,8 +1469,7 @@ export default function MobileProfilePage() {
               {/* Details */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Detailed Grievance · تفاصيل الشكوى والوقائع
-                </label>
+                  Detailed Grievance                </label>
                 <textarea
                   required
                   rows={4}

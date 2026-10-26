@@ -94,10 +94,12 @@ interface QuantersStoreState {
   members: Member[];
   invitations: Invitation[];
   workshops: Workshop[];
+  workshopCategories: string[];
   tasks: ClubTask[];
   pointRules: PointRule[];
   ledger: PointsLedgerEntry[];
   badges: Badge[];
+  badgeCategories: string[];
   exams: BadgeExam[];
   projectSubmissions: ProjectSubmission[];
   proposals: Proposal[];
@@ -319,6 +321,11 @@ interface QuantersStoreState {
   archiveTask: (taskId: string) => void;
   unarchiveTask: (taskId: string) => void;
   archiveAllCompletedTasks: () => void;
+  // §M3: Workshops & Activities
+  addWorkshopCategory: (category: string) => void;
+  deleteWorkshopCategory: (category: string) => void;
+
+  // §M4: Tasks & Event Matrix
   bulkScoreMembers: (memberIds: string[], points: number, reason: string, actorName?: string) => void;
 
   // §M5: Points Ledger, Rules, Appeals & Member of the Month
@@ -326,10 +333,14 @@ interface QuantersStoreState {
   reversePointsEntry: (entryId: string, reason: string, actorName?: string) => void;
   submitPointsAppeal: (entryId: string, appealReason: string) => void;
   resolvePointsAppeal: (entryId: string, decision: "Accepted" | "Rejected", reason: string) => void;
-  updatePointRule: (ruleId: string, points: number, label: string) => void;
+  createPointRule: (rule: Omit<PointRule, "id">) => void;
+  updatePointRule: (ruleId: string, updatesOrPoints: Partial<PointRule> | number, label?: string) => void;
+  deletePointRule: (ruleId: string) => void;
   publishMonthlyHonours: (motmMemberId: string, championMemberIds: string[], actorName?: string) => void;
 
   // §M6: Badges, Exams & Project Submissions
+  addBadgeCategory: (category: string) => void;
+  deleteBadgeCategory: (category: string) => void;
   createBadge: (badge: Omit<Badge, "id" | "memberState" | "progressPercent" | "awardedCount" | "archived">) => void;
   awardBadgeManually: (badgeId: string, memberIds: string[], reasonOrNote: string, actorName?: string) => void;
   revokeBadge: (badgeId: string, memberId: string, reason: string, actorName?: string) => void;
@@ -532,6 +543,34 @@ const resolveRoleAndRedirect = (member: Member): {
   return { adminRole: "Member", redirectPath: "/home" };
 };
 
+export const DEFAULT_WORKSHOP_CATEGORIES: string[] = [
+  "Computer Science & Programming",
+  "Physics & Space Sciences",
+  "Electronics & Embedded Systems",
+  "Data Science & AI",
+  "Robotics & Automation",
+  "Materials & Chemistry",
+  "Biotechnology & Health",
+  "UI/UX & Multimedia",
+  "Leadership & Operations",
+  "General Science",
+];
+
+export const DEFAULT_BADGE_CATEGORIES: string[] = [
+  "Science",
+  "Technology",
+  "Hard Skills",
+  "Soft Skills",
+  "Leadership",
+  "Club",
+  "Programming",
+  "Data & AI",
+  "Hardware & IoT",
+  "Scientific Writing",
+  "Public Speaking",
+  "Logistics & Ops",
+];
+
 export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   isAuthenticated: true,
   currentMemberId: "mem-ayoub",
@@ -551,10 +590,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   members: SEED_MEMBERS,
   invitations: SEED_INVITATIONS,
   workshops: SEED_WORKSHOPS,
+  workshopCategories: DEFAULT_WORKSHOP_CATEGORIES,
   tasks: SEED_TASKS,
   pointRules: SEED_POINT_RULES,
   ledger: SEED_LEDGER,
   badges: SEED_BADGES,
+  badgeCategories: DEFAULT_BADGE_CATEGORIES,
   exams: SEED_EXAMS,
   projectSubmissions: SEED_PROJECT_SUBMISSIONS,
   proposals: SEED_PROPOSALS,
@@ -949,10 +990,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         teams: s.teams,
         members: s.members,
         workshops: s.workshops,
+        workshopCategories: s.workshopCategories,
         tasks: s.tasks,
         pointRules: s.pointRules,
         ledger: s.ledger,
         badges: s.badges,
+        badgeCategories: s.badgeCategories,
         exams: s.exams,
         projectSubmissions: s.projectSubmissions,
         proposals: s.proposals,
@@ -1001,10 +1044,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           teams: parsed.teams || get().teams,
           members: parsed.members,
           workshops: parsed.workshops || get().workshops,
+          workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
           pointRules: parsed.pointRules || get().pointRules,
           ledger: parsed.ledger || get().ledger,
           badges: parsed.badges || get().badges,
+          badgeCategories: parsed.badgeCategories || get().badgeCategories,
           exams: parsed.exams || get().exams,
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           proposals: parsed.proposals || get().proposals,
@@ -2079,6 +2124,40 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     })),
 
+  addWorkshopCategory: (category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    set((state) => {
+      if (state.workshopCategories.includes(trimmed)) return state;
+      return { workshopCategories: [...state.workshopCategories, trimmed] };
+    });
+    get().saveToLocalCache();
+  },
+
+  deleteWorkshopCategory: (category: string) => {
+    set((state) => ({
+      workshopCategories: state.workshopCategories.filter((c) => c !== category),
+    }));
+    get().saveToLocalCache();
+  },
+
+  addBadgeCategory: (category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    set((state) => {
+      if (state.badgeCategories.includes(trimmed)) return state;
+      return { badgeCategories: [...state.badgeCategories, trimmed] };
+    });
+    get().saveToLocalCache();
+  },
+
+  deleteBadgeCategory: (category: string) => {
+    set((state) => ({
+      badgeCategories: state.badgeCategories.filter((c) => c !== category),
+    }));
+    get().saveToLocalCache();
+  },
+
   createTask: (task) =>
     set((state) => {
       const assignees = task.assigneeIds.map((id) => {
@@ -2430,10 +2509,39 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
   },
 
-  updatePointRule: (ruleId, points, label) =>
+  createPointRule: (rule) => {
+    const newRule: PointRule = {
+      id: `pr-${Date.now()}`,
+      ...rule,
+    };
     set((state) => ({
-      pointRules: state.pointRules.map((r) => (r.id === ruleId ? { ...r, points, label } : r)),
-    })),
+      pointRules: [...state.pointRules, newRule],
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  updatePointRule: (ruleId, updatesOrPoints, label) => {
+    set((state) => ({
+      pointRules: state.pointRules.map((r) => {
+        if (r.id !== ruleId) return r;
+        if (typeof updatesOrPoints === "number") {
+          return { ...r, points: updatesOrPoints, ...(label ? { label } : {}) };
+        }
+        return { ...r, ...updatesOrPoints };
+      }),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  deletePointRule: (ruleId) => {
+    set((state) => ({
+      pointRules: state.pointRules.filter((r) => r.id !== ruleId),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   publishMonthlyHonours: (motmMemberId, championMemberIds, actorName = "Yasmine Bouzid (HR Head)") =>
     set((state) => {

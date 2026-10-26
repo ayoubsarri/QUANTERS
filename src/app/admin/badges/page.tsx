@@ -29,6 +29,9 @@ export default function AdminBadgesPage() {
   const exams = useQuantersStore((s) => s.exams);
   const projectSubmissions = useQuantersStore((s) => s.projectSubmissions);
   const members = useQuantersStore((s) => s.members);
+  const badgeCategories = useQuantersStore((s) => s.badgeCategories);
+  const addBadgeCategory = useQuantersStore((s) => s.addBadgeCategory);
+  const deleteBadgeCategory = useQuantersStore((s) => s.deleteBadgeCategory);
 
   const createBadge = useQuantersStore((s) => s.createBadge);
   const awardBadgeManually = useQuantersStore((s) => s.awardBadgeManually);
@@ -39,6 +42,8 @@ export default function AdminBadgesPage() {
   const [activeTab, setActiveTab] = useState<"library" | "exams" | "projects">("library");
   const [skillTypeFilter, setSkillTypeFilter] = useState<"All" | "Hard Skill" | "Soft Skill">("All");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
   const [banner, setBanner] = useState<string | null>(null);
 
   // Create Badge Modal state
@@ -298,9 +303,9 @@ export default function AdminBadgesPage() {
                 ))}
               </div>
 
-              {/* Category Pills */}
-              <div className="flex items-center gap-1">
-                {(["All", "Science", "Technology", "Leadership", "Club"] as const).map((cat) => (
+              {/* Category Pills & CRUD */}
+              <div className="flex flex-wrap items-center gap-1">
+                {["All", ...badgeCategories].map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -314,6 +319,13 @@ export default function AdminBadgesPage() {
                     {cat}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setManageCategoriesOpen(true)}
+                  className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold text-[#0284C7] bg-[#F0F6FF] hover:bg-[#E0EFFE] transition cursor-pointer"
+                >
+                  + Manage Categories
+                </button>
               </div>
             </div>
           )}
@@ -804,18 +816,11 @@ export default function AdminBadgesPage() {
                     onChange={(e) => setNewBadgeCategory(e.target.value as BadgeCategory)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-[#F4F7FB]"
                   >
-                    <option value="Science">Science</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Hard Skills">Hard Skills</option>
-                    <option value="Soft Skills">Soft Skills</option>
-                    <option value="Leadership">Leadership</option>
-                    <option value="Programming">Programming</option>
-                    <option value="Data & AI">Data & AI</option>
-                    <option value="Hardware & IoT">Hardware & IoT</option>
-                    <option value="Scientific Writing">Scientific Writing</option>
-                    <option value="Public Speaking">Public Speaking</option>
-                    <option value="Logistics & Ops">Logistics & Ops</option>
-                    <option value="Club">Club</option>
+                    {badgeCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1127,7 +1132,90 @@ export default function AdminBadgesPage() {
               </div>
             </form>
           </div>
+        
+      {/* Badge Category CRUD Modal */}
+      {manageCategoriesOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4 animate-rise">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                  Manage Badge Categories
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Add new badge domains and remove obsolete categories.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManageCategoriesOpen(false)}
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {badgeCategories.map((cat) => (
+                <div
+                  key={cat}
+                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
+                >
+                  <span className="font-bold text-slate-800">{cat}</span>
+                  {badgeCategories.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => deleteBadgeCategory(cat)}
+                      className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Add New Badge Category
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value)}
+                  placeholder="e.g. Nanotechnology & Optics"
+                  className="flex-1 h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8]"
+                />
+                <button
+                  type="button"
+                  disabled={!newCategoryInput.trim()}
+                  onClick={() => {
+                    if (!newCategoryInput.trim()) return;
+                    addBadgeCategory(newCategoryInput.trim());
+                    setNewCategoryInput("");
+                  }}
+                  className="h-9 px-3.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setManageCategoriesOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
         </div>
+      )}
+
+    </div>
       )}
     </>
   );

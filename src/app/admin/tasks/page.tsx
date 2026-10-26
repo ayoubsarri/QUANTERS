@@ -85,6 +85,10 @@ export default function AdminTasksPage() {
   const [departmentId, setDepartmentId] = useState("dept-it");
   const [teamId, setTeamId] = useState<string>("team-astro");
   const [linkedWorkshopOrEvent] = useState("Python for Scientists");
+  const [taskDate, setTaskDate] = useState("2026-10-26");
+  const [planningOpenDate, setPlanningOpenDate] = useState("2026-10-20");
+  const [shiftStartTime, setShiftStartTime] = useState("14:00");
+  const [shiftEndTime, setShiftEndTime] = useState("18:00");
   const [deadline, setDeadline] = useState("26 Oct 2026, 18:00");
   const [locationOrShift, setLocationOrShift] = useState("Faculty of Sciences · Lab A1");
   const [proposedScore, setProposedScore] = useState(25);
@@ -184,7 +188,13 @@ export default function AdminTasksPage() {
       departmentId,
       teamId: teamId || undefined,
       linkedWorkshopOrEvent: linkedWorkshopOrEvent.trim() || undefined,
-      deadline: deadline.trim() || "Upcoming",
+      deadline: taskDate
+        ? `${new Date(taskDate + "T00:00:00").toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })} · ${shiftStartTime} - ${shiftEndTime}`
+        : deadline.trim() || "Upcoming",
       locationOrShift: locationOrShift.trim() || "Club Room",
       proposedScore: clampedScore,
       assigneeIds: selectedAssigneeIds,

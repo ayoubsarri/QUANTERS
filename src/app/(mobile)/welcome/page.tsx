@@ -505,17 +505,13 @@ export default function WelcomeSplashPage() {
           {/* A. TOP BRAND LOCKUP: LEFT-ALIGNED NORMALLY, ANIMATES/SLIDES TO CENTER WHEN PORTAL OPENS */}
           <header className={`w-full space-y-2.5 transition-all duration-700 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
             <div className={`w-full flex transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
-              <div className={`inline-flex flex-col select-none transition-all duration-700 ease-out ${authOpen ? "items-center text-center" : "items-start text-left"}`}>
+              <div className="inline-flex flex-col select-none items-start text-left">
                 <img
                   src="/brand/quanters_vector_v2.svg"
                   alt="QUANTERS"
-                  className={`w-auto object-contain block select-none drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-700 ease-out ${
-                    authOpen
-                      ? "h-11 sm:h-13 object-center"
-                      : "h-12 sm:h-14 md:h-16 w-auto object-left"
-                  }`}
+                  className="h-14 sm:h-16 md:h-18 lg:h-20 w-auto object-contain object-left block select-none drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out"
                 />
-                <div className={`inline-flex items-center gap-2 mt-1.5 transition-all duration-700 ease-out ${authOpen ? "justify-center" : "justify-start"}`}>
+                <div className="inline-flex items-center gap-2 mt-2 justify-start text-left">
                   <span className="font-display text-xs sm:text-[13px] font-black tracking-[0.2em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
                     BY QUANTA
                   </span>
@@ -965,14 +961,14 @@ export default function WelcomeSplashPage() {
                         value={customGoogleEmail}
                         onChange={(e) => setCustomGoogleEmail(e.target.value)}
                         placeholder="your.email@gmail.com or @univ-alger.dz"
-                        className="w-full h-9 px-3 rounded-lg bg-[#050C18] border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
+                        className="w-full h-11 px-3.5 rounded-xl bg-[#050C18] text-sm border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
                       />
                       <input
                         type="text"
                         value={customGoogleName}
                         onChange={(e) => setCustomGoogleName(e.target.value)}
                         placeholder="Your Full Name (optional)"
-                        className="w-full h-9 px-3 rounded-lg bg-[#050C18] border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
+                        className="w-full h-11 px-3.5 rounded-xl bg-[#050C18] text-sm border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
                       />
                       <button
                         type="button"
@@ -982,7 +978,7 @@ export default function WelcomeSplashPage() {
                             customGoogleName
                           )
                         }
-                        className="w-full h-9 rounded-lg bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-sm font-display font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                       >
                         <GoogleLogoSvg className="w-3.5 h-3.5" />
                         <span>Continue with Google</span>
@@ -1093,7 +1089,7 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-10 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1124,7 +1120,7 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                             <button
                               type="button"
@@ -1143,7 +1139,7 @@ export default function WelcomeSplashPage() {
 
                         <button
                           type="submit"
-                          className="w-full h-10.5 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <span>Sign In</span>
                           <ArrowRight className="w-4 h-4" />
@@ -1151,7 +1147,7 @@ export default function WelcomeSplashPage() {
                       </form>
 
                       {/* Divider + Continue with Google */}
-                      <div className="flex items-center gap-2.5 py-0.5">
+                      <div className="flex items-center gap-3 py-1.5">
                         <span className="h-px flex-1 bg-white/10" />
                         <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400">
                           OR
@@ -1166,7 +1162,7 @@ export default function WelcomeSplashPage() {
                           setSuccessMsg(null);
                           setShowGooglePicker(true);
                         }}
-                        className="w-full h-10.5 rounded-xl bg-white hover:bg-slate-100 text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 font-display font-extrabold text-sm text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>Continue with Google</span>
@@ -1213,7 +1209,7 @@ export default function WelcomeSplashPage() {
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             placeholder="e.g. Ayoub Sarri"
-                            className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#050D1A]/90 border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
                           />
                         </div>
                       </div>
@@ -1230,7 +1226,7 @@ export default function WelcomeSplashPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="name@univ-alger.dz"
-                            className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#050D1A]/90 border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
                           />
                         </div>
                       </div>
@@ -1247,7 +1243,7 @@ export default function WelcomeSplashPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="At least 6 characters"
-                            className="w-full h-9 pl-9 pr-9 rounded-xl bg-[#050D1A]/90 border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
+                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#050D1A]/90 text-sm border border-white/12 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#071324] transition"
                           />
                         </div>
                       </div>

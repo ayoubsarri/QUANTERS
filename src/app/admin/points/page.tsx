@@ -30,7 +30,9 @@ export default function AdminPointsPage() {
   const addManualPointsEntry = useQuantersStore((s) => s.addManualPointsEntry);
   const reversePointsEntry = useQuantersStore((s) => s.reversePointsEntry);
   const resolvePointsAppeal = useQuantersStore((s) => s.resolvePointsAppeal);
+  const createPointRule = useQuantersStore((s) => s.createPointRule);
   const updatePointRule = useQuantersStore((s) => s.updatePointRule);
+  const deletePointRule = useQuantersStore((s) => s.deletePointRule);
   const publishMonthlyHonours = useQuantersStore((s) => s.publishMonthlyHonours);
 
   const [activeTab, setActiveTab] = useState<"ledger" | "rules" | "appeals" | "motm">("ledger");
@@ -47,8 +49,15 @@ export default function AdminPointsPage() {
   const [reversingEntryId, setReversingEntryId] = useState<string | null>(null);
   const [reversalReason, setReversalReason] = useState<string>("");
 
-  // Editable Point Rules state
+  // Editable Point Rules CRUD state
   const [editingRuleValues, setEditingRuleValues] = useState<Record<string, number>>({});
+  const [ruleModalOpen, setRuleModalOpen] = useState(false);
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [formRuleLabel, setFormRuleLabel] = useState("");
+  const [formRuleCategory, setFormRuleCategory] = useState("Earning");
+  const [formRulePoints, setFormRulePoints] = useState(20);
+  const [formRuleDescription, setFormRuleDescription] = useState("");
+  const [ruleCategoryFilter, setRuleCategoryFilter] = useState("ALL");
 
   // Appeals resolution reason
   const [appealAdminNote, setAppealAdminNote] = useState<string>(
@@ -94,6 +103,49 @@ export default function AdminPointsPage() {
     setManualReason("");
     setManualOpen(false);
     setBanner("Immutable ledger entry recorded and member XP balance updated.");
+  };
+
+
+  const handleOpenCreateRule = () => {
+    setEditingRuleId(null);
+    setFormRuleLabel("");
+    setFormRuleCategory("Earning");
+    setFormRulePoints(20);
+    setFormRuleDescription("");
+    setRuleModalOpen(true);
+  };
+
+  const handleOpenEditRule = (rule: any) => {
+    setEditingRuleId(rule.id);
+    setFormRuleLabel(rule.label);
+    setFormRuleCategory(rule.category);
+    setFormRulePoints(rule.points);
+    setFormRuleDescription(rule.description);
+    setRuleModalOpen(true);
+  };
+
+  const handleSaveRuleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formRuleLabel.trim()) return;
+
+    if (editingRuleId) {
+      updatePointRule(editingRuleId, {
+        label: formRuleLabel.trim(),
+        category: formRuleCategory.trim(),
+        points: Number(formRulePoints),
+        description: formRuleDescription.trim(),
+      });
+      setBanner(`Updated rule '${formRuleLabel}'.`);
+    } else {
+      createPointRule({
+        label: formRuleLabel.trim(),
+        category: formRuleCategory.trim(),
+        points: Number(formRulePoints),
+        description: formRuleDescription.trim(),
+      });
+      setBanner(`Created new point rule '${formRuleLabel}'.`);
+    }
+    setRuleModalOpen(false);
   };
 
   const handleReverseSubmit = (e: React.FormEvent) => {
@@ -323,21 +375,51 @@ export default function AdminPointsPage() {
         </div>
       )}
 
-      {/* TAB 2: EDITABLE POINT RULES TABLE (16 RULES) */}
+      {/* TAB 2: EDITABLE POINT RULES TABLE WITH CATEGORY CRUD */}
       {activeTab === "rules" && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-4 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div>
-              <h3 className="text-sm font-extrabold text-[#0F1E36]">
-                16 Official QUANTA Point Rules (Earning +10 to +50 · Deduction −10 to −40)
+              <h3 className="text-sm sm:text-base font-extrabold text-[#0F1E36]">
+                Official Point Rules &amp; Categories ({pointRules.length} Rules)
               </h3>
               <p className="text-xs text-slate-500">
-                Inline edit any rule's point value and save directly to the store.
+                Full CRUD: create custom rules, modify categories, edit XP values, and remove obsolete rules.
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={handleOpenCreateRule}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white font-bold text-xs shadow-xs cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Point Rule</span>
+            </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+              Category:
+            </span>
+            {["ALL", ...Array.from(new Set(pointRules.map((r) => r.category)))].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setRuleCategoryFilter(cat)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  ruleCategoryFilter === cat
+                    ? "bg-[#182C4E] text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -346,73 +428,103 @@ export default function AdminPointsPage() {
                   <th className="py-3 px-4">Official Rule Label</th>
                   <th className="py-3 px-4">Description</th>
                   <th className="py-3 px-4">Points Value</th>
-                  <th className="py-3 px-4 text-right">Save</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/70">
-                {pointRules.map((rule) => {
-                  const currentVal =
-                    editingRuleValues[rule.id] !== undefined
-                      ? editingRuleValues[rule.id]
-                      : rule.points;
+                {pointRules
+                  .filter((r) => ruleCategoryFilter === "ALL" || r.category === ruleCategoryFilter)
+                  .map((rule) => {
+                    const currentVal =
+                      editingRuleValues[rule.id] !== undefined
+                        ? editingRuleValues[rule.id]
+                        : rule.points;
 
-                  return (
-                    <tr key={rule.id} className="hover:bg-slate-50/60">
-                      <td className="py-3 px-4 text-xs font-mono text-slate-400">{rule.id}</td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            rule.category === "Earning"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-rose-50 text-rose-700"
-                          }`}
-                        >
-                          {rule.category}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 font-bold text-[#0F1E36]">{rule.label}</td>
-                      <td className="py-3 px-4 text-xs text-slate-600">{rule.description}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
+                    return (
+                      <tr key={rule.id} className="hover:bg-slate-50/60">
+                        <td className="py-3 px-4 text-xs font-mono text-slate-400">{rule.id}</td>
+                        <td className="py-3 px-4">
                           <span
-                            className={
-                              currentVal >= 0
-                                ? "inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-mono text-[11px] font-bold tabular-nums whitespace-nowrap"
-                                : "inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/80 font-mono text-[11px] font-bold tabular-nums whitespace-nowrap"
-                            }
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              rule.category === "Earning"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : rule.category === "Deduction"
+                                ? "bg-rose-50 text-rose-700"
+                                : "bg-sky-50 text-sky-700"
+                            }`}
                           >
-                            {currentVal >= 0 ? `+${currentVal}` : currentVal} XP
+                            {rule.category}
                           </span>
-                          <input
-                            type="number"
-                            step={5}
-                            value={currentVal}
-                            onChange={(e) =>
-                              setEditingRuleValues((prev) => ({
-                                ...prev,
-                                [rule.id]: Number(e.target.value),
-                              }))
-                            }
-                            className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold tabular-nums bg-slate-50/70 focus:bg-white focus:border-[#182C4E] focus:outline-none"
-                          />
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            updatePointRule(rule.id, Number(currentVal), rule.label);
-                            setBanner(`Updated point rule '${rule.label}' to ${currentVal} XP.`);
-                          }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold"
-                        >
-                          <Save className="w-3.5 h-3.5" />
-                          Save
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="py-3 px-4 font-bold text-[#0F1E36]">{rule.label}</td>
+                        <td className="py-3 px-4 text-xs text-slate-600 max-w-xs">{rule.description}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={
+                                currentVal >= 0
+                                  ? "inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-mono text-[11px] font-bold tabular-nums whitespace-nowrap"
+                                  : "inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200/80 font-mono text-[11px] font-bold tabular-nums whitespace-nowrap"
+                              }
+                            >
+                              {currentVal >= 0 ? `+${currentVal}` : currentVal} XP
+                            </span>
+                            <input
+                              type="number"
+                              step={5}
+                              value={currentVal}
+                              onChange={(e) =>
+                                setEditingRuleValues((prev) => ({
+                                  ...prev,
+                                  [rule.id]: Number(e.target.value),
+                                }))
+                              }
+                              className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-mono font-bold tabular-nums bg-slate-50/70 focus:bg-white focus:border-[#182C4E] focus:outline-none"
+                            />
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updatePointRule(rule.id, Number(currentVal), rule.label);
+                                setBanner(`Updated point rule '${rule.label}' to ${currentVal} XP.`);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition cursor-pointer"
+                              title="Quick Save XP"
+                            >
+                              <Save className="w-3 h-3" />
+                              <span>Save</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditRule(rule)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                              title="Edit All Details"
+                            >
+                              <span>Edit</span>
+                            </button>
+                            {pointRules.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Delete rule '${rule.label}'?`)) {
+                                    deletePointRule(rule.id);
+                                    setBanner(`Deleted rule '${rule.label}'.`);
+                                  }
+                                }}
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer"
+                                title="Delete Rule"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
@@ -798,7 +910,107 @@ export default function AdminPointsPage() {
               </div>
             </form>
           </div>
+        
+      {/* Create / Edit Point Rule Modal */}
+      {ruleModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4 animate-rise">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-[#0284C7]/15 text-[#0284C7] flex items-center justify-center">
+                  <Coins className="w-4 h-4" />
+                </span>
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                  {editingRuleId ? "Edit Point Rule" : "Create New Point Rule"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRuleModalOpen(false)}
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRuleSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10.5px] mb-1">
+                  Rule Label
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formRuleLabel}
+                  onChange={(e) => setFormRuleLabel(e.target.value)}
+                  placeholder="e.g. Workshop Speaker Hospitality"
+                  className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10.5px] mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formRuleCategory}
+                    onChange={(e) => setFormRuleCategory(e.target.value)}
+                    placeholder="Earning, Deduction, Bonus..."
+                    className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10.5px] mb-1">
+                    Points (+ / −)
+                  </label>
+                  <input
+                    type="number"
+                    step={5}
+                    required
+                    value={formRulePoints}
+                    onChange={(e) => setFormRulePoints(Number(e.target.value))}
+                    className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8] font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10.5px] mb-1">
+                  Description / Justification
+                </label>
+                <textarea
+                  rows={2}
+                  value={formRuleDescription}
+                  onChange={(e) => setFormRuleDescription(e.target.value)}
+                  placeholder="Official explanation and criteria for applying this XP rule..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#38BDF8]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setRuleModalOpen(false)}
+                  className="px-3.5 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white font-extrabold transition cursor-pointer shadow-xs"
+                >
+                  {editingRuleId ? "Save Changes" : "Create Rule"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+      )}
+
+    </div>
       )}
     </>
   );

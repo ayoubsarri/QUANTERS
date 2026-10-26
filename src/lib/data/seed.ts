@@ -1114,7 +1114,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
   {
     id: "ws-python",
     title: "Python for Scientists",
-    category: "Python",
+    category: "Computer Science & Programming",
     iconType: "python",
     level: "Beginner",
     instructor: "Lotfi Benali & Ayoub Sarri",
@@ -1154,7 +1154,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
   {
     id: "ws-arduino",
     title: "Arduino & Electronics",
-    category: "Arduino",
+    category: "Electronics & Embedded Systems",
     iconType: "arduino",
     level: "Beginner",
     instructor: "Karim Hadj & Riad Touati",
@@ -1183,7 +1183,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
   {
     id: "ws-astronomy",
     title: "Astronomy Observation",
-    category: "Astronomy",
+    category: "Physics & Space Sciences",
     iconType: "astronomy",
     level: "Intermediate",
     instructor: "Sara Mansouri & Ayoub Sarri",
@@ -1212,7 +1212,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
   {
     id: "ws-3dprinting",
     title: "3D Printing for Research",
-    category: "3D Printing",
+    category: "Robotics & Automation",
     iconType: "printing",
     level: "Beginner",
     instructor: "Lotfi Benali",
@@ -1241,7 +1241,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
   {
     id: "ws-data",
     title: "Data Analysis with Python",
-    category: "Data Science",
+    category: "Data Science & AI",
     iconType: "data",
     level: "Intermediate",
     instructor: "Nesrine Khelifi",
@@ -1282,7 +1282,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
     id: "ws-ai-science",
     title: "AI & Neural Networks in Lab Research",
     activityType: "Scientific Activity",
-    category: "AI",
+    category: "Data Science & AI",
     iconType: "ai-ml",
     level: "Intermediate",
     instructor: "Lotfi Benali & Nesrine Khelifi",
@@ -1312,7 +1312,7 @@ export const SEED_WORKSHOPS: Workshop[] = [
     id: "ws-quantum",
     title: "Quantum Computing & Qiskit Lab",
     activityType: "Lab Session",
-    category: "Quantum Physics",
+    category: "Physics & Space Sciences",
     iconType: "quantum",
     level: "Advanced",
     instructor: "Dr. Amine Cherif (Alumni Guest)",

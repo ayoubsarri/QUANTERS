@@ -82,12 +82,12 @@ function AdminMembersContent() {
     const slotParam = params.get("slot") as TimeSlot | null;
 
     if (tabParam === "former") {
-      setActiveTab("FORMER");
-      setStatusFilter("ALL");
+      if (typeof window !== "undefined") window.location.href = "/admin/former-members";
+      return;
     } else if (tabParam === "alumni") {
-      setActiveTab("ALUMNI");
-      setStatusFilter("ALL");
-    } else if (tabParam === "active") {
+      if (typeof window !== "undefined") window.location.href = "/admin/alumni";
+      return;
+    } else {
       setActiveTab("ACTIVE");
       setStatusFilter("ALL");
     }
@@ -389,64 +389,28 @@ function AdminMembersContent() {
         </div>
       </div>
 
-      {/* Sub-Tab Navigation: Active & Trainees | Former Members | Alumni */}
+      {/* Sub-Tab Navigation: Active & Trainees | Dedicated Former Members | Dedicated Alumni */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/90 pb-1">
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("ACTIVE");
-            setStatusFilter("ALL");
-            if (typeof window !== "undefined") {
-              window.history.replaceState(null, "", "/admin/members");
-            }
-          }}
-          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-            activeTab === "ACTIVE"
-              ? "bg-[#182C4E] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:text-[#0F1E36] border border-slate-200/90"
-          }`}
-        >
+        <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#182C4E] text-white shadow-sm">
           <Users className="w-3.5 h-3.5" />
-          <span>Active &amp; Trainees ({activeRoster.length})</span>
-        </button>
+          <span>Enrolled Members ({activeRoster.length})</span>
+        </span>
 
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("FORMER");
-            setStatusFilter("ALL");
-            if (typeof window !== "undefined") {
-              window.history.replaceState(null, "", "/admin/members?tab=former");
-            }
-          }}
-          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-            activeTab === "FORMER"
-              ? "bg-[#182C4E] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:text-[#0F1E36] border border-slate-200/90"
-          }`}
+        <Link
+          href="/admin/former-members"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-600 hover:text-[#0F1E36] hover:bg-slate-50 border border-slate-200/90 transition shadow-xs"
         >
-          <UserX className="w-3.5 h-3.5" />
-          <span>Former Members ({formerRoster.length})</span>
-        </button>
+          <UserX className="w-3.5 h-3.5 text-slate-400" />
+          <span>Former Members ({formerRoster.length}) →</span>
+        </Link>
 
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("ALUMNI");
-            setStatusFilter("ALL");
-            if (typeof window !== "undefined") {
-              window.history.replaceState(null, "", "/admin/members?tab=alumni");
-            }
-          }}
-          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-            activeTab === "ALUMNI"
-              ? "bg-[#182C4E] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:text-[#0F1E36] border border-slate-200/90"
-          }`}
+        <Link
+          href="/admin/alumni"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-white text-slate-600 hover:text-[#0F1E36] hover:bg-slate-50 border border-slate-200/90 transition shadow-xs"
         >
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>Alumni ({alumniRoster.length})</span>
-        </button>
+          <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Alumni Network ({alumniRoster.length}) →</span>
+        </Link>
       </div>
 
       {/* Filter Strip */}

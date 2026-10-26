@@ -68,7 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         label: "Former Members",
-        href: "/admin/members?tab=former",
+        href: "/admin/former-members",
         icon: UserX,
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"],
         badgeCount: (s) =>
@@ -76,7 +76,7 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         label: "Alumni",
-        href: "/admin/members?tab=alumni",
+        href: "/admin/alumni",
         icon: GraduationCap,
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "KPI Viewer"],
         badgeCount: (s) =>
