@@ -37,8 +37,8 @@ interface QuantaLogoProps {
 
 /**
  * Authentic QUANTERS Brand Identity System
- * Uses the exact QUANTERS_vector_v2.svg wordmark as the primary app logo,
- * and exact Asset 2.png (/brand/univ_quanta_asset2.png) when rendering the institutional mark.
+ * Places the QUANTERS vector logo in the upper row and aligns the
+ * "BY QUANTA ─── ALGIERS 1" architectural line flush with the left (Q) and right (S) edges below it.
  */
 export function QuantaLogo({
   size = 36,
@@ -50,11 +50,15 @@ export function QuantaLogo({
   centered = false,
 }: QuantaLogoProps) {
   const isLight = variant === "light";
-  const subColor = isLight ? "text-slate-500" : "text-[#7DD3FC]";
+  const primarySubColor = isLight ? "text-[#0284C7]" : "text-[#38E4FF]";
+  const secondarySubColor = isLight ? "text-slate-500" : "text-slate-300";
+  const ruleGradient = isLight
+    ? "from-[#0284C7]/45 via-slate-300 to-slate-300/70"
+    : "from-[#38E4FF]/60 via-[#38BDF8]/30 to-white/20";
 
   const iconSize = Math.max(24, size);
   const wordmarkHeight = Math.max(24, Math.round(iconSize * 0.92));
-  const subFontSize = Math.max(9.5, Math.round(wordmarkHeight * 0.34));
+  const subFontSize = Math.max(9, Math.round(wordmarkHeight * 0.28));
 
   if (!showWordmark) {
     return (
@@ -71,20 +75,12 @@ export function QuantaLogo({
 
   return (
     <div
-      className={`inline-flex flex-col ${
-        centered ? "items-center text-center" : "items-start"
+      className={`inline-flex flex-col items-stretch ${
+        centered ? "mx-auto" : ""
       } leading-none select-none ${className}`}
     >
-      {showSubtitle && (
-        <span
-          className={`mb-1.5 tracking-[0.2em] font-display font-extrabold uppercase ${subColor}`}
-          style={{ fontSize: `${subFontSize}px` }}
-        >
-          BY QUANTA · ALGIERS 1
-        </span>
-      )}
-
-      <div className="inline-flex items-center gap-1.5">
+      {/* Upper Row: Official QUANTERS Vector Logo */}
+      <div className="inline-flex items-center justify-between gap-2">
         <QuantersVectorWordmark height={wordmarkHeight} variant={variant} />
 
         {showBadge && (
@@ -93,6 +89,29 @@ export function QuantaLogo({
           </span>
         )}
       </div>
+
+      {/* Lower Row: Architectural Subtitle Flush-Aligned with Q and S + Connecting Rule Line */}
+      {showSubtitle && (
+        <div
+          className="w-full flex items-center justify-between gap-2 mt-1.5"
+          style={{ fontSize: `${subFontSize}px` }}
+        >
+          <span
+            className={`font-display font-extrabold tracking-[0.18em] uppercase leading-none whitespace-nowrap ${primarySubColor}`}
+          >
+            BY QUANTA
+          </span>
+          <span
+            className={`flex-1 h-px bg-gradient-to-r ${ruleGradient} min-w-[12px]`}
+            aria-hidden="true"
+          />
+          <span
+            className={`font-mono font-bold tracking-[0.14em] uppercase leading-none whitespace-nowrap ${secondarySubColor}`}
+          >
+            ALGIERS 1
+          </span>
+        </div>
+      )}
     </div>
   );
 }

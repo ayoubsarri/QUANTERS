@@ -337,11 +337,13 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
             className="h-[18px] w-auto object-contain opacity-95"
           />
           <div className="flex items-center gap-1.5 pl-2 border-l border-white/15">
-            <img
-              src="/brand/univ_logo.svg"
-              alt="Faculty of Sciences"
-              className="h-[18px] w-auto object-contain opacity-95"
-            />
+            <div className="bg-white rounded-md px-1.5 py-0.5 shadow-2xs flex items-center justify-center shrink-0">
+              <img
+                src="/brand/univ_logo.svg"
+                alt="Faculty of Sciences"
+                className="h-[16px] w-auto object-contain"
+              />
+            </div>
             <span className="font-mono text-[8.5px] font-semibold tracking-wider text-slate-300 uppercase">
               ALGIERS 1
             </span>

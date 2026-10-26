@@ -172,62 +172,35 @@ export default function AdminOverviewPage() {
         </div>
       </header>
 
-      {/* 2. Signature Wide-Format Cosmic Observatory Banner (Fitted to Horizontal Box) */}
-      <section className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#061022] via-[#0D2142] to-[#15325E] text-white border border-[#38BDF8]/30 shadow-[0_14px_34px_rgba(9,21,40,0.22)]">
-        {/* Fitted Wide Cosmic Grid, Nebula Glow & Orbital Geometry */}
-        <div className="absolute inset-0 bg-quanta-grid-dark opacity-35 pointer-events-none" />
+      {/* 2. Signature Wide-Format Cosmic Observatory Banner (Nano Banana Artwork Respecting Aspect Ratio) */}
+      <section className="relative rounded-2xl overflow-hidden bg-[#030A17] text-white border border-[#38BDF8]/35 shadow-[0_14px_34px_rgba(9,21,40,0.24)]">
+        {/* Deep Space Base matching Nano Banana #030A17 */}
+        <div className="absolute inset-0 bg-[#030A17] pointer-events-none" />
+
+        {/* Nano Banana Knitted Astronaut & Circuit Planet — 100% True Aspect Ratio Framed in Center Window */}
+        <div className="absolute inset-y-0 left-[34%] right-0 flex items-center justify-center xl:justify-start pointer-events-none select-none overflow-hidden">
+          <img
+            src="/brand/admin_overview_banner_bg.jpg"
+            alt=""
+            aria-hidden="true"
+            className="h-full w-auto max-w-none object-contain object-left"
+            style={{
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
+              maskImage:
+                "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
+            }}
+          />
+        </div>
+
+        {/* Soft Ambient Cyan Glow on Far Right behind KPI Box */}
         <div
-          className="absolute right-[-4%] -top-24 w-[540px] h-[360px] rounded-full pointer-events-none"
+          className="absolute right-[-5%] inset-y-0 w-[380px] pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle, rgba(56,228,255,0.28) 0%, rgba(2,132,199,0.14) 45%, transparent 72%)",
+              "radial-gradient(circle at 70% 50%, rgba(56,228,255,0.16) 0%, rgba(14,116,144,0.08) 50%, transparent 75%)",
           }}
         />
-        <div
-          className="absolute left-[28%] -bottom-24 w-[420px] h-[260px] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(56,189,248,0.16) 0%, transparent 70%)",
-          }}
-        />
-        <img
-          src="/brand/cosmic_galaxy_emblem.webp"
-          alt=""
-          aria-hidden="true"
-          className="absolute right-[26%] -top-16 w-80 h-80 object-contain opacity-75 mix-blend-screen pointer-events-none select-none hidden md:block"
-        />
-        <svg
-          viewBox="0 0 700 200"
-          fill="none"
-          aria-hidden="true"
-          className="absolute right-0 inset-y-0 h-full w-auto opacity-55 pointer-events-none select-none hidden sm:block"
-        >
-          <ellipse
-            cx="450"
-            cy="100"
-            rx="220"
-            ry="72"
-            transform="rotate(-12 450 100)"
-            stroke="#38E4FF"
-            strokeWidth="1.25"
-            strokeDasharray="5 6"
-          />
-          <ellipse
-            cx="450"
-            cy="100"
-            rx="155"
-            ry="48"
-            transform="rotate(15 450 100)"
-            stroke="#7DD3FC"
-            strokeWidth="1.1"
-            strokeOpacity="0.75"
-          />
-          <circle cx="290" cy="64" r="3.2" fill="#38E4FF" />
-          <circle cx="585" cy="138" r="2.8" fill="#7DD3FC" />
-          <circle cx="495" cy="42" r="2.4" fill="#FFE500" />
-          <circle cx="365" cy="148" r="2" fill="#38E4FF" />
-        </svg>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#061022]/92 via-[#0B1B36]/65 to-transparent pointer-events-none" />
 
         <div className="relative z-10 p-5 sm:p-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
           <div className="space-y-2 max-w-2xl">
@@ -242,14 +215,16 @@ export default function AdminOverviewPage() {
               <img
                 src="/brand/univ_quanta_asset2.png"
                 alt="University of Algiers 1 & Quanta"
-                className="h-[18px] w-auto object-contain opacity-95"
+                className="h-[20px] w-auto object-contain opacity-95"
               />
               <span className="h-3.5 w-px bg-white/20" />
-              <img
-                src="/brand/univ_logo.svg"
-                alt="Faculty of Sciences"
-                className="h-[18px] w-auto object-contain opacity-95"
-              />
+              <div className="bg-white rounded-md px-1.5 py-0.5 shadow-xs flex items-center justify-center shrink-0">
+                <img
+                  src="/brand/univ_logo.svg"
+                  alt="Faculty of Sciences"
+                  className="h-[16px] w-auto object-contain"
+                />
+              </div>
               <span className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-slate-300">
                 FACULTY OF SCIENCES
               </span>
@@ -257,7 +232,7 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* 4 Key Telemetry Counters */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#081223]/85 border border-[#2B4875]/75 rounded-2xl px-4 py-3.5 backdrop-blur-md w-full xl:w-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-[#081223]/72 border border-[#38BDF8]/30 rounded-2xl px-3.5 py-3 backdrop-blur-xs w-full xl:w-auto">
             <div className="px-2.5 sm:border-r border-[#2B4875]/60">
               <div className="text-[10px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
                 Active Members

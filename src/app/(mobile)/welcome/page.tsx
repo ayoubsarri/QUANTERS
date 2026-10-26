@@ -496,25 +496,25 @@ export default function WelcomeSplashPage() {
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between min-h-[calc(100dvh-2.5rem)] lg:min-h-[82dvh] lg:py-2">
-          {/* A. TOP BRAND LOCKUP WITH OFFICIAL QUANTERS_vector_v2.svg */}
-          <header className="w-full space-y-3 animate-rise">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex flex-col items-start">
-                <div className="mb-1.5 flex items-center gap-2 whitespace-nowrap">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] shadow-[0_0_8px_#38E4FF]" />
-                  <span className="font-display text-[11px] sm:text-xs font-extrabold tracking-[0.22em] text-[#38E4FF] uppercase leading-none">
-                    BY QUANTA
-                  </span>
-                  <span className="text-white/30">•</span>
-                  <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.12em] text-slate-300/95 uppercase leading-none">
-                    ALGIERS 1
-                  </span>
-                </div>
-                <QuantersVectorWordmark
-                  height={48}
-                  variant="dark"
-                  className="drop-shadow-[0_2px_14px_rgba(0,0,0,0.88)]"
+          {/* A. TOP BRAND LOCKUP WITH OFFICIAL QUANTERS_vector_v2.svg IN UPPER ROW & FULL-WIDTH GRID ALIGNMENT */}
+          <header className="w-full space-y-2.5 animate-rise">
+            <div className="w-full flex flex-col items-stretch">
+              <img
+                src="/brand/quanters_vector_v2.svg"
+                alt="QUANTERS"
+                className="w-full h-auto max-h-[54px] sm:max-h-[60px] object-contain object-left block select-none drop-shadow-[0_2px_14px_rgba(0,0,0,0.88)]"
+              />
+              <div className="w-full flex items-center justify-between gap-3 mt-2 px-0.5">
+                <span className="font-display text-[10.5px] sm:text-xs font-extrabold tracking-[0.22em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
+                  BY QUANTA
+                </span>
+                <span
+                  className="flex-1 h-px bg-gradient-to-r from-[#38E4FF]/65 via-white/30 to-white/25"
+                  aria-hidden="true"
                 />
+                <span className="font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.16em] text-slate-200 uppercase leading-none whitespace-nowrap">
+                  ALGIERS 1
+                </span>
               </div>
             </div>
 
@@ -656,11 +656,13 @@ export default function WelcomeSplashPage() {
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 pl-2.5 border-l border-white/15">
-                      <img
-                        src="/brand/univ_logo.svg"
-                        alt="Faculty of Sciences"
-                        className="h-9 sm:h-10 w-auto object-contain shrink-0"
-                      />
+                      <div className="bg-white rounded-lg px-2 py-1 shadow-sm flex items-center justify-center shrink-0">
+                        <img
+                          src="/brand/univ_logo.svg"
+                          alt="Faculty of Sciences"
+                          className="h-7 sm:h-8 w-auto object-contain shrink-0"
+                        />
+                      </div>
                       <div className="text-right">
                         <div className="font-mono text-[10px] sm:text-xs font-semibold tracking-[0.1em] text-slate-200 uppercase leading-tight">
                           FAC. SCIENCES
