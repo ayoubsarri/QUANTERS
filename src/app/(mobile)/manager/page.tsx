@@ -4,49 +4,120 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Archive,
+  Award,
   Bell,
+  Briefcase,
   Building2,
   Check,
   CheckCircle2,
   ChevronDown,
-  ChevronRight,
   ClipboardCheck,
-  Eye,
+  Edit3,
+  ExternalLink,
+  Github,
   Globe,
-  History,
+  Linkedin,
   Lock,
+  Megaphone,
   MessageSquare,
   Orbit,
+  Pin,
   Plus,
   QrCode,
   RotateCcw,
   Send,
   Shield,
   Sparkles,
+  StickyNote,
   Users,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { ClubTask, Member, TaskCategory } from "@/lib/types/erp";
+import {
+  ClubTask,
+  Member,
+  ScientificTeam,
+  TaskCategory,
+} from "@/lib/types/erp";
 import {
   handleMemberListContainerKeyDown,
   handleMemberSelectKeyDown,
   sortMembersByName,
 } from "@/lib/utils/memberKeyboardJump";
 
-type ManagerSubTab = "Overview" | "Members" | "Tasks" | "Teams";
+type ManagerSubTab = "Overview" | "Tasks" | "Members" | "Teams" | "Notes";
 type TaskViewTab = "active" | "done";
-type WorkspaceRoleMode =
-  | "Dept Manager"
-  | "Co-Manager"
-  | "Team Leader"
-  | "Department Member";
-type TaskVisibilityScope =
-  | "dept"
-  | "all-club"
-  | "team"
-  | "other-dept-our-members";
+type BrowseScopeMode = "department" | "team";
+
+interface WorkspaceNote {
+  id: string;
+  scopeType: "department" | "team";
+  scopeId: string;
+  title: string;
+  body: string;
+  tag: "Operations" | "Briefing" | "Handover" | "Scientific";
+  authorName: string;
+  authorRole: string;
+  updatedAt: string;
+  pinned: boolean;
+  archived: boolean;
+}
+
+const SEED_WORKSPACE_NOTES: WorkspaceNote[] = [
+  {
+    id: "note-events-1",
+    scopeType: "department",
+    scopeId: "dept-events",
+    title: "QSSC'26 Scientific Tracks & Amphi Allocation",
+    body: "Main Auditorium reserved for Saturday 09:00–16:30. All 6 scientific teams must finalize their workshop abstracts and demonstrator rosters by Thursday 18:00.",
+    tag: "Operations",
+    authorName: "Sara Mansouri",
+    authorRole: "Events Manager",
+    updatedAt: "Today · 11:20",
+    pinned: true,
+    archived: false,
+  },
+  {
+    id: "note-it-1",
+    scopeType: "department",
+    scopeId: "dept-it",
+    title: "Projector QR Check-In & Local Wi-Fi Relay",
+    body: "Lab A1 and Main Amphi routers tested for 150 concurrent check-ins. Keep 6-digit fallback code visible on the secondary screen.",
+    tag: "Briefing",
+    authorName: "Lotfi Benali",
+    authorRole: "IT Manager",
+    updatedAt: "Yesterday · 17:45",
+    pinned: true,
+    archived: false,
+  },
+  {
+    id: "note-team-astro-1",
+    scopeType: "team",
+    scopeId: "team-astro",
+    title: "JWST Light-Curve Dataset & Telescope Calibration",
+    body: "Prepared the cleaned FITS light-curve notebook for Saturday's practical session. Team members should review transit fitting parameters.",
+    tag: "Scientific",
+    authorName: "Ayoub Sarri",
+    authorRole: "Team Leader",
+    updatedAt: "Today · 09:15",
+    pinned: true,
+    archived: false,
+  },
+  {
+    id: "note-archive-1",
+    scopeType: "department",
+    scopeId: "dept-events",
+    title: "October Opening Ceremony Equipment Return",
+    body: "All badges, lanyards, and acoustic cables checked back into storage room B2.",
+    tag: "Handover",
+    authorName: "Sara Mansouri",
+    authorRole: "Events Manager",
+    updatedAt: "18 Oct 2026",
+    pinned: false,
+    archived: true,
+  },
+];
 
 const ALL_TASK_CATEGORIES: TaskCategory[] = [
   "General",
@@ -63,97 +134,185 @@ const ALL_TASK_CATEGORIES: TaskCategory[] = [
   "Other",
 ];
 
+const NOTES_STORAGE_KEY = "quanters-manager-notes-v1";
+
 export default function MobileManagerWorkspacePage() {
   const departments = useQuantersStore((s) => s.departments);
   const teams = useQuantersStore((s) => s.teams);
   const members = useQuantersStore((s) => s.members);
+  const settings = useQuantersStore((s) => s.settings);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
+  const badges = useQuantersStore((s) => s.badges);
   const tasks = useQuantersStore((s) => s.tasks);
   const workshops = useQuantersStore((s) => s.workshops);
   const validateAndScoreTask = useQuantersStore((s) => s.validateAndScoreTask);
   const createTask = useQuantersStore((s) => s.createTask);
+  const updateTask = useQuantersStore((s) => s.updateTask);
   const archiveTask = useQuantersStore((s) => s.archiveTask);
   const unarchiveTask = useQuantersStore((s) => s.unarchiveTask);
   const archiveAllCompletedTasks = useQuantersStore(
     (s) => s.archiveAllCompletedTasks
   );
+  const updateTeam = useQuantersStore((s) => s.updateTeam);
   const sendClubMessage = useQuantersStore((s) => s.sendClubMessage);
   const verifyWorkshopCheckIn = useQuantersStore((s) => s.verifyWorkshopCheckIn);
 
+  const activeTeams = teams.filter((t) => !t.archived);
+
+  // Active signed-in member from the Organigramme
   const currentMember =
     members.find((m) => m.id === currentMemberId) || members[0];
 
-  const initialRoleMode: WorkspaceRoleMode = currentMember.roles.some((r) =>
-    ["Department Head", "Super Admin", "HR Head", "Executive"].includes(r)
-  )
-    ? "Dept Manager"
-    : currentMember.roles.includes("Co-Manager")
-    ? "Co-Manager"
-    : currentMember.roles.includes("Team Leader")
-    ? "Team Leader"
-    : "Department Member";
+  // Derive Organigramme Roles directly from Admin Dashboard state (departments, teams, settings)
+  const managedDepts = departments.filter(
+    (d) => d.headMemberId === currentMember.id
+  );
+  const subManagedDepts = departments.filter(
+    (d) => d.coManagerMemberId === currentMember.id
+  );
+  const ledTeams = activeTeams.filter(
+    (t) => t.leaderMemberId === currentMember.id
+  );
 
-  const [roleMode, setRoleMode] = useState<WorkspaceRoleMode>(initialRoleMode);
-  const [selectedDeptId, setSelectedDeptId] = useState(
-    currentMember.departmentId || "dept-it"
+  const isEventsManagerOrSub = departments.some(
+    (d) =>
+      d.id === "dept-events" &&
+      (d.headMemberId === currentMember.id ||
+        d.coManagerMemberId === currentMember.id)
   );
-  const [selectedTeamId, setSelectedTeamId] = useState(
-    currentMember.teamId || "team-astro"
+
+  // Build Organigramme Role Badges for a given member
+  const getMemberOrganigrammeBadges = (mem: Member): string[] => {
+    const pills: string[] = [];
+    if (settings.presidentId === mem.id) pills.push("President");
+    if (settings.vicePresidentId === mem.id) pills.push("Vice President");
+    if (settings.secretaryGeneralId === mem.id) pills.push("Secretary General");
+
+    departments.forEach((d) => {
+      if (d.headMemberId === mem.id) {
+        pills.push(`${d.shortName} Manager`);
+      } else if (d.coManagerMemberId === mem.id) {
+        pills.push(`${d.shortName} Sub-Manager`);
+      }
+    });
+
+    activeTeams.forEach((t) => {
+      if (t.leaderMemberId === mem.id) {
+        pills.push(`${t.name} Leader`);
+      }
+    });
+
+    if (pills.length === 0) {
+      pills.push(mem.status === "Alumni" ? "Alumni" : "Member");
+    }
+    return pills;
+  };
+
+  const currentMemberRoleBadges = getMemberOrganigrammeBadges(currentMember);
+  const primaryRoleLabel = currentMemberRoleBadges[0] || "Member";
+
+  const [browseMode, setBrowseMode] = useState<BrowseScopeMode>("department");
+  const [selectedDeptId, setSelectedDeptId] = useState<string>(
+    managedDepts[0]?.id ||
+      subManagedDepts[0]?.id ||
+      currentMember.departmentId ||
+      "dept-events"
   );
-  const [taskScope, setTaskScope] = useState<TaskVisibilityScope>("dept");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>(
+    ledTeams[0]?.id || currentMember.teamId || "team-astro"
+  );
+
+  // Sync default department / team when switching active Organigramme member
+  useEffect(() => {
+    const mDept =
+      departments.find((d) => d.headMemberId === currentMember.id) ||
+      departments.find((d) => d.coManagerMemberId === currentMember.id);
+    const mTeam = activeTeams.find((t) => t.leaderMemberId === currentMember.id);
+
+    if (mDept) {
+      setSelectedDeptId(mDept.id);
+      setBrowseMode("department");
+    } else if (mTeam) {
+      setSelectedTeamId(mTeam.id);
+      setBrowseMode("team");
+    } else {
+      setSelectedDeptId(currentMember.departmentId || "dept-it");
+      if (currentMember.teamId) setSelectedTeamId(currentMember.teamId);
+    }
+  }, [currentMember.id, departments, activeTeams.length]);
+
+  const [subTab, setSubTab] = useState<ManagerSubTab>("Overview");
+  const [taskViewTab, setTaskViewTab] = useState<TaskViewTab>("active");
   const [categoryFilter, setCategoryFilter] = useState<"All" | TaskCategory>(
     "All"
   );
-  const [subTab, setSubTab] = useState<ManagerSubTab>("Overview");
-  const [taskViewTab, setTaskViewTab] = useState<TaskViewTab>("active");
   const [restoredTaskIds, setRestoredTaskIds] = useState<string[]>([]);
 
-  // Modals State
-  const [activeTaskModal, setActiveTaskModal] = useState<ClubTask | null>(null);
-  const [scoreType, setScoreType] = useState<"Full" | "Partial" | "Bonus">(
-    "Full"
-  );
-  const [customScore, setCustomScore] = useState<number>(25);
-  const [feedbackNote, setFeedbackNote] = useState(
-    "Verified deliverable and attendance sheet on time. Great execution!"
-  );
+  // Workspace Notes State
+  const [notes, setNotes] = useState<WorkspaceNote[]>(SEED_WORKSPACE_NOTES);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<WorkspaceNote | null>(null);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteBody, setNoteBody] = useState("");
+  const [noteTag, setNoteTag] =
+    useState<WorkspaceNote["tag"]>("Operations");
+  const [notePinned, setNotePinned] = useState(true);
 
-  const [createTaskOpen, setCreateTaskOpen] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskCategory, setNewTaskCategory] =
-    useState<TaskCategory>("General");
-  const [newTaskDeadline, setNewTaskDeadline] = useState("28 Oct 2026");
-  const [newTaskLocation, setNewTaskLocation] = useState("Lab A1");
-  const [newTaskScore, setNewTaskScore] = useState(25);
-  const [newTaskAssigneeIds, setNewTaskAssigneeIds] = useState<string[]>([
-    "mem-ayoub",
-  ]);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(NOTES_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setNotes(parsed);
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
 
-  // Quick Message Modal
-  const [quickMessageTarget, setQuickMessageTarget] = useState<Member | null>(
-    null
-  );
-  const [quickMsgText, setQuickMsgText] = useState("");
+  const persistNotes = (next: WorkspaceNote[]) => {
+    setNotes(next);
+    try {
+      window.localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+  };
 
-  // Organizer Scan Member QR Modal
-  const [scanModalOpen, setScanModalOpen] = useState(false);
-  const [scanWorkshopId, setScanWorkshopId] = useState(
-    workshops[0]?.id || "ws-python"
-  );
-  const [scanTargetMemberId, setScanTargetMemberId] = useState("mem-ayoub");
-  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+  // Exact Organigramme Permission Rules:
+  // 1. Department editing: Manager (headMemberId) or Sub-Manager (coManagerMemberId) of that department
+  const canEditDepartment = (deptId: string): boolean => {
+    return departments.some(
+      (d) =>
+        d.id === deptId &&
+        (d.headMemberId === currentMember.id ||
+          d.coManagerMemberId === currentMember.id)
+    );
+  };
 
-  const [toastBanner, setToastBanner] = useState<string | null>(null);
+  // 2. Scientific Team editing:
+  //    - Events Manager / Events Sub-Manager can edit in ALL Scientific Teams
+  //    - Team Leader (leaderMemberId) can edit in their own Scientific Team
+  const canEditTeam = (teamId: string): boolean => {
+    if (isEventsManagerOrSub) return true;
+    return activeTeams.some(
+      (t) => t.id === teamId && t.leaderMemberId === currentMember.id
+    );
+  };
 
+  const canEditCurrentScope =
+    browseMode === "department"
+      ? canEditDepartment(selectedDeptId)
+      : canEditTeam(selectedTeamId);
+
+  // Current selected entities
   const currentDept =
     departments.find((d) => d.id === selectedDeptId) || departments[0];
   const currentTeam =
     teams.find((t) => t.id === selectedTeamId) || teams[0];
-
-  const isManagerOrCoManager =
-    roleMode === "Dept Manager" || roleMode === "Co-Manager";
-  const isTeamLeader = roleMode === "Team Leader";
-  const canAssignTasks = isManagerOrCoManager || isTeamLeader;
 
   // Active members in selected department
   const deptMembers = members.filter(
@@ -174,81 +333,36 @@ export default function MobileManagerWorkspacePage() {
   );
   const teamMemberIds = new Set(teamMembers.map((m) => m.id));
 
-  // Assignable members locked strictly to role scope:
-  // - Dept Manager & Co-Manager -> ONLY members of their department (selectedDeptId)
-  // - Team Leader -> ONLY members of their scientific team (selectedTeamId)
-  const assignableMembers = sortMembersByName(
-    isTeamLeader ? teamMembers : deptMembers
-  );
+  const scopeMembers =
+    browseMode === "department" ? deptMembers : teamMembers;
+  const assignableMembers = sortMembersByName(scopeMembers);
   const sortedMembers = sortMembersByName(members);
 
-  // Keep selected assignees valid when department/team or role changes
-  useEffect(() => {
-    const validIds = assignableMembers.map((m) => m.id);
-    setNewTaskAssigneeIds((prev) => {
-      const filtered = prev.filter((id) => validIds.includes(id));
-      if (filtered.length > 0) return filtered;
-      return validIds[0] ? [validIds[0]] : [];
-    });
-  }, [selectedDeptId, selectedTeamId, roleMode, members.length]);
-
-  // Adjust taskScope when switching roles so each role sees its valid default scope
-  const handleRoleModeChange = (nextRole: WorkspaceRoleMode) => {
-    setRoleMode(nextRole);
-    if (nextRole === "Team Leader") {
-      setTaskScope("team");
-    } else if (nextRole === "Department Member") {
-      setTaskScope("dept");
-    } else {
-      setTaskScope("dept");
-    }
-  };
-
-  // Visibility Scopes:
-  // 1. Department Tasks (all tasks belonging to this department OR assigned to a member of this department)
+  // Tasks for current scope
   const deptTasks = tasks.filter(
-    (t) =>
-      t.departmentId === selectedDeptId ||
-      t.assignees.some((a) => deptMemberIds.has(a.memberId))
+    (t) => t.departmentId === selectedDeptId && !t.teamId
   );
-
-  // 2. Cross-Department Tasks for Our Department Members (tasks from OTHER departments where at least one assignee is in selectedDeptId)
-  const crossDeptTasksForDeptMembers = tasks.filter(
+  const crossDeptMemberTasks = tasks.filter(
     (t) =>
       t.departmentId !== selectedDeptId &&
       t.assignees.some((a) => deptMemberIds.has(a.memberId))
   );
-
-  // 3. Scientific Team Tasks (for Team Leader)
-  const scientificTeamTasks = tasks.filter(
+  const teamTasks = tasks.filter(
     (t) =>
       t.teamId === selectedTeamId ||
-      t.assignees.some((a) => teamMemberIds.has(a.memberId))
+      (browseMode === "team" &&
+        t.assignees.some((a) => teamMemberIds.has(a.memberId)))
   );
 
-  // 4. All Club Tasks (ONLY accessible to Dept Manager & Co-Manager)
-  const allClubTasks = tasks;
-
-  const rawScopedTasks = (() => {
-    if (isManagerOrCoManager) {
-      if (taskScope === "all-club") return allClubTasks;
-      if (taskScope === "other-dept-our-members")
-        return crossDeptTasksForDeptMembers;
-      return deptTasks;
-    }
-    if (isTeamLeader) {
-      if (taskScope === "team") return scientificTeamTasks;
-      if (taskScope === "other-dept-our-members")
-        return crossDeptTasksForDeptMembers;
-      return deptTasks;
-    }
-    // Department Member: can see all tasks of their department (each other's tasks)
-    // and can see other department tasks ONLY if assigned to members of their department
-    if (taskScope === "other-dept-our-members") {
-      return crossDeptTasksForDeptMembers;
-    }
-    return deptTasks;
-  })();
+  const rawScopedTasks =
+    browseMode === "department"
+      ? [
+          ...deptTasks,
+          ...crossDeptMemberTasks.filter(
+            (ct) => !deptTasks.some((dt) => dt.id === ct.id)
+          ),
+        ]
+      : teamTasks;
 
   const scopedTasks =
     categoryFilter === "All"
@@ -266,18 +380,199 @@ export default function MobileManagerWorkspacePage() {
       (t.archived || t.urgencyLabel === "Completed")
   );
 
-  const displayedTasks = taskViewTab === "active" ? activeTasks : doneTasks;
-
-  const deptHeadMember = members.find(
-    (m) => m.id === currentDept.headMemberId
+  // Notes for current scope
+  const scopedNotes = notes.filter((n) =>
+    browseMode === "department"
+      ? n.scopeType === "department" && n.scopeId === selectedDeptId
+      : n.scopeType === "team" && n.scopeId === selectedTeamId
   );
-  const deptCoManagerMember = members.find(
-    (m) => m.id === currentDept.coManagerMemberId
+  const activeNotes = scopedNotes
+    .filter((n) => !n.archived)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned));
+  const archivedNotes = scopedNotes.filter((n) => n.archived);
+
+  // Task Create / Edit Modal State
+  const [taskFormModalOpen, setTaskFormModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<ClubTask | null>(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskCategory, setTaskCategory] = useState<TaskCategory>("General");
+  const [taskDeadline, setTaskDeadline] = useState("28 Oct 2026");
+  const [taskLocation, setTaskLocation] = useState("Lab A1");
+  const [taskScore, setTaskScore] = useState(25);
+  const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>([
+    "mem-ayoub",
+  ]);
+
+  // Task Validation & Scoring Modal State
+  const [scoringTaskModal, setScoringTaskModal] = useState<ClubTask | null>(
+    null
+  );
+  const [scoreType, setScoreType] = useState<"Full" | "Partial" | "Bonus">(
+    "Full"
+  );
+  const [customScore, setCustomScore] = useState<number>(25);
+  const [feedbackNote, setFeedbackNote] = useState(
+    "Verified deliverable and attendance sheet on time. Great execution!"
   );
 
-  const openTaskScoringModal = (task: ClubTask) => {
-    if (!canAssignTasks) return;
-    setActiveTaskModal(task);
+  // Read-Only Member Portfolio Modal State
+  const [portfolioMember, setPortfolioMember] = useState<Member | null>(null);
+
+  // Edit Scientific Team Details Modal State
+  const [editingTeamModal, setEditingTeamModal] =
+    useState<ScientificTeam | null>(null);
+  const [editTeamName, setEditTeamName] = useState("");
+  const [editTeamField, setEditTeamField] = useState("");
+  const [editTeamDesc, setEditTeamDesc] = useState("");
+
+  // Messaging Modal State (Direct Member or Scope Broadcast)
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [messageTargetMember, setMessageTargetMember] =
+    useState<Member | null>(null);
+  const [messagePriority, setMessagePriority] = useState<
+    "Info" | "Action needed" | "Official notice"
+  >("Info");
+  const [messageTitle, setMessageTitle] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+
+  // Organizer Scan QR Modal
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [scanWorkshopId, setScanWorkshopId] = useState(
+    workshops[0]?.id || "ws-python"
+  );
+  const [scanTargetMemberId, setScanTargetMemberId] = useState("mem-ayoub");
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+
+  const [toastBanner, setToastBanner] = useState<string | null>(null);
+
+  // Keep assignees in sync with current scope
+  useEffect(() => {
+    if (editingTask) return;
+    const validIds = assignableMembers.map((m) => m.id);
+    setTaskAssigneeIds((prev) => {
+      const filtered = prev.filter((id) => validIds.includes(id));
+      if (filtered.length > 0) return filtered;
+      return validIds[0] ? [validIds[0]] : [];
+    });
+  }, [selectedDeptId, selectedTeamId, browseMode, editingTask, members.length]);
+
+  const canModifyTask = (task: ClubTask): boolean => {
+    if (task.teamId) return canEditTeam(task.teamId);
+    return canEditDepartment(task.departmentId);
+  };
+
+  // Open Create Task Modal
+  const openCreateTaskModal = (forceTeamId?: string) => {
+    if (forceTeamId) {
+      setBrowseMode("team");
+      setSelectedTeamId(forceTeamId);
+    }
+    setEditingTask(null);
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskCategory(
+      browseMode === "team" || forceTeamId ? "Scientific" : "General"
+    );
+    setTaskDeadline("30 Oct 2026");
+    setTaskLocation(
+      browseMode === "team" || forceTeamId
+        ? "Research Lab B2"
+        : "Main Auditorium"
+    );
+    setTaskScore(25);
+    const defaultAssignees = assignableMembers[0]
+      ? [assignableMembers[0].id]
+      : ["mem-ayoub"];
+    setTaskAssigneeIds(defaultAssignees);
+    setTaskFormModalOpen(true);
+  };
+
+  // Open Edit Task Modal
+  const openEditTaskModal = (task: ClubTask, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!canModifyTask(task)) return;
+    setEditingTask(task);
+    setTaskTitle(task.title);
+    setTaskDescription(task.description || "");
+    setTaskCategory(task.category);
+    setTaskDeadline(task.deadline);
+    setTaskLocation(task.locationOrShift);
+    setTaskScore(task.proposedScore);
+    setTaskAssigneeIds(task.assignees.map((a) => a.memberId));
+    setTaskFormModalOpen(true);
+  };
+
+  const toggleAssigneeSelection = (memberId: string) => {
+    setTaskAssigneeIds((prev) => {
+      if (prev.includes(memberId)) {
+        return prev.length > 1 ? prev.filter((id) => id !== memberId) : prev;
+      }
+      return [...prev, memberId];
+    });
+  };
+
+  const handleSaveTaskSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canEditCurrentScope && (!editingTask || !canModifyTask(editingTask))) {
+      return;
+    }
+
+    const cleanTitle =
+      taskTitle.trim() ||
+      (browseMode === "team"
+        ? `${currentTeam.name} Deliverable`
+        : `${currentDept.shortName} Operations Task`);
+
+    const finalAssignees =
+      taskAssigneeIds.length > 0
+        ? taskAssigneeIds
+        : assignableMembers[0]
+        ? [assignableMembers[0].id]
+        : ["mem-ayoub"];
+
+    if (editingTask) {
+      updateTask(editingTask.id, {
+        title: cleanTitle,
+        description: taskDescription.trim() || editingTask.description,
+        category: taskCategory,
+        deadline: taskDeadline,
+        locationOrShift: taskLocation,
+        proposedScore: taskScore,
+        assigneeIds: finalAssignees,
+      });
+      setToastBanner(`Updated task "${cleanTitle}" (${taskScore} XP)`);
+    } else {
+      createTask({
+        title: cleanTitle,
+        description:
+          taskDescription.trim() ||
+          (browseMode === "team"
+            ? `Assigned in ${currentTeam.name} scientific team.`
+            : `Assigned in ${currentDept.name} department.`),
+        category: taskCategory,
+        departmentId: browseMode === "team" ? "dept-events" : selectedDeptId,
+        teamId: browseMode === "team" ? selectedTeamId : undefined,
+        deadline: taskDeadline,
+        locationOrShift: taskLocation,
+        proposedScore: taskScore,
+        assigneeIds: finalAssignees,
+      });
+      setToastBanner(
+        `Added task "${cleanTitle}" (+${taskScore} XP) for ${finalAssignees.length} member(s)`
+      );
+    }
+
+    setTaskFormModalOpen(false);
+    setEditingTask(null);
+    setTaskViewTab("active");
+  };
+
+  // Validate & Score Task
+  const openTaskScoringModal = (task: ClubTask, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!canModifyTask(task)) return;
+    setScoringTaskModal(task);
     setScoreType("Full");
     setCustomScore(task.proposedScore);
     setFeedbackNote(
@@ -297,134 +592,214 @@ export default function MobileManagerWorkspacePage() {
 
   const handleValidateTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeTaskModal) return;
-    if (!feedbackNote.trim()) return;
+    if (!scoringTaskModal || !feedbackNote.trim()) return;
 
     const targetAssignee =
-      activeTaskModal.assignees[0]?.memberId || "mem-ayoub";
-
-    const validatorLabel =
-      roleMode === "Dept Manager"
-        ? `${deptHeadMember?.fullName || "Lotfi Benali"} (Dept Manager)`
-        : roleMode === "Co-Manager"
-        ? `${deptCoManagerMember?.fullName || "Nesrine Khelifi"} (Co-Manager)`
-        : `${currentMember.fullName} (Team Leader)`;
+      scoringTaskModal.assignees[0]?.memberId || "mem-ayoub";
 
     validateAndScoreTask({
-      taskId: activeTaskModal.id,
+      taskId: scoringTaskModal.id,
       memberId: targetAssignee,
       scoreType,
       awardedScore: customScore,
       feedback: feedbackNote.trim(),
-      validatorName: validatorLabel,
+      validatorName: `${currentMember.fullName} (${primaryRoleLabel})`,
     });
 
     setRestoredTaskIds((prev) =>
-      prev.filter((id) => id !== activeTaskModal.id)
+      prev.filter((id) => id !== scoringTaskModal.id)
     );
-    setToastBanner(
-      `Validated "${activeTaskModal.title}" (+${customScore} XP · ${scoreType}) — Moved to Done & Old Tasks`
-    );
-    setActiveTaskModal(null);
+    setToastBanner(`Validated "${scoringTaskModal.title}" (+${customScore} XP)`);
+    setScoringTaskModal(null);
   };
 
   const handleArchiveSingleTask = (task: ClubTask, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canModifyTask(task)) return;
     archiveTask(task.id);
     setRestoredTaskIds((prev) => prev.filter((id) => id !== task.id));
-    setToastBanner(`Archived task "${task.title}" to Done & Old Tasks`);
+    setToastBanner(`Archived "${task.title}"`);
   };
 
   const handleRestoreSingleTask = (task: ClubTask, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canModifyTask(task)) return;
     unarchiveTask(task.id);
     setRestoredTaskIds((prev) => Array.from(new Set([...prev, task.id])));
-    setToastBanner(`Restored "${task.title}" back to Active Tasks`);
+    setToastBanner(`Restored "${task.title}"`);
   };
 
   const handleArchiveAllCompleted = () => {
+    if (!canEditCurrentScope) return;
     archiveAllCompletedTasks();
     setRestoredTaskIds([]);
-    setToastBanner("All completed tasks archived to Done & Old Tasks");
+    setToastBanner("Archived completed tasks");
   };
 
-  const toggleAssigneeSelection = (memberId: string) => {
-    // Enforce strict department/team membership check
-    if (!assignableMembers.some((m) => m.id === memberId)) return;
-    setNewTaskAssigneeIds((prev) => {
-      if (prev.includes(memberId)) {
-        return prev.length > 1 ? prev.filter((id) => id !== memberId) : prev;
-      }
-      return [...prev, memberId];
-    });
+  // Notes Handlers
+  const openAddNoteModal = () => {
+    if (!canEditCurrentScope) return;
+    setEditingNote(null);
+    setNoteTitle("");
+    setNoteBody("");
+    setNoteTag(browseMode === "team" ? "Scientific" : "Operations");
+    setNotePinned(true);
+    setNoteModalOpen(true);
   };
 
-  const handleCreateTaskSubmit = (e: React.FormEvent) => {
+  const openEditNoteModal = (note: WorkspaceNote) => {
+    if (!canEditCurrentScope) return;
+    setEditingNote(note);
+    setNoteTitle(note.title);
+    setNoteBody(note.body);
+    setNoteTag(note.tag);
+    setNotePinned(note.pinned);
+    setNoteModalOpen(true);
+  };
+
+  const handleSaveNoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canAssignTasks) return;
+    if (!canEditCurrentScope) return;
+    const cleanTitle =
+      noteTitle.trim() ||
+      (browseMode === "team"
+        ? `${currentTeam.name} Lab Note`
+        : `${currentDept.shortName} Operational Note`);
+    const cleanBody =
+      noteBody.trim() ||
+      "Key operational checklist and session coordination update.";
+
+    if (editingNote) {
+      const updated = notes.map((n) =>
+        n.id === editingNote.id
+          ? {
+              ...n,
+              title: cleanTitle,
+              body: cleanBody,
+              tag: noteTag,
+              pinned: notePinned,
+              updatedAt: "Just now",
+            }
+          : n
+      );
+      persistNotes(updated);
+      setToastBanner(`Updated note "${cleanTitle}"`);
+    } else {
+      const created: WorkspaceNote = {
+        id: `note-${Date.now()}`,
+        scopeType: browseMode,
+        scopeId: browseMode === "department" ? selectedDeptId : selectedTeamId,
+        title: cleanTitle,
+        body: cleanBody,
+        tag: noteTag,
+        authorName: currentMember.fullName,
+        authorRole: primaryRoleLabel,
+        updatedAt: "Just now",
+        pinned: notePinned,
+        archived: false,
+      };
+      persistNotes([created, ...notes]);
+      setToastBanner(`Added note "${cleanTitle}"`);
+    }
+
+    setNoteModalOpen(false);
+    setEditingNote(null);
+  };
+
+  const toggleNotePin = (noteId: string) => {
+    if (!canEditCurrentScope) return;
+    persistNotes(
+      notes.map((n) => (n.id === noteId ? { ...n, pinned: !n.pinned } : n))
+    );
+  };
+
+  const toggleNoteArchive = (noteId: string) => {
+    if (!canEditCurrentScope) return;
+    persistNotes(
+      notes.map((n) => (n.id === noteId ? { ...n, archived: !n.archived } : n))
+    );
+  };
+
+  // Team Details Edit Handlers
+  const openEditTeamDetails = (team: ScientificTeam) => {
+    if (!canEditTeam(team.id)) return;
+    setEditingTeamModal(team);
+    setEditTeamName(team.name);
+    setEditTeamField(team.field);
+    setEditTeamDesc(team.description);
+  };
+
+  const handleSaveTeamDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeamModal || !canEditTeam(editingTeamModal.id)) return;
+    updateTeam(editingTeamModal.id, {
+      name: editTeamName.trim() || editingTeamModal.name,
+      field: editTeamField.trim() || editingTeamModal.field,
+      description: editTeamDesc.trim() || editingTeamModal.description,
+    });
+    setToastBanner(
+      `Updated team "${editTeamName.trim() || editingTeamModal.name}"`
+    );
+    setEditingTeamModal(null);
+  };
+
+  // Messaging Handlers
+  const openDirectMessageModal = (mem: Member) => {
+    if (!canEditCurrentScope) return;
+    setMessageTargetMember(mem);
+    setMessagePriority("Info");
+    setMessageTitle(
+      `${
+        browseMode === "team" ? currentTeam.name : currentDept.shortName
+      } Coordination`
+    );
+    setMessageBody("");
+    setMessageModalOpen(true);
+  };
+
+  const openBroadcastMessageModal = () => {
+    if (!canEditCurrentScope) return;
+    setMessageTargetMember(null);
+    setMessagePriority("Official notice");
+    setMessageTitle(
+      `${
+        browseMode === "team" ? currentTeam.name : currentDept.shortName
+      } Update`
+    );
+    setMessageBody("");
+    setMessageModalOpen(true);
+  };
+
+  const handleSendMessageSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canEditCurrentScope) return;
+    const recipientLabel = messageTargetMember
+      ? messageTargetMember.fullName
+      : browseMode === "team"
+      ? `Scientific Team: ${currentTeam.name}`
+      : `Department: ${currentDept.name}`;
 
     const cleanTitle =
-      newTaskTitle.trim() ||
-      (isTeamLeader
-        ? `Prepare ${currentTeam.name} Lab Protocol`
-        : `Coordinate ${currentDept.shortName} Operations`);
-
-    // Strictly filter assignees to allowed scope (own department for Manager/Co-Manager, own team for Team Leader)
-    const allowedIds = new Set(assignableMembers.map((m) => m.id));
-    const safeAssigneeIds = newTaskAssigneeIds.filter((id) =>
-      allowedIds.has(id)
-    );
-    const finalAssignees =
-      safeAssigneeIds.length > 0
-        ? safeAssigneeIds
-        : assignableMembers[0]
-        ? [assignableMembers[0].id]
-        : ["mem-ayoub"];
-
-    createTask({
-      title: cleanTitle,
-      description: isTeamLeader
-        ? `Assigned by Team Leader (${currentTeam.name}) to team members.`
-        : `Assigned by ${roleMode} in ${currentDept.name} to department members.`,
-      category: newTaskCategory,
-      departmentId: selectedDeptId,
-      teamId: isTeamLeader ? selectedTeamId : undefined,
-      deadline: newTaskDeadline,
-      locationOrShift: newTaskLocation,
-      proposedScore: newTaskScore,
-      assigneeIds: finalAssignees,
-    });
-
-    const scopeLabel = isTeamLeader
-      ? `${currentTeam.name} team`
-      : `${currentDept.shortName} department`;
-    setToastBanner(
-      `Assigned [${newTaskCategory}] task "${cleanTitle}" (${newTaskScore} XP) to ${finalAssignees.length} ${scopeLabel} member(s)`
-    );
-    setNewTaskTitle("");
-    setCreateTaskOpen(false);
-    setTaskViewTab("active");
-  };
-
-  const handleSendQuickMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickMessageTarget) return;
-    const body =
-      quickMsgText.trim() ||
-      `Hi ${quickMessageTarget.fullName}, please sync with ${currentDept.shortName} leadership before Saturday's session.`;
+      messageTitle.trim() ||
+      `${
+        browseMode === "team" ? currentTeam.name : currentDept.shortName
+      } Notice`;
+    const cleanBody =
+      messageBody.trim() ||
+      `Please review the updated tasks and operational notes for this week's session.`;
 
     sendClubMessage({
-      recipientScope: quickMessageTarget.fullName,
-      priority: "Info",
-      title: `${roleMode} Note · ${currentDept.shortName}`,
-      body,
+      recipientScope: recipientLabel,
+      priority: messagePriority,
+      title: cleanTitle,
+      body: cleanBody,
       inApp: true,
       email: false,
     });
 
-    setToastBanner(`Sent message to ${quickMessageTarget.fullName}`);
-    setQuickMsgText("");
-    setQuickMessageTarget(null);
+    setToastBanner(`Sent message to ${recipientLabel}`);
+    setMessageModalOpen(false);
+    setMessageTargetMember(null);
   };
 
   const handleOrganizerQrScan = () => {
@@ -437,79 +812,35 @@ export default function MobileManagerWorkspacePage() {
     setScanFeedback(res.message);
   };
 
-  const renderUrgencyPill = (
-    label: ClubTask["urgencyLabel"],
-    archived?: boolean
-  ) => {
-    if (archived) {
-      return (
-        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold">
-          Archived
-        </span>
-      );
-    }
-    if (label === "Today") {
-      return (
-        <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
-          Today
-        </span>
-      );
-    }
-    if (label === "2 days left") {
-      return (
-        <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">
-          2 days left
-        </span>
-      );
-    }
-    if (label === "In progress") {
-      return (
-        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
-          In progress
-        </span>
-      );
-    }
-    if (label === "Completed") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-100 text-[#1D63EB] text-[10px] font-extrabold">
-          <Check className="w-3 h-3" />
-          <span>Validated</span>
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold">
-        <Check className="w-3 h-3" />
-        <span>To do</span>
-      </span>
-    );
-  };
+  const deptHead = members.find((m) => m.id === currentDept.headMemberId);
+  const deptSubManager = members.find(
+    (m) => m.id === currentDept.coManagerMemberId
+  );
+  const teamLeader = members.find((m) => m.id === currentTeam.leaderMemberId);
 
   return (
     <MobileAppShell>
-      {/* Scrollable Workspace Content */}
-      <div className="flex-1 flex flex-col px-4 sm:px-5 pt-3 pb-6 space-y-3.5 animate-rise">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight leading-tight">
-              Department Workspace
+      <div className="flex-1 flex flex-col px-4 sm:px-5 pt-3 pb-6 space-y-3 animate-rise">
+        {/* Top Header */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block">
+              Organigramme &amp; Operations
+            </span>
+            <h1 className="text-lg sm:text-xl font-black font-display text-[#0F172A] tracking-tight">
+              Manager Workspace
             </h1>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 font-sans mt-0.5">
-              Peer Task Visibility, Scoped Assignment &amp; Operations
-            </p>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {canAssignTasks && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {canEditCurrentScope && (
               <button
                 type="button"
                 onClick={() => {
                   setScanFeedback(null);
                   setScanModalOpen(true);
                 }}
-                title="Organizer Scan Member QR"
-                className="px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#1D63EB] text-xs font-bold font-display active:scale-[0.98] flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#0284C7] text-[11px] font-bold flex items-center gap-1 active:scale-[0.98] transition cursor-pointer"
               >
                 <QrCode className="w-3.5 h-3.5" />
                 <span>Scan QR</span>
@@ -517,558 +848,743 @@ export default function MobileManagerWorkspacePage() {
             )}
             <Link
               href="/notifications"
-              className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-xs active:scale-[0.98] transition"
+              aria-label="Notifications"
+              className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center text-[#0F172A] hover:bg-[#F0F6FF] transition"
             >
               <Bell className="w-4 h-4" />
             </Link>
           </div>
         </div>
 
-        {/* Department Operational Clearance & Identity Card */}
-        <div className="rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 space-y-2 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 animate-rise">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-mono font-black uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5 font-display">
-              <Shield className="w-4 h-4" />
-              <span>{roleMode} Clearance</span>
-            </span>
-            <span className="px-2.5 py-0.5 rounded-md bg-white/15 text-white text-xs font-bold border border-white/20 font-display">
-              {currentDept.shortName}
-            </span>
+        {/* Organigramme Member & Role Identity Card (Synced with Admin Dashboard) */}
+        <div className="rounded-xl bg-gradient-to-br from-[#182C4E] via-[#132441] to-[#0E1B31] text-white p-3.5 shadow-[0_10px_26px_rgba(16,31,56,0.16)] border border-[#2B4875]/60 space-y-2.5">
+          <div className="flex items-center gap-2.5">
+            <img
+              src={currentMember.avatarUrl}
+              alt={currentMember.fullName}
+              className="w-10 h-10 rounded-lg object-cover border border-[#38BDF8]/40 shrink-0"
+            />
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs sm:text-sm font-extrabold text-white leading-tight">
+                  {currentMember.fullName}
+                </p>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC] flex items-center gap-1 shrink-0">
+                  <Shield className="w-3 h-3 text-[#38BDF8]" />
+                  <span>Organigramme</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 flex-wrap">
+                {currentMemberRoleBadges.map((badge) => (
+                  <span
+                    key={badge}
+                    className="px-2 py-0.5 rounded-md bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30 text-[9.5px] font-mono font-bold"
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm text-sky-100/90 font-medium leading-relaxed font-sans">
-            {roleMode === "Dept Manager" || roleMode === "Co-Manager"
-              ? `Operational management authority for ${currentDept.name} tasks, member assignments, and check-in rosters.`
-              : roleMode === "Team Leader"
-              ? `Scientific leadership for ${currentTeam.name} — reviewing peer research deliverables and team assignments.`
-              : `Department peer transparency for ${currentDept.name} member tasks and collaborative projects.`}
-          </p>
+
+          {/* Switch active Organigramme member */}
+          <div className="relative pt-1 border-t border-white/10">
+            <select
+              value={currentMember.id}
+              onChange={(e) => setCurrentMemberId(e.target.value)}
+              aria-label="Switch Organigramme Member"
+              className="w-full appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-[#0B1528]/80 border border-[#38BDF8]/35 text-[11px] font-bold text-[#7DD3FC] focus:outline-none cursor-pointer"
+            >
+              {members
+                .filter(
+                  (m) => m.status !== "Resigned" && m.status !== "Removed"
+                )
+                .map((m) => {
+                  const roleSummary = getMemberOrganigrammeBadges(m)[0];
+                  return (
+                    <option
+                      key={m.id}
+                      value={m.id}
+                      className="bg-[#0E1B31] text-white"
+                    >
+                      {m.fullName} · {roleSummary}
+                    </option>
+                  );
+                })}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-[#7DD3FC] pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 mt-0.5" />
+          </div>
         </div>
 
-        {/* Department & Scientific Team Selectors */}
-        <div
-          className={`grid gap-2.5 ${
-            isTeamLeader ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
-          }`}
-        >
-          <div className="relative">
-            <select
-              value={selectedDeptId}
-              onChange={(e) => setSelectedDeptId(e.target.value)}
-              aria-label="Select Department"
-              className="w-full appearance-none px-4 py-2.5 pr-9 rounded-full bg-white/80 backdrop-blur-md border border-white/90 text-xs font-black text-slate-900 shadow-2xs focus:outline-none focus:bg-white focus:border-[#1D63EB] transition-all"
+        {/* Scope Selector Bar: Browse Departments vs Scientific Teams */}
+        <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+          <div className="grid grid-cols-2 gap-1 bg-[#F4F7FB] p-1 rounded-lg border border-slate-200/60">
+            <button
+              type="button"
+              onClick={() => setBrowseMode("department")}
+              className={`py-1.5 px-2.5 rounded-md text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                browseMode === "department"
+                  ? "bg-[#182C4E] text-white shadow-2xs"
+                  : "text-[#475569] hover:text-[#0F172A]"
+              }`}
             >
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  Dept: {dept.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-slate-500 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Departments (6)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setBrowseMode("team")}
+              className={`py-1.5 px-2.5 rounded-md text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                browseMode === "team"
+                  ? "bg-[#182C4E] text-white shadow-2xs"
+                  : "text-[#475569] hover:text-[#0F172A]"
+              }`}
+            >
+              <Orbit className="w-3.5 h-3.5" />
+              <span>Scientific Teams ({activeTeams.length})</span>
+            </button>
           </div>
 
-          {isTeamLeader && (
-            <div className="relative">
-              <select
-                value={selectedTeamId}
-                onChange={(e) => setSelectedTeamId(e.target.value)}
-                aria-label="Select Scientific Team"
-                className="w-full appearance-none px-4 py-2.5 pr-9 rounded-full bg-indigo-50/80 backdrop-blur-md border border-indigo-200 text-xs font-black text-indigo-950 shadow-2xs focus:outline-none focus:bg-white focus:border-indigo-600 transition-all"
-              >
-                {teams
-                  .filter((t) => !t.archived)
-                  .map((team) => (
-                    <option key={team.id} value={team.id}>
-                      Team: {team.name}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              {browseMode === "department" ? (
+                <select
+                  value={selectedDeptId}
+                  onChange={(e) => setSelectedDeptId(e.target.value)}
+                  aria-label="Inspect Department"
+                  className="w-full appearance-none px-3 py-2 pr-8 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#0F172A] focus:outline-none focus:border-[#0284C7]"
+                >
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
                     </option>
                   ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-indigo-600 pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" />
-            </div>
-          )}
-        </div>
-
-        {/* Sub-Tabs: Overview | Members | Tasks | Teams */}
-        <div className="grid grid-cols-4 gap-1 bg-white/80 backdrop-blur-md p-1.5 rounded-full border border-white/80 shadow-[0_2px_12px_rgba(9,25,47,0.04)]">
-          {(["Overview", "Members", "Tasks", "Teams"] as ManagerSubTab[]).map(
-            (tab) => {
-              const active = subTab === tab;
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setSubTab(tab)}
-                  className={`py-2 rounded-full text-xs font-extrabold active:scale-[0.98] transition cursor-pointer ${
-                    active
-                      ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                </select>
+              ) : (
+                <select
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  aria-label="Inspect Scientific Team"
+                  className="w-full appearance-none px-3 py-2 pr-8 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#0F172A] focus:outline-none focus:border-[#0284C7]"
                 >
-                  {tab}
-                </button>
-              );
-            }
-          )}
+                  {activeTeams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <ChevronDown className="w-4 h-4 text-[#475569] pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" />
+            </div>
+
+            {canEditCurrentScope && (
+              <button
+                type="button"
+                onClick={openBroadcastMessageModal}
+                className="px-2.5 py-2 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[11px] font-bold flex items-center gap-1 shrink-0 active:scale-[0.98] transition cursor-pointer"
+                title="Send message to this scope"
+              >
+                <Megaphone className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span>Message</span>
+              </button>
+            )}
+          </div>
+
+          {/* Scope Organigramme Leadership Strip */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5 text-[10.5px] text-[#475569]">
+            {browseMode === "department" ? (
+              <>
+                <span className="px-2 py-0.5 rounded bg-[#F8FAFC] border border-slate-200/80 font-semibold">
+                  Manager:{" "}
+                  <strong className="text-[#0F172A]">
+                    {deptHead?.fullName || "Unassigned"}
+                  </strong>
+                </span>
+                <span className="px-2 py-0.5 rounded bg-[#F8FAFC] border border-slate-200/80 font-semibold">
+                  Sub-Manager:{" "}
+                  <strong className="text-[#0F172A]">
+                    {deptSubManager?.fullName || "Unassigned"}
+                  </strong>
+                </span>
+              </>
+            ) : (
+              <span className="px-2 py-0.5 rounded bg-[#F8FAFC] border border-slate-200/80 font-semibold">
+                Team Leader:{" "}
+                <strong className="text-[#0F172A]">
+                  {teamLeader?.fullName || "Unassigned"}
+                </strong>
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Toast Banner */}
+        {/* 5 Sub-Tabs: Overview | Tasks | Members | Teams | Notes */}
+        <div className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+          {(
+            [
+              "Overview",
+              "Tasks",
+              "Members",
+              "Teams",
+              "Notes",
+            ] as ManagerSubTab[]
+          ).map((tab) => {
+            const active = subTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setSubTab(tab)}
+                className={`py-1.5 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition cursor-pointer ${
+                  active
+                    ? "bg-[#182C4E] text-white shadow-2xs"
+                    : "text-[#475569] hover:text-[#0F172A]"
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Toast Feedback */}
         {toastBanner && (
-          <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 text-xs text-emerald-950 font-bold animate-rise">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{toastBanner}</span>
+          <div className="p-2.5 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2 text-xs text-[#0F172A] font-bold">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 className="w-4 h-4 text-[#0284C7] shrink-0" />
+              <span className="line-clamp-1">{toastBanner}</span>
             </div>
             <button
               type="button"
               onClick={() => setToastBanner(null)}
-              className="text-emerald-600 cursor-pointer"
+              className="text-[#64748B] hover:text-[#0F172A] cursor-pointer shrink-0"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* 4-Column KPI Strip */}
+        {/* Compact 4-Column KPI Strip */}
         <div className="grid grid-cols-4 gap-2">
-          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-tight tabular-nums">
-              {deptMembers.length.toLocaleString()}
+          <button
+            type="button"
+            onClick={() => setSubTab("Members")}
+            className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-left hover:border-[#38BDF8] transition cursor-pointer"
+          >
+            <span className="text-base sm:text-lg font-black font-display text-[#0F172A] block leading-none tabular-nums">
+              {scopeMembers.length}
             </span>
-            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
+            <span className="text-[10px] font-semibold text-[#64748B] block mt-1">
               Members
             </span>
-          </div>
-          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-display text-[#1D63EB] block leading-tight tabular-nums">
-              {activeTasks.length.toLocaleString()}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSubTab("Tasks");
+              setTaskViewTab("active");
+            }}
+            className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-left hover:border-[#38BDF8] transition cursor-pointer"
+          >
+            <span className="text-base sm:text-lg font-black font-display text-[#0284C7] block leading-none tabular-nums">
+              {activeTasks.length}
             </span>
-            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
+            <span className="text-[10px] font-semibold text-[#64748B] block mt-1">
               Active
             </span>
-          </div>
-          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-display text-indigo-700 block leading-tight tabular-nums">
-              {crossDeptTasksForDeptMembers.length.toLocaleString()}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSubTab("Tasks");
+              setTaskViewTab("done");
+            }}
+            className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-left hover:border-[#38BDF8] transition cursor-pointer"
+          >
+            <span className="text-base sm:text-lg font-black font-display text-[#182C4E] block leading-none tabular-nums">
+              {doneTasks.length}
             </span>
-            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
-              Cross-Dept
+            <span className="text-[10px] font-semibold text-[#64748B] block mt-1 flex items-center gap-1">
+              <Archive className="w-3 h-3 text-[#0284C7]" />
+              <span>Done</span>
             </span>
-          </div>
-          <div className="p-3 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] text-center">
-            <span className="text-xl sm:text-2xl font-black font-display text-emerald-700 block leading-tight tabular-nums">
-              {(isManagerOrCoManager ? allClubTasks.length : deptTasks.length).toLocaleString()}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab("Notes")}
+            className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-left hover:border-[#38BDF8] transition cursor-pointer"
+          >
+            <span className="text-base sm:text-lg font-black font-display text-emerald-700 block leading-none tabular-nums">
+              {activeNotes.length}
             </span>
-            <span className="text-xs font-bold font-display text-slate-500 leading-tight block mt-1">
-              {isManagerOrCoManager ? "All Club" : "Total"}
+            <span className="text-[10px] font-semibold text-[#64748B] block mt-1">
+              Notes
             </span>
-          </div>
+          </button>
         </div>
 
-        {/* TASKS & VISIBILITY SECTION */}
+        {/* =========================================================
+            SECTION A: TASKS & SMALL ARCHIVE BOXES (Overview + Tasks)
+           ========================================================= */}
         {(subTab === "Overview" || subTab === "Tasks") && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div>
-                <h2 className="text-sm font-extrabold text-slate-900">
-                  {taskScope === "all-club"
-                    ? "All Club Tasks (Manager & Co-Manager View)"
-                    : taskScope === "team"
-                    ? `${currentTeam.name} · Team Tasks`
-                    : taskScope === "other-dept-our-members"
-                    ? `Other Dept Tasks (${currentDept.shortName} Members Only)`
-                    : `${currentDept.shortName} · Department Tasks (Peer View)`}
-                </h2>
-                <p className="text-[10.5px] text-slate-500">
-                  {isManagerOrCoManager
-                    ? `Managers & Co-Managers can view all tasks club-wide, and assign tasks to ${currentDept.shortName} members.`
-                    : isTeamLeader
-                    ? `Team Leaders can view team/dept tasks and assign tasks strictly to ${currentTeam.name} members.`
-                    : `Department members can see all ${currentDept.shortName} peer tasks and cross-dept tasks involving ${currentDept.shortName} members.`}
-                </p>
-              </div>
+          <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                <ClipboardCheck className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+                <span>Tasks</span>
+              </h2>
 
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {canAssignTasks && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleArchiveAllCompleted}
-                      className="px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-white/80 hover:bg-white text-slate-700 text-[10.5px] font-bold active:scale-[0.98] flex items-center gap-1 shadow-[0_2px_8px_rgba(9,25,47,0.04)] transition cursor-pointer"
-                    >
-                      <Archive className="w-3.5 h-3.5 text-slate-600" />
-                      <span>Archive Completed</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCreateTaskOpen(true)}
-                      className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-[11px] font-black active:scale-[0.98] flex items-center gap-1 shadow-[0_4px_14px_rgba(29,99,235,0.25)] transition cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>
-                        {isTeamLeader
-                          ? `Assign Team Task`
-                          : `Assign ${currentDept.shortName} Task`}
-                      </span>
-                    </button>
-                  </>
-                )}
-                {!canAssignTasks && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 backdrop-blur-md border border-white/80 text-slate-600 text-[10.5px] font-bold shadow-2xs">
-                    <Eye className="w-3 h-3 text-[#1D63EB]" />
-                    <span>Peer Transparency Mode</span>
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Scope Filter Bar based on Role Rules */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              {isTeamLeader && (
-                <button
-                  type="button"
-                  onClick={() => setTaskScope("team")}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border transition cursor-pointer flex items-center gap-1.5 ${
-                    taskScope === "team"
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_4px_12px_rgba(79,70,229,0.3)]"
-                      : "bg-white/80 backdrop-blur-md text-slate-600 border-white/80 hover:bg-white"
-                  }`}
-                >
-                  <Orbit className="w-3.5 h-3.5" />
-                  <span>
-                    My Team Tasks ({scientificTeamTasks.length})
-                  </span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setTaskScope("dept")}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border transition cursor-pointer flex items-center gap-1.5 ${
-                  taskScope === "dept"
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white border-transparent shadow-[0_4px_12px_rgba(29,99,235,0.3)]"
-                    : "bg-white/80 backdrop-blur-md text-slate-600 border-white/80 hover:bg-white"
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>
-                  {currentDept.shortName} Member Tasks ({deptTasks.length})
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTaskScope("other-dept-our-members")}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border transition cursor-pointer flex items-center gap-1.5 ${
-                  taskScope === "other-dept-our-members"
-                    ? "bg-gradient-to-r from-[#094C9C] to-[#062456] text-white border-transparent shadow-[0_4px_12px_rgba(9,76,156,0.3)]"
-                    : "bg-white/80 backdrop-blur-md text-slate-600 border-white/80 hover:bg-white"
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>
-                  Other Depts · {currentDept.shortName} Members Only (
-                  {crossDeptTasksForDeptMembers.length})
-                </span>
-              </button>
-
-              {isManagerOrCoManager && (
-                <button
-                  type="button"
-                  onClick={() => setTaskScope("all-club")}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border transition cursor-pointer flex items-center gap-1.5 ${
-                    taskScope === "all-club"
-                      ? "bg-[#061E47] text-[#38E4FF] border-[#061E47] shadow-[0_4px_12px_rgba(6,30,71,0.3)]"
-                      : "bg-white/80 backdrop-blur-md text-slate-600 border-white/80 hover:bg-white"
-                  }`}
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>All Club Tasks ({allClubTasks.length})</span>
-                </button>
-              )}
-            </div>
-
-            {/* Category Filter Strip */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-              {(["All", ...ALL_TASK_CATEGORIES] as const).map((cat) => {
-                const active = categoryFilter === cat;
-                return (
+              {canEditCurrentScope && (
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
-                    key={cat}
                     type="button"
-                    onClick={() => setCategoryFilter(cat)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold whitespace-nowrap transition cursor-pointer ${
-                      active
-                        ? "bg-slate-900 text-white shadow-xs"
-                        : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white"
-                    }`}
+                    onClick={() => openCreateTaskModal()}
+                    className="px-2.5 py-1.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[11px] font-bold flex items-center gap-1 active:scale-[0.98] transition cursor-pointer"
                   >
-                    {cat === "General" ? "General (All-Hands)" : cat}
+                    <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                    <span>Add Task</span>
                   </button>
-                );
-              })}
-            </div>
-
-            {/* Segmented Switcher for Active Tasks vs Done & Old Tasks */}
-            <div className="grid grid-cols-2 gap-1.5 bg-white/80 backdrop-blur-md p-1.5 rounded-full border border-white/80 shadow-[0_2px_12px_rgba(9,25,47,0.04)]">
-              <button
-                type="button"
-                onClick={() => setTaskViewTab("active")}
-                className={`py-2 px-3 rounded-full text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  taskViewTab === "active"
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <ClipboardCheck className="w-3.5 h-3.5" />
-                <span>Active Tasks ({activeTasks.length})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTaskViewTab("done")}
-                className={`py-2 px-3 rounded-full text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  taskViewTab === "done"
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Done &amp; Old Tasks ({doneTasks.length})</span>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {displayedTasks.length === 0 ? (
-                <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-[0_4px_18px_rgba(9,25,47,0.03)]">
-                  <p className="text-xs font-bold text-slate-700">
-                    {taskViewTab === "active"
-                      ? "No active tasks in this view"
-                      : "No completed or archived tasks in this view"}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {taskScope === "other-dept-our-members"
-                      ? `Only tasks from other departments that include a member of ${currentDept.shortName} appear here.`
-                      : "Switch tabs or assign a new task to get started."}
-                  </p>
                 </div>
-              ) : (
-                displayedTasks.map((task) => {
-                  const isDoneOrArchived =
-                    !restoredTaskIds.includes(task.id) &&
-                    (Boolean(task.archived) ||
-                      task.urgencyLabel === "Completed");
-                  const taskDept = departments.find(
-                    (d) => d.id === task.departmentId
-                  );
-                  const isCrossDept = task.departmentId !== selectedDeptId;
+              )}
+            </div>
 
-                  return (
-                    <div
-                      key={task.id}
-                      onClick={() => openTaskScoringModal(task)}
-                      className={`p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] transition space-y-3 ${
-                        canAssignTasks
-                          ? "hover:border-blue-300 hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] cursor-pointer"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2.5">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`w-6 h-6 mt-0.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                              isDoneOrArchived
-                                ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-xs"
-                                : "border-2 border-slate-300 bg-white"
-                            }`}
-                          >
-                            {isDoneOrArchived && (
-                              <Check className="w-3.5 h-3.5" />
-                            )}
-                          </div>
+            {/* Compact Active vs Icon-Only Archive Toggle + Category Filter */}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="inline-flex items-center rounded-lg bg-[#F4F7FB] p-0.5 border border-slate-200/70">
+                <button
+                  type="button"
+                  onClick={() => setTaskViewTab("active")}
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    taskViewTab === "active"
+                      ? "bg-[#182C4E] text-white shadow-2xs"
+                      : "text-[#475569] hover:text-[#0F172A]"
+                  }`}
+                >
+                  Active ({activeTasks.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTaskViewTab("done")}
+                  title="Done & Archive"
+                  aria-label="Done & Archive"
+                  className={`p-1.5 rounded-md transition cursor-pointer flex items-center justify-center ${
+                    taskViewTab === "done"
+                      ? "bg-[#182C4E] text-white shadow-2xs"
+                      : "text-[#475569] hover:text-[#0F172A]"
+                  }`}
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) =>
+                    setCategoryFilter(e.target.value as "All" | TaskCategory)
+                  }
+                  aria-label="Filter Tasks by Category"
+                  className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-slate-200 text-[10.5px] font-bold text-[#475569] focus:outline-none"
+                >
+                  <option value="All">All Categories</option>
+                  {ALL_TASK_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                {canEditCurrentScope && taskViewTab === "active" && (
+                  <button
+                    type="button"
+                    onClick={handleArchiveAllCompleted}
+                    className="w-7 h-7 rounded-lg bg-[#F8FAFC] hover:bg-[#F0F6FF] border border-slate-200 text-[#0284C7] flex items-center justify-center cursor-pointer"
+                    title="Archive completed tasks"
+                    aria-label="Archive completed tasks"
+                  >
+                    <Archive className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Active Tasks List vs Compact Small Done/Archive Rows */}
+            {taskViewTab === "active" ? (
+              <div className="space-y-2">
+                {activeTasks.length === 0 ? (
+                  <div className="py-5 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/70 text-center">
+                    <p className="text-xs font-bold text-[#475569]">
+                      No active tasks
+                    </p>
+                  </div>
+                ) : (
+                  activeTasks.map((task) => {
+                    const editable = canModifyTask(task);
+                    return (
+                      <div
+                        key={task.id}
+                        className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/80 hover:border-[#D5E3F5] transition space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span
-                                className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-mono font-extrabold uppercase ${
-                                  task.category === "General"
-                                    ? "bg-amber-100 text-amber-900 border border-amber-300"
-                                    : "bg-sky-50 text-[#1D63EB] border border-sky-200"
-                                }`}
-                              >
+                              <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
                                 {task.category}
                               </span>
-                              <span
-                                className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-bold ${
-                                  isCrossDept
-                                    ? "bg-purple-50 text-purple-800 border border-purple-200"
-                                    : "bg-slate-100 text-slate-700"
-                                }`}
-                              >
-                                {taskDept?.shortName || "Club"}
-                                {isCrossDept ? " (Cross-Dept)" : ""}
-                              </span>
-                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[9.5px] font-extrabold tabular-nums border border-emerald-200/60">
+                              <span className="px-2 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] text-[9.5px] font-mono font-bold tabular-nums">
                                 +{task.proposedScore} XP
                               </span>
+                              <span className="text-[10px] font-semibold text-[#64748B]">
+                                Due {task.deadline} · {task.locationOrShift}
+                              </span>
                             </div>
-
-                            <p
-                              className={`text-xs font-extrabold mt-1.5 leading-snug ${
-                                isDoneOrArchived
-                                  ? "text-slate-500 line-through"
-                                  : "text-slate-900"
-                              }`}
-                            >
+                            <p className="text-xs font-bold text-[#0F172A] mt-1 leading-snug">
                               {task.title}
                             </p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
-                              Due: {task.deadline} · {task.locationOrShift}
-                            </p>
+                            {task.description && (
+                              <p className="text-[11px] text-[#64748B] mt-0.5 line-clamp-2">
+                                {task.description}
+                              </p>
+                            )}
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {renderUrgencyPill(task.urgencyLabel, task.archived)}
-                          {canAssignTasks &&
-                            (isDoneOrArchived ? (
+                          {editable && (
+                            <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
-                                onClick={(e) =>
-                                  handleRestoreSingleTask(task, e)
-                                }
-                                className="px-2.5 py-1 rounded-full bg-white/80 border border-slate-200/80 hover:bg-blue-50 text-slate-700 hover:text-[#1D63EB] text-[10px] font-bold active:scale-[0.98] inline-flex items-center gap-1 transition cursor-pointer shadow-2xs"
-                                title="Restore task to Active Tasks"
+                                onClick={(e) => openEditTaskModal(task, e)}
+                                className="w-7 h-7 rounded-md bg-white border border-slate-200 hover:border-[#0284C7] text-[#0284C7] flex items-center justify-center cursor-pointer"
+                                title="Edit task"
+                                aria-label="Edit task"
                               >
-                                <RotateCcw className="w-3 h-3" />
-                                <span>Restore</span>
+                                <Edit3 className="w-3.5 h-3.5" />
                               </button>
-                            ) : (
                               <button
                                 type="button"
-                                onClick={(e) =>
-                                  handleArchiveSingleTask(task, e)
-                                }
-                                className="px-2.5 py-1 rounded-full bg-white/80 border border-slate-200/80 hover:bg-amber-50 text-slate-700 hover:text-amber-800 text-[10px] font-bold active:scale-[0.98] inline-flex items-center gap-1 transition cursor-pointer shadow-2xs"
-                                title="Archive task to Done & Old Tasks"
+                                onClick={(e) => openTaskScoringModal(task, e)}
+                                className="px-2 py-1 rounded-md bg-[#182C4E] text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                                title="Validate & Score XP"
                               >
-                                <Archive className="w-3 h-3" />
-                                <span>Archive</span>
+                                <Check className="w-3 h-3 text-[#38BDF8]" />
+                                <span>Score</span>
                               </button>
-                            ))}
+                              <button
+                                type="button"
+                                onClick={(e) => handleArchiveSingleTask(task, e)}
+                                className="w-7 h-7 rounded-md bg-white border border-slate-200 text-[#64748B] hover:text-[#0F172A] flex items-center justify-center cursor-pointer"
+                                title="Archive task"
+                                aria-label="Archive task"
+                              >
+                                <Archive className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Peer Assignee Chips */}
-                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Assigned Members:
+                        {/* Assignees Strip */}
+                        <div className="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-slate-200/60">
+                          <span className="text-[9.5px] font-mono font-bold uppercase text-[#64748B]">
+                            Assigned:
                           </span>
                           {task.assignees.map((a) => {
                             const memObj = members.find(
                               (m) => m.id === a.memberId
                             );
-                            const isFromSelectedDept =
-                              memObj?.departmentId === selectedDeptId;
                             return (
-                              <span
+                              <button
                                 key={a.memberId}
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${
-                                  isFromSelectedDept
-                                    ? "bg-[#EBF3FC] text-[#094C9C] border-[#D4E4F7]"
-                                    : "bg-slate-50 text-slate-700 border-slate-200"
-                                }`}
+                                type="button"
+                                onClick={() =>
+                                  memObj && setPortfolioMember(memObj)
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200/90 text-[10px] font-bold text-[#0F172A] hover:border-[#0284C7] cursor-pointer"
+                                title="View Member Portfolio"
                               >
-                                {memObj?.avatarUrl && (
-                                  <img
-                                    src={memObj.avatarUrl}
-                                    alt={a.memberName}
-                                    className="w-3.5 h-3.5 rounded-full object-cover"
-                                  />
-                                )}
                                 <span>{a.memberName}</span>
-                                <span className="text-[9.5px] opacity-75">
-                                  ({a.roleInTask} · {a.status})
+                                <span className="text-[9px] text-[#0284C7] font-mono">
+                                  ({a.status})
                                 </span>
-                              </span>
+                              </button>
                             );
                           })}
                         </div>
                       </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : (
+              /* SMALL COMPACT DONE & ARCHIVE BOXES (Icon-only actions) */
+              <div className="space-y-1.5">
+                {doneTasks.length === 0 ? (
+                  <div className="py-3 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/70 text-center">
+                    <p className="text-[11px] font-semibold text-[#64748B]">
+                      Empty
+                    </p>
+                  </div>
+                ) : (
+                  doneTasks.map((task) => {
+                    const editable = canModifyTask(task);
+                    const awarded =
+                      task.assignees[0]?.awardedScore ?? task.proposedScore;
+                    return (
+                      <div
+                        key={task.id}
+                        className="py-2 px-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80 flex items-center justify-between gap-2"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-4 h-4 rounded-full bg-[#182C4E] text-[#38BDF8] flex items-center justify-center shrink-0">
+                            <Check className="w-2.5 h-2.5" />
+                          </span>
+                          <span className="text-[11px] font-bold text-[#475569] line-through line-clamp-1">
+                            {task.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="px-1.5 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] font-mono text-[9.5px] font-bold tabular-nums">
+                            +{awarded} XP
+                          </span>
+                          {editable && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleRestoreSingleTask(task, e)}
+                              className="w-6 h-6 rounded bg-white border border-slate-200 text-[#475569] hover:text-[#0F172A] flex items-center justify-center cursor-pointer"
+                              title="Restore"
+                              aria-label="Restore"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* DEPARTMENT MEMBERS ROSTER */}
-        {(subTab === "Overview" || subTab === "Members") && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-extrabold text-slate-900">
-                {currentDept.shortName} Department Members ({deptMembers.length})
+        {/* =========================================================
+            SECTION B: WORKSPACE NOTES & BRIEFINGS (Overview + Notes)
+           ========================================================= */}
+        {(subTab === "Overview" || subTab === "Notes") && (
+          <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                <StickyNote className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+                <span>Notes</span>
               </h2>
-              <button
-                type="button"
-                onClick={() => setSubTab("Members")}
-                className="text-xs font-bold text-[#1D63EB] flex items-center gap-0.5 cursor-pointer"
-              >
-                <span>View All</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+
+              {canEditCurrentScope && (
+                <button
+                  type="button"
+                  onClick={openAddNoteModal}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[11px] font-bold flex items-center gap-1 active:scale-[0.98] transition cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Add Note</span>
+                </button>
+              )}
             </div>
 
-            <div className="space-y-2.5">
-              {deptMembers.map((mem) => {
-                const roleLabel = mem.roles.includes("Department Head")
-                  ? "Dept Manager (Head)"
-                  : mem.roles.includes("Co-Manager")
-                  ? "Co-Manager"
-                  : mem.roles.includes("Team Leader")
-                  ? "Team Leader"
-                  : mem.status;
+            {activeNotes.length === 0 ? (
+              <div className="py-4 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/70 text-center">
+                <p className="text-[11px] font-semibold text-[#64748B]">
+                  No active notes yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {activeNotes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {note.pinned && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] text-[9px] font-mono font-bold uppercase">
+                            <Pin className="w-2.5 h-2.5" />
+                            <span>Pinned</span>
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold">
+                          {note.tag}
+                        </span>
+                        <span className="text-[10px] text-[#64748B]">
+                          {note.authorName} · {note.updatedAt}
+                        </span>
+                      </div>
 
-                const memberTaskCount = tasks.filter(
-                  (t) =>
-                    !t.archived &&
-                    t.assignees.some((a) => a.memberId === mem.id)
-                ).length;
+                      {canEditCurrentScope && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleNotePin(note.id)}
+                            className="w-6 h-6 rounded bg-white border border-slate-200 text-[#64748B] hover:text-[#0284C7] flex items-center justify-center cursor-pointer"
+                            title={note.pinned ? "Unpin note" : "Pin note"}
+                          >
+                            <Pin className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openEditNoteModal(note)}
+                            className="w-6 h-6 rounded bg-white border border-slate-200 text-[#64748B] hover:text-[#0F172A] flex items-center justify-center cursor-pointer"
+                            title="Edit note"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleNoteArchive(note.id)}
+                            className="w-6 h-6 rounded bg-white border border-slate-200 text-[#64748B] hover:text-[#0F172A] flex items-center justify-center cursor-pointer"
+                            title="Archive note"
+                          >
+                            <Archive className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-xs font-bold text-[#0F172A]">
+                      {note.title}
+                    </p>
+                    <p className="text-[11px] text-[#475569] leading-relaxed">
+                      {note.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Small Compact Archived Notes Strip (Icon-Only) */}
+            {archivedNotes.length > 0 && (
+              <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                {archivedNotes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="py-1.5 px-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/70 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Archive className="w-3 h-3 text-[#64748B] shrink-0" />
+                      <span className="text-[11px] font-semibold text-[#64748B] line-through line-clamp-1">
+                        {note.title}
+                      </span>
+                    </div>
+                    {canEditCurrentScope && (
+                      <button
+                        type="button"
+                        onClick={() => toggleNoteArchive(note.id)}
+                        className="w-6 h-6 rounded bg-white border border-slate-200 text-[#475569] hover:text-[#0F172A] flex items-center justify-center shrink-0 cursor-pointer"
+                        title="Restore note"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================
+            SECTION C: MEMBERS & ICON-ONLY PORTFOLIO (Overview + Members)
+           ========================================================= */}
+        {(subTab === "Overview" || subTab === "Members") && (
+          <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+                <span>Roster ({scopeMembers.length})</span>
+              </h2>
+
+              {canEditCurrentScope && (
+                <button
+                  type="button"
+                  onClick={openBroadcastMessageModal}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#0284C7] text-[10.5px] font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Broadcast</span>
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {scopeMembers.map((mem) => {
+                const isDeptHead =
+                  browseMode === "department" &&
+                  currentDept.headMemberId === mem.id;
+                const isDeptSub =
+                  browseMode === "department" &&
+                  currentDept.coManagerMemberId === mem.id;
+                const isTeamLead =
+                  browseMode === "team" &&
+                  currentTeam.leaderMemberId === mem.id;
+
+                const roleBadge = isDeptHead
+                  ? "Manager"
+                  : isDeptSub
+                  ? "Sub-Manager"
+                  : isTeamLead
+                  ? "Team Leader"
+                  : getMemberOrganigrammeBadges(mem)[0];
 
                 return (
                   <div
                     key={mem.id}
-                    className="p-3.5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] flex items-center justify-between gap-3"
+                    className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/80 flex items-center justify-between gap-2.5"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <img
                         src={mem.avatarUrl}
                         alt={mem.fullName}
-                        className="w-10 h-10 rounded-full object-cover border border-white shadow-2xs shrink-0"
+                        className="w-9 h-9 rounded-full object-cover border border-white shadow-2xs shrink-0"
                       />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <p className="text-xs font-extrabold text-slate-900 truncate">
+                          <p className="text-xs font-bold text-[#0F172A]">
                             {mem.fullName}
                           </p>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
-                            {mem.status}
+                          <span className="px-1.5 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold">
+                            {roleBadge}
                           </span>
                         </div>
-                        <p className="text-[11px] font-medium text-slate-500 mt-0.5 tabular-nums">
-                          {roleLabel} · {mem.xpTotal} XP · {memberTaskCount}{" "}
-                          active task(s)
+                        <p className="text-[10.5px] text-[#64748B] line-clamp-1 tabular-nums">
+                          {mem.major} · {mem.xpTotal} XP · {mem.attendanceRate}%
+                          att.
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {/* Icon-Only Portfolio Button */}
                       <button
                         type="button"
-                        onClick={() => setQuickMessageTarget(mem)}
-                        className="w-9 h-9 rounded-lg bg-white/90 border border-slate-200/80 text-[#1D63EB] hover:bg-blue-50 active:scale-[0.98] flex items-center justify-center transition cursor-pointer shadow-2xs"
-                        title={`Message ${mem.fullName}`}
+                        onClick={() => setPortfolioMember(mem)}
+                        className="w-7 h-7 rounded-lg bg-white border border-slate-200/90 hover:border-[#0284C7] text-[#0284C7] flex items-center justify-center transition cursor-pointer"
+                        title={`Portfolio · ${mem.fullName}`}
+                        aria-label={`Portfolio · ${mem.fullName}`}
                       >
-                        <MessageSquare className="w-4 h-4" />
+                        <Briefcase className="w-3.5 h-3.5" />
                       </button>
+
+                      {canEditCurrentScope && (
+                        <button
+                          type="button"
+                          onClick={() => openDirectMessageModal(mem)}
+                          className="w-7 h-7 rounded-lg bg-[#182C4E] text-white flex items-center justify-center hover:bg-[#101F38] transition cursor-pointer"
+                          title={`Message ${mem.fullName}`}
+                          aria-label={`Message ${mem.fullName}`}
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 text-[#38BDF8]" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -1077,255 +1593,228 @@ export default function MobileManagerWorkspacePage() {
           </div>
         )}
 
-        {/* SCIENTIFIC TEAMS SUB-TAB */}
+        {/* =========================================================
+            SECTION D: SCIENTIFIC TEAMS DIRECTORY & TEAM EDITING
+           ========================================================= */}
         {subTab === "Teams" && (
-          <div className="space-y-3 animate-rise">
-            <h2 className="text-sm font-extrabold text-slate-900">
-              Scientific Teams ({teams.filter((t) => !t.archived).length})
-            </h2>
-            {teams
-              .filter((t) => !t.archived)
-              .map((team) => {
-                const sizeWarning =
-                  team.memberIds.length < 5 || team.memberIds.length > 8;
-                const leader = members.find(
-                  (m) => m.id === team.leaderMemberId
-                );
-                return (
-                  <div
-                    key={team.id}
-                    className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(9,25,47,0.04)] space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-extrabold text-slate-900">
-                          {team.name}
-                        </span>
-                        <p className="text-[10.5px] font-semibold text-indigo-700">
-                          Team Leader: {leader?.fullName || "Assigned Lead"}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums border ${
-                          sizeWarning
-                            ? "bg-amber-50 text-amber-800 border-amber-200"
-                            : "bg-blue-50 text-[#1D63EB] border-blue-200"
-                        }`}
-                      >
-                        {team.memberIds.length} members
-                        {sizeWarning ? " (Size < 5)" : ""}
-                      </span>
+          <div className="space-y-2.5">
+            {activeTeams.map((team) => {
+              const editableTeam = canEditTeam(team.id);
+              const leader = members.find(
+                (m) => m.id === team.leaderMemberId
+              );
+              const tMembers = members.filter(
+                (m) =>
+                  team.memberIds.includes(m.id) || m.teamId === team.id
+              );
+
+              return (
+                <div
+                  key={team.id}
+                  className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-[#0F172A]">
+                        {team.name}
+                      </h3>
+                      <p className="text-[10.5px] font-semibold text-[#0284C7] mt-0.5">
+                        {team.field} · Leader:{" "}
+                        {leader?.fullName || "Assigned Leader"}
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-500">
-                      {team.description}
-                    </p>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBrowseMode("team");
+                          setSelectedTeamId(team.id);
+                          setSubTab("Tasks");
+                        }}
+                        className="px-2 py-1 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#0284C7] text-[10px] font-bold cursor-pointer"
+                      >
+                        Open
+                      </button>
+                      {editableTeam && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => openEditTeamDetails(team)}
+                            className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:border-[#0284C7] text-[#0284C7] flex items-center justify-center cursor-pointer"
+                            title="Edit team details"
+                            aria-label="Edit team details"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openCreateTaskModal(team.id)}
+                            className="w-7 h-7 rounded-lg bg-[#182C4E] text-white flex items-center justify-center cursor-pointer"
+                            title="Add team task"
+                            aria-label="Add team task"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
+
+                  <p className="text-[11px] text-[#475569] leading-relaxed">
+                    {team.description}
+                  </p>
+
+                  {/* Team Member Chips */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-slate-100">
+                    <span className="text-[9.5px] font-mono font-bold uppercase text-[#64748B]">
+                      Members ({tMembers.length}):
+                    </span>
+                    {tMembers.map((tm) => (
+                      <button
+                        key={tm.id}
+                        type="button"
+                        onClick={() => setPortfolioMember(tm)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-[10px] font-bold text-[#0F172A] cursor-pointer"
+                        title={`Portfolio · ${tm.fullName}`}
+                      >
+                        <span>{tm.fullName}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* MODAL 1: QUICK TASK VALIDATION & SCORING */}
-      {activeTaskModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+      {/* =========================================================
+          MODAL 1: ADD / EDIT TASK MODAL
+         ========================================================= */}
+      {taskFormModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <form
-            onSubmit={handleValidateTaskSubmit}
+            onSubmit={handleSaveTaskSubmit}
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
+            className="w-full max-w-[430px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3 animate-rise"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
-                  Quick Task Validation
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  {browseMode === "team"
+                    ? currentTeam.name
+                    : currentDept.shortName}
                 </span>
-                <h3 className="text-base font-extrabold text-slate-900 mt-1">
-                  {activeTaskModal.title}
+                <h3 className="text-sm sm:text-base font-extrabold text-[#0F172A] mt-1">
+                  {editingTask ? "Edit Task Details" : "Add Task"}
                 </h3>
-                <p className="text-[11px] text-slate-500">
-                  Assignee:{" "}
-                  {activeTaskModal.assignees
-                    .map((a) => a.memberName)
-                    .join(", ")}{" "}
-                  · Base Score: {activeTaskModal.proposedScore} XP
-                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTaskModal(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Score Type Selector: Full / Partial / Bonus */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Validation Score Decision
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {(["Full", "Partial", "Bonus"] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() =>
-                      handleScoreTypeChange(t, activeTaskModal.proposedScore)
-                    }
-                    className={`py-2 rounded-full text-xs font-bold border active:scale-[0.98] transition cursor-pointer ${
-                      scoreType === t
-                        ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white border-transparent shadow-xs"
-                        : "bg-white/80 backdrop-blur-md text-slate-700 border-slate-200/80 hover:bg-white"
-                    }`}
-                  >
-                    {t} Score
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Awarded Points (Category Limit: 5–50 XP)
-              </label>
-              <input
-                type="number"
-                min={5}
-                max={50}
-                value={customScore}
-                onChange={(e) => setCustomScore(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-extrabold text-slate-900 tabular-nums focus:bg-white focus:border-[#1D63EB] transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Manager Feedback Note{" "}
-                <span className="text-rose-600">(Required)</span>
-              </label>
-              <textarea
-                rows={2}
-                required
-                value={feedbackNote}
-                onChange={(e) => setFeedbackNote(e.target.value)}
-                placeholder="Write constructive feedback for the member's ledger..."
-                className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 resize-none focus:bg-white focus:border-[#1D63EB] transition-all"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 active:scale-[0.98] text-white font-black text-xs shadow-[0_4px_16px_rgba(29,99,235,0.25)] transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Validate &amp; Credit +{customScore} XP to Ledger</span>
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* MODAL 2: ASSIGN DEPARTMENT OR SCIENTIFIC TEAM TASK */}
-      {createTaskOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
-          <form
-            onSubmit={handleCreateTaskSubmit}
-            data-modal="true"
-            role="dialog"
-            aria-modal="true"
-            className="w-full max-w-[440px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
-                  <Lock className="w-3 h-3" />
-                  <span>
-                    {isTeamLeader
-                      ? `Team Scope: ${currentTeam.name} Only`
-                      : `Dept Scope: ${currentDept.shortName} Only`}
-                  </span>
-                </span>
-                <h3 className="text-base font-extrabold text-slate-900 mt-1">
-                  {isTeamLeader
-                    ? `Assign Scientific Team Task`
-                    : `Assign Department Task`}
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  {isTeamLeader
-                    ? `As Team Leader, you can only assign tasks to members of ${currentTeam.name}.`
-                    : `As ${roleMode}, you can only assign tasks to members of ${currentDept.name}.`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCreateTaskOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 shrink-0 transition cursor-pointer"
+                onClick={() => {
+                  setTaskFormModalOpen(false);
+                  setEditingTask(null);
+                }}
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
                 Task Title
               </label>
               <input
                 type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="e.g. Coordinate General Assembly setup & check-in desk"
-                className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-900 focus:bg-white focus:border-[#1D63EB] transition-all"
+                required
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="e.g. Prepare Spectroscopy Workshop Kit & Check-In"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] focus:bg-white focus:border-[#0284C7] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Brief Instructions
+              </label>
+              <textarea
+                rows={2}
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder="Deliverable details, shift timing, or coordination notes..."
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] resize-none focus:bg-white focus:border-[#0284C7] focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Category (incl. General)
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Category
                 </label>
                 <select
-                  value={newTaskCategory}
+                  value={taskCategory}
                   onChange={(e) =>
-                    setNewTaskCategory(e.target.value as TaskCategory)
+                    setTaskCategory(e.target.value as TaskCategory)
                   }
-                  className="w-full px-3 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-semibold text-slate-800 focus:bg-white focus:border-[#1D63EB] transition-all"
+                  className="w-full px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-semibold text-[#0F172A]"
                 >
                   {ALL_TASK_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat === "General"
-                        ? "General (All-Hands / Club)"
-                        : cat}
+                      {cat}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Score (5–50 XP)
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  XP Score (5–50)
                 </label>
                 <input
                   type="number"
                   min={5}
                   max={50}
-                  value={newTaskScore}
-                  onChange={(e) => setNewTaskScore(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-bold text-slate-900 tabular-nums focus:bg-white focus:border-[#1D63EB] transition-all"
+                  value={taskScore}
+                  onChange={(e) => setTaskScore(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-bold text-[#0F172A] tabular-nums"
                 />
               </div>
             </div>
 
-            {/* Strictly Scoped Member Selection */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  {isTeamLeader
-                    ? `${currentTeam.name} Members (${assignableMembers.length})`
-                    : `${currentDept.shortName} Department Members (${assignableMembers.length})`}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Deadline
                 </label>
-                <span className="text-[10px] font-bold text-[#1D63EB]">
-                  {newTaskAssigneeIds.length} selected
-                </span>
+                <input
+                  type="text"
+                  value={taskDeadline}
+                  onChange={(e) => setTaskDeadline(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Location / Shift
+                </label>
+                <input
+                  type="text"
+                  value={taskLocation}
+                  onChange={(e) => setTaskLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-bold text-[#0F172A]">
+                  Assignees ({taskAssigneeIds.length} selected)
+                </label>
               </div>
               <div
                 tabIndex={0}
@@ -1336,39 +1825,26 @@ export default function MobileManagerWorkspacePage() {
                     toggleAssigneeSelection
                   )
                 }
-                className="max-h-36 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/60 p-2 space-y-1.5 focus:outline-none focus:ring-2 focus:ring-[#1D63EB]/30"
+                className="max-h-32 overflow-y-auto rounded-lg border border-slate-200 bg-[#F8FAFC] p-1.5 space-y-1"
               >
                 {assignableMembers.map((m) => {
-                  const selected = newTaskAssigneeIds.includes(m.id);
+                  const selected = taskAssigneeIds.includes(m.id);
                   return (
                     <button
                       key={m.id}
                       type="button"
-                      data-member-name={m.fullName}
-                      data-member-id={m.id}
                       onClick={() => toggleAssigneeSelection(m.id)}
-                      className={`w-full p-2 rounded-xl text-left flex items-center justify-between gap-2 text-xs font-bold transition cursor-pointer ${
+                      className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-xs font-bold transition cursor-pointer ${
                         selected
-                          ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-xs"
-                          : "bg-white text-slate-800 hover:bg-slate-50 border border-slate-200/70"
+                          ? "bg-[#182C4E] text-white"
+                          : "bg-white text-[#0F172A] border border-slate-200/70"
                       }`}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <img
-                          src={m.avatarUrl}
-                          alt={m.fullName}
-                          className="w-6 h-6 rounded-full object-cover shrink-0"
-                        />
-                        <span className="truncate">{m.fullName}</span>
-                      </div>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
-                          selected
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {m.roles[0] || "Member"}
+                      <span>{m.fullName}</span>
+                      <span className="text-[10px] font-mono opacity-80">
+                        {selected
+                          ? "Selected"
+                          : getMemberOrganigrammeBadges(m)[0]}
                       </span>
                     </button>
                   );
@@ -1376,112 +1852,612 @@ export default function MobileManagerWorkspacePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Deadline
-                </label>
-                <input
-                  type="text"
-                  value={newTaskDeadline}
-                  onChange={(e) => setNewTaskDeadline(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 focus:bg-white focus:border-[#1D63EB] transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Location / Shift
-                </label>
-                <input
-                  type="text"
-                  value={newTaskLocation}
-                  onChange={(e) => setNewTaskLocation(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 focus:bg-white focus:border-[#1D63EB] transition-all"
-                />
-              </div>
-            </div>
-
             <button
               type="submit"
-              className="w-full py-3 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white font-black text-xs active:scale-[0.98] transition cursor-pointer shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs transition cursor-pointer"
             >
-              {isTeamLeader
-                ? `Assign Task to ${newTaskAssigneeIds.length} Team Member(s)`
-                : `Assign Task to ${newTaskAssigneeIds.length} ${currentDept.shortName} Member(s)`}
+              {editingTask ? "Save Task Changes" : "Create & Assign Task"}
             </button>
           </form>
         </div>
       )}
 
-      {/* MODAL 3: QUICK MESSAGE TO DEPARTMENT MEMBER */}
-      {quickMessageTarget && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+      {/* =========================================================
+          MODAL 2: VALIDATE & SCORE TASK
+         ========================================================= */}
+      {scoringTaskModal && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <form
-            onSubmit={handleSendQuickMessage}
+            onSubmit={handleValidateTaskSubmit}
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-3.5 animate-rise"
+            className="w-full max-w-[410px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3.5 animate-rise"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  Message {quickMessageTarget.fullName}
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  Task Validation
+                </span>
+                <h3 className="text-sm font-extrabold text-[#0F172A] mt-1">
+                  {scoringTaskModal.title}
                 </h3>
-                <p className="text-[11px] text-slate-500">
-                  {quickMessageTarget.quanterId} · {currentDept.shortName}
-                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setQuickMessageTarget(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer"
+                onClick={() => setScoringTaskModal(null)}
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <textarea
-              rows={3}
-              value={quickMsgText}
-              onChange={(e) => setQuickMsgText(e.target.value)}
-              placeholder={`Write an in-app note to ${quickMessageTarget.fullName}...`}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs text-slate-800 resize-none focus:bg-white focus:border-[#1D63EB] transition-all"
-            />
+            <div className="grid grid-cols-3 gap-1.5">
+              {(["Full", "Partial", "Bonus"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() =>
+                    handleScoreTypeChange(t, scoringTaskModal.proposedScore)
+                  }
+                  className={`py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                    scoreType === t
+                      ? "bg-[#182C4E] text-white border-[#182C4E]"
+                      : "bg-[#F8FAFC] text-[#475569] border-slate-200"
+                  }`}
+                >
+                  {t} Score
+                </button>
+              ))}
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Awarded XP (5–50)
+              </label>
+              <input
+                type="number"
+                min={5}
+                max={50}
+                value={customScore}
+                onChange={(e) => setCustomScore(Number(e.target.value))}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-bold text-[#0F172A] tabular-nums"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Validation Note
+              </label>
+              <textarea
+                rows={2}
+                required
+                value={feedbackNote}
+                onChange={(e) => setFeedbackNote(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] resize-none"
+              />
+            </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white font-black text-xs active:scale-[0.98] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Send Direct Notification</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Validate &amp; Award +{customScore} XP</span>
             </button>
           </form>
         </div>
       )}
 
-      {/* MODAL 4: ORGANIZER SCAN MEMBER QR */}
-      {scanModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+      {/* =========================================================
+          MODAL 3: READ-ONLY MEMBER PORTFOLIO MODAL
+         ========================================================= */}
+      {portfolioMember && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl p-5 sm:p-6 shadow-[0_24px_64px_rgba(9,25,47,0.2)] space-y-4 animate-rise"
+            className="w-full max-w-[440px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3.5 animate-rise"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={portfolioMember.avatarUrl}
+                  alt={portfolioMember.fullName}
+                  className="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0"
+                />
+                <div className="min-w-0">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9px] font-mono font-bold uppercase">
+                    <Lock className="w-2.5 h-2.5" />
+                    <span>Member Portfolio</span>
+                  </span>
+                  <h3 className="text-sm sm:text-base font-extrabold text-[#0F172A] mt-0.5">
+                    {portfolioMember.fullName}
+                  </h3>
+                  <p className="text-[11px] text-[#64748B]">
+                    {portfolioMember.major} ({portfolioMember.academicYear}) ·{" "}
+                    {portfolioMember.quanterId}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPortfolioMember(null)}
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Bio / Statement */}
+            <div className="p-3 rounded-lg bg-[#F8FAFC] border border-slate-200/80 space-y-1">
+              <span className="text-[9.5px] font-mono font-bold uppercase text-[#64748B]">
+                Academic &amp; Scientific Bio
+              </span>
+              <p className="text-xs text-[#0F172A] leading-relaxed">
+                {portfolioMember.bio ||
+                  "Active scientific contributor focusing on experimental workshops and research deliverables."}
+              </p>
+            </div>
+
+            {/* 3-Column Metrics */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-center">
+                <span className="text-sm font-black text-[#182C4E] block tabular-nums">
+                  Lv. {portfolioMember.level}
+                </span>
+                <span className="text-[9.5px] font-semibold text-[#475569]">
+                  {portfolioMember.xpTotal} XP
+                </span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-center">
+                <span className="text-sm font-black text-[#0284C7] block tabular-nums">
+                  {portfolioMember.attendanceRate}%
+                </span>
+                <span className="text-[9.5px] font-semibold text-[#475569]">
+                  Attendance
+                </span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-center">
+                <span className="text-sm font-black text-emerald-700 block tabular-nums">
+                  {portfolioMember.projectsCompletedCount}
+                </span>
+                <span className="text-[9.5px] font-semibold text-[#475569]">
+                  Projects
+                </span>
+              </div>
+            </div>
+
+            {/* Verified Skills */}
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase text-[#64748B] block mb-1.5">
+                Skills &amp; Competencies
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {portfolioMember.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#0F172A] border border-[#D5E3F5] text-[10.5px] font-bold"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Unlocked Badges */}
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase text-[#64748B] block mb-1.5">
+                Earned Badges ({portfolioMember.badgeIds.length})
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {portfolioMember.badgeIds.map((bid) => {
+                  const bObj = badges.find((b) => b.id === bid);
+                  return (
+                    <span
+                      key={bid}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[#182C4E] text-white text-[10px] font-bold"
+                    >
+                      <Award className="w-3 h-3 text-[#38BDF8]" />
+                      <span>{bObj?.name || bid}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Portfolio & External Links (Read-Only) */}
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase text-[#64748B] block mb-1.5">
+                Portfolio &amp; Research Links
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {portfolioMember.githubUrl && (
+                  <a
+                    href={portfolioMember.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Github className="w-3.5 h-3.5 text-[#182C4E]" />
+                      <span>GitHub</span>
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[#64748B]" />
+                  </a>
+                )}
+                {portfolioMember.linkedinUrl && (
+                  <a
+                    href={portfolioMember.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Linkedin className="w-3.5 h-3.5 text-[#0284C7]" />
+                      <span>LinkedIn</span>
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[#64748B]" />
+                  </a>
+                )}
+                {portfolioMember.portfolioUrl && (
+                  <a
+                    href={portfolioMember.portfolioUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between col-span-2"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+                      <span>Personal Portfolio Website</span>
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[#64748B]" />
+                  </a>
+                )}
+                {!portfolioMember.githubUrl &&
+                  !portfolioMember.linkedinUrl &&
+                  !portfolioMember.portfolioUrl && (
+                    <p className="text-[11px] text-[#64748B] col-span-2">
+                      No external links published yet.
+                    </p>
+                  )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200">
+              {canEditCurrentScope && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = portfolioMember;
+                    setPortfolioMember(null);
+                    openDirectMessageModal(target);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-[#182C4E] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Message {portfolioMember.fullName.split(" ")[0]}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setPortfolioMember(null)}
+                className="px-4 py-2 rounded-lg bg-slate-100 text-[#0F172A] text-xs font-bold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL 4: ADD / EDIT WORKSPACE NOTE
+         ========================================================= */}
+      {noteModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <form
+            onSubmit={handleSaveNoteSubmit}
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[410px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3 animate-rise"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  {browseMode === "team"
+                    ? currentTeam.name
+                    : currentDept.shortName}{" "}
+                  Note
+                </span>
+                <h3 className="text-sm font-extrabold text-[#0F172A] mt-1">
+                  {editingNote ? "Edit Operational Note" : "Add Workspace Note"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setNoteModalOpen(false);
+                  setEditingNote(null);
+                }}
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Note Title
+              </label>
+              <input
+                type="text"
+                required
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+                placeholder="e.g. Saturday Lab Safety & Equipment Handover"
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Tag
+                </label>
+                <select
+                  value={noteTag}
+                  onChange={(e) =>
+                    setNoteTag(e.target.value as WorkspaceNote["tag"])
+                  }
+                  className="w-full px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-semibold text-[#0F172A]"
+                >
+                  <option value="Operations">Operations</option>
+                  <option value="Briefing">Briefing</option>
+                  <option value="Handover">Handover</option>
+                  <option value="Scientific">Scientific</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => setNotePinned(!notePinned)}
+                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 cursor-pointer ${
+                    notePinned
+                      ? "bg-[#182C4E] text-white border-[#182C4E]"
+                      : "bg-[#F8FAFC] text-[#475569] border-slate-200"
+                  }`}
+                >
+                  <Pin className="w-3.5 h-3.5" />
+                  <span>{notePinned ? "Pinned" : "Pin Note"}</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Note Content
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={noteBody}
+                onChange={(e) => setNoteBody(e.target.value)}
+                placeholder="Write operational details, room codes, or team tasks..."
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer"
+            >
+              {editingNote ? "Update Note" : "Save Note"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL 5: EDIT SCIENTIFIC TEAM DETAILS
+         ========================================================= */}
+      {editingTeamModal && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <form
+            onSubmit={handleSaveTeamDetails}
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[410px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3 animate-rise"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  Scientific Team Governance
+                </span>
+                <h3 className="text-sm font-extrabold text-[#0F172A] mt-1">
+                  Edit Team Details
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingTeamModal(null)}
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Scientific Team Name
+              </label>
+              <input
+                type="text"
+                required
+                value={editTeamName}
+                onChange={(e) => setEditTeamName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Research Field / Domain
+              </label>
+              <input
+                type="text"
+                required
+                value={editTeamField}
+                onChange={(e) => setEditTeamField(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Description &amp; Mission
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={editTeamDesc}
+                onChange={(e) => setEditTeamDesc(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer"
+            >
+              Save Team Details
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL 6: SEND DIRECT OR BROADCAST MESSAGE
+         ========================================================= */}
+      {messageModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <form
+            onSubmit={handleSendMessageSubmit}
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[410px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3 animate-rise"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  {messageTargetMember
+                    ? "Direct Member Message"
+                    : "Scope Broadcast"}
+                </span>
+                <h3 className="text-sm font-extrabold text-[#0F172A] mt-1">
+                  {messageTargetMember
+                    ? `Message ${messageTargetMember.fullName}`
+                    : `Broadcast to ${
+                        browseMode === "team"
+                          ? currentTeam.name
+                          : currentDept.shortName
+                      }`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMessageModalOpen(false)}
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5">
+              {(["Info", "Official notice", "Action needed"] as const).map(
+                (p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setMessagePriority(p)}
+                    className={`py-1.5 px-2 rounded-lg text-[10.5px] font-bold border transition cursor-pointer ${
+                      messagePriority === p
+                        ? "bg-[#182C4E] text-white border-[#182C4E]"
+                        : "bg-[#F8FAFC] text-[#475569] border-slate-200"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Subject
+              </label>
+              <input
+                type="text"
+                required
+                value={messageTitle}
+                onChange={(e) => setMessageTitle(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                Message
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                placeholder="Write clear instructions or coordination details..."
+                className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-[#0F172A] resize-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Send Notification</span>
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL 7: ORGANIZER SCAN MEMBER QR
+         ========================================================= */}
+      {scanModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+          <div
+            data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-[410px] max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xl space-y-3.5 animate-rise"
           >
             <div className="flex items-center justify-between">
               <div>
-                <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-extrabold uppercase border border-blue-200/60">
-                  Organizer QR Scanner
+                <span className="px-2 py-0.5 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[9.5px] font-mono font-bold uppercase">
+                  Attendance Verification
                 </span>
-                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                <h3 className="text-sm font-extrabold text-[#0F172A] mt-0.5">
                   Organizer Scan Member QR
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setScanModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1489,13 +2465,13 @@ export default function MobileManagerWorkspacePage() {
 
             <div className="space-y-2.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Active Workshop Session
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Active Workshop / Session
                 </label>
                 <select
                   value={scanWorkshopId}
                   onChange={(e) => setScanWorkshopId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-semibold text-slate-800 focus:bg-white focus:border-[#1D63EB] transition-all"
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-semibold text-[#0F172A]"
                 >
                   {workshops.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -1506,14 +2482,9 @@ export default function MobileManagerWorkspacePage() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Member Personal QR Badge Scanned
-                  </label>
-                  <span className="text-[10px] font-semibold text-slate-400">
-                    Press A–Z to jump
-                  </span>
-                </div>
+                <label className="block text-[11px] font-bold text-[#0F172A] mb-1">
+                  Member QR Pass
+                </label>
                 <select
                   value={scanTargetMemberId}
                   onChange={(e) => setScanTargetMemberId(e.target.value)}
@@ -1524,7 +2495,7 @@ export default function MobileManagerWorkspacePage() {
                       setScanTargetMemberId
                     )
                   }
-                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-semibold text-slate-800 focus:bg-white focus:border-[#1D63EB] transition-all"
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-semibold text-[#0F172A]"
                 >
                   {sortedMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -1536,7 +2507,7 @@ export default function MobileManagerWorkspacePage() {
             </div>
 
             {scanFeedback && (
-              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900">
+              <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#0F172A]">
                 {scanFeedback}
               </div>
             )}
@@ -1544,10 +2515,10 @@ export default function MobileManagerWorkspacePage() {
             <button
               type="button"
               onClick={handleOrganizerQrScan}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white font-black text-xs active:scale-[0.98] flex items-center justify-center gap-2 transition cursor-pointer shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
+              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <QrCode className="w-4 h-4" />
-              <span>Verify Member QR &amp; Record Attendance</span>
+              <QrCode className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Verify Member QR &amp; Credit XP</span>
             </button>
           </div>
         </div>

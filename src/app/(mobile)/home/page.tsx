@@ -5,42 +5,26 @@ import Link from "next/link";
 import {
   Archive,
   ArrowRight,
-  Award,
-  Bell,
-  BookOpen,
   Calendar,
-  CalendarCheck2,
   Check,
-  CheckCircle2,
   ChevronDown,
-  ChevronRight,
   ChevronUp,
-  ClipboardCheck,
   Clock,
-  FileCheck2,
-  FolderGit2,
   GraduationCap,
-  Lightbulb,
   MapPin,
   QrCode,
   RotateCcw,
   Send,
-  Shield,
-  Sparkles,
-  Star,
-  Trophy,
-  Users,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
-import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
-import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export default function MobileHomeHubPage() {
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
   const workshops = useQuantersStore((s) => s.workshops);
   const tasks = useQuantersStore((s) => s.tasks);
   const explorePosts = useQuantersStore((s) => s.explorePosts);
@@ -55,10 +39,6 @@ export default function MobileHomeHubPage() {
   const member =
     members.find((m) => m.id === currentMemberId) || members[0];
   const isAlumni = member.status === "Alumni";
-  const firstName =
-    member.fullName.startsWith("Dr.")
-      ? "Dr. Amine"
-      : member.fullName.split(" ")[0] || "Ayoub";
   const dept = departments.find((d) => d.id === member.departmentId);
 
   const motmMember =
@@ -71,8 +51,6 @@ export default function MobileHomeHubPage() {
     workshops.find((w) => w.status === "Running") ||
     workshops.find((w) => w.status === "Published") ||
     workshops[0];
-  const alumniFeaturedWorkshop =
-    workshops.find((w) => w.id === "ws-quantum") || nextWorkshop;
   const featuredNews =
     explorePosts.find((p) => p.id === "exp-1") || explorePosts[0];
 
@@ -94,9 +72,6 @@ export default function MobileHomeHubPage() {
     null
   );
   const [proofText, setProofText] = useState("");
-
-  // Alumni interactive toggles
-  const [rsvpConfirmed, setRsvpConfirmed] = useState(false);
   const [mentorTeamOptIn, setMentorTeamOptIn] = useState(true);
 
   const isRegisteredNext = nextWorkshop?.registeredMemberIds.includes(
@@ -117,406 +92,77 @@ export default function MobileHomeHubPage() {
     setProofText("");
   };
 
-  // ============================================================================
-  // ALUMNI UNIFIED HOME VIEW
-  // ============================================================================
-  if (isAlumni) {
-    return (
-      <MobileAppShell>
-        <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
-          {/* Alumni Top Greeting Header */}
-          <div
-            className="flex items-center justify-between gap-2 animate-rise"
-            style={{ animationDelay: "0ms" }}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Link href="/profile" className="relative shrink-0">
-                <img
-                  src={member.avatarUrl}
-                  alt={member.fullName}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-amber-300/80 shadow-2xs"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 px-1.5 py-0.5 rounded-full bg-[#FBB03B] text-[#061E47] text-[10px] font-black font-mono">
-                  ’{member.graduationYear?.slice(-2) || "26"}
-                </span>
-              </Link>
-              <div className="min-w-0">
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-black tracking-wide font-display">
-                  <GraduationCap className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                  <span>
-                    QUANTA Alumni Fellow · Class of {member.graduationYear || "2026"}
-                  </span>
-                </span>
-                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 truncate mt-0.5">
-                  Welcome back, {firstName}
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Link
-                href="/notifications"
-                className="relative w-10 h-10 rounded-full bg-white/85 backdrop-blur-md border border-white/80 flex items-center justify-center text-slate-700 hover:bg-white shadow-2xs active:scale-[0.98] transition cursor-pointer"
-                aria-label="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-4.5 px-1 rounded-full bg-[#ED1C24] text-white text-xs font-black flex items-center justify-center tabular-nums shadow-xs">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
-            </div>
-          </div>
-
-          {/* Prestige Alumni Fellowship Honors Card (Nano Banana Static Cosmic Banner) */}
-          <div
-            className="rounded-2xl bg-[#040917] text-white p-5 sm:p-6 border border-[#38E4FF]/30 shadow-[0_18px_44px_rgba(3,8,18,0.45)] relative overflow-hidden animate-rise"
-            style={{ animationDelay: "60ms" }}
-          >
-            {/* Nano Banana Static Crocheted Astronaut & Cyan Spiral Galaxy Artwork */}
-            <img
-              src="/brand/hero_rank_banner.webp"
-              alt="QUANTERS Cosmic Explorer Banner"
-              className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/95 via-[#051026]/80 to-[#030812]/25 pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
-
-            <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#07162E]/80 backdrop-blur-md border border-[#38E4FF]/35 text-[#38E4FF] text-xs font-black tracking-wider uppercase font-display">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Honorary Fellowship</span>
-              </span>
-              <span className="text-xs font-mono font-bold text-amber-300 drop-shadow">
-                Class of {member.graduationYear || "2026"}
-              </span>
-            </div>
-
-            <div className="mt-3.5 relative z-10 max-w-[68%]">
-              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                {member.fullName}
-              </h2>
-              <p className="text-xs sm:text-sm font-medium text-sky-200/95 mt-1 leading-relaxed font-sans drop-shadow">
-                {member.alumniPosition ||
-                  "Doctoral Researcher in Quantum Photonics · Faculty of Sciences"}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-white/15 relative z-10">
-              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
-                <span className="text-base sm:text-lg font-black font-display text-amber-300 block leading-tight tabular-nums">
-                  3,450 XP
-                </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
-                  Lifetime Legacy
-                </span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
-                <span className="text-base sm:text-lg font-black font-display text-white block leading-tight truncate">
-                  Former President
-                </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
-                  Distinction
-                </span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-[#040D1E]/75 backdrop-blur-md border border-white/15 text-center">
-                <span className="text-base sm:text-lg font-black font-display text-[#38E4FF] block leading-tight">
-                  Advisory
-                </span>
-                <span className="text-xs font-bold font-display text-sky-200/90 block mt-0.5">
-                  Scientific Council
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Creative Action Modules for Alumni */}
-          <div className="space-y-3 animate-rise" style={{ animationDelay: "120ms" }}>
-            {/* Module 1: Propose an Alumni Keynote or Workshop */}
-            <Link
-              href="/proposals"
-              className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] transition flex items-start justify-between gap-3 group cursor-pointer"
-            >
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-xs font-black uppercase tracking-wider border border-blue-200/60 font-display">
-                    Speaker Series
-                  </span>
-                  <span className="text-xs font-bold text-slate-400 font-display">Open Channel</span>
-                </div>
-                <h3 className="text-base font-extrabold font-display text-slate-900 group-hover:text-[#1D63EB] transition-colors">
-                  Host an Alumni Keynote or Masterclass
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed font-sans">
-                  Share your scientific research, PhD insights, or industry expertise with active club researchers.
-                </p>
-              </div>
-              <div className="w-11 h-11 rounded-full bg-blue-50 text-[#1D63EB] flex items-center justify-center shrink-0 group-hover:bg-[#1D63EB] group-hover:text-white transition-all shadow-2xs">
-                <ArrowRight className="w-5 h-5" />
-              </div>
-            </Link>
-
-            {/* Module 2: 2-Column Bento for Project Advisory & Club Labs */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <Link
-                href="/projects/submit"
-                className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(16,185,129,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-extrabold font-display text-slate-900 group-hover:text-emerald-700 transition-colors">
-                    Advisory &amp; Jury
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium leading-normal font-sans">
-                    Review student capstone projects &amp; badges.
-                  </p>
-                </div>
-              </Link>
-
-              <Link
-                href="/workshops"
-                className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:shadow-[0_8px_24px_rgba(29,99,235,0.08)] active:scale-[0.99] transition space-y-2 group cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-lg bg-sky-50 text-[#1D63EB] border border-sky-200/60 flex items-center justify-center">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-extrabold font-display text-slate-900 group-hover:text-[#1D63EB] transition-colors">
-                    Club Labs &amp; Sessions
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium leading-normal font-sans">
-                    Drop in as guest mentor in active club labs.
-                  </p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Module 3: Annual Alumni Gathering VIP Invitation Card */}
-            <div className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-200 font-display">
-                    <CalendarCheck2 className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Annual Alumni Gala · Nov 2026</span>
-                  </span>
-                  <h3 className="text-base font-extrabold font-display text-slate-900 mt-2">
-                    QSSC’ 2026 Alumni Keynote &amp; Mentorship Circle
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium font-sans">
-                    Saturday, 14 Nov 2026 · 15:00 · Faculty of Sciences Main Auditorium
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setRsvpConfirmed((v) => !v)}
-                className={`w-full h-10 rounded-xl text-xs font-black active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
-                  rsvpConfirmed
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)]"
-                    : "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_16px_rgba(29,99,235,0.25)]"
-                }`}
-              >
-                {rsvpConfirmed ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                )}
-                <span>
-                  {rsvpConfirmed
-                    ? "RSVP Confirmed — VIP Alumni Seat Reserved"
-                    : "Reserve VIP Alumni Seat"}
-                </span>
-              </button>
-
-              <label className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs cursor-pointer">
-                <div>
-                  <span className="font-black text-slate-800 block text-[11px]">
-                    Mentor a Scientific Team
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-medium">
-                    Available for technical office hours and research feedback
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={mentorTeamOptIn}
-                  onChange={(e) => setMentorTeamOptIn(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#1D63EB] focus:ring-[#1D63EB] cursor-pointer"
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Open Workshops & Activities Card */}
-          {alumniFeaturedWorkshop && (
-            <div
-              className="animate-rise space-y-1.5"
-              style={{ animationDelay: "180ms" }}
-            >
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Open Scientific Labs
-                </h2>
-                <Link
-                  href="/workshops"
-                  className="text-xs font-bold text-[#1D63EB] hover:underline"
-                >
-                  Browse all ({workshops.length})
-                </Link>
-              </div>
-
-              <div className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <FieldIcon
-                    field={alumniFeaturedWorkshop.iconType}
-                    size={26}
-                    boxed
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-md text-[9.5px] font-black bg-amber-50 text-amber-900 border border-amber-200">
-                        {alumniFeaturedWorkshop.activityType || "Lab Session"}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-sky-50 text-[#1D63EB] border border-sky-200">
-                        {alumniFeaturedWorkshop.level}
-                      </span>
-                    </div>
-                    <h3 className="text-xs font-black text-slate-900 mt-1 truncate">
-                      {alumniFeaturedWorkshop.title}
-                    </h3>
-                    <p className="text-[10.5px] text-slate-500 font-medium">
-                      {alumniFeaturedWorkshop.dateLabel} · {alumniFeaturedWorkshop.location}
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href="/workshops"
-                  className="h-8.5 px-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black flex items-center shrink-0 active:scale-[0.98] transition cursor-pointer shadow-2xs"
-                >
-                  View
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Latest QUANTA News */}
-          {featuredNews && (
-            <div
-              className="animate-rise space-y-1.5"
-              style={{ animationDelay: "240ms" }}
-            >
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Latest Scientific News
-                </h2>
-                <Link
-                  href="/explore"
-                  className="text-xs font-bold text-[#1D63EB] hover:underline"
-                >
-                  Explore Feed
-                </Link>
-              </div>
-              <Link
-                href="/explore"
-                className="block rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 overflow-hidden shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-sky-300 active:scale-[0.99] transition"
-              >
-                <div className="relative h-32 w-full">
-                  <img
-                    src={featuredNews.imageUrl}
-                    alt={featuredNews.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-[#38E4FF] text-[#061E47]">
-                    {featuredNews.tagLabel}
-                  </span>
-                  <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <h3 className="text-xs font-black leading-snug line-clamp-2">
-                      {featuredNews.title}
-                    </h3>
-                    <p className="text-[10px] text-sky-200 mt-0.5 font-medium">
-                      {featuredNews.source} · {featuredNews.readTime}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          )}
-        </div>
-      </MobileAppShell>
-    );
-  }
-
-  // ============================================================================
-  // ACTIVE / TRAINEE MEMBER HOME VIEW
-  // ============================================================================
   return (
     <MobileAppShell>
-      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-4">
-        {/* Top Editorial & Technical Greeting Header (Zero Overlap / Zero Truncation) */}
+      <div className="px-4 pt-3 pb-6 sm:px-6 space-y-3.5">
+        {/* Top Editorial & Technical Greeting Header (Unified for Member & Alumni) */}
         <div
-          className="flex items-center justify-between gap-2.5 animate-rise"
+          className="flex items-center justify-between gap-2 animate-rise"
           style={{ animationDelay: "0ms" }}
         >
-          <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0 overflow-hidden">
             <Link href="/profile" className="relative shrink-0 group">
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-[#182C4E]/30 bg-[#101F38] shadow-[0_4px_12px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-[#182C4E]/30 bg-[#101F38] shadow-[0_4px_12px_rgba(15,30,54,0.12)] transition-transform duration-200 group-hover:scale-105 active:scale-95">
                 <img
                   src={member.avatarUrl}
                   alt={member.fullName}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#38BDF8] border-2 border-[#F4F7FB] shadow-xs" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#38BDF8] border-2 border-[#F4F7FB]" />
             </Link>
 
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex items-center gap-1 font-mono text-[11px] sm:text-xs text-slate-500 uppercase tracking-wider">
                 <span className="font-bold text-[#0284C7] shrink-0">
-                  {dept?.shortName || "IT & Tech"}
+                  {isAlumni
+                    ? `ALUMNI ’${member.graduationYear?.slice(-2) || "26"}`
+                    : dept?.shortName || "IT & Tech"}
                 </span>
-                <span className="text-slate-300 shrink-0">·</span>
-                <span className="shrink-0">{member.quanterId}</span>
+                <span className="text-slate-300 shrink-0 hidden sm:inline">·</span>
+                <span className="shrink-0 hidden sm:inline">{member.quanterId}</span>
               </div>
 
-              <h1 className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tracking-tight leading-snug mt-0.5">
+              <h1 className="text-base sm:text-lg font-black font-display text-[#0F1E36] tracking-tight leading-snug mt-0.5">
                 {member.fullName}
               </h1>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {(member.isBureauMember ||
-              member.roles.some((r) =>
-                [
-                  "Super Admin",
-                  "Executive",
-                  "HR Head",
-                  "Department Head",
-                  "Co-Manager",
-                  "Team Leader",
-                ].includes(r)
-              )) && (
-              <Link
-                href="/manager"
-                className="h-9 px-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
-                title="Department & Team Operations"
-              >
-                <span>Desk</span>
-              </Link>
-            )}
+            {/* 1-Tap Alumni Option Toggle */}
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentMemberId(isAlumni ? "mem-ayoub" : "mem-alumni-1")
+              }
+              className={`h-8 px-2.5 rounded-lg border text-[11px] font-mono font-bold flex items-center gap-1 transition active:scale-95 cursor-pointer shrink-0 ${
+                isAlumni
+                  ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] border-[#2B4875]"
+                  : "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5] hover:bg-[#E0F2FE]"
+              }`}
+              title="Switch between Active Member and Alumni mode"
+            >
+              <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+              <span>{isAlumni ? "Alumni" : "Alumni"}</span>
+            </button>
+
+            <Link
+              href="/manager"
+              className="h-8 px-2.5 rounded-lg bg-white border border-slate-200/90 text-[11px] font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
+              title="Department & Team Operations"
+            >
+              <span>Desk</span>
+            </Link>
+
             <Link
               href="/notifications"
-              className="relative w-9 h-9 rounded-xl bg-white border border-slate-200/90 text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs group shrink-0"
+              className="relative w-8 h-8 rounded-lg bg-white border border-slate-200/90 text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs group shrink-0"
               aria-label="Notifications"
             >
               <svg
-                width="17"
-                height="17"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 className="transition-transform duration-200 group-hover:rotate-6"
@@ -542,36 +188,31 @@ export default function MobileHomeHubPage() {
           </div>
         </div>
 
-        {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card
-            - Sharp architectural frame (rounded-xl), zero boxes covering the astronaut on the right */}
+        {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card */}
         <div
-          className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#040814] border border-slate-900 shadow-[0_18px_42px_rgba(3,8,18,0.34)] animate-rise group"
+          className="relative rounded-xl p-4 sm:p-5 text-white overflow-hidden bg-[#040814] border border-slate-900 shadow-[0_16px_38px_rgba(3,8,18,0.32)] animate-rise group"
           style={{ animationDelay: "50ms" }}
         >
-          {/* Static Nano Banana Artwork with subtle zero-gravity drift */}
           <img
             src="/brand/hero_rank_banner.webp"
             alt="QUANTERS Crocheted Astronaut & Cyan Spiral Galaxy"
             className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none animate-zero-g"
           />
-          {/* Left-only dark contrast gradient so the right 42% (astronaut + galaxy) is 100% unobstructed */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/96 via-[#040B1B]/72 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
 
           <div className="relative z-10 max-w-[66%]">
-            {/* Line 1: Unboxed Mono Status + Rank Index */}
             <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]" />
               <span className="font-mono text-xs font-bold tracking-[0.12em] text-[#7DD3FC] uppercase">
-                RANK 0{member.level}
+                {isAlumni ? `FELLOW ’${member.graduationYear?.slice(-2) || "26"}` : `RANK 0${member.level}`}
               </span>
               <span className="text-white/30 text-xs">·</span>
               <span className="font-mono text-xs text-slate-300 uppercase tracking-wider">
-                {member.status === "Trainee" ? "Trainee" : "Active"}
+                {member.status}
               </span>
             </div>
 
-            {/* Line 2: Creative Mixed Font Title (Display + Editorial Italic) */}
             <div className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
               <span className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
                 {member.levelTitle.split(" ")[0] || "Quantum"}
@@ -581,31 +222,36 @@ export default function MobileHomeHubPage() {
               </span>
             </div>
 
-            {/* Line 3: Large Tabular XP Readout */}
-            <div className="mt-2.5 flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none">
-                {member.xpSeason.toLocaleString()}
+            <div className="mt-2 flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="text-3xl sm:text-4xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none">
+                {(isAlumni ? member.xpTotal : member.xpSeason).toLocaleString()}
               </span>
               <span className="text-xs font-black font-mono tracking-[0.16em] text-[#7DD3FC] uppercase">
-                XP
+                {isAlumni ? "LIFETIME XP" : "XP"}
               </span>
             </div>
 
-            {/* Line 4: Concise Target Specification */}
             <p className="mt-1 font-mono text-xs text-slate-300/95">
-              <span className="text-white font-bold tabular-nums">
-                {Math.round((member.xpSeason / 1000) * 100)}%
-              </span>{" "}
-              · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to R0{member.level + 1}
+              {isAlumni ? (
+                <span>
+                  {member.alumniPosition || "Doctoral Researcher · Former President"}
+                </span>
+              ) : (
+                <>
+                  <span className="text-white font-bold tabular-nums">
+                    {Math.round((member.xpSeason / 1000) * 100)}%
+                  </span>{" "}
+                  · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to R0{member.level + 1}
+                </>
+              )}
             </p>
           </div>
 
-          {/* Architectural Hairline Progress Bar — Pure Galactic Cyan-to-Starlight Gradient */}
-          <div className="relative z-10 mt-4 pt-0.5">
+          <div className="relative z-10 mt-3.5 pt-0.5">
             <div className="h-[3px] w-full bg-white/15 rounded-full relative overflow-visible">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#E0F2FE] shadow-[0_0_10px_rgba(56,189,248,0.8)] transition-all duration-700 relative"
-                style={{ width: `${xpProgressPct}%` }}
+                style={{ width: `${isAlumni ? 100 : xpProgressPct}%` }}
               >
                 <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white ring-2 ring-[#38BDF8] shadow-[0_0_10px_#38BDF8]" />
               </div>
@@ -613,20 +259,19 @@ export default function MobileHomeHubPage() {
           </div>
         </div>
 
-        {/* Open Swiss Architectural 4-Metric Specification Grid (Zero Bubble Box) */}
+        {/* Open Swiss Architectural 4-Metric Grid (Zero Numeration 01..04) */}
         <div
-          className="border-y border-slate-200/90 py-3 grid grid-cols-4 divide-x divide-slate-200/80 animate-rise"
-          style={{ animationDelay: "100ms" }}
+          className="border-y border-slate-200/90 py-2.5 grid grid-cols-4 divide-x divide-slate-200/80 animate-rise"
+          style={{ animationDelay: "90ms" }}
         >
           <Link
             href="/badges"
             className="flex flex-col items-start px-2.5 first:pl-1 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="font-mono text-xs text-slate-400 leading-none">01</span>
-            <span className="text-xl sm:text-2xl font-black font-display text-[#0F1E36] tabular-nums leading-tight mt-0.5 group-hover:text-[#0284C7] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.badgeIds.length}
             </span>
-            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Badges
             </span>
           </Link>
@@ -635,11 +280,10 @@ export default function MobileHomeHubPage() {
             href="/workshops"
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="font-mono text-xs text-slate-400 leading-none">02</span>
-            <span className="text-xl sm:text-2xl font-black font-display text-[#0F1E36] tabular-nums leading-tight mt-0.5 group-hover:text-[#0284C7] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.workshopsCompletedCount}
             </span>
-            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Sessions
             </span>
           </Link>
@@ -648,11 +292,10 @@ export default function MobileHomeHubPage() {
             href="/projects/submit"
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="font-mono text-xs text-slate-400 leading-none">03</span>
-            <span className="text-xl sm:text-2xl font-black font-display text-[#0F1E36] tabular-nums leading-tight mt-0.5 group-hover:text-[#0284C7] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.projectsCompletedCount}
             </span>
-            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Projects
             </span>
           </Link>
@@ -661,20 +304,47 @@ export default function MobileHomeHubPage() {
             href="/profile"
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
-            <span className="font-mono text-xs text-slate-400 leading-none">04</span>
-            <span className="text-xl sm:text-2xl font-black font-display text-[#0F1E36] tabular-nums leading-tight mt-0.5 group-hover:text-[#0284C7] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.xpTotal.toLocaleString()}
             </span>
-            <span className="text-xs font-medium text-slate-600 leading-none mt-0.5 whitespace-nowrap">
+            <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Total XP
             </span>
           </Link>
         </div>
 
+        {/* Alumni Mentorship & Advisory Strip (Only shown when in Alumni Mode — No Gala Card) */}
+        {isAlumni && (
+          <div className="p-3 rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_14px_rgba(15,30,54,0.04)] flex items-center justify-between gap-2.5 animate-rise">
+            <label className="flex items-center gap-2.5 cursor-pointer min-w-0">
+              <input
+                type="checkbox"
+                checked={mentorTeamOptIn}
+                onChange={(e) => setMentorTeamOptIn(e.target.checked)}
+                className="w-4 h-4 rounded accent-[#182C4E] cursor-pointer shrink-0"
+              />
+              <div className="min-w-0">
+                <span className="text-xs font-extrabold font-display text-[#0F1E36] block leading-tight">
+                  Alumni Scientific Mentorship
+                </span>
+                <span className="text-[11px] text-slate-500 block leading-tight mt-0.5">
+                  Open to advising student research teams &amp; jury reviews
+                </span>
+              </div>
+            </label>
+            <Link
+              href="/proposals"
+              className="px-2.5 py-1.5 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[11px] font-mono font-bold hover:bg-[#E0F2FE] transition shrink-0"
+            >
+              Host Talk →
+            </Link>
+          </div>
+        )}
+
         {/* Softened Cosmic Slate-Navy Editorial Honour Ribbon (Star of the Month) */}
         <div
-          className="rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] text-white border border-[#2B4875]/65 border-l-[3px] border-l-[#38BDF8] px-3.5 py-2.5 shadow-[0_6px_18px_rgba(16,31,56,0.16)] animate-rise"
-          style={{ animationDelay: "150ms" }}
+          className="rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] text-white border border-[#2B4875]/65 border-l-[3px] border-l-[#38BDF8] px-3 py-2 shadow-[0_6px_18px_rgba(16,31,56,0.14)] animate-rise"
+          style={{ animationDelay: "130ms" }}
         >
           <button
             type="button"
@@ -683,8 +353,8 @@ export default function MobileHomeHubPage() {
           >
             <div className="flex items-center gap-2 min-w-0 whitespace-nowrap overflow-hidden">
               <svg
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 className="text-[#7DD3FC] shrink-0 transition-transform duration-300 group-hover:rotate-12"
@@ -716,7 +386,7 @@ export default function MobileHomeHubPage() {
           </button>
 
           {showMotmDetails && (
-            <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-center justify-between gap-3 text-xs text-slate-200">
+            <div className="mt-2 pt-2 border-t border-white/15 flex items-center justify-between gap-3 text-xs text-slate-200">
               <div className="flex items-center gap-2.5">
                 <img
                   src={motmMember.avatarUrl}
@@ -739,11 +409,11 @@ export default function MobileHomeHubPage() {
           )}
         </div>
 
-        {/* Next Session — Clean Unified Card (No Top Header Bar) */}
+        {/* Next Session — Clean Unified Card */}
         {nextWorkshop && (
           <div
             className="animate-rise space-y-1.5"
-            style={{ animationDelay: "200ms" }}
+            style={{ animationDelay: "170ms" }}
           >
             <div className="flex items-baseline justify-between px-0.5">
               <div className="flex items-baseline gap-1.5">
@@ -762,9 +432,9 @@ export default function MobileHomeHubPage() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-[0_4px_18px_rgba(15,30,54,0.05)] transition-all duration-200 hover:border-[#182C4E]/40">
-              <div className="flex items-start gap-3.5">
-                <FieldIcon field={nextWorkshop.iconType} size={28} boxed />
+            <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-[0_4px_18px_rgba(15,30,54,0.05)] transition-all duration-200 hover:border-[#182C4E]/40">
+              <div className="flex items-start gap-3">
+                <FieldIcon field={nextWorkshop.iconType} size={26} boxed />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -775,11 +445,11 @@ export default function MobileHomeHubPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-black font-display text-[#0F1E36] leading-snug mt-0.5">
+                  <h3 className="text-base font-black font-display text-[#0F1E36] leading-snug mt-0.5">
                     {nextWorkshop.title}
                   </h3>
 
-                  <div className="mt-1.5 space-y-1 text-xs text-slate-600 font-mono">
+                  <div className="mt-1 space-y-0.5 text-xs text-slate-600 font-mono">
                     <p className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#182C4E] shrink-0" />
                       <span>
@@ -794,7 +464,7 @@ export default function MobileHomeHubPage() {
                 </div>
               </div>
 
-              <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                 <span className="font-mono text-xs font-semibold text-slate-500 tabular-nums">
                   {nextWorkshop.seatsLeft} seats open
                 </span>
@@ -806,7 +476,7 @@ export default function MobileHomeHubPage() {
                       onClick={() =>
                         registerForWorkshop(nextWorkshop.id, member.id)
                       }
-                      className="h-8 px-3.5 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] text-[#162847] border border-[#D5E3F5] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
+                      className="h-8 px-3 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] text-[#162847] border border-[#D5E3F5] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
                     >
                       Reserve Seat
                     </button>
@@ -817,7 +487,7 @@ export default function MobileHomeHubPage() {
                   )}
                   <Link
                     href="/checkin"
-                    className="h-8 px-3.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display border border-[#2B4875]/60 shadow-[0_4px_12px_rgba(16,31,56,0.2)] hover:brightness-110 active:scale-[0.98] transition flex items-center gap-1.5"
+                    className="h-8 px-3 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display border border-[#2B4875]/60 shadow-[0_4px_12px_rgba(16,31,56,0.2)] hover:brightness-110 active:scale-[0.98] transition flex items-center gap-1.5"
                   >
                     <QrCode className="w-3.5 h-3.5 text-[#7DD3FC]" />
                     <span>Check-in</span>
@@ -828,20 +498,19 @@ export default function MobileHomeHubPage() {
           </div>
         )}
 
-        {/* Quick Operations & Custom Technical Emblem Trio (Softened Cosmic Slate-Navy Palette) */}
+        {/* Compact Live Session Check-In Bar + Compact Skill Exams / Projects / Proposals Trio (Zero Numeration) */}
         <div
-          className="space-y-2.5 animate-rise"
-          style={{ animationDelay: "260ms" }}
+          className="space-y-2 animate-rise"
+          style={{ animationDelay: "220ms" }}
         >
-          {/* Primary Action Banner: Optical QR Check-In in Softened Cosmic Slate-Navy */}
+          {/* Compact Single-Row Live Session Check-In Strip */}
           <Link
             href="/checkin"
-            className="w-full p-3.5 rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] border border-[#2B4875]/65 text-white flex items-center justify-between shadow-[0_8px_22px_rgba(16,31,56,0.18)] hover:brightness-110 active:scale-[0.99] transition group cursor-pointer"
+            className="w-full px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] border border-[#2B4875]/65 text-white flex items-center justify-between gap-2 shadow-[0_6px_18px_rgba(16,31,56,0.16)] hover:brightness-110 active:scale-[0.99] transition group cursor-pointer"
           >
-            <div className="flex items-center gap-3">
-              {/* Custom Optical Viewfinder SVG Icon */}
-              <div className="w-10 h-10 rounded-lg bg-white/10 border border-[#7DD3FC]/35 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-white/10 border border-[#7DD3FC]/35 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M4 8V5.5C4 4.7 4.7 4 5.5 4H8M16 4H18.5C19.3 4 20 4.7 20 5.5V8M20 16V18.5C20 19.3 19.3 20 18.5 20H16M8 20H5.5C4.7 20 4 19.3 4 18.5V16"
                     stroke="#7DD3FC"
@@ -852,52 +521,47 @@ export default function MobileHomeHubPage() {
                   <path d="M5 12H19" stroke="#38BDF8" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
               </div>
-              <div className="text-left">
+              <div className="min-w-0">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-xs sm:text-sm font-black font-display tracking-tight text-white">
-                    Live Session
+                  <span className="text-xs font-black font-display tracking-tight text-white">
+                    Live Check-In
                   </span>
-                  <span className="font-editorial italic text-base text-[#7DD3FC]">
-                    Check-In
+                  <span className="text-white/30 text-xs">·</span>
+                  <span className="font-mono text-[11px] text-slate-300">
+                    QR or 6-digit code
                   </span>
                 </div>
-                <span className="font-mono text-xs text-slate-300 block">
-                  Scan room projector or enter 6-digit code
-                </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-[#7DD3FC] group-hover:translate-x-0.5 transition-transform shrink-0">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 border border-[#7DD3FC]/30 font-mono text-[11px] font-bold text-[#7DD3FC] group-hover:translate-x-0.5 transition-transform shrink-0">
               <span>SCAN</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </span>
           </Link>
 
-          {/* Secondary Coordinated Tool Trio with Unified Cosmic Slate-Navy & Ice-Cyan SVG Icons */}
+          {/* Compact 3-Column Tool Trio: Skill Exams / Projects / Proposals (Zero 01/02/03 Numeration) */}
           <div className="grid grid-cols-3 gap-2">
             <Link
               href="/exams"
-              className="p-3 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(15,30,54,0.04)]"
+              className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 active:scale-[0.98] transition-all group flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2 shadow-[0_3px_10px_rgba(15,30,54,0.04)]"
             >
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <polygon
-                      points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"
-                      stroke="#7DD3FC"
-                      strokeWidth="1.7"
-                      fill="#38BDF8"
-                      fillOpacity="0.2"
-                    />
-                    <path d="M9 12.2L11 14.2L15.2 9.8" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="font-mono text-xs text-slate-400 font-bold">01</span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <polygon
+                    points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"
+                    stroke="#7DD3FC"
+                    strokeWidth="1.75"
+                    fill="#38BDF8"
+                    fillOpacity="0.2"
+                  />
+                  <path d="M9 12.2L11 14.2L15.2 9.8" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
-              <div>
-                <span className="text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
+              <div className="min-w-0">
+                <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
                   Skill Exams
                 </span>
-                <span className="font-mono text-xs text-slate-500 block mt-0.5">
+                <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
                   6 exams
                 </span>
               </div>
@@ -905,275 +569,255 @@ export default function MobileHomeHubPage() {
 
             <Link
               href="/projects/submit"
-              className="p-3 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(15,30,54,0.04)]"
+              className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 active:scale-[0.98] transition-all group flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2 shadow-[0_3px_10px_rgba(15,30,54,0.04)]"
             >
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="7" cy="7" r="2.2" stroke="#7DD3FC" strokeWidth="1.7" />
-                    <circle cx="17" cy="7" r="2.2" stroke="#BAE6FD" strokeWidth="1.7" />
-                    <circle cx="12" cy="17" r="2.2" stroke="#FFFFFF" strokeWidth="1.7" />
-                    <path d="M8.8 8.5L11 15M15.2 8.5L13 15" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <span className="font-mono text-xs text-slate-400 font-bold">02</span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="7" cy="7" r="2.2" stroke="#7DD3FC" strokeWidth="1.75" />
+                  <circle cx="17" cy="7" r="2.2" stroke="#BAE6FD" strokeWidth="1.75" />
+                  <circle cx="12" cy="17" r="2.2" stroke="#FFFFFF" strokeWidth="1.75" />
+                  <path d="M8.8 8.5L11 15M15.2 8.5L13 15" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
               </div>
-              <div>
-                <span className="text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
+              <div className="min-w-0">
+                <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
                   Projects
                 </span>
-                <span className="font-mono text-xs text-slate-500 block mt-0.5">
-                  Submit proof
+                <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
+                  Submit
                 </span>
               </div>
             </Link>
 
             <Link
               href="/proposals"
-              className="p-3 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all group text-left flex flex-col justify-between shadow-[0_3px_12px_rgba(15,30,54,0.04)]"
+              className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#182C4E]/60 active:scale-[0.98] transition-all group flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2 shadow-[0_3px_10px_rgba(15,30,54,0.04)]"
             >
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z"
-                      stroke="#7DD3FC"
-                      strokeWidth="1.7"
-                      fill="#38BDF8"
-                      fillOpacity="0.22"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="12" cy="12" r="1.6" fill="#FFFFFF" />
-                  </svg>
-                </div>
-                <span className="font-mono text-xs text-slate-400 font-bold">03</span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 3L14.2 9.8L21 12L14.2 14.2L12 21L9.8 14.2L3 12L9.8 9.8L12 3Z"
+                    stroke="#7DD3FC"
+                    strokeWidth="1.75"
+                    fill="#38BDF8"
+                    fillOpacity="0.22"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="1.5" fill="#FFFFFF" />
+                </svg>
               </div>
-              <div>
-                <span className="text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
+              <div className="min-w-0">
+                <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
                   Proposals
                 </span>
-                <span className="font-mono text-xs text-slate-500 block mt-0.5">
-                  Pitch ideas
+                <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
+                  Pitch idea
                 </span>
               </div>
             </Link>
           </div>
         </div>
 
-        {/* My Assigned Tasks Card with Architectural Hairline Layout */}
-        <div
-          className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_4px_18px_rgba(15,30,54,0.05)] animate-rise"
-          style={{ animationDelay: "320ms" }}
-        >
-          <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
-            <div className="flex items-baseline gap-1.5">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
-                ASSIGNED TASKS
-              </h2>
-              <span className="font-editorial italic text-base text-slate-500">
-                missions
-              </span>
+        {/* My Assigned Tasks Card with Compact Done/Archive List */}
+        {!isAlumni && (
+          <div
+            className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_18px_rgba(15,30,54,0.05)] animate-rise"
+            style={{ animationDelay: "280ms" }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+              <div className="flex items-baseline gap-1.5">
+                <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
+                  ASSIGNED TASKS
+                </h2>
+                <span className="font-editorial italic text-base text-slate-500">
+                  missions
+                </span>
+              </div>
+
+              {/* Segmented Toggle: Active (N) | Icon-Only Archive */}
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5]">
+                <button
+                  type="button"
+                  onClick={() => setTaskTab("active")}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
+                    taskTab === "active"
+                      ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Active ({activeTasks.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTaskTab("done")}
+                  title="Done & Archive"
+                  aria-label="Done & Archive"
+                  className={`p-1.5 rounded-md active:scale-[0.98] transition cursor-pointer flex items-center justify-center ${
+                    taskTab === "done"
+                      ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {/* Segmented Toggle: Active (N) | Done & History (M) */}
-            <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5]">
-              <button
-                type="button"
-                onClick={() => setTaskTab("active")}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
-                  taskTab === "active"
-                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Active ({activeTasks.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setTaskTab("done")}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
-                  taskTab === "done"
-                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Done ({doneAndOldTasks.length})
-              </button>
-            </div>
-          </div>
-
-          {taskTab === "active" ? (
-            <div className="divide-y divide-slate-200/80">
-              {activeTasks.map((task) => {
-                const line = task.assignees.find(
-                  (a) => a.memberId === member.id
-                );
-                if (!line) return null;
-                return (
-                  <div
-                    key={task.id}
-                    className="py-3 first:pt-0 last:pb-0 space-y-2"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#0284C7]">
-                          {task.category} // {line.roleInTask}
+            {taskTab === "active" ? (
+              <div className="divide-y divide-slate-200/80">
+                {activeTasks.map((task) => {
+                  const line = task.assignees.find(
+                    (a) => a.memberId === member.id
+                  );
+                  if (!line) return null;
+                  return (
+                    <div
+                      key={task.id}
+                      className="py-2.5 first:pt-0 last:pb-0 space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#0284C7]">
+                            {task.category} // {line.roleInTask}
+                          </span>
+                          <h3 className="text-sm font-extrabold font-display text-[#0F1E36] mt-0.5">
+                            {task.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5 font-mono">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            <span>
+                              {task.deadline} · {task.locationOrShift}
+                            </span>
+                          </p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5] font-mono text-xs font-bold shrink-0 tabular-nums">
+                          +{line.proposedScore} XP
                         </span>
-                        <h3 className="text-sm sm:text-base font-extrabold font-display text-[#0F1E36] mt-0.5">
-                          {task.title}
-                        </h3>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-mono">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          <span>
-                            {task.deadline} · {task.locationOrShift}
-                          </span>
-                        </p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5] font-mono text-xs font-bold shrink-0 tabular-nums">
-                        +{line.proposedScore} XP
-                      </span>
-                    </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-1.5 flex-wrap">
-                      <span className="font-mono text-xs text-slate-500">
-                        STATE:{" "}
-                        <strong className="text-[#0F1E36] font-bold uppercase">
-                          {line.status}
-                        </strong>
-                      </span>
+                      <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                        <span className="font-mono text-xs text-slate-500">
+                          STATE:{" "}
+                          <strong className="text-[#0F1E36] font-bold uppercase">
+                            {line.status}
+                          </strong>
+                        </span>
 
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {!line.receiptConfirmed ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              confirmTaskReceipt(task.id, member.id)
-                            }
-                            className="h-8 px-3 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] text-[#162847] border border-[#D5E3F5] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
-                          >
-                            Confirm Receipt
-                          </button>
-                        ) : (
-                          <span className="text-xs font-bold text-[#162847] flex items-center gap-1 font-mono">
-                            <Check className="w-3.5 h-3.5 text-[#0284C7]" /> Confirmed
-                          </span>
-                        )}
-
-                        {line.status !== "Delivered" &&
-                          line.status !== "Validated" && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {!line.receiptConfirmed ? (
                             <button
                               type="button"
-                              onClick={() => {
-                                setDeliverModalTaskId(task.id);
-                                setProofText(line.proofUrlOrNote || "");
-                              }}
-                              className="h-8 px-3 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display border border-[#2B4875]/60 active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
+                              onClick={() =>
+                                confirmTaskReceipt(task.id, member.id)
+                              }
+                              className="h-7 px-2.5 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] text-[#162847] border border-[#D5E3F5] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
                             >
-                              <Send className="w-3 h-3 text-[#7DD3FC]" />
-                              <span>Deliver Proof</span>
+                              Confirm Receipt
                             </button>
-                          )}
-
-                        <button
-                          type="button"
-                          onClick={() => archiveTask(task.id)}
-                          className="h-8 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold font-display active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
-                          title="Archive to Done & History"
-                        >
-                          <Archive className="w-3 h-3" />
-                          <span>Archive</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {activeTasks.length === 0 && (
-                <div className="py-6 text-center text-xs text-slate-500">
-                  All assigned tasks are completed and archived! Check{" "}
-                  <strong>Done &amp; History</strong>.
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {doneAndOldTasks.map((task) => {
-                const line = task.assignees.find(
-                  (a) => a.memberId === member.id
-                );
-                if (!line) return null;
-                const xpAwarded = line.awardedScore ?? line.proposedScore;
-                return (
-                  <div
-                    key={task.id}
-                    className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 space-y-1.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[9.5px] font-extrabold font-mono uppercase tracking-wider text-[#0284C7]">
-                            {task.category} · {line.roleInTask}
-                          </span>
-                          {line.scoreType && (
-                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5]">
-                              {line.scoreType} Score
+                          ) : (
+                            <span className="text-xs font-bold text-[#162847] flex items-center gap-1 font-mono">
+                              <Check className="w-3.5 h-3.5 text-[#0284C7]" /> Confirmed
                             </span>
                           )}
+
+                          {line.status !== "Delivered" &&
+                            line.status !== "Validated" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeliverModalTaskId(task.id);
+                                  setProofText(line.proofUrlOrNote || "");
+                                }}
+                                className="h-7 px-2.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display border border-[#2B4875]/60 active:scale-[0.98] transition flex items-center gap-1 cursor-pointer"
+                              >
+                                <Send className="w-3 h-3 text-[#7DD3FC]" />
+                                <span>Deliver Proof</span>
+                              </button>
+                            )}
+
+                          <button
+                            type="button"
+                            onClick={() => archiveTask(task.id)}
+                            className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 active:scale-[0.98] transition flex items-center justify-center cursor-pointer"
+                            title="Archive"
+                            aria-label="Archive"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <h3 className="text-xs font-extrabold text-[#0F1E36] mt-0.5">
-                          {task.title}
-                        </h3>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black font-mono bg-[#182C4E] text-[#7DD3FC] shrink-0 tabular-nums">
-                        +{xpAwarded} XP
-                      </span>
                     </div>
+                  );
+                })}
 
-                    {line.managerFeedback && (
-                      <div className="p-2 rounded-lg bg-white border border-slate-200/80 text-[10.5px] text-slate-700">
-                        <span className="font-extrabold text-[#0F1E36]">
-                          Manager Feedback ({line.validatedBy || "Lead"}):{" "}
-                        </span>
-                        <span className="italic">“{line.managerFeedback}”</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
-                      <span className="flex items-center gap-1 text-[#162847] font-bold">
-                        <Check className="w-3 h-3 text-[#0284C7]" />
-                        {line.status === "Validated"
-                          ? `Validated ${line.validatedAt || ""}`
-                          : "Archived"}
-                      </span>
-                      {task.archived && line.status !== "Validated" && (
-                        <button
-                          type="button"
-                          onClick={() => unarchiveTask(task.id)}
-                          className="text-[10px] font-extrabold text-[#1D63EB] hover:underline flex items-center gap-0.5 cursor-pointer"
-                        >
-                          <RotateCcw className="w-2.5 h-2.5" /> Restore to Active
-                        </button>
-                      )}
-                    </div>
+                {activeTasks.length === 0 && (
+                  <div className="py-4 text-center text-xs text-slate-500">
+                    All assigned tasks are completed and archived.
                   </div>
-                );
-              })}
+                )}
+              </div>
+            ) : (
+              /* Small, Compact Done & Archived Task Rows */
+              <div className="space-y-1.5">
+                {doneAndOldTasks.map((task) => {
+                  const line = task.assignees.find(
+                    (a) => a.memberId === member.id
+                  );
+                  if (!line) return null;
+                  const xpAwarded = line.awardedScore ?? line.proposedScore;
+                  return (
+                    <div
+                      key={task.id}
+                      className="py-2 px-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80 flex items-center justify-between gap-2"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-4 h-4 rounded bg-[#182C4E] text-[#7DD3FC] flex items-center justify-center shrink-0">
+                          <Check className="w-2.5 h-2.5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#0F1E36] leading-tight">
+                            {task.title}
+                          </p>
+                          <span className="text-[10.5px] font-mono text-slate-500">
+                            {task.category} · {line.status === "Validated" ? "Validated" : "Archived"}
+                          </span>
+                        </div>
+                      </div>
 
-              {doneAndOldTasks.length === 0 && (
-                <div className="py-6 text-center text-xs text-slate-500">
-                  No archived or validated tasks yet.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[10.5px] font-bold font-mono bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] tabular-nums">
+                          +{xpAwarded} XP
+                        </span>
+                        {task.archived && line.status !== "Validated" && (
+                          <button
+                            type="button"
+                            onClick={() => unarchiveTask(task.id)}
+                            className="p-1 rounded bg-white border border-slate-200 text-[#182C4E] hover:bg-[#F0F6FF] cursor-pointer"
+                            title="Restore to Active"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {doneAndOldTasks.length === 0 && (
+                  <div className="py-4 text-center text-xs text-slate-500">
+                    No archived or validated tasks yet.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Latest News Card (See all -> /explore) */}
         {featuredNews && (
           <div
             className="animate-rise"
-            style={{ animationDelay: "420ms" }}
+            style={{ animationDelay: "340ms" }}
           >
             <div className="flex items-center justify-between mb-1.5">
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
@@ -1222,23 +866,23 @@ export default function MobileHomeHubPage() {
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[380px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise"
+            className="w-full max-w-[380px] rounded-xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-extrabold text-slate-900">
+              <h3 className="text-sm font-extrabold font-display text-[#0F1E36]">
                 Deliver Task Proof
               </h3>
               <button
                 type="button"
                 onClick={() => setDeliverModalTaskId(null)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleDeliverSubmit} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Deliverable Link or Completion Summary
                 </label>
                 <textarea
@@ -1247,20 +891,20 @@ export default function MobileHomeHubPage() {
                   value={proofText}
                   onChange={(e) => setProofText(e.target.value)}
                   placeholder="Paste GitHub/Drive link or describe completed work..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#1D63EB]"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setDeliverModalTaskId(null)}
-                  className="h-9 px-3.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
+                  className="h-9 px-3.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 rounded-xl bg-[#1D63EB] text-white text-xs font-extrabold hover:bg-blue-700 active:scale-[0.98] transition cursor-pointer"
+                  className="h-9 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold border border-[#2B4875]/60 active:scale-[0.98] transition cursor-pointer"
                 >
                   Submit Delivery
                 </button>

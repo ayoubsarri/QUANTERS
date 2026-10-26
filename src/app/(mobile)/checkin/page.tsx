@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  ArrowRight,
   Calendar,
   Camera,
   CheckCircle2,
   Clock,
   MapPin,
   QrCode,
+  Sparkles,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
@@ -64,134 +64,133 @@ export default function WorkshopCheckInScannerPage() {
   };
 
   return (
-    <MobileAppShell
-      hideBottomNav
-      darkStatus
-      className="bg-cosmic-space text-white relative overflow-hidden"
-    >
-      <div className="flex-1 w-full max-w-[480px] mx-auto flex flex-col justify-between px-5 pt-4 pb-6 sm:py-8">
-        {/* Top Bar: Workshop Check-in */}
-        <div
-          className="animate-rise"
-          style={{ animationDelay: "0ms" }}
-        >
+    <MobileAppShell className="bg-[#F4F7FB]">
+      <div className="flex-1 w-full max-w-[480px] mx-auto flex flex-col px-4 sm:px-5 pt-2 pb-6 space-y-3.5 animate-rise">
+        {/* Top Editorial Header */}
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
             <Link
-              href="/workshops"
-              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-sky-100 hover:text-white active:scale-[0.98] transition"
+              href="/home"
+              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Workshop Check-in</span>
+              <span>Back</span>
             </Link>
 
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10.5px] font-extrabold shadow-[0_0_14px_rgba(16,185,129,0.3)]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] text-[10px] font-extrabold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
               <span>Live Session</span>
             </span>
           </div>
 
-          {/* Session Header Info */}
-          <div className="mt-4 text-center">
-            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white">
-              {liveWorkshop.title}
-            </h1>
-            <p className="mt-1 text-[11px] text-sky-200/85 flex items-center justify-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-[#38E4FF]" />
-                {liveWorkshop.dateLabel} · {liveWorkshop.timeRange}
-              </span>
-              <span>·</span>
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-[#38E4FF]" />
-                {liveWorkshop.location}
-              </span>
+          <div className="pt-0.5">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
+              OPTICAL VERIFICATION · LIVE CHECK-IN
             </p>
+            <h1 className="font-display text-xl font-black tracking-tight text-[#0F1E36] leading-tight">
+              Session Check-In
+            </h1>
           </div>
         </div>
 
-        {/* Optical Viewfinder with Cyan Corner Brackets (#29D2FF) & Golden Laser */}
-        <div
-          className="my-4 flex flex-col items-center animate-rise"
-          style={{ animationDelay: "60ms" }}
-        >
-          <div className="relative w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] rounded-2xl bg-slate-950/70 border border-white/15 shadow-[0_0_40px_rgba(41,210,255,0.25)] flex flex-col items-center justify-center overflow-hidden">
-            {/* Cyan Corner Brackets (#29D2FF) */}
-            <div className="absolute top-4 left-4 w-7 h-7 border-t-[3.5px] border-l-[3.5px] border-[#29D2FF] rounded-tl-xl" />
-            <div className="absolute top-4 right-4 w-7 h-7 border-t-[3.5px] border-r-[3.5px] border-[#29D2FF] rounded-tr-xl" />
-            <div className="absolute bottom-4 left-4 w-7 h-7 border-b-[3.5px] border-l-[3.5px] border-[#29D2FF] rounded-bl-xl" />
-            <div className="absolute bottom-4 right-4 w-7 h-7 border-b-[3.5px] border-r-[3.5px] border-[#29D2FF] rounded-br-xl" />
+        {/* Compact Session Bar */}
+        <div className="rounded-xl bg-white border border-slate-200/90 p-3 shadow-2xs flex items-start justify-between gap-2.5">
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-xs font-extrabold text-[#0F1E36] leading-snug">
+              {liveWorkshop.title}
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap text-[11px] font-medium text-slate-500">
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-[#0284C7] shrink-0" />
+                <span>
+                  {liveWorkshop.dateLabel} · {liveWorkshop.timeRange}
+                </span>
+              </span>
+              <span className="text-slate-300">·</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-[#0284C7] shrink-0" />
+                <span>{liveWorkshop.location}</span>
+              </span>
+            </div>
+          </div>
 
-            {/* Subtle Simulated QR Target Inside Viewfinder */}
-            <div className="w-28 h-28 rounded-2xl border border-cyan-400/25 bg-white/5 flex flex-col items-center justify-center p-3 backdrop-blur-xs">
-              <QrCode className="w-14 h-14 text-cyan-300/70" />
-              <span className="mt-1 text-[9px] font-mono text-sky-200/70">
-                {liveWorkshop.liveQrToken.slice(0, 16)}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10.5px] font-mono font-extrabold shrink-0 tabular-nums">
+            <Sparkles className="w-3 h-3 text-[#0284C7]" />
+            <span>+{liveWorkshop.xpReward} XP</span>
+          </span>
+        </div>
+
+        {/* Softened Cosmic Slate-Navy Optical Scanner Card */}
+        <div className="rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 p-4 shadow-[0_12px_32px_rgba(16,31,56,0.22)] flex flex-col items-center space-y-3.5">
+          {/* Compact Optical Viewfinder */}
+          <div className="w-[200px] h-[200px] rounded-xl bg-[#0B1528] border border-[#38BDF8]/30 mx-auto relative flex flex-col items-center justify-center overflow-hidden">
+            {/* Stellar Cyan Corner Brackets (#38BDF8) */}
+            <div className="absolute top-3 left-3 w-6 h-6 border-t-[3px] border-l-[3px] border-[#38BDF8] rounded-tl-lg" />
+            <div className="absolute top-3 right-3 w-6 h-6 border-t-[3px] border-r-[3px] border-[#38BDF8] rounded-tr-lg" />
+            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-[3px] border-l-[3px] border-[#38BDF8] rounded-bl-lg" />
+            <div className="absolute bottom-3 right-3 w-6 h-6 border-b-[3px] border-r-[3px] border-[#38BDF8] rounded-br-lg" />
+
+            {/* Simulated QR Target Inside Viewfinder */}
+            <div className="w-24 h-24 rounded-lg border border-[#38BDF8]/25 bg-white/5 flex flex-col items-center justify-center p-2.5">
+              <QrCode className="w-12 h-12 text-[#7DD3FC]" />
+              <span className="mt-1 text-[8.5px] font-mono text-[#7DD3FC]/80">
+                {liveWorkshop.liveQrToken.slice(0, 14)}
               </span>
             </div>
 
-            {/* Animated Golden Horizontal Scan Line */}
-            <div className="absolute left-4 right-4 h-[2.5px] bg-gradient-to-r from-transparent via-[#FBB03B] to-transparent shadow-[0_0_12px_#FBB03B] animate-scan-laser pointer-events-none" />
+            {/* Smooth Cyan Horizontal Scan Line */}
+            <div className="absolute left-3 right-3 h-[2px] bg-gradient-to-r from-transparent via-[#38BDF8] to-transparent shadow-[0_0_12px_#38BDF8] animate-scan-laser pointer-events-none" />
           </div>
 
-          <p className="mt-3.5 text-[11px] text-sky-100/80 text-center font-medium">
-            Point your camera at the workshop projector QR code
+          <p className="text-[11px] text-slate-200 text-center font-medium">
+            Align the projector QR code inside the optical frame
           </p>
 
           <button
             type="button"
             onClick={handleSimulatedCameraScan}
-            className="mt-3.5 h-11 px-6 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#29D2FF] text-slate-950 font-black text-xs shadow-[0_4px_20px_rgba(41,210,255,0.35)] hover:opacity-95 active:scale-[0.98] transition flex items-center gap-2 cursor-pointer"
+            className="h-10 px-5 rounded-lg bg-[#38BDF8] hover:bg-[#7DD3FC] text-[#0F1E36] font-display font-black text-xs active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
             <Camera className="w-4 h-4" />
             <span>Scan Session QR Code</span>
           </button>
         </div>
 
-        {/* OR Divider + 6-Digit Fallback Code Input */}
-        <div
-          className="space-y-3 animate-rise"
-          style={{ animationDelay: "120ms" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/15" />
-            <span className="text-[10px] font-black tracking-widest uppercase text-sky-200/70">
-              OR ENTER SESSION CODE
+        {/* Compact White Card for 6-Digit Projector Code */}
+        <div className="rounded-xl bg-white border border-slate-200/90 p-3.5 space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#182C4E]">
+              6-Digit Projector Code
             </span>
-            <div className="flex-1 h-px bg-white/15" />
+            <span className="text-[10.5px] text-slate-500 font-medium">
+              Manual Fallback
+            </span>
           </div>
 
-          <form onSubmit={handleCodeSubmit} className="space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                maxLength={6}
-                value={sixDigitCode}
-                onChange={(e) => setSixDigitCode(e.target.value)}
-                placeholder="Enter 6-digit projector code"
-                className="flex-1 h-12 px-5 rounded-full bg-white/10 border border-white/20 text-white placeholder-sky-200/50 text-xs font-mono font-bold tracking-widest backdrop-blur-md focus:outline-none focus:border-[#29D2FF] focus:bg-white/15 transition-all"
-              />
-              <button
-                type="submit"
-                aria-label="Verify 6-digit code"
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white flex items-center justify-center shadow-[0_4px_16px_rgba(29,99,235,0.35)] active:scale-[0.98] transition shrink-0 cursor-pointer"
-              >
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex items-center justify-between text-[10.5px] text-sky-200/70 px-2 font-medium">
-              <span>Displayed on room projector screen</span>
-              <span className="text-emerald-300 font-bold tabular-nums">
-                +{liveWorkshop.xpReward} XP Reward
-              </span>
-            </div>
+          <form onSubmit={handleCodeSubmit} className="flex items-center gap-2">
+            <input
+              type="text"
+              maxLength={6}
+              value={sixDigitCode}
+              onChange={(e) => setSixDigitCode(e.target.value)}
+              placeholder="Enter 6-digit projector code"
+              className="flex-1 h-10 px-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-mono font-bold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition-all"
+            />
+            <button
+              type="submit"
+              aria-label="Verify 6-digit code"
+              className="h-10 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-bold active:scale-[0.98] transition shrink-0 cursor-pointer"
+            >
+              Verify
+            </button>
           </form>
 
           {feedback && (
             <div
-              className={`p-3 rounded-2xl border text-xs font-bold flex items-center gap-2 animate-rise ${
+              className={`p-2.5 rounded-lg border text-xs font-bold flex items-center gap-2 animate-rise ${
                 feedback.ok
-                  ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
-                  : "bg-amber-500/20 border-amber-400/40 text-amber-200"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                  : "bg-amber-50 border-amber-200 text-amber-800"
               }`}
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -199,14 +198,14 @@ export default function WorkshopCheckInScannerPage() {
             </div>
           )}
 
-          {/* Bottom Stopwatch Card: QR code is valid for 04 : 58 */}
-          <div className="rounded-full bg-white/10 border border-white/15 px-5 py-3 backdrop-blur-xl flex items-center justify-between shadow-2xs">
-            <div className="flex items-center gap-2 text-xs text-sky-100 font-medium">
-              <Clock className="w-4 h-4 text-[#38E4FF]" />
-              <span>QR code is valid for</span>
+          {/* Compact Validity Timer Strip */}
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+              <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
+              <span>QR code valid for {mins}:{secs}</span>
             </div>
-            <span className="font-mono text-sm font-black tracking-wider text-[#38E4FF] tabular-nums">
-              {mins} : {secs}
+            <span className="font-mono text-xs font-black text-[#182C4E] tabular-nums">
+              {mins}:{secs}
             </span>
           </div>
         </div>

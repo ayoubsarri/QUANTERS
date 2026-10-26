@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Archive,
   Bell,
   Check,
   CheckCheck,
@@ -38,12 +37,12 @@ const PRIORITY_BADGE_STYLES: Record<
     text: "#B45309",
   },
   Info: {
-    bg: "#E0F0FF",
-    text: "#1D63B8",
+    bg: "#F0F6FF",
+    text: "#0284C7",
   },
   Message: {
-    bg: "#E0E7FF",
-    text: "#4338CA",
+    bg: "#F0F6FF",
+    text: "#182C4E",
   },
 };
 
@@ -119,35 +118,46 @@ export default function NotificationsPage() {
     setJustArchivedBanner(`Restored "${msgTitle}" back to Inbox`);
   };
 
-  const renderSenderIcon = (msg: ClubMessage) => {
+  const renderSenderIcon = (msg: ClubMessage, compact = false) => {
+    const sizeClass = compact ? "w-7 h-7 rounded-lg" : "w-9 h-9 rounded-lg";
+    const iconSize = compact ? "w-3.5 h-3.5" : "w-4 h-4";
     if (msg.senderRole === "HR") {
       return (
-        <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[#1D63EB] shrink-0">
-          <Users className="w-5 h-5" />
+        <div
+          className={`${sizeClass} bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#182C4E] shrink-0`}
+        >
+          <Users className={iconSize} />
         </div>
       );
     }
     if (msg.senderRole === "Scientific Team") {
       return (
-        <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 shrink-0">
-          <Orbit className="w-5 h-5" />
+        <div
+          className={`${sizeClass} bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#0284C7] shrink-0`}
+        >
+          <Orbit className={iconSize} />
         </div>
       );
     }
     return (
-      <div className="w-10 h-10 rounded-full bg-sky-100 border border-sky-200 flex items-center justify-center text-[#1D63B8] shrink-0">
-        <Sparkles className="w-5 h-5" />
+      <div
+        className={`${sizeClass} bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#0284C7] shrink-0`}
+      >
+        <Sparkles className={iconSize} />
       </div>
     );
   };
 
   return (
     <MobileAppShell>
-      <div className="flex-1 flex flex-col px-5 pt-2 pb-6 animate-rise">
+      <div className="flex-1 flex flex-col px-4 sm:px-5 pt-2 pb-6 animate-rise">
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div>
-            <h1 className="text-[20px] font-extrabold text-slate-900 tracking-tight leading-tight">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
+              MEMBER DISPATCHES
+            </p>
+            <h1 className="font-display text-xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Notifications &amp; Messages
             </h1>
             <p className="text-[11px] font-medium text-slate-500 mt-0.5">
@@ -159,9 +169,9 @@ export default function NotificationsPage() {
               type="button"
               onClick={handleMarkAllReadAndArchive}
               title="Mark all read and move to Archive"
-              className="px-2.5 py-1.5 rounded-full bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:text-[#1D63EB] hover:border-blue-200 active:scale-[0.98] flex items-center gap-1 shadow-2xs transition"
+              className="px-2.5 py-1.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[10px] font-bold text-[#182C4E] hover:bg-[#E2EEFC] active:scale-[0.98] flex items-center gap-1 transition cursor-pointer"
             >
-              <CheckCheck className="w-3.5 h-3.5 text-[#1D63EB]" />
+              <CheckCheck className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>
                 {unreadCount > 0
                   ? "Mark All Read & Archive"
@@ -171,7 +181,7 @@ export default function NotificationsPage() {
             <button
               type="button"
               onClick={() => setSearchOpen((v) => !v)}
-              className="w-8 h-8 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-xs hover:bg-slate-50 active:scale-[0.98] transition"
+              className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition cursor-pointer"
               aria-label="Search messages"
             >
               <Search className="w-4 h-4" />
@@ -188,13 +198,13 @@ export default function NotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications or HR messages..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1D63EB]"
+              className="w-full pl-9 pr-8 py-2 rounded-lg bg-white border border-slate-200/90 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -203,7 +213,7 @@ export default function NotificationsPage() {
         )}
 
         {/* Filter Tabs: Inbox | HR Notices | Archived */}
-        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-0.5">
+        <div className="flex items-center gap-1.5 mb-3.5 overflow-x-auto pb-0.5">
           {(
             [
               { key: "Inbox" as const, label: `Inbox (${unreadCount})` },
@@ -217,10 +227,10 @@ export default function NotificationsPage() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer ${
                   active
-                    ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
-                    : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
+                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 shadow-2xs"
+                    : "bg-white text-slate-600 border border-slate-200/90 hover:text-[#182C4E]"
                 }`}
               >
                 {tab.label}
@@ -229,31 +239,31 @@ export default function NotificationsPage() {
           })}
         </div>
 
-        {/* Subtle Auto-Archive Toast Pill */}
+        {/* Compact Auto-Archive Status Bar */}
         {justArchivedBanner && (
-          <div className="mb-3 px-3.5 py-2.5 rounded-2xl bg-emerald-50/90 backdrop-blur-md border border-emerald-200/90 flex items-center justify-between gap-2 text-xs font-bold text-emerald-900 animate-rise shadow-2xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span className="truncate">{justArchivedBanner}</span>
+          <div className="mb-3 px-3 py-2 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2 text-[11px] font-bold text-[#182C4E] animate-rise">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Check className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+              <span className="leading-snug">{justArchivedBanner}</span>
             </div>
             <button
               type="button"
               onClick={() => setJustArchivedBanner(null)}
-              className="text-emerald-600 hover:text-emerald-800 shrink-0"
+              className="text-slate-500 hover:text-[#182C4E] shrink-0 cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
         {/* Messages List */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {filteredMessages.length === 0 ? (
-            <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-2.5 shadow-2xs">
+            <div className="p-6 rounded-xl bg-white border border-slate-200/90 text-center space-y-2">
               {activeTab === "Inbox" ? (
                 <>
-                  <Inbox className="w-10 h-10 text-emerald-500 mx-auto" />
-                  <p className="text-sm font-black text-slate-800">
+                  <Inbox className="w-8 h-8 text-[#0284C7] mx-auto" />
+                  <p className="text-sm font-black text-[#0F1E36]">
                     Inbox Zero — All caught up!
                   </p>
                   <p className="text-xs text-slate-500">
@@ -261,7 +271,7 @@ export default function NotificationsPage() {
                     <button
                       type="button"
                       onClick={() => setActiveTab("Archived")}
-                      className="text-[#1D63EB] font-bold underline"
+                      className="text-[#182C4E] font-bold underline cursor-pointer"
                     >
                       Archived ({archivedCount})
                     </button>
@@ -270,7 +280,7 @@ export default function NotificationsPage() {
                 </>
               ) : (
                 <>
-                  <Bell className="w-10 h-10 text-slate-300 mx-auto" />
+                  <Bell className="w-8 h-8 text-slate-300 mx-auto" />
                   <p className="text-sm font-bold text-slate-700">
                     No notifications in this tab
                   </p>
@@ -284,25 +294,68 @@ export default function NotificationsPage() {
                 PRIORITY_BADGE_STYLES.Info;
               const isArchivedOrRead = Boolean(msg.archived || !msg.unread);
 
+              if (isArchivedOrRead) {
+                /* Small, Compact Archived / Read Card */
+                return (
+                  <div
+                    key={msg.id}
+                    onClick={() => handleOpenMessage(msg)}
+                    className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 hover:border-[#2B4875]/40 active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {renderSenderIcon(msg, true)}
+                      <div className="flex-1 min-w-0">
+                        {/* Compact single-line header */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs font-extrabold text-[#0F1E36]">
+                              {msg.title}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-500">
+                              · {msg.senderLabel}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-mono text-slate-400">
+                              {msg.timeAgo}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                handleRestoreToInbox(msg.id, msg.title, e)
+                              }
+                              className="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-bold text-[#182C4E] hover:bg-[#F0F6FF] active:scale-[0.98] transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <RotateCcw className="w-2.5 h-2.5 text-[#0284C7]" />
+                              <span>Restore</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Concise 1-line snippet */}
+                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1 leading-snug">
+                          {msg.body}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              /* Active Unread Message Card */
               return (
                 <div
                   key={msg.id}
                   onClick={() => handleOpenMessage(msg)}
-                  className={`p-4 rounded-xl bg-white/85 backdrop-blur-xl border active:scale-[0.99] transition-all cursor-pointer shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 ${
-                    msg.unread && !msg.archived
-                      ? "border-[#1D63EB]/50 ring-2 ring-[#1D63EB]/10"
-                      : "border-white/80"
-                  }`}
+                  className="p-3.5 rounded-xl bg-white border border-[#2B4875]/40 ring-1 ring-[#182C4E]/10 hover:border-[#182C4E] active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-start gap-3.5">
-                    {/* Sender Avatar / Icon */}
+                  <div className="flex items-start gap-3">
                     {renderSenderIcon(msg)}
 
-                    {/* Message Body */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-black text-slate-900">
+                          <span className="text-xs font-black text-[#0F1E36]">
                             {msg.senderLabel}
                           </span>
                           <span
@@ -310,7 +363,7 @@ export default function NotificationsPage() {
                               backgroundColor: badgeStyle.bg,
                               color: badgeStyle.text,
                             }}
-                            className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold leading-tight border border-black/5"
+                            className="px-2 py-0.5 rounded-md text-[10px] font-extrabold leading-tight border border-black/5"
                           >
                             {msg.priority}
                           </span>
@@ -320,44 +373,19 @@ export default function NotificationsPage() {
                           <span className="text-[11px] font-medium text-slate-400">
                             {msg.timeAgo}
                           </span>
-                          {msg.unread && !msg.archived ? (
-                            <span
-                              className="w-2.5 h-2.5 rounded-full bg-[#1D63EB] shadow-[0_0_8px_rgba(29,99,235,0.6)]"
-                              aria-label="Unread"
-                            />
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-extrabold border border-emerald-200/80">
-                              Archived
-                            </span>
-                          )}
+                          <span
+                            className="w-2 h-2 rounded-full bg-[#0284C7]"
+                            aria-label="Unread"
+                          />
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-black text-slate-900 mt-1 leading-snug">
+                      <h3 className="text-sm font-black text-[#0F1E36] mt-1 leading-snug">
                         {msg.title}
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
                         {msg.body}
                       </p>
-
-                      {isArchivedOrRead && (
-                        <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Read &amp; Archived</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) =>
-                              handleRestoreToInbox(msg.id, msg.title, e)
-                            }
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100/80 hover:bg-blue-50 text-slate-700 hover:text-[#1D63EB] text-[10px] font-bold active:scale-[0.98] transition cursor-pointer"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                            <span>Restore to Inbox</span>
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -367,21 +395,21 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Detail Bottom Sheet Modal */}
+      {/* Detail Modal */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl rounded-2xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white rounded-xl p-4 shadow-2xl border border-slate-200/90 space-y-3.5 animate-rise"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 {renderSenderIcon(selectedMessage)}
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-extrabold text-slate-900">
+                    <span className="text-xs font-extrabold text-[#0F1E36]">
                       {selectedMessage.senderLabel}
                     </span>
                     <span
@@ -406,19 +434,19 @@ export default function NotificationsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMessageId(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"
+                className="w-7 h-7 rounded-lg bg-[#F8FAFC] border border-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Subtle green pill confirming auto-archive on read */}
-            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200/80">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-800">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            {/* Compact status bar confirming auto-archive on read */}
+            <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#182C4E]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>
                   {selectedMessage.archived || !selectedMessage.unread
-                    ? "Read & Moved to Archive"
+                    ? "Archived"
                     : "In Inbox (Unread)"}
                 </span>
               </span>
@@ -433,16 +461,16 @@ export default function NotificationsPage() {
                     );
                     setSelectedMessageId(null);
                   }}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-slate-700 hover:text-[#1D63EB] text-[10px] font-bold shadow-2xs active:scale-[0.98] transition"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-slate-200 text-[#182C4E] hover:bg-[#F0F6FF] text-[10px] font-bold active:scale-[0.98] transition cursor-pointer"
                 >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Move back to Inbox</span>
+                  <RotateCcw className="w-3 h-3 text-[#0284C7]" />
+                  <span>Restore</span>
                 </button>
               )}
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-              <h3 className="text-sm font-extrabold text-slate-900">
+            <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 space-y-1.5">
+              <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 {selectedMessage.title}
               </h3>
               <p className="text-xs text-slate-700 leading-relaxed">
@@ -451,15 +479,15 @@ export default function NotificationsPage() {
             </div>
 
             {/* Channel & Governance Privacy Notice */}
-            <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
-                  <Bell className="w-3 h-3 text-[#1D63EB]" />
+            <div className="flex items-center justify-between text-[11px] text-slate-500 px-0.5 flex-wrap gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] font-semibold">
+                  <Bell className="w-3 h-3 text-[#0284C7]" />
                   In-App
                 </span>
                 {selectedMessage.channels.email && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
-                    <Mail className="w-3 h-3 text-[#1D63EB]" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] font-semibold">
+                    <Mail className="w-3 h-3 text-[#0284C7]" />
                     Email Dispatched
                   </span>
                 )}
@@ -470,11 +498,11 @@ export default function NotificationsPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setSelectedMessageId(null)}
-                className="py-2.5 rounded-full bg-slate-100 text-slate-700 text-xs font-extrabold hover:bg-slate-200 active:scale-[0.98] transition cursor-pointer"
+                className="py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-slate-700 text-xs font-extrabold hover:bg-slate-100 active:scale-[0.98] transition cursor-pointer"
               >
                 Close
               </button>
@@ -486,7 +514,7 @@ export default function NotificationsPage() {
                     setSelectedMessageId(null);
                     router.push(target);
                   }}
-                  className="py-2.5 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 text-white text-xs font-extrabold hover:opacity-95 active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Open Destination</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -495,7 +523,7 @@ export default function NotificationsPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedMessageId(null)}
-                  className="py-2.5 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white text-xs font-extrabold shadow-[0_4px_14px_rgba(29,99,235,0.3)] hover:shadow-md active:scale-[0.98] transition cursor-pointer"
+                  className="py-2 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 text-white text-xs font-extrabold hover:opacity-95 active:scale-[0.98] transition cursor-pointer"
                 >
                   Acknowledge
                 </button>

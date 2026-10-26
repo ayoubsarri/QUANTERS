@@ -42,8 +42,8 @@ const PROPOSAL_TYPES: ProposalTypeOption[] = [
     shortLabel: "Event",
     icon: Calendar,
     reviewerLabel: "Reviewed by Executive Board",
-    accentBg: "bg-blue-50",
-    accentText: "text-[#1D63EB]",
+    accentBg: "bg-[#F0F6FF]",
+    accentText: "text-[#182C4E]",
   },
   {
     key: "Workshop",
@@ -51,8 +51,8 @@ const PROPOSAL_TYPES: ProposalTypeOption[] = [
     shortLabel: "Workshop",
     icon: GraduationCap,
     reviewerLabel: "Reviewed by Department Head",
-    accentBg: "bg-sky-50",
-    accentText: "text-sky-600",
+    accentBg: "bg-[#F0F6FF]",
+    accentText: "text-[#0284C7]",
   },
   {
     key: "Activity",
@@ -69,8 +69,8 @@ const PROPOSAL_TYPES: ProposalTypeOption[] = [
     shortLabel: "Collaboration",
     icon: Handshake,
     reviewerLabel: "Reviewed by Executive Board",
-    accentBg: "bg-indigo-50",
-    accentText: "text-indigo-600",
+    accentBg: "bg-[#F0F6FF]",
+    accentText: "text-[#182C4E]",
   },
   {
     key: "Internal Law Amendment",
@@ -87,8 +87,8 @@ const PROPOSAL_TYPES: ProposalTypeOption[] = [
     shortLabel: "Other",
     icon: Lightbulb,
     reviewerLabel: "Reviewed by Department Head",
-    accentBg: "bg-purple-50",
-    accentText: "text-purple-600",
+    accentBg: "bg-[#F0F6FF]",
+    accentText: "text-[#0284C7]",
   },
 ];
 
@@ -102,9 +102,9 @@ const STATE_STYLES: Record<
     border: "border-slate-200",
   },
   Submitted: {
-    bg: "bg-blue-50",
-    text: "text-[#1D63EB]",
-    border: "border-blue-200",
+    bg: "bg-[#F0F6FF]",
+    text: "text-[#182C4E]",
+    border: "border-[#D5E3F5]",
   },
   "Under Review": {
     bg: "bg-amber-50",
@@ -274,11 +274,14 @@ export default function ProposalsPage() {
 
   return (
     <MobileAppShell>
-      <div className="flex-1 flex flex-col px-5 pt-2 pb-6 animate-rise">
+      <div className="flex-1 flex flex-col px-4 sm:px-5 pt-2 pb-6 animate-rise">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <h1 className="text-[22px] font-extrabold text-slate-900 tracking-tight leading-tight">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
+              GOVERNANCE &amp; INITIATIVES
+            </p>
+            <h1 className="font-display text-xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Proposals
             </h1>
             <p className="text-xs font-medium text-slate-500 mt-0.5">
@@ -288,7 +291,7 @@ export default function ProposalsPage() {
           <button
             type="button"
             onClick={() => setSearchOpen((v) => !v)}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-xs hover:bg-slate-50 active:scale-[0.98] transition"
+            className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition cursor-pointer"
             aria-label="Search proposals"
           >
             <Search className="w-4 h-4" />
@@ -303,13 +306,13 @@ export default function ProposalsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search proposals by title, type, or author..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1D63EB]"
+              className="w-full pl-9 pr-8 py-2 rounded-lg bg-white border border-slate-200/90 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -318,14 +321,14 @@ export default function ProposalsPage() {
         )}
 
         {/* 3 Mode Pills */}
-        <div className="grid grid-cols-3 gap-1.5 bg-white/80 backdrop-blur-md p-1.5 rounded-full border border-white/80 shadow-[0_2px_12px_rgba(9,25,47,0.04)] mb-4">
+        <div className="grid grid-cols-3 gap-1.5 bg-white p-1 rounded-xl border border-slate-200/90 mb-4">
           <button
             type="button"
             onClick={() => setMode("new")}
-            className={`py-2 px-2.5 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer ${
+            className={`py-2 px-2 rounded-lg text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer ${
               mode === "new"
-                ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60"
+                : "text-slate-600 hover:text-[#182C4E]"
             }`}
           >
             New Proposal
@@ -333,18 +336,18 @@ export default function ProposalsPage() {
           <button
             type="button"
             onClick={() => setMode("mine")}
-            className={`py-2 px-2.5 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 rounded-lg text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               mode === "mine"
-                ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60"
+                : "text-slate-600 hover:text-[#182C4E]"
             }`}
           >
             <span>My Proposals</span>
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono tabular-nums ${
+              className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono tabular-nums ${
                 mode === "mine"
-                  ? "bg-white/25 text-white"
-                  : "bg-slate-200 text-slate-700"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#F0F6FF] text-[#182C4E]"
               }`}
             >
               {myProposals.length}
@@ -353,18 +356,18 @@ export default function ProposalsPage() {
           <button
             type="button"
             onClick={() => setMode("history")}
-            className={`py-2 px-2.5 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 rounded-lg text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               mode === "history"
-                ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)]"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60"
+                : "text-slate-600 hover:text-[#182C4E]"
             }`}
           >
             <span>History</span>
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono tabular-nums ${
+              className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono tabular-nums ${
                 mode === "history"
-                  ? "bg-white/25 text-white"
-                  : "bg-slate-200 text-slate-700"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#F0F6FF] text-[#182C4E]"
               }`}
             >
               {historyProposals.length}
@@ -374,7 +377,7 @@ export default function ProposalsPage() {
 
         {/* Submission Success Toast Banner */}
         {submittedBanner && (
-          <div className="mb-4 p-4 rounded-xl bg-emerald-50/90 backdrop-blur-md border border-emerald-200/90 flex items-start justify-between gap-2.5 animate-rise shadow-2xs">
+          <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start justify-between gap-2.5 animate-rise">
             <div className="flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
@@ -396,7 +399,7 @@ export default function ProposalsPage() {
                     setSubmittedBanner(null);
                     setMode("mine");
                   }}
-                  className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-[#1D63EB] underline"
+                  className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-[#182C4E] underline cursor-pointer"
                 >
                   <span>View in My Proposals</span>
                   <ArrowRight className="w-3 h-3" />
@@ -406,7 +409,7 @@ export default function ProposalsPage() {
             <button
               type="button"
               onClick={() => setSubmittedBanner(null)}
-              className="text-emerald-600 hover:text-emerald-800"
+              className="text-emerald-600 hover:text-emerald-800 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -415,11 +418,11 @@ export default function ProposalsPage() {
 
         {/* MODE 1: NEW PROPOSAL */}
         {mode === "new" && (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {/* Proposal Type 3x2 Visual Icon Grid */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-slate-800">
+                <label className="text-xs font-bold text-[#0F1E36]">
                   Proposal Type
                 </label>
                 <span className="text-[10px] font-semibold text-slate-500">
@@ -436,16 +439,16 @@ export default function ProposalsPage() {
                       key={item.key}
                       type="button"
                       onClick={() => setSelectedType(item.key)}
-                      className={`relative flex flex-col items-center justify-center px-1.5 py-2.5 sm:p-3 rounded-xl border text-center transition-all active:scale-[0.98] min-h-[84px] cursor-pointer ${
+                      className={`relative flex flex-col items-center justify-center px-1.5 py-2.5 sm:p-3 rounded-xl border text-center transition-all active:scale-[0.98] min-h-[82px] cursor-pointer ${
                         active
-                          ? "bg-white/95 border-[#182C4E] ring-2 ring-[#182C4E]/15 shadow-[0_4px_16px_rgba(16,31,56,0.1)]"
-                          : "bg-white/80 backdrop-blur-md border-white/80 hover:bg-white hover:border-slate-300 shadow-2xs"
+                          ? "bg-white border-[#182C4E] ring-2 ring-[#182C4E]/15 shadow-2xs"
+                          : "bg-white border-slate-200/90 hover:border-slate-300"
                       }`}
                     >
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
                           active
-                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] shadow-xs"
+                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC]"
                             : `${item.accentBg} ${item.accentText}`
                         }`}
                       >
@@ -459,7 +462,7 @@ export default function ProposalsPage() {
                         {item.shortLabel}
                       </span>
                       {item.key === "Internal Law Amendment" && (
-                        <span className="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[8px] font-extrabold uppercase tracking-tight">
+                        <span className="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[8px] font-extrabold uppercase tracking-tight">
                           <Scale className="w-2.5 h-2.5 text-[#0284C7]" />
                           <span>2/3 Exec</span>
                         </span>
@@ -472,7 +475,7 @@ export default function ProposalsPage() {
 
             {/* Governance Notice Banner when Internal Law Amendment is selected */}
             {selectedType === "Internal Law Amendment" && (
-              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/90 flex items-start gap-2.5 animate-rise">
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/90 flex items-start gap-2.5 animate-rise">
                 <Scale className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -493,7 +496,7 @@ export default function ProposalsPage() {
 
             {/* Common Inputs */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
                 Title
               </label>
               <input
@@ -509,12 +512,12 @@ export default function ProposalsPage() {
                     ? "e.g. Open-Source Contribution XP Rule"
                     : "e.g. Campus Scientific Initiative"
                 }
-                className="w-full px-4 py-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-2xs transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
                 Description
               </label>
               <textarea
@@ -522,7 +525,7 @@ export default function ProposalsPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Explain your idea, goals, and requirements..."
-                className="w-full px-4 py-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-2xs resize-none transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] resize-none transition-all"
               />
             </div>
 
@@ -530,7 +533,7 @@ export default function ProposalsPage() {
             {selectedType !== "Internal Law Amendment" && (
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
                     Expected Date
                   </label>
                   <div className="relative">
@@ -538,22 +541,22 @@ export default function ProposalsPage() {
                       type="date"
                       value={expectedDate}
                       onChange={(e) => setExpectedDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-2xs transition-all"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#182C4E] transition-all"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
                     Location
                   </label>
                   <div className="relative">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="Location"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1D63EB] shadow-2xs transition-all"
+                      className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-white border border-slate-200/90 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] transition-all"
                     />
                   </div>
                 </div>
@@ -561,10 +564,10 @@ export default function ProposalsPage() {
             )}
 
             {/* Dynamic Type-Specific Fields */}
-            <div className="p-4 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 space-y-3.5 shadow-[0_4px_18px_rgba(9,25,47,0.04)]">
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200/90 space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#1D63EB]" />
+                <span className="text-[11px] font-extrabold text-[#182C4E] uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>{selectedType} Specific Details</span>
                 </span>
                 <span className="text-[10px] font-semibold text-slate-400">
@@ -582,7 +585,7 @@ export default function ProposalsPage() {
                       type="text"
                       value={specificFields.goal}
                       onChange={(e) => updateSpecificField("goal", e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -596,7 +599,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("targetAudience", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                     <div>
@@ -609,7 +612,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("budgetEstimate", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                   </div>
@@ -623,7 +626,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("neededDepartments", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                 </div>
@@ -642,7 +645,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("instructor", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                     <div>
@@ -654,7 +657,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("level", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       >
                         <option value="Beginner">Beginner</option>
                         <option value="Intermediate">Intermediate</option>
@@ -673,7 +676,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("capacity", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                     <div>
@@ -685,7 +688,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("linkedBadge", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       >
                         {badges.map((b) => (
                           <option key={b.id} value={b.name}>
@@ -711,7 +714,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("activityType", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                     <div>
@@ -724,7 +727,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("participants", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                   </div>
@@ -739,7 +742,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("transportNeeds", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                     <div>
@@ -752,7 +755,7 @@ export default function ProposalsPage() {
                         onChange={(e) =>
                           updateSpecificField("costEstimate", e.target.value)
                         }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                        className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                       />
                     </div>
                   </div>
@@ -771,7 +774,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("partnerNameAndType", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -784,7 +787,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("contactPerson", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -797,7 +800,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("benefitsAndObligations", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                 </div>
@@ -815,7 +818,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("articleConcerned", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -828,7 +831,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("currentText", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -841,7 +844,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("proposedText", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -854,7 +857,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("justification", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                 </div>
@@ -870,7 +873,7 @@ export default function ProposalsPage() {
                       type="text"
                       value={specificFields.area}
                       onChange={(e) => updateSpecificField("area", e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div>
@@ -883,7 +886,7 @@ export default function ProposalsPage() {
                       onChange={(e) =>
                         updateSpecificField("proposedSolution", e.target.value)
                       }
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                      className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                 </div>
@@ -893,21 +896,21 @@ export default function ProposalsPage() {
             {/* Submit Proposal Button */}
             <button
               type="submit"
-              className="w-full h-12 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:shadow-lg active:scale-[0.98] text-white font-black text-xs shadow-[0_6px_20px_rgba(29,99,235,0.35)] transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 active:scale-[0.98] text-white font-display font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-[#7DD3FC]" />
               <span>Submit Proposal</span>
             </button>
           </form>
         )}
 
-        {/* MODE 2 & 3: MY PROPOSALS / HISTORY */}
+        {/* MODE 2 & 3: MY PROPOSALS / HISTORY — Compact & Clean */}
         {(mode === "mine" || mode === "history") && (
-          <div className="space-y-3 animate-rise">
+          <div className="space-y-2.5 animate-rise">
             {(mode === "mine" ? myProposals : historyProposals).length === 0 ? (
-              <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center shadow-2xs">
-                <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-black text-slate-800">
+              <div className="p-6 rounded-xl bg-white border border-slate-200/90 text-center">
+                <FileText className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                <p className="text-sm font-black text-[#0F1E36]">
                   No proposals found
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -917,55 +920,64 @@ export default function ProposalsPage() {
             ) : (
               (mode === "mine" ? myProposals : historyProposals).map((prop) => {
                 const st = STATE_STYLES[prop.state];
+                const isReviewed =
+                  prop.state === "Approved" ||
+                  prop.state === "Rejected" ||
+                  prop.state === "Changes Requested";
+
                 return (
                   <div
                     key={prop.id}
                     onClick={() => setActiveProposalDetail(prop)}
-                    className="p-4 sm:p-5 rounded-xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 active:scale-[0.99] transition-all cursor-pointer space-y-2.5"
+                    className={`p-3 rounded-xl border active:scale-[0.99] transition-all cursor-pointer space-y-1.5 ${
+                      isReviewed
+                        ? "bg-[#F8FAFC] border-slate-200/90 hover:border-[#2B4875]/40"
+                        : "bg-white border-slate-200/90 hover:border-[#182C4E]/40 shadow-2xs"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-extrabold border border-slate-200/60">
+                        <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] text-[10px] font-extrabold border border-[#D5E3F5]">
                           {prop.type}
                         </span>
                         {prop.type === "Internal Law Amendment" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
-                            <Scale className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-200">
+                            <Scale className="w-2.5 h-2.5" />
                             <span>Requires 2/3 Exec</span>
                           </span>
                         )}
                       </div>
                       <span
-                        className={`px-3 py-0.5 rounded-full text-[10px] font-extrabold border ${st.bg} ${st.text} ${st.border}`}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border shrink-0 ${st.bg} ${st.text} ${st.border}`}
                       >
                         {prop.state}
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-black text-slate-900 leading-snug">
+                      <h3 className="text-xs font-black text-[#0F1E36] leading-snug">
                         {prop.title}
                       </h3>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1 leading-snug">
                         {prop.description}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-                      <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <UserCheck className="w-3.5 h-3.5 text-[#1D63EB]" />
+                    <div className="flex items-center justify-between text-[10.5px] text-slate-500 pt-1.5 border-t border-slate-100">
+                      <span className="flex items-center gap-1 font-bold text-[#182C4E]">
+                        <UserCheck className="w-3 h-3 text-[#0284C7]" />
                         {prop.reviewerScope}
                       </span>
-                      <span className="flex items-center gap-1 text-slate-400">
+                      <span className="flex items-center gap-1 text-slate-400 font-mono">
                         <Clock className="w-3 h-3" />
                         {prop.createdAt}
                       </span>
                     </div>
 
                     {prop.reviewerComment && (
-                      <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-[11px] text-slate-700">
-                        <span className="font-bold text-slate-900">
-                          Reviewer Note:{" "}
+                      <div className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200/80 text-[10.5px] text-slate-700 line-clamp-1">
+                        <span className="font-bold text-[#182C4E]">
+                          Reviewer:{" "}
                         </span>
                         {prop.reviewerComment}
                       </div>
@@ -980,17 +992,17 @@ export default function ProposalsPage() {
 
       {/* Proposal Detail Modal */}
       {activeProposalDetail && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
+        <div className="fixed inset-0 z-[100] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 pb-16 sm:pb-6">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white/95 backdrop-blur-2xl rounded-2xl p-5 shadow-2xl border border-white/80 space-y-4 animate-rise"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] overflow-y-auto bg-white rounded-xl p-4 shadow-2xl border border-slate-200/90 space-y-3.5 animate-rise"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-[#1D63EB] text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10px] font-bold">
                     {activeProposalDetail.type}
                   </span>
                   {activeProposalDetail.type === "Internal Law Amendment" && (
@@ -1000,7 +1012,7 @@ export default function ProposalsPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-base font-extrabold text-slate-900 mt-1">
+                <h3 className="text-base font-extrabold text-[#0F1E36] mt-1">
                   {activeProposalDetail.title}
                 </h3>
                 <p className="text-[11px] text-slate-500">
@@ -1011,7 +1023,7 @@ export default function ProposalsPage() {
               <button
                 type="button"
                 onClick={() => setActiveProposalDetail(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"
+                className="w-7 h-7 rounded-lg bg-[#F8FAFC] border border-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1023,13 +1035,13 @@ export default function ProposalsPage() {
 
             {(activeProposalDetail.expectedDate ||
               activeProposalDetail.location) && (
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+              <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs">
                 {activeProposalDetail.expectedDate && (
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase block">
                       Expected Date
                     </span>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-[#0F1E36]">
                       {activeProposalDetail.expectedDate}
                     </span>
                   </div>
@@ -1039,7 +1051,7 @@ export default function ProposalsPage() {
                     <span className="text-[10px] font-bold text-slate-400 uppercase block">
                       Location
                     </span>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-[#0F1E36]">
                       {activeProposalDetail.location}
                     </span>
                   </div>
@@ -1049,14 +1061,14 @@ export default function ProposalsPage() {
 
             {Object.keys(activeProposalDetail.specificFields).length > 0 && (
               <div className="space-y-1.5">
-                <h4 className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                <h4 className="text-[11px] font-extrabold text-[#182C4E] uppercase tracking-wider">
                   Structured Specifications
                 </h4>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 space-y-1.5">
                   {Object.entries(activeProposalDetail.specificFields).map(
                     ([k, v]) => (
                       <div key={k} className="text-xs">
-                        <span className="font-bold text-slate-700 capitalize">
+                        <span className="font-bold text-[#0F1E36] capitalize">
                           {k.replace(/([A-Z])/g, " $1")}:{" "}
                         </span>
                         <span className="text-slate-600">{v}</span>
@@ -1068,8 +1080,8 @@ export default function ProposalsPage() {
             )}
 
             {activeProposalDetail.reviewerComment && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
-                <span className="font-bold block mb-0.5">
+              <div className="p-3 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] text-xs text-[#182C4E]">
+                <span className="font-bold block mb-0.5 text-[#0F1E36]">
                   Official Review Decision ({activeProposalDetail.reviewerScope}):
                 </span>
                 {activeProposalDetail.reviewerComment}
@@ -1079,7 +1091,7 @@ export default function ProposalsPage() {
             <button
               type="button"
               onClick={() => setActiveProposalDetail(null)}
-              className="w-full h-11 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold active:scale-[0.98] transition cursor-pointer"
+              className="w-full h-10 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-extrabold active:scale-[0.98] transition cursor-pointer"
             >
               Close
             </button>

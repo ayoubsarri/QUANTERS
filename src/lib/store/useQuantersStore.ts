@@ -254,6 +254,18 @@ interface QuantersStoreState {
     proposedScore: number;
     assigneeIds: string[];
   }) => void;
+  updateTask: (
+    taskId: string,
+    updates: {
+      title?: string;
+      description?: string;
+      category?: ClubTask["category"];
+      deadline?: string;
+      locationOrShift?: string;
+      proposedScore?: number;
+      assigneeIds?: string[];
+    }
+  ) => void;
   confirmTaskReceipt: (taskId: string, memberId: string) => void;
   deliverTask: (taskId: string, memberId: string, proofUrlOrNote: string) => void;
   validateAndScoreTask: (payload: {
@@ -874,6 +886,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set((state) => {
       const target = state.departments.find((d) => d.id === deptId);
       if (!target) return state;
+      const nextDepartments = state.departments.map((d) =>
+        d.id === deptId ? { ...d, ...updates } : d
+      );
+      const headIds = new Set(nextDepartments.map((d) => d.headMemberId));
+      const coIds = new Set(nextDepartments.map((d) => d.coManagerMemberId));
+      const nextMembers = state.members.map((m) => {
+        const filtered = m.roles.filter(
+          (r) => r !== "Department Head" && r !== "Co-Manager"
+        );
+        const nextRoles: RoleTemplateName[] = [...filtered];
+        if (headIds.has(m.id)) nextRoles.unshift("Department Head");
+        if (coIds.has(m.id)) nextRoles.push("Co-Manager");
+        if (nextRoles.length === 0) nextRoles.push("Member");
+        return { ...m, roles: Array.from(new Set(nextRoles)) };
+      });
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
         actorName: "Super Admin",
@@ -886,7 +913,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason,
       };
       return {
-        departments: state.departments.map((d) => (d.id === deptId ? { ...d, ...updates } : d)),
+        departments: nextDepartments,
+        members: nextMembers,
         auditLogs: [audit, ...state.auditLogs],
       };
     }),
@@ -936,21 +964,51 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }),
 
   createTeam: (team) =>
-    set((state) => ({
-      teams: [
+    set((state) => {
+      const nextTeams = [
         ...state.teams,
         {
           ...team,
           id: `team-${Date.now()}`,
           archived: false,
         },
-      ],
-    })),
+      ];
+      const leaderIds = new Set(
+        nextTeams.filter((t) => !t.archived).map((t) => t.leaderMemberId)
+      );
+      const nextMembers = state.members.map((m) => {
+        const filtered = m.roles.filter((r) => r !== "Team Leader");
+        const nextRoles: RoleTemplateName[] = [...filtered];
+        if (leaderIds.has(m.id)) nextRoles.push("Team Leader");
+        if (nextRoles.length === 0) nextRoles.push("Member");
+        return { ...m, roles: Array.from(new Set(nextRoles)) };
+      });
+      return {
+        teams: nextTeams,
+        members: nextMembers,
+      };
+    }),
 
   updateTeam: (teamId, updates) =>
-    set((state) => ({
-      teams: state.teams.map((t) => (t.id === teamId ? { ...t, ...updates } : t)),
-    })),
+    set((state) => {
+      const nextTeams = state.teams.map((t) =>
+        t.id === teamId ? { ...t, ...updates } : t
+      );
+      const leaderIds = new Set(
+        nextTeams.filter((t) => !t.archived).map((t) => t.leaderMemberId)
+      );
+      const nextMembers = state.members.map((m) => {
+        const filtered = m.roles.filter((r) => r !== "Team Leader");
+        const nextRoles: RoleTemplateName[] = [...filtered];
+        if (leaderIds.has(m.id)) nextRoles.push("Team Leader");
+        if (nextRoles.length === 0) nextRoles.push("Member");
+        return { ...m, roles: Array.from(new Set(nextRoles)) };
+      });
+      return {
+        teams: nextTeams,
+        members: nextMembers,
+      };
+    }),
 
   deleteOrArchiveTeam: (teamId, reason) =>
     set((state) => {
@@ -1534,6 +1592,41 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         ),
       };
     }),
+
+  updateTask: (taskId, updates) =>
+    set((state) => ({
+      tasks: state.tasks.map((t) => {
+        if (t.id !== taskId) return t;
+        const nextScore = updates.proposedScore ?? t.proposedScore;
+        const nextAssignees = updates.assigneeIds
+          ? updates.assigneeIds.map((id) => {
+              const existing = t.assignees.find((a) => a.memberId === id);
+              if (existing) {
+                return { ...existing, proposedScore: nextScore };
+              }
+              const m = state.members.find((mem) => mem.id === id);
+              return {
+                memberId: id,
+                memberName: m?.fullName || "Member",
+                roleInTask: "Assignee",
+                receiptConfirmed: false,
+                status: "To do" as const,
+                proposedScore: nextScore,
+              };
+            })
+          : t.assignees.map((a) => ({ ...a, proposedScore: nextScore }));
+        return {
+          ...t,
+          title: updates.title ?? t.title,
+          description: updates.description ?? t.description,
+          category: updates.category ?? t.category,
+          deadline: updates.deadline ?? t.deadline,
+          locationOrShift: updates.locationOrShift ?? t.locationOrShift,
+          proposedScore: nextScore,
+          assignees: nextAssignees,
+        };
+      }),
+    })),
 
   confirmTaskReceipt: (taskId, memberId) =>
     set((state) => ({

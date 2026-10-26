@@ -95,6 +95,7 @@ export default function MobileProfilePage() {
   const router = useRouter();
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
   const departments = useQuantersStore((s) => s.departments);
   const teams = useQuantersStore((s) => s.teams);
   const ledger = useQuantersStore((s) => s.ledger);
@@ -290,7 +291,7 @@ export default function MobileProfilePage() {
         <div className="flex items-end justify-between gap-2 pb-2 border-b border-slate-200/90">
           <div className="min-w-0">
             <span className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block">
-              DOSSIER · {member.quanterId}
+              {member.status === "Alumni" ? "ALUMNI DOSSIER" : "DOSSIER"} · {member.quanterId}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black font-display text-[#0F1E36] tracking-tight leading-none mt-1">
               Profile{" "}
@@ -299,14 +300,32 @@ export default function MobileProfilePage() {
               </span>
             </h1>
           </div>
-          <button
-            type="button"
-            onClick={() => setLedgerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60 hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
-          >
-            <History className="w-3.5 h-3.5 text-[#7DD3FC]" />
-            <span>XP Ledger</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentMemberId(
+                  member.status === "Alumni" ? "mem-ayoub" : "mem-alumni-1"
+                )
+              }
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider uppercase border transition active:scale-[0.98] cursor-pointer shrink-0 ${
+                member.status === "Alumni"
+                  ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] border-[#2B4875]"
+                  : "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5] hover:bg-[#E0F2FE]"
+              }`}
+              title="Toggle Alumni Profile View"
+            >
+              <span>{member.status === "Alumni" ? "Alumni: ON" : "Alumni"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLedgerModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60 hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
+            >
+              <History className="w-3.5 h-3.5 text-[#7DD3FC]" />
+              <span>XP Ledger</span>
+            </button>
+          </div>
         </div>
 
         {/* Member Identity Dossier — Clean Architectural Card */}
@@ -427,19 +446,16 @@ export default function MobileProfilePage() {
           </div>
         </div>
 
-        {/* Open Architectural Specification Strip — Unboxed Swiss Grid */}
+        {/* Open Architectural Specification Strip — Unboxed Swiss Grid (Zero 01..04 Numeration) */}
         <div className="border-y border-slate-200/90 py-2.5 grid grid-cols-4 divide-x divide-slate-200/80">
           <Link
             href="/badges"
             className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
           >
-            <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-400">
-              01
-            </span>
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#0A4D96] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.badgeIds.length}
             </span>
-            <span className="text-[10.5px] font-medium font-sans text-slate-600 leading-tight">
+            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
               Badges
             </span>
           </Link>
@@ -448,13 +464,10 @@ export default function MobileProfilePage() {
             href="/workshops"
             className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
           >
-            <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-400">
-              02
-            </span>
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#0A4D96] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.workshopsCompletedCount}
             </span>
-            <span className="text-[10.5px] font-medium font-sans text-slate-600 leading-tight">
+            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
               Sessions
             </span>
           </Link>
@@ -463,31 +476,25 @@ export default function MobileProfilePage() {
             href="/projects/submit"
             className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
           >
-            <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-400">
-              03
-            </span>
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5 group-hover:text-[#0A4D96] transition-colors">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
               {member.projectsCompletedCount}
             </span>
-            <span className="text-[10.5px] font-medium font-sans text-slate-600 leading-tight">
+            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
               Projects
             </span>
           </Link>
 
           <div className="flex flex-col items-start px-2.5 py-0.5">
-            <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-400">
-              04
-            </span>
-            <span className="text-xl sm:text-2xl font-black font-display text-slate-950 tabular-nums leading-tight mt-0.5">
+            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight">
               {member.xpTotal.toLocaleString()}
             </span>
-            <span className="text-[10.5px] font-medium font-sans text-slate-600 leading-tight">
+            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
               Total XP
             </span>
           </div>
         </div>
 
-        {/* 3 Club Governance Rows — Harmonized with Cosmic Slate-Navy & Glacial Ice */}
+        {/* 3 Club Governance Rows — Harmonized with Cosmic Slate-Navy & Glacial Ice (No 01/02/03 prefixes) */}
         <div className="bg-white rounded-xl border border-slate-200/90 divide-y divide-slate-100 shadow-[0_4px_16px_rgba(15,30,54,0.04)] overflow-hidden">
           {/* Row 1: Department */}
           <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
@@ -497,7 +504,7 @@ export default function MobileProfilePage() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
-                  01 · Department
+                  Department
                 </span>
                 <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {dept?.name || "IT and Technical Solutions"}
@@ -517,7 +524,7 @@ export default function MobileProfilePage() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
-                  02 · Scientific Team
+                  Scientific Team
                 </span>
                 <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {team?.name || "Astronomy & Astrophysics"}
@@ -541,7 +548,7 @@ export default function MobileProfilePage() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 block">
-                  03 · Standing &amp; Tenure
+                  Standing &amp; Tenure
                 </span>
                 <p className="text-sm font-extrabold font-display text-[#0F1E36]">
                   {member.status === "Active"
@@ -982,13 +989,13 @@ export default function MobileProfilePage() {
                 <button
                   type="button"
                   onClick={() => setEditHrModalOpen(false)}
-                  className="h-9 px-3.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 cursor-pointer active:scale-[0.98]"
+                  className="h-9 px-3.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 cursor-pointer active:scale-[0.98]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 rounded-xl bg-[#1D63EB] text-white text-xs font-extrabold hover:bg-blue-700 cursor-pointer active:scale-[0.98]"
+                  className="h-9 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold border border-[#2B4875]/60 cursor-pointer active:scale-[0.98]"
                 >
                   Save Details
                 </button>
@@ -1001,15 +1008,15 @@ export default function MobileProfilePage() {
       {/* Avatar Upload Modal */}
       {avatarModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-[350px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
+          <div className="w-full max-w-[350px] rounded-xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-extrabold text-slate-900">
+              <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 Update Profile Avatar
               </h3>
               <button
                 type="button"
                 onClick={() => setAvatarModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1024,57 +1031,55 @@ export default function MobileProfilePage() {
         </div>
       )}
 
-      {/* Weekly Availability Schedule Modal */}
+      {/* Weekly Availability Schedule Modal (Harmonized Cosmic Slate-Navy & Stellar Cyan) */}
       {scheduleModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3 sm:p-4 pb-16 sm:pb-6">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[440px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-rise"
+            className="w-full max-w-[440px] max-h-[78dvh] sm:max-h-[82dvh] rounded-xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-rise"
           >
             {/* Header */}
-            <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
+            <div className="bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white p-4 relative shrink-0 border-b border-[#2B4875]/60">
               <button
                 type="button"
                 onClick={() => setScheduleModalOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
+                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-2 h-2 rounded-full bg-[#38E4FF] animate-pulse" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
-                  Registration KYC · Schedule
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#7DD3FC]">
+                  SCHEDULE MATRIX · 7-DAY CYCLE
                 </span>
               </div>
-              <h3 className="text-base sm:text-lg font-black font-display tracking-tight">
-                Weekly Club Availability
+              <h3 className="text-base font-black font-display tracking-tight">
+                Edit Weekly Availability
               </h3>
-              <p className="text-xs text-blue-100 font-sans mt-0.5">
-                Set your free time slots across the 7-day academic cycle
+              <p className="text-xs text-slate-300 font-sans mt-0.5">
+                Tap time slots when you are free for labs &amp; team sessions
               </p>
             </div>
 
             {/* Quick Action Toolbar */}
-            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2 shrink-0">
-              <div className="flex items-center gap-1.5">
-                <span className="px-2.5 py-0.5 rounded-md bg-[#E0F0FF] text-[#1D63EB] text-[11px] font-black font-display tabular-nums">
-                  {editingFreeSlots} slots selected
-                </span>
-              </div>
+            <div className="px-3.5 py-2 bg-[#F8FAFC] border-b border-slate-200/80 flex items-center justify-between gap-2 shrink-0">
+              <span className="px-2.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-mono font-bold tabular-nums">
+                {editingFreeSlots} slots selected
+              </span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleSelectWeekends}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[10.5px] font-bold text-slate-700 cursor-pointer active:scale-95 transition"
+                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 hover:bg-[#F0F6FF] text-xs font-bold text-[#182C4E] cursor-pointer active:scale-95 transition"
                 >
                   + Weekends
                 </button>
                 <button
                   type="button"
                   onClick={handleClearAllSchedule}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[10.5px] font-bold text-rose-600 cursor-pointer active:scale-95 transition"
+                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-600 cursor-pointer active:scale-95 transition"
                 >
                   Clear All
                 </button>
@@ -1082,27 +1087,27 @@ export default function MobileProfilePage() {
             </div>
 
             {/* 7-Day Matrix Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 text-xs">
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-2 text-xs">
               {DAYS.map((day) => {
                 const activeSlots = editAvailability[day] || [];
                 const isWeekend = day === "Friday" || day === "Saturday";
                 return (
                   <div
                     key={day}
-                    className="p-2.5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5"
+                    className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-900 font-display text-xs">
+                        <span className="font-black text-[#0F1E36] font-display text-xs">
                           {day}
                         </span>
                         {isWeekend && (
-                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200/80">
+                          <span className="text-[9.5px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5]">
                             Weekend
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">
+                      <span className="text-[10.5px] font-mono font-bold text-slate-400">
                         {activeSlots.length > 0
                           ? `${activeSlots.length} active`
                           : "Busy"}
@@ -1117,16 +1122,16 @@ export default function MobileProfilePage() {
                             key={slot}
                             type="button"
                             onClick={() => toggleSlot(day, slot)}
-                            className={`py-2 px-1 rounded-xl text-[11px] font-extrabold font-display transition active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                            className={`py-1.5 px-1 rounded-lg text-xs font-extrabold font-display transition active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center ${
                               isSelected
-                                ? "bg-[#1D63EB] text-white shadow-sm ring-1 ring-blue-600"
-                                : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875] shadow-xs"
+                                : "bg-white text-slate-600 border border-slate-200 hover:border-[#182C4E]/40 hover:bg-[#F0F6FF]/50"
                             }`}
                           >
                             <span className="leading-tight">{slot}</span>
                             <span
-                              className={`text-[9px] font-medium ${
-                                isSelected ? "text-blue-100" : "text-slate-400"
+                              className={`text-[9.5px] font-mono ${
+                                isSelected ? "text-[#7DD3FC]" : "text-slate-400"
                               }`}
                             >
                               {slot === "Morning"
@@ -1142,29 +1147,23 @@ export default function MobileProfilePage() {
                   </div>
                 );
               })}
-
-              <p className="text-[10.5px] font-medium text-slate-500 pt-1 leading-relaxed">
-                Your schedule helps Department Leads and Scientific Mentors
-                assign workshops, project meetings, and lab shifts when you are
-                actually free.
-              </p>
             </div>
 
             {/* Footer */}
-            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+            <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setScheduleModalOpen(false)}
-                className="h-9 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition cursor-pointer"
+                className="h-9 px-3.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveSchedule}
-                className="h-9 px-5 rounded-xl bg-[#1D63EB] hover:bg-blue-700 text-white text-xs font-black font-display flex items-center gap-1.5 active:scale-95 transition shadow-sm cursor-pointer"
+                className="h-9 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-black font-display border border-[#2B4875]/60 flex items-center gap-1.5 active:scale-95 transition shadow-xs cursor-pointer"
               >
-                <Check className="w-3.5 h-3.5" />
+                <Check className="w-3.5 h-3.5 text-[#7DD3FC]" />
                 <span>Save Schedule</span>
               </button>
             </div>
@@ -1179,28 +1178,28 @@ export default function MobileProfilePage() {
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white overflow-hidden shadow-2xl border border-slate-200/80 flex flex-col animate-rise"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] rounded-xl bg-white overflow-hidden shadow-2xl border border-slate-200/80 flex flex-col animate-rise"
           >
             {/* Header */}
-            <div className="bg-hero-cobalt text-white p-4 sm:p-5 relative shrink-0">
+            <div className="bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white p-4 relative shrink-0 border-b border-[#2B4875]/60">
               <button
                 type="button"
                 onClick={() => setTraineeTrackerOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
+                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-2 h-2 rounded-full bg-[#38E4FF] animate-pulse" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
-                  Internal Law Arts. 8 &amp; 9
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#7DD3FC]">
+                  STANDING &amp; QUALIFICATION
                 </span>
               </div>
-              <h3 className="text-base sm:text-lg font-black font-display tracking-tight">
+              <h3 className="text-base font-black font-display tracking-tight">
                 3-Month Trainee Qualification
               </h3>
-              <p className="text-xs text-blue-100 font-sans mt-0.5">
-                Official progression &amp; confirmation toward Full Active Membership
+              <p className="text-xs text-slate-300 font-sans mt-0.5">
+                Progression &amp; confirmation toward Full Active Membership
               </p>
             </div>
 
@@ -1469,36 +1468,36 @@ export default function MobileProfilePage() {
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] rounded-2xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise"
+            className="w-full max-w-[420px] max-h-[76dvh] sm:max-h-[82dvh] rounded-xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise"
           >
-            <div className="bg-hero-cobalt text-white p-5 relative">
+            <div className="bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white p-4 relative border-b border-[#2B4875]/60">
               <button
                 type="button"
                 onClick={() => setLedgerModalOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"
+                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#38E4FF]">
-                Verified Points Ledger
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#7DD3FC]">
+                VERIFIED POINTS LEDGER
               </span>
-              <h3 className="text-base font-extrabold mt-0.5">
+              <h3 className="text-base font-extrabold font-display mt-0.5">
                 Points History &amp; 48h Appeal Window
               </h3>
             </div>
 
-            <div className="p-4 overflow-y-auto space-y-2.5 text-xs">
+            <div className="p-3.5 overflow-y-auto space-y-2 text-xs">
               {memberLedger.map((entry) => (
                 <div
                   key={entry.id}
-                  className="p-3 rounded-xl bg-[#F4F7FB] border border-[#E2EDF8] space-y-1.5"
+                  className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase text-[#1D63EB]">
+                      <span className="text-[10px] font-mono font-bold uppercase text-[#0284C7]">
                         {entry.source} · {entry.date}
                       </span>
-                      <h4 className="font-extrabold text-slate-900">
+                      <h4 className="font-extrabold text-[#0F1E36]">
                         {entry.ruleLabel}
                       </h4>
                       <p className="text-[11px] text-slate-600">
@@ -1506,10 +1505,10 @@ export default function MobileProfilePage() {
                       </p>
                     </div>
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[11px] font-black tabular-nums ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold tabular-nums shrink-0 ${
                         entry.amount >= 0
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5]"
+                          : "bg-slate-200 text-slate-800"
                       }`}
                     >
                       {entry.amount >= 0 ? `+${entry.amount}` : entry.amount} XP
@@ -1520,7 +1519,7 @@ export default function MobileProfilePage() {
                     <div className="pt-1.5 border-t border-slate-200/70 flex items-center justify-between">
                       <span className="text-[10px] font-bold text-slate-500">
                         Appeal Status:{" "}
-                        <strong className="text-amber-700">
+                        <strong className="text-[#0F1E36]">
                           {entry.appealStatus || "None"}
                         </strong>
                       </span>
@@ -1530,9 +1529,9 @@ export default function MobileProfilePage() {
                           setAppealEntryId(entry.id);
                           setAppealReason(entry.appealReason || "");
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-[10px] font-extrabold flex items-center gap-1 hover:bg-amber-200 active:scale-[0.98] cursor-pointer"
+                        className="px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10px] font-bold flex items-center gap-1 hover:bg-[#E0F2FE] active:scale-[0.98] cursor-pointer"
                       >
-                        <Scale className="w-3 h-3" />
+                        <Scale className="w-3 h-3 text-[#0284C7]" />
                         <span>48h Appeal</span>
                       </button>
                     </div>
@@ -1543,9 +1542,9 @@ export default function MobileProfilePage() {
               {appealEntryId && (
                 <form
                   onSubmit={handleAppealSubmit}
-                  className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2"
+                  className="p-3 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] space-y-2"
                 >
-                  <label className="block text-[11px] font-extrabold text-amber-950">
+                  <label className="block text-[11px] font-extrabold text-[#0F1E36]">
                     Submit 48-Hour Points Deduction Appeal
                   </label>
                   <textarea
@@ -1554,19 +1553,19 @@ export default function MobileProfilePage() {
                     value={appealReason}
                     onChange={(e) => setAppealReason(e.target.value)}
                     placeholder="Explain the valid excuse or attach reference..."
-                    className="w-full p-2 rounded-lg border border-amber-300 text-xs bg-white"
+                    className="w-full p-2 rounded-lg border border-slate-200 text-xs bg-white"
                   />
                   <div className="flex justify-end gap-1.5">
                     <button
                       type="button"
                       onClick={() => setAppealEntryId(null)}
-                      className="h-7 px-2.5 rounded-lg border border-slate-300 text-[10px] font-bold active:scale-[0.98] cursor-pointer"
+                      className="h-7 px-2.5 rounded-lg border border-slate-300 bg-white text-[10px] font-bold active:scale-[0.98] cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="h-7 px-3 rounded-lg bg-[#1D63EB] text-white text-[10px] font-extrabold active:scale-[0.98] cursor-pointer"
+                      className="h-7 px-3 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-[10px] font-extrabold active:scale-[0.98] cursor-pointer"
                     >
                       Submit Appeal
                     </button>

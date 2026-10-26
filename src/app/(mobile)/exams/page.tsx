@@ -61,14 +61,14 @@ export default function ExamsHubPage() {
 
   return (
     <MobileAppShell>
-      <div className="flex-1 flex flex-col px-5 pt-2 pb-6 space-y-4 animate-rise">
-        {/* Top Back Navigation & Header */}
-        <div className="space-y-1.5">
+      <div className="flex-1 flex flex-col px-4 sm:px-5 pt-2 pb-6 space-y-3.5 animate-rise">
+        {/* Editorial Header */}
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
             <button
               type="button"
               onClick={() => router.push("/home")}
-              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#1D63EB] active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
@@ -76,15 +76,18 @@ export default function ExamsHubPage() {
 
             <Link
               href="/badges"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#1D63EB] text-[11px] font-bold hover:bg-blue-100 active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[11px] font-bold hover:bg-[#E2EEFC] active:scale-[0.98] transition"
             >
-              <Award className="w-3.5 h-3.5" />
+              <Award className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>My Badges</span>
             </Link>
           </div>
 
-          <div>
-            <h1 className="text-[20px] font-extrabold text-slate-900 tracking-tight leading-tight">
+          <div className="pt-0.5">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
+              SKILL VERIFICATION
+            </p>
+            <h1 className="font-display text-xl font-black text-[#0F1E36] tracking-tight leading-tight">
               Skill &amp; Badge Exams
             </h1>
             <p className="text-xs font-medium text-slate-500 mt-0.5">
@@ -94,7 +97,7 @@ export default function ExamsHubPage() {
         </div>
 
         {/* Top Summary Strip */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 shadow-[0_8px_24px_rgba(16,31,56,0.16)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
+        <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 shadow-[0_8px_24px_rgba(16,31,56,0.16)] flex items-center justify-between gap-2 text-xs font-extrabold flex-wrap">
           <span className="inline-flex items-center gap-1.5">
             <ClipboardList className="w-4 h-4 text-[#7DD3FC] shrink-0" />
             <span>{exams.length} Available Exams</span>
@@ -112,7 +115,7 @@ export default function ExamsHubPage() {
         </div>
 
         {/* Search Bar + Category Filter Pills */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -120,13 +123,13 @@ export default function ExamsHubPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search exams by skill, topic, or level..."
-              className="w-full pl-10 pr-8 py-2.5 rounded-full bg-white/80 backdrop-blur-md border border-white/90 text-xs font-semibold text-slate-800 placeholder:text-slate-400 shadow-2xs focus:outline-none focus:bg-white focus:border-[#1D63EB] transition-all"
+              className="w-full pl-9 pr-8 py-2.5 rounded-lg bg-white border border-slate-200/90 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -142,10 +145,10 @@ export default function ExamsHubPage() {
                     key={cat}
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
-                    className={`px-4 py-2 rounded-full text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap ${
                       active
-                        ? "bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] text-white shadow-[0_4px_14px_rgba(29,99,235,0.3)] border border-transparent"
-                        : "bg-white/80 backdrop-blur-md text-slate-600 border border-white/80 hover:bg-white hover:text-slate-900 shadow-2xs"
+                        ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875]/60 shadow-2xs"
+                        : "bg-white text-slate-600 border border-slate-200/90 hover:text-[#182C4E]"
                     }`}
                   >
                     {cat}
@@ -157,9 +160,9 @@ export default function ExamsHubPage() {
         </div>
 
         {/* Exam Cards List */}
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {filteredExams.length === 0 ? (
-            <div className="p-8 rounded-xl bg-white/80 backdrop-blur-xl border border-white/80 text-center space-y-1.5 shadow-2xs">
+            <div className="p-6 rounded-xl bg-white border border-slate-200/90 text-center space-y-1">
               <p className="text-sm font-black text-slate-800">
                 No matching skill exams found
               </p>
@@ -177,28 +180,28 @@ export default function ExamsHubPage() {
               return (
                 <div
                   key={exam.id}
-                  className="p-4 sm:p-5 rounded-2xl bg-white/85 backdrop-blur-xl border border-white/80 shadow-[0_4px_18px_rgba(9,25,47,0.04)] hover:border-[#1D63EB]/40 hover:bg-white/95 transition-all space-y-3.5"
+                  className="p-3.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#2B4875]/50 transition-all space-y-3"
                 >
                   {/* Top Row: Icon + Title + Status & Pills */}
-                  <div className="flex items-start gap-3.5">
+                  <div className="flex items-start gap-3">
                     <FieldIcon
                       field={exam.iconName || exam.title}
-                      size={28}
+                      size={26}
                       boxed
                     />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h2 className="text-[15px] font-black text-slate-900 leading-snug">
+                        <h2 className="text-[14px] font-black text-[#0F1E36] leading-snug">
                           {exam.title}
                         </h2>
                         {isUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold shrink-0 shadow-2xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold shrink-0">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                             <span>Unlocked</span>
                           </span>
                         ) : (
-                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-extrabold shrink-0 border border-slate-200/60">
+                          <span className="px-2 py-0.5 rounded-md bg-[#F8FAFC] text-slate-600 text-[10px] font-extrabold shrink-0 border border-slate-200/90">
                             Available
                           </span>
                         )}
@@ -210,12 +213,12 @@ export default function ExamsHubPage() {
                           : "Official Club Skill Assessment"}
                       </p>
 
-                      {/* Level & Mint XP Pills */}
+                      {/* Level & XP Pills */}
                       <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-[#1D63B8] border border-sky-200/80 text-[10px] font-extrabold">
+                        <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#0284C7] border border-[#D5E3F5] text-[10px] font-extrabold">
                           {exam.level}
                         </span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold tabular-nums">
+                        <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] font-mono text-[10px] font-extrabold tabular-nums">
                           +{exam.xpReward} XP
                         </span>
                       </div>
@@ -225,7 +228,7 @@ export default function ExamsHubPage() {
                   {/* Metadata Row */}
                   <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-600 flex-wrap gap-y-1">
                     <span className="inline-flex items-center gap-1 tabular-nums">
-                      <Clock className="w-3.5 h-3.5 text-[#1D63EB]" />
+                      <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
                       <span>{exam.durationMinutes} min</span>
                     </span>
                     <span className="text-slate-300">·</span>
@@ -235,7 +238,7 @@ export default function ExamsHubPage() {
                     </span>
                     <span className="text-slate-300">·</span>
                     <span className="inline-flex items-center gap-1 tabular-nums">
-                      <Target className="w-3.5 h-3.5 text-amber-500" />
+                      <Target className="w-3.5 h-3.5 text-[#0284C7]" />
                       <span>Pass: {exam.passingScorePercent}%</span>
                     </span>
                     <span className="text-slate-300">·</span>
@@ -247,7 +250,7 @@ export default function ExamsHubPage() {
                   {/* Primary Action Button */}
                   <Link
                     href={`/exams/${exam.id}`}
-                    className="w-full h-11 px-4 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:shadow-md active:scale-[0.98] text-white font-extrabold text-xs shadow-[0_4px_14px_rgba(29,99,235,0.3)] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full h-9 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 active:scale-[0.98] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Open Exam Lobby</span>
                     <ArrowRight className="w-3.5 h-3.5" />
