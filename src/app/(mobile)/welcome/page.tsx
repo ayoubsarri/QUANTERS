@@ -566,15 +566,13 @@ export default function WelcomeSplashPage() {
           {/* A. TOP BRAND LOCKUP WITH OFFICIAL QUANTERS_vector_v2.svg */}
           <header className="w-full space-y-3 animate-rise">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <QuantersVectorWordmark
-                    height={28}
-                    variant="dark"
-                    className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
-                  />
-                </div>
-                <div className="mt-1.5 flex items-center gap-2 whitespace-nowrap">
+              <div className="flex flex-col items-start">
+                <QuantersVectorWordmark
+                  height={40}
+                  variant="dark"
+                  className="drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+                />
+                <div className="mt-2 flex items-center gap-2 whitespace-nowrap">
                   <span className="font-display text-xs font-extrabold tracking-[0.2em] text-[#38E4FF] uppercase leading-none">
                     BY QUANTA
                   </span>
@@ -723,11 +721,11 @@ export default function WelcomeSplashPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 pl-2.5 border-l border-white/15">
+                    <div className="flex items-center gap-2.5 shrink-0 pl-2.5 border-l border-white/15">
                       <img
                         src="/brand/univ_logo.svg"
                         alt="Faculty of Sciences"
-                        className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0"
+                        className="h-9 sm:h-10 w-auto object-contain shrink-0"
                       />
                       <div className="text-right">
                         <div className="font-mono text-[10px] sm:text-xs font-semibold tracking-[0.1em] text-slate-200 uppercase leading-tight">

@@ -12,7 +12,7 @@ interface QuantersVectorWordmarkProps {
  * Official QUANTERS Vector Wordmark (renders exact /brand/quanters_vector_v2.svg as provided)
  */
 export function QuantersVectorWordmark({
-  height = 24,
+  height = 28,
   className = "",
 }: QuantersVectorWordmarkProps) {
   return (
@@ -20,7 +20,7 @@ export function QuantersVectorWordmark({
       src="/brand/quanters_vector_v2.svg"
       alt="QUANTERS"
       style={{ height: `${height}px`, width: "auto" }}
-      className={`block shrink-0 select-none object-contain ${className}`}
+      className={`block shrink-0 select-none object-contain object-left ${className}`}
     />
   );
 }
@@ -53,8 +53,8 @@ export function QuantaLogo({
   const subColor = isLight ? "text-slate-500" : "text-[#7DD3FC]";
 
   const iconSize = Math.max(24, size);
-  const wordmarkHeight = Math.max(18, Math.round(iconSize * 0.72));
-  const subFontSize = Math.max(9, Math.round(wordmarkHeight * 0.36));
+  const wordmarkHeight = Math.max(22, Math.round(iconSize * 0.85));
+  const subFontSize = Math.max(9.5, Math.round(wordmarkHeight * 0.36));
 
   if (!showWordmark) {
     return (

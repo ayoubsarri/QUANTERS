@@ -195,15 +195,15 @@ export default function AdminOverviewPage() {
               <img
                 src="/brand/univ_quanta_asset2.png"
                 alt="University of Algiers 1 & Quanta"
-                className="h-7 w-auto object-contain"
+                className="h-8 w-auto object-contain"
               />
-              <span className="h-4 w-px bg-white/20" />
+              <span className="h-5 w-px bg-white/20" />
               <img
                 src="/brand/univ_logo.svg"
                 alt="Faculty of Sciences"
-                className="w-6 h-6 object-contain"
+                className="h-8 w-auto object-contain"
               />
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-300">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-200">
                 FACULTY OF SCIENCES
               </span>
             </div>
