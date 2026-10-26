@@ -8,8 +8,12 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Code2,
+  Copy,
+  FileCode2,
   HelpCircle,
   Newspaper,
+  Pencil,
   Pin,
   Plus,
   Quote,
@@ -69,6 +73,7 @@ export default function AdminExplorePage() {
 
   const dailyQuotes = useQuantersStore((s) => s.dailyQuotes);
   const createDailyQuote = useQuantersStore((s) => s.createDailyQuote);
+  const updateDailyQuote = useQuantersStore((s) => s.updateDailyQuote);
   const deleteDailyQuote = useQuantersStore((s) => s.deleteDailyQuote);
   const setPinnedDailyQuote = useQuantersStore((s) => s.setPinnedDailyQuote);
   const settings = useQuantersStore((s) => s.settings);
@@ -109,6 +114,11 @@ export default function AdminExplorePage() {
   const [externalUrl] = useState("");
 
   // --- TAB 2: DAILY QUIZ STATE ---
+  const [editingQuiz, setEditingQuiz] = useState<DailyQuizItem | null>(null);
+  const [quizJsonModalOpen, setQuizJsonModalOpen] = useState(false);
+  const [quizJsonInput, setQuizJsonInput] = useState("");
+  const [quizJsonValidation, setQuizJsonValidation] = useState<{ count: number; error?: string } | null>(null);
+
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [quizSearch, setQuizSearch] = useState("");
   const [quizDomain, setQuizDomain] = useState("ASTROPHYSICS · SPECTROSCOPY");
@@ -123,7 +133,18 @@ export default function AdminExplorePage() {
   const [quizXpReward, setQuizXpReward] = useState<number>(15);
   const [quizPinToday, setQuizPinToday] = useState<boolean>(true);
 
-  // --- TAB 3: 365-DAY QUOTES STATE ---
+  // --- TAB 3: QUOTES LIBRARY STATE ---
+  const [editingQuote, setEditingQuote] = useState<DailyQuoteItem | null>(null);
+  const [editQuoteText, setEditQuoteText] = useState("");
+  const [editQuoteAuthor, setEditQuoteAuthor] = useState("");
+  const [editQuoteRole, setEditQuoteRole] = useState("");
+  const [editQuoteCategory, setEditQuoteCategory] = useState<QuoteCategory>("Muslim Scientists");
+  const [editQuoteDay, setEditQuoteDay] = useState(1);
+
+  const [quoteJsonModalOpen, setQuoteJsonModalOpen] = useState(false);
+  const [quoteJsonInput, setQuoteJsonInput] = useState("");
+  const [quoteJsonValidation, setQuoteJsonValidation] = useState<{ count: number; error?: string } | null>(null);
+
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [quoteCategoryFilter, setQuoteCategoryFilter] = useState<string>("All");
   const [quoteSearch, setQuoteSearch] = useState("");
@@ -221,27 +242,48 @@ export default function AdminExplorePage() {
     ) {
       return;
     }
-    createDailyQuiz({
-      domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
-      icon: quizIcon,
-      question: quizQuestion.trim(),
-      options: [
-        { id: "a", label: optALabel.trim() },
-        { id: "b", label: optBLabel.trim() },
-        { id: "c", label: optCLabel.trim() },
-      ],
-      correctId: quizCorrectId,
-      verdictTitle:
-        quizVerdictTitle.trim() || "Verified Scientific Principle",
-      explanation:
-        quizExplanation.trim() ||
-        quizVerdictTitle.trim() ||
-        "Confirmed by experimental verification.",
-      xpReward: Number(quizXpReward) || 15,
-      dateLabel: "Daily Quiz",
-      isPinnedToday: quizPinToday,
-      active: true,
-    });
+    const options = [
+      { id: "a", label: optALabel.trim() },
+      { id: "b", label: optBLabel.trim() },
+      { id: "c", label: optCLabel.trim() },
+    ];
+
+    if (editingQuiz) {
+      updateDailyQuiz(editingQuiz.id, {
+        domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
+        icon: quizIcon,
+        question: quizQuestion.trim(),
+        options,
+        correctId: quizCorrectId,
+        verdictTitle: quizVerdictTitle.trim() || "Verified Scientific Principle",
+        explanation: quizExplanation.trim() || quizVerdictTitle.trim() || "Confirmed by experimental verification.",
+        xpReward: Number(quizXpReward) || 15,
+        isPinnedToday: quizPinToday,
+      });
+      setBanner(`Updated Daily Quiz '${quizQuestion.slice(0, 35)}...'!`);
+      setEditingQuiz(null);
+    } else {
+      createDailyQuiz({
+        domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
+        icon: quizIcon,
+        question: quizQuestion.trim(),
+        options,
+        correctId: quizCorrectId,
+        verdictTitle:
+          quizVerdictTitle.trim() || "Verified Scientific Principle",
+        explanation:
+          quizExplanation.trim() ||
+          quizVerdictTitle.trim() ||
+          "Confirmed by experimental verification.",
+        xpReward: Number(quizXpReward) || 15,
+        dateLabel: "Daily Quiz",
+        isPinnedToday: quizPinToday,
+        active: true,
+      });
+      setBanner(
+        "New Daily Quiz published to the Member App Explore Quiz box!"
+      );
+    }
     setQuizQuestion("");
     setOptALabel("");
     setOptBLabel("");
@@ -249,9 +291,6 @@ export default function AdminExplorePage() {
     setQuizVerdictTitle("");
     setQuizExplanation("");
     setQuizModalOpen(false);
-    setBanner(
-      "New Daily Quiz published to the Member App Explore Quiz box!"
-    );
   };
 
   const handleCreateQuote = (e: React.FormEvent) => {
@@ -282,7 +321,7 @@ export default function AdminExplorePage() {
     setBanner(
       newQuotePinNow
         ? `Added & pinned new quote by ${newQuoteAuthor.trim()} as Today's Quote!`
-        : `Added new quote by ${newQuoteAuthor.trim()} to the 365-Day Library (Day ${clampedDay})!`
+        : `Added new quote by ${newQuoteAuthor.trim()} to the Quote Library (Day ${clampedDay})!`
     );
   };
 
@@ -294,13 +333,13 @@ export default function AdminExplorePage() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
               <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
-                EXPLORE · DAILY QUIZ &amp; 365-DAY QUOTES ENGINE
+                EXPLORE · DAILY QUIZ &amp; HERITAGE QUOTES ENGINE
               </span>
               <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] tracking-tight leading-tight">
-                Editorial Dispatches, Daily Quiz &amp; 365-Day Quotes
+                Editorial Dispatches, Daily Quiz &amp; Heritage Quotes
               </h1>
               <p className="font-editorial italic text-slate-500 text-sm mt-0.5">
-                Powers Member App news dispatches, collapsible daily quiz, and the 365-day quote library.
+                Powers Member App news dispatches, collapsible daily quiz, and heritage quote library.
               </p>
             </div>
 
@@ -376,7 +415,7 @@ export default function AdminExplorePage() {
               }`}
             >
               <Quote className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Quote of the Day · 365-Day Library ({dailyQuotes.length})</span>
+              <span>Quote of the Day ({dailyQuotes.length})</span>
             </button>
           </div>
         </div>
@@ -563,11 +602,32 @@ export default function AdminExplorePage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQuizModalOpen(true)}
+                  onClick={() => {
+                    setEditingQuiz(null);
+                    setQuizDomain("");
+                    setQuizQuestion("");
+                    setOptALabel("");
+                    setOptBLabel("");
+                    setOptCLabel("");
+                    setQuizVerdictTitle("");
+                    setQuizModalOpen(true);
+                  }}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
                   <span>New Daily Quiz</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuizJsonInput("");
+                    setQuizJsonValidation(null);
+                    setQuizJsonModalOpen(true);
+                  }}
+                  className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 transition cursor-pointer"
+                  title="Import Daily Quizzes from JSON"
+                >
+                  <Code2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -619,6 +679,27 @@ export default function AdminExplorePage() {
                             <span>Pin Today</span>
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingQuiz(quiz);
+                            setQuizDomain(quiz.domain);
+                            setQuizIcon(quiz.icon);
+                            setQuizXpReward(quiz.xpReward);
+                            setQuizQuestion(quiz.question);
+                            setOptALabel(quiz.options[0]?.label || "");
+                            setOptBLabel(quiz.options[1]?.label || "");
+                            setOptCLabel(quiz.options[2]?.label || "");
+                            setQuizCorrectId((quiz.correctId as "a" | "b" | "c") || "a");
+                            setQuizVerdictTitle(quiz.verdictTitle);
+                            setQuizPinToday(!!quiz.isPinnedToday);
+                            setQuizModalOpen(true);
+                          }}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                          title="Edit Quiz"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={() =>
@@ -696,7 +777,7 @@ export default function AdminExplorePage() {
         )}
 
         {/* =========================================================
-            TAB 3: QUOTE OF THE DAY · 365-DAY HERITAGE & SCIENCE LIBRARY
+            TAB 3: QUOTE OF THE DAY · HERITAGE & SCIENCE LIBRARY
            ========================================================= */}
         {activeTab === "quotes" && (
           <div className="space-y-4">
@@ -706,7 +787,7 @@ export default function AdminExplorePage() {
                 <div className="space-y-2 max-w-3xl">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-md bg-[#38BDF8]/20 border border-[#38BDF8]/40 text-[#7DD3FC] font-mono text-xs font-bold uppercase tracking-wider">
-                      Live Quote of the Day · Day {activeQuoteToday.dayOfYear} / 365
+                      Live Quote of the Day · Day {activeQuoteToday.dayOfYear}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-md bg-white/10 text-sky-100 font-mono text-xs font-bold">
                       {activeQuoteToday.category}
@@ -714,7 +795,7 @@ export default function AdminExplorePage() {
                     <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 font-mono text-xs font-bold">
                       {settings.dailyQuoteMode === "pinned"
                         ? "Mode: Pinned Override"
-                        : "Mode: Auto 365-Day Rotation"}
+                        : "Mode: Auto Calendar Rotation"}
                     </span>
                   </div>
 
@@ -756,15 +837,15 @@ export default function AdminExplorePage() {
                           dailyQuoteDayOffset: 0,
                           pinnedQuoteId: undefined,
                         },
-                        "Reset Daily Quote to Auto 365-Day Calendar"
+                        "Reset Daily Quote to Auto Calendar"
                       );
                       setBanner(
-                        "Switched to Automatic 365-Day Calendar Rotation!"
+                        "Switched to Automatic Calendar Rotation!"
                       );
                     }}
                     className="px-3 py-2 rounded-xl bg-[#38BDF8] text-[#0F1E36] text-xs font-mono font-bold hover:brightness-105 transition cursor-pointer"
                   >
-                    Auto 365-Day
+                    Auto Rotation
                   </button>
                   <button
                     type="button"
@@ -787,7 +868,7 @@ export default function AdminExplorePage() {
               </div>
             </div>
 
-            {/* Filter & Search Bar for the 365 Quotes */}
+            {/* Filter & Search Bar for Quotes */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
               <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-lg">
@@ -799,7 +880,7 @@ export default function AdminExplorePage() {
                       setQuoteSearch(e.target.value);
                       setQuotePage(1);
                     }}
-                    placeholder="Search 365 quotes (e.g. Malek Bennabi, Ben Badis, Prophet, Quran, Ibn al-Haytham, Newton, Day #)..."
+                    placeholder="Search quotes by author, text, or tradition (e.g. Malek Bennabi, Ben Badis, Prophet, Ibn al-Haytham, Newton)..."
                     className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm"
                   />
                 </div>
@@ -815,6 +896,18 @@ export default function AdminExplorePage() {
                   >
                     <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
                     <span>Add Quote</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteJsonInput("");
+                      setQuoteJsonValidation(null);
+                      setQuoteJsonModalOpen(true);
+                    }}
+                    className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 transition cursor-pointer"
+                    title="Import Quotes from JSON"
+                  >
+                    <Code2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -849,7 +942,7 @@ export default function AdminExplorePage() {
               </div>
             </div>
 
-            {/* Paginated 365 Quotes Grid */}
+            {/* Paginated Quotes Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {paginatedQuotes.map((q) => {
                 const isTodayActive = activeQuoteToday.id === q.id;
@@ -865,7 +958,7 @@ export default function AdminExplorePage() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] font-mono text-[11px] font-bold text-[#182C4E]">
-                          Day {q.dayOfYear} / 365
+                          Day {q.dayOfYear}
                         </span>
                         <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">
                           {q.category}
@@ -904,16 +997,34 @@ export default function AdminExplorePage() {
                             <span>Set Today</span>
                           </button>
                         )}
-                        {q.isCustom && (
-                          <button
-                            type="button"
-                            onClick={() => deleteDailyQuote(q.id)}
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer"
-                            title="Delete custom quote"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingQuote(q);
+                            setEditQuoteText(q.text);
+                            setEditQuoteAuthor(q.author);
+                            setEditQuoteRole(q.eraOrRole || "");
+                            setEditQuoteCategory(q.category);
+                            setEditQuoteDay(q.dayOfYear);
+                          }}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                          title="Edit Quote"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Delete quote by ${q.author}?`)) {
+                              deleteDailyQuote(q.id);
+                              setBanner(`Deleted quote by ${q.author}.`);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer"
+                          title="Delete Quote"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -921,7 +1032,7 @@ export default function AdminExplorePage() {
               })}
             </div>
 
-            {/* Pagination Footer for 365 Quotes */}
+            {/* Pagination Footer for Quotes */}
             {totalQuotePages > 1 && (
               <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-slate-500">
@@ -1120,7 +1231,7 @@ export default function AdminExplorePage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
             <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-extrabold">Add Daily Quiz</h2>
+                <h2 className="text-lg font-extrabold">{editingQuiz ? "Edit Daily Quiz" : "Add Daily Quiz"}</h2>
                 <p className="text-xs text-sky-200">
                   Appears immediately inside the expandable Quiz box on the Member App
                 </p>
@@ -1267,7 +1378,7 @@ export default function AdminExplorePage() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-sm font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer"
                 >
-                  Publish Daily Quiz
+                  {editingQuiz ? "Save Quiz Changes" : "Publish Daily Quiz"}
                 </button>
               </div>
             </form>
@@ -1276,7 +1387,442 @@ export default function AdminExplorePage() {
       )}
 
       {/* =========================================================
-          MODAL 3: ADD QUOTE TO 365-DAY LIBRARY
+          MODAL: EDIT QUOTE
+         ========================================================= */}
+      {editingQuote && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-extrabold">Edit Quote</h2>
+                <p className="text-xs text-sky-200">
+                  Update text, author attribution, and sequence number.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingQuote(null)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!editQuoteText.trim() || !editQuoteAuthor.trim()) return;
+                updateDailyQuote(editingQuote.id, {
+                  text: editQuoteText.trim(),
+                  author: editQuoteAuthor.trim(),
+                  eraOrRole: editQuoteRole.trim(),
+                  category: editQuoteCategory,
+                  dayOfYear: Number(editQuoteDay) || 1,
+                });
+                setBanner(`Updated quote by ${editQuoteAuthor.trim()}!`);
+                setEditingQuote(null);
+              }}
+              className="p-6 space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Quote Text *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={editQuoteText}
+                  onChange={(e) => setEditQuoteText(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm italic font-editorial"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Author *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editQuoteAuthor}
+                    onChange={(e) => setEditQuoteAuthor(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Era / Discipline
+                  </label>
+                  <input
+                    type="text"
+                    value={editQuoteRole}
+                    onChange={(e) => setEditQuoteRole(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Tradition / Category
+                  </label>
+                  <select
+                    value={editQuoteCategory}
+                    onChange={(e) => setEditQuoteCategory(e.target.value as QuoteCategory)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold"
+                  >
+                    {QUOTE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Day / Sequence #
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editQuoteDay}
+                    onChange={(e) => setEditQuoteDay(Number(e.target.value))}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingQuote(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL: IMPORT DAILY QUIZZES (JSON)
+         ========================================================= */}
+      {quizJsonModalOpen && (
+        <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileCode2 className="w-5 h-5 text-[#38BDF8]" />
+                <div>
+                  <h2 className="text-base font-extrabold">Import Daily Quizzes (JSON Format)</h2>
+                  <p className="text-xs text-sky-200">
+                    Paste raw JSON array of daily quiz questions.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuizJsonModalOpen(false)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              <div className="p-3.5 rounded-2xl bg-slate-900 text-sky-100 text-xs font-mono space-y-2">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="font-bold text-[#38BDF8]">Accepted JSON Format:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sample = JSON.stringify([
+                        {
+                          domain: "QUANTUM OPTICS",
+                          icon: "quantum",
+                          question: "What is photon entanglement?",
+                          options: [
+                            { id: "a", label: "Instantaneous correlation between states" },
+                            { id: "b", label: "Photons losing all momentum" },
+                            { id: "c", label: "Transformation into thermal radiation" }
+                          ],
+                          correctId: "a",
+                          verdictTitle: "Quantum Entanglement Confirmed",
+                          xpReward: 25
+                        }
+                      ], null, 2);
+                      navigator.clipboard.writeText(sample);
+                      setBanner("Copied Sample Quiz JSON!");
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] text-[#7DD3FC] hover:underline cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copy Sample</span>
+                  </button>
+                </div>
+                <pre className="text-[11px] overflow-x-auto text-emerald-300 leading-snug p-2 rounded-xl bg-slate-950 border border-slate-800">
+{`[
+  {
+    "domain": "QUANTUM OPTICS",
+    "icon": "quantum",
+    "question": "What is photon entanglement?",
+    "options": [
+      { "id": "a", "label": "Instantaneous correlation between states" },
+      { "id": "b", "label": "Photons losing all momentum" },
+      { "id": "c", "label": "Transformation into thermal radiation" }
+    ],
+    "correctId": "a",
+    "verdictTitle": "Quantum Entanglement Confirmed",
+    "xpReward": 25
+  }
+]`}
+                </pre>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Paste JSON Array:
+                </label>
+                <textarea
+                  rows={7}
+                  value={quizJsonInput}
+                  onChange={(e) => {
+                    const txt = e.target.value;
+                    setQuizJsonInput(txt);
+                    if (!txt.trim()) {
+                      setQuizJsonValidation(null);
+                      return;
+                    }
+                    try {
+                      const parsed = JSON.parse(txt);
+                      if (!Array.isArray(parsed)) {
+                        setQuizJsonValidation({ count: 0, error: "Must be a JSON array [ {...} ]" });
+                      } else {
+                        const valid = parsed.filter(item => item && item.question && item.options);
+                        setQuizJsonValidation(valid.length > 0 ? { count: valid.length } : { count: 0, error: "No valid quiz items found." });
+                      }
+                    } catch (err: any) {
+                      setQuizJsonValidation({ count: 0, error: err.message });
+                    }
+                  }}
+                  placeholder="Paste JSON array here..."
+                  className="w-full px-3 py-2 text-xs font-mono bg-[#F8FAFC] border border-slate-200 rounded-xl focus:outline-none"
+                />
+              </div>
+
+              {quizJsonValidation && (
+                <div className={`p-2.5 rounded-xl text-xs font-bold ${quizJsonValidation.error ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                  {quizJsonValidation.error ? `Error: ${quizJsonValidation.error}` : `✓ Valid: ${quizJsonValidation.count} quizzes detected!`}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setQuizJsonModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!quizJsonValidation || quizJsonValidation.count === 0}
+                  onClick={() => {
+                    try {
+                      const parsed = JSON.parse(quizJsonInput);
+                      let added = 0;
+                      for (const q of parsed) {
+                        if (q && q.question) {
+                          const opts = Array.isArray(q.options)
+                            ? q.options.map((opt: any, idx: number) => {
+                                if (typeof opt === "string") {
+                                  return { id: String.fromCharCode(97 + idx), label: opt };
+                                }
+                                return opt;
+                              })
+                            : [];
+                          createDailyQuiz({
+                            domain: (q.domain || "SCIENCE").toUpperCase(),
+                            icon: (q.icon || "quantum") as FieldIconKey,
+                            question: q.question,
+                            options: opts,
+                            correctId: q.correctId || opts[0]?.id || "a",
+                            verdictTitle: q.verdictTitle || "Answer Verified",
+                            explanation: q.explanation || "Scientific principles verified.",
+                            xpReward: q.xpReward || 25,
+                            active: true,
+                          });
+                          added++;
+                        }
+                      }
+                      setQuizJsonModalOpen(false);
+                      setBanner(`Imported ${added} daily quizzes from JSON!`);
+                    } catch {}
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
+                >
+                  Import Quizzes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL: IMPORT QUOTES (JSON)
+         ========================================================= */}
+      {quoteJsonModalOpen && (
+        <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileCode2 className="w-5 h-5 text-[#38BDF8]" />
+                <div>
+                  <h2 className="text-base font-extrabold">Import Quotes (JSON Format)</h2>
+                  <p className="text-xs text-sky-200">
+                    Paste raw JSON array of wisdom quotes.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuoteJsonModalOpen(false)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              <div className="p-3.5 rounded-2xl bg-slate-900 text-sky-100 text-xs font-mono space-y-2">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="font-bold text-[#38BDF8]">Accepted JSON Format:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sample = JSON.stringify([
+                        {
+                          text: "Science is the shared heritage of all humanity.",
+                          author: "Abdus Salam",
+                          eraOrRole: "Theoretical Physicist · Nobel Laureate",
+                          category: "Muslim Scientists",
+                          dayOfYear: 366
+                        }
+                      ], null, 2);
+                      navigator.clipboard.writeText(sample);
+                      setBanner("Copied Sample Quote JSON!");
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] text-[#7DD3FC] hover:underline cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copy Sample</span>
+                  </button>
+                </div>
+                <pre className="text-[11px] overflow-x-auto text-emerald-300 leading-snug p-2 rounded-xl bg-slate-950 border border-slate-800">
+{`[
+  {
+    "text": "Science is the shared heritage of all humanity.",
+    "author": "Abdus Salam",
+    "eraOrRole": "Theoretical Physicist · Nobel Laureate",
+    "category": "Muslim Scientists",
+    "dayOfYear": 366
+  }
+]`}
+                </pre>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Paste JSON Array:
+                </label>
+                <textarea
+                  rows={7}
+                  value={quoteJsonInput}
+                  onChange={(e) => {
+                    const txt = e.target.value;
+                    setQuoteJsonInput(txt);
+                    if (!txt.trim()) {
+                      setQuoteJsonValidation(null);
+                      return;
+                    }
+                    try {
+                      const parsed = JSON.parse(txt);
+                      if (!Array.isArray(parsed)) {
+                        setQuoteJsonValidation({ count: 0, error: "Must be a JSON array [ {...} ]" });
+                      } else {
+                        const valid = parsed.filter(item => item && item.text && item.author);
+                        setQuoteJsonValidation(valid.length > 0 ? { count: valid.length } : { count: 0, error: "No valid quote items found." });
+                      }
+                    } catch (err: any) {
+                      setQuoteJsonValidation({ count: 0, error: err.message });
+                    }
+                  }}
+                  placeholder="Paste JSON array here..."
+                  className="w-full px-3 py-2 text-xs font-mono bg-[#F8FAFC] border border-slate-200 rounded-xl focus:outline-none"
+                />
+              </div>
+
+              {quoteJsonValidation && (
+                <div className={`p-2.5 rounded-xl text-xs font-bold ${quoteJsonValidation.error ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                  {quoteJsonValidation.error ? `Error: ${quoteJsonValidation.error}` : `✓ Valid: ${quoteJsonValidation.count} quotes detected!`}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setQuoteJsonModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!quoteJsonValidation || quoteJsonValidation.count === 0}
+                  onClick={() => {
+                    try {
+                      const parsed = JSON.parse(quoteJsonInput);
+                      let added = 0;
+                      for (const q of parsed) {
+                        if (q && q.text && q.author) {
+                          createDailyQuote({
+                            text: q.text,
+                            author: q.author,
+                            eraOrRole: q.eraOrRole || "",
+                            category: (q.category || "World Scientists") as QuoteCategory,
+                            dayOfYear: Number(q.dayOfYear) || dailyQuotes.length + 1,
+                            isCustom: true,
+                          });
+                          added++;
+                        }
+                      }
+                      setQuoteJsonModalOpen(false);
+                      setBanner(`Imported ${added} quotes from JSON!`);
+                    } catch {}
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
+                >
+                  Import Quotes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
+          MODAL 3: ADD QUOTE TO LIBRARY
          ========================================================= */}
       {quoteModalOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1284,7 +1830,7 @@ export default function AdminExplorePage() {
             <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-extrabold">
-                  Add Quote to 365-Day Library
+                  Add Quote to Library
                 </h2>
                 <p className="text-xs text-sky-200">
                   Add Islamic, Algerian, or World Scientific quotes &amp; optionally pin for today

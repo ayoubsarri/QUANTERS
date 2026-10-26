@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
+  Clock,
   FileCheck2,
   FolderGit2,
   Sparkles,
@@ -41,6 +42,9 @@ const CATEGORY_PILLS: CategoryFilter[] = [
 export default function MobileBadgesPage() {
   const badges = useQuantersStore((s) => s.badges);
   const exams = useQuantersStore((s) => s.exams);
+  const projectSubmissions = useQuantersStore((s) => s.projectSubmissions);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const examCompletions = useQuantersStore((s) => s.examCompletions || []);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
@@ -269,6 +273,87 @@ export default function MobileBadgesPage() {
                   </span>
                 )}
               </div>
+
+              {/* Dual Requirements 2-Step Checklist */}
+              {selectedBadge && (() => {
+                const isDual =
+                  selectedBadge.requirementType === "both" ||
+                  (selectedBadge.earningMethods.includes("exam") && selectedBadge.earningMethods.includes("project"));
+                if (!isDual) return null;
+
+                const examPassed = examCompletions.some(
+                  (c) => c.memberId === currentMemberId && (c.badgeId === selectedBadge.id || c.examId === matchingExam?.id) && c.passed
+                );
+                const projectSub = projectSubmissions.find(
+                  (s) => s.memberId === currentMemberId && s.badgeId === selectedBadge.id
+                );
+                const projectApproved = projectSub?.status === "Approved";
+                const projectPending = projectSub?.status === "Pending Review";
+
+                return (
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Dual Requirements (Both Needed)</span>
+                      </span>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">
+                        {examPassed && projectApproved ? "Completed (2/2)" : examPassed || projectApproved ? "In Progress (1/2)" : "0/2 Steps"}
+                      </span>
+                    </div>
+
+                    {/* Step 1: Online Exam */}
+                    <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${examPassed ? "bg-emerald-50/70 border-emerald-200" : "bg-white border-slate-200"}`}>
+                      <div className="flex items-center gap-2">
+                        {examPassed ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border-2 border-slate-300" />
+                        )}
+                        <span className={examPassed ? "font-bold text-emerald-900" : "font-semibold text-slate-700"}>
+                          Step 1: Pass Online Exam
+                        </span>
+                      </div>
+                      {examPassed ? (
+                        <span className="text-[11px] font-bold text-emerald-700 bg-white/80 px-2 py-0.5 rounded">Passed ✓</span>
+                      ) : matchingExam ? (
+                        <Link href={`/exams/${matchingExam.id}`} className="text-[11px] font-bold text-[#0284C7] hover:underline">
+                          Take Exam →
+                        </Link>
+                      ) : (
+                        <Link href="/exams" className="text-[11px] font-bold text-[#0284C7] hover:underline">
+                          Exams Hub →
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Step 2: Practical Project */}
+                    <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${projectApproved ? "bg-emerald-50/70 border-emerald-200" : projectPending ? "bg-amber-50/70 border-amber-200" : "bg-white border-slate-200"}`}>
+                      <div className="flex items-center gap-2">
+                        {projectApproved ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        ) : projectPending ? (
+                          <Clock className="w-4 h-4 text-amber-600" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border-2 border-slate-300" />
+                        )}
+                        <span className={projectApproved ? "font-bold text-emerald-900" : projectPending ? "font-bold text-amber-900" : "font-semibold text-slate-700"}>
+                          Step 2: Submit Project
+                        </span>
+                      </div>
+                      {projectApproved ? (
+                        <span className="text-[11px] font-bold text-emerald-700 bg-white/80 px-2 py-0.5 rounded">Approved ✓</span>
+                      ) : projectPending ? (
+                        <span className="text-[11px] font-bold text-amber-700 bg-white/80 px-2 py-0.5 rounded">Under Review ⏳</span>
+                      ) : (
+                        <Link href="/projects/submit" className="text-[11px] font-bold text-[#0284C7] hover:underline">
+                          Submit Project →
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Action Buttons */}
               <div className="pt-2 space-y-2">

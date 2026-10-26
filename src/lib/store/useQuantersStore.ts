@@ -10,6 +10,7 @@ import {
   AvailabilityGrid,
   Badge,
   BadgeExam,
+  ExamCompletionRecord,
   Capability,
   ClubMessage,
   ClubTask,
@@ -101,6 +102,7 @@ interface QuantersStoreState {
   badges: Badge[];
   badgeCategories: string[];
   exams: BadgeExam[];
+  examCompletions: ExamCompletionRecord[];
   projectSubmissions: ProjectSubmission[];
   proposals: Proposal[];
   explorePosts: ExplorePost[];
@@ -342,9 +344,13 @@ interface QuantersStoreState {
   addBadgeCategory: (category: string) => void;
   deleteBadgeCategory: (category: string) => void;
   createBadge: (badge: Omit<Badge, "id" | "memberState" | "progressPercent" | "awardedCount" | "archived">) => void;
+  updateBadge: (id: string, updates: Partial<Badge>) => void;
   awardBadgeManually: (badgeId: string, memberIds: string[], reasonOrNote: string, actorName?: string) => void;
   revokeBadge: (badgeId: string, memberId: string, reason: string, actorName?: string) => void;
   deleteOrArchiveBadge: (badgeId: string, reason: string) => void;
+  createBadgeExam: (exam: Omit<BadgeExam, "id" | "attemptsUsed">) => void;
+  updateBadgeExam: (id: string, updates: Partial<BadgeExam>) => void;
+  deleteBadgeExam: (id: string) => void;
   completeBadgeExam: (examId: string, scorePercent: number) => void;
   submitBadgeProject: (submission: Omit<ProjectSubmission, "id" | "submittedAt" | "status">) => void;
   reviewProjectSubmission: (
@@ -423,6 +429,7 @@ const DELTA_ARRAY_KEYS = [
   "ledger",
   "badges",
   "exams",
+  "examCompletions",
   "projectSubmissions",
   "proposals",
   "explorePosts",
@@ -597,6 +604,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   badges: SEED_BADGES,
   badgeCategories: DEFAULT_BADGE_CATEGORIES,
   exams: SEED_EXAMS,
+  examCompletions: [
+    {
+      id: "comp-seed-1",
+      examId: "exam-astrophysics",
+      badgeId: "badge-astro",
+      memberId: "mem-ayoub",
+      scorePercent: 92,
+      passed: true,
+      completedAt: "2026-10-15",
+    },
+  ],
   projectSubmissions: SEED_PROJECT_SUBMISSIONS,
   proposals: SEED_PROPOSALS,
   explorePosts: SEED_EXPLORE_POSTS,
@@ -2680,6 +2698,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
+  updateBadge: (id, updates) => {
+    set((state) => ({
+      badges: state.badges.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+    }));
+    get().syncWithServer().catch(() => {});
+  },
+
   deleteOrArchiveBadge: (badgeId, reason) =>
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
@@ -2704,6 +2729,41 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
+  createBadgeExam: (examData) => {
+    const newExam: BadgeExam = {
+      ...examData,
+      id: `exam-${Date.now()}`,
+      attemptsUsed: 0,
+      totalQuestionsCount: examData.questions?.length || 0,
+    };
+    set((state) => ({
+      exams: [...state.exams, newExam],
+    }));
+    get().syncWithServer().catch(() => {});
+  },
+
+  updateBadgeExam: (id, updates) => {
+    set((state) => ({
+      exams: state.exams.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              ...updates,
+              totalQuestionsCount: updates.questions ? updates.questions.length : e.totalQuestionsCount,
+            }
+          : e
+      ),
+    }));
+    get().syncWithServer().catch(() => {});
+  },
+
+  deleteBadgeExam: (id) => {
+    set((state) => ({
+      exams: state.exams.filter((e) => e.id !== id),
+    }));
+    get().syncWithServer().catch(() => {});
+  },
+
   completeBadgeExam: (examId, scorePercent) =>
     set((state) => {
       const exam = state.exams.find((e) => e.id === examId);
@@ -2716,32 +2776,66 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           ),
         };
       }
+
+      const newCompletion: ExamCompletionRecord = {
+        id: `comp-${Date.now()}`,
+        examId,
+        badgeId: exam.badgeId,
+        memberId: state.currentMemberId,
+        scorePercent,
+        passed: true,
+        completedAt: new Date().toISOString().slice(0, 10),
+      };
+
+      const targetBadge = state.badges.find((b) => b.id === exam.badgeId);
+      const isDual =
+        targetBadge?.requirementType === "both" ||
+        (targetBadge?.earningMethods.includes("exam") && targetBadge?.earningMethods.includes("project"));
+
+      // Check if project is approved
+      const projectApproved = state.projectSubmissions.some(
+        (s) => s.memberId === state.currentMemberId && s.badgeId === exam.badgeId && s.status === "Approved"
+      );
+
+      const fullyUnlocked = !isDual || projectApproved;
+      const xpToAward = fullyUnlocked ? exam.xpReward : Math.round(exam.xpReward / 2);
+
       return {
         exams: state.exams.map((e) =>
           e.id === examId ? { ...e, attemptsUsed: e.attemptsUsed + 1 } : e
         ),
+        examCompletions: [...(state.examCompletions || []), newCompletion],
         badges: state.badges.map((b) =>
           b.id === exam.badgeId
-            ? { ...b, memberState: "Unlocked", progressPercent: 100, awardedDate: "Today" }
+            ? {
+                ...b,
+                memberState: fullyUnlocked ? "Unlocked" : "In Progress",
+                progressPercent: fullyUnlocked ? 100 : 50,
+                awardedDate: fullyUnlocked ? "Today" : b.awardedDate,
+              }
             : b
         ),
         members: state.members.map((m) =>
           m.id === state.currentMemberId
             ? {
                 ...m,
-                xpTotal: m.xpTotal + exam.xpReward,
-                xpSeason: m.xpSeason + exam.xpReward,
-                xpMonth: m.xpMonth + exam.xpReward,
-                badgeIds: Array.from(new Set([...m.badgeIds, exam.badgeId])),
+                xpTotal: m.xpTotal + xpToAward,
+                xpSeason: m.xpSeason + xpToAward,
+                xpMonth: m.xpMonth + xpToAward,
+                badgeIds: fullyUnlocked
+                  ? Array.from(new Set([...m.badgeIds, exam.badgeId]))
+                  : m.badgeIds,
               }
             : m
         ),
         celebration: {
           open: true,
           type: "badge",
-          title: "Achievement Unlocked!",
-          subtitle: `You passed '${exam.title}' with ${scorePercent}% and unlocked the verified badge!`,
-          xpEarned: exam.xpReward,
+          title: fullyUnlocked ? "Achievement Unlocked!" : "Step 1 of 2 Complete!",
+          subtitle: fullyUnlocked
+            ? `You passed '${exam.title}' with ${scorePercent}% and unlocked the verified badge!`
+            : `You passed '${exam.title}' with ${scorePercent}%! Step 1 of 2 completed. Now submit your project to unlock the badge.`,
+          xpEarned: xpToAward,
           badgeName: exam.title,
         },
       };
@@ -2770,7 +2864,18 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const sub = state.projectSubmissions.find((s) => s.id === submissionId);
       if (!sub) return state;
       const badge = state.badges.find((b) => b.id === sub.badgeId);
-      const xp = status === "Approved" ? badge?.xpReward || 120 : 0;
+      const isDual =
+        badge?.requirementType === "both" ||
+        (badge?.earningMethods.includes("exam") && badge?.earningMethods.includes("project"));
+
+      // Check if exam is passed
+      const examPassed = (state.examCompletions || []).some(
+        (c) => c.memberId === sub.memberId && (c.badgeId === sub.badgeId || c.examId === badge?.linkedExamId) && c.passed
+      );
+
+      const fullyUnlocked = status === "Approved" && (!isDual || examPassed);
+      const baseReward = badge?.xpReward || 120;
+      const xp = status === "Approved" ? (fullyUnlocked ? baseReward : Math.round(baseReward / 2)) : 0;
 
       return {
         projectSubmissions: state.projectSubmissions.map((s) =>
@@ -2780,7 +2885,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           status === "Approved"
             ? state.badges.map((b) =>
                 b.id === sub.badgeId
-                  ? { ...b, memberState: "Unlocked", progressPercent: 100, awardedDate: "Today" }
+                  ? {
+                      ...b,
+                      memberState: fullyUnlocked ? "Unlocked" : "In Progress",
+                      progressPercent: fullyUnlocked ? 100 : 50,
+                      awardedDate: fullyUnlocked ? "Today" : b.awardedDate,
+                    }
                   : b
               )
             : state.badges,
@@ -2793,7 +2903,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                       xpTotal: m.xpTotal + xp,
                       xpSeason: m.xpSeason + xp,
                       xpMonth: m.xpMonth + xp,
-                      badgeIds: Array.from(new Set([...m.badgeIds, sub.badgeId])),
+                      badgeIds: fullyUnlocked
+                        ? Array.from(new Set([...m.badgeIds, sub.badgeId]))
+                        : m.badgeIds,
                     }
                   : m
               )

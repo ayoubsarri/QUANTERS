@@ -460,6 +460,18 @@ export type BadgeCategory =
 
 export type BadgeEarningMethod = "exam" | "manual" | "project" | "automatic";
 
+export type BadgeRequirementType = "exam" | "project" | "both" | "manual";
+
+export interface ExamCompletionRecord {
+  id: string;
+  examId: string;
+  badgeId: string;
+  memberId: string;
+  scorePercent: number;
+  passed: boolean;
+  completedAt: string;
+}
+
 export interface ExamQuestion {
   id: string;
   question: string;
@@ -512,6 +524,8 @@ export interface Badge {
   criteriaText: string;
   xpReward: number;
   earningMethods: BadgeEarningMethod[];
+  requirementType?: BadgeRequirementType;
+  linkedExamId?: string;
   memberState: "Unlocked" | "In Progress" | "Locked";
   progressPercent: number;
   awardedCount: number;
