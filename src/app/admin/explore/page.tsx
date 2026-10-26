@@ -47,7 +47,7 @@ const POST_STATUSES: ExplorePost["status"][] = [
 
 const QUOTE_CATEGORIES: QuoteCategory[] = [
   "Quran & Revelation",
-  "Prophet Muhammad ﷺ",
+  "Prophet Muhammad",
   "Algerian Scholars",
   "Muslim Scientists",
   "Ancient Greece & Antiquity",
@@ -725,10 +725,7 @@ export default function AdminExplorePage() {
                   </p>
 
                   <p className="text-xs sm:text-sm font-mono text-sky-200">
-                    — <strong className="text-white">{activeQuoteToday.author}</strong>{" "}
-                    <span className="text-slate-300">
-                      ({activeQuoteToday.eraOrRole})
-                    </span>
+                    — <strong className="text-white">{activeQuoteToday.author}</strong>
                   </p>
                 </div>
 
@@ -885,10 +882,7 @@ export default function AdminExplorePage() {
                     <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#0F1E36] truncate">
-                          {q.author}
-                        </p>
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {q.eraOrRole}
+                          — {q.author}
                         </p>
                       </div>
 
@@ -1357,19 +1351,6 @@ export default function AdminExplorePage() {
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Era / Scholarly Context
-                  </label>
-                  <input
-                    type="text"
-                    value={newQuoteEra}
-                    onChange={(e) => setNewQuoteEra(e.target.value)}
-                    placeholder="e.g. Algerian Philosopher & Engineer"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
-                  />
                 </div>
 
                 <div>

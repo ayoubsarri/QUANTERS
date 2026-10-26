@@ -593,7 +593,7 @@ export interface DailyQuizItem {
 
 export type QuoteCategory =
   | "Quran & Revelation"
-  | "Prophet Muhammad ﷺ"
+  | "Prophet Muhammad"
   | "Algerian Scholars"
   | "Muslim Scientists"
   | "Ancient Greece & Antiquity"

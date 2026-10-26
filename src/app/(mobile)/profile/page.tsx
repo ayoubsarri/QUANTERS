@@ -131,18 +131,8 @@ export default function MobileProfilePage() {
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleToast, setScheduleToast] = useState<string | null>(null);
-  const [quoteOffset, setQuoteOffset] = useState(0);
 
-  const baseDailyQuote = getActiveDailyQuote(dailyQuotes, settings);
-  const activeQuote = React.useMemo(() => {
-    if (!dailyQuotes || dailyQuotes.length === 0) return baseDailyQuote;
-    if (quoteOffset === 0) return baseDailyQuote;
-    const baseIdx = Math.max(
-      0,
-      dailyQuotes.findIndex((q) => q.id === baseDailyQuote.id)
-    );
-    return dailyQuotes[(baseIdx + quoteOffset) % dailyQuotes.length] || baseDailyQuote;
-  }, [dailyQuotes, baseDailyQuote, quoteOffset]);
+  const activeQuote = getActiveDailyQuote(dailyQuotes, settings);
 
   // HR & Residence / Links Edit State
   const [editCommune, setEditCommune] = useState(
@@ -371,32 +361,12 @@ export default function MobileProfilePage() {
             </button>
           </div>
 
-          {/* Quote of the Day (365-Day Scientific & Heritage Library) */}
-          <div className="mt-3 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] shrink-0" />
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0284C7] truncate">
-                  Quote · Day {activeQuote.dayOfYear}/365 · {activeQuote.category}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setQuoteOffset((prev) => prev + 1)}
-                title="Browse next quote from 365-day library"
-                className="px-2 py-0.5 rounded bg-[#F0F6FF] hover:bg-[#E0F2FE] border border-[#D5E3F5] text-[11px] font-mono font-bold text-[#182C4E] transition cursor-pointer shrink-0"
-              >
-                Next
-              </button>
-            </div>
-            <p className="text-xs sm:text-sm italic text-[#0F1E36] font-editorial leading-relaxed">
-              &ldquo;{activeQuote.text}&rdquo;
-            </p>
-            <p className="mt-1 text-[11px] font-mono font-semibold text-slate-500">
-              — <span className="text-[#182C4E] font-bold">{activeQuote.author}</span>{" "}
-              <span className="text-slate-400">· {activeQuote.eraOrRole}</span>
-            </p>
-          </div>
+          <p className="mt-3 pt-3 border-t border-slate-100 text-xs sm:text-sm italic text-slate-600 font-editorial leading-relaxed">
+            &ldquo;{activeQuote.text}&rdquo;{" "}
+            <span className="not-italic font-sans font-semibold text-slate-400 text-xs">
+              — {activeQuote.author}
+            </span>
+          </p>
         </div>
 
         {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card (Zero Obstruction on Right) */}

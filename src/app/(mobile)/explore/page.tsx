@@ -20,7 +20,7 @@ import {
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { SEED_DAILY_QUIZZES } from "@/lib/data/seed";
+import { getCurrentDayOfYear, SEED_DAILY_QUIZZES } from "@/lib/data/seed";
 import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
 
 const FILTER_TABS: ("All" | ExploreCategory)[] = [
@@ -64,24 +64,26 @@ export default function MobileExplorePage() {
   const [activeArticle, setActiveArticle] = useState<ExplorePost | null>(null);
   const [savedIds, setSavedIds] = useState<string[]>(["exp-1"]);
 
-  // Interactive Expandable / Closable Daily Quiz State
+  // Interactive Daily Quiz State (Single Quiz of the Exact Day)
   const [isQuizExpanded, setIsQuizExpanded] = useState(false);
-  const [roundIdx, setRoundIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
     {}
   );
   const [rewardedRounds, setRewardedRounds] = useState<string[]>([]);
-  const [streak, setStreak] = useState(2);
 
-  const activeQuizzes = React.useMemo(() => {
+  const todayQuiz = React.useMemo(() => {
     const raw =
       storeQuizzes && storeQuizzes.length > 0
         ? storeQuizzes.filter((q) => q.active !== false)
         : SEED_DAILY_QUIZZES;
     const list = raw.length > 0 ? raw : SEED_DAILY_QUIZZES;
-    return [...list].sort((a, b) =>
-      a.isPinnedToday === b.isPinnedToday ? 0 : a.isPinnedToday ? -1 : 1
-    );
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const exactDateMatch = list.find((q) => q.dateLabel === todayIso);
+    if (exactDateMatch) return exactDateMatch;
+    const pinned = list.find((q) => q.isPinnedToday);
+    if (pinned) return pinned;
+    const dayIdx = (getCurrentDayOfYear(0) - 1) % list.length;
+    return list[dayIdx] || list[0];
   }, [storeQuizzes]);
 
   // Always sort published posts so Important / Featured / Newest appear first
@@ -108,7 +110,7 @@ export default function MobileExplorePage() {
   const heroPost =
     publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0];
 
-  const activeChallenge = activeQuizzes[roundIdx % activeQuizzes.length];
+  const activeChallenge = todayQuiz;
   const chosenOptionId = selectedAnswers[activeChallenge.id] || null;
   const isSolvedCorrect = chosenOptionId === activeChallenge.correctId;
 
@@ -120,24 +122,16 @@ export default function MobileExplorePage() {
     }));
 
     if (optionId === activeChallenge.correctId) {
-      setStreak((s) => s + 1);
       if (!rewardedRounds.includes(activeChallenge.id)) {
         setRewardedRounds((prev) => [...prev, activeChallenge.id]);
         addManualPointsEntry(
           currentMemberId,
           activeChallenge.xpReward,
-          `Quantum Lab Challenge: ${activeChallenge.verdictTitle}`,
+          `Daily Quiz: ${activeChallenge.verdictTitle}`,
           "Quiz"
         );
       }
-    } else {
-      setStreak(0);
     }
-  };
-
-  const handleResetGame = () => {
-    setSelectedAnswers({});
-    setRoundIdx(0);
   };
 
   const toggleSave = (id: string) => {
@@ -291,15 +285,17 @@ export default function MobileExplorePage() {
           </div>
         )}
 
-        {/* COMPACT EXPANDABLE / CLOSABLE INTERACTIVE QUIZ */}
+        {/* SINGLE DAILY QUIZ BUTTON & COLLAPSIBLE CARD */}
         <div
           className="rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.05)] overflow-hidden animate-rise"
           style={{ animationDelay: "110ms" }}
         >
-          {/* Compact Single Header Bar with Expand / Close Toggle */}
-          <div
+          <button
+            type="button"
             onClick={() => setIsQuizExpanded((prev) => !prev)}
-            className="px-3.5 py-2.5 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white flex items-center justify-between gap-2 cursor-pointer select-none"
+            aria-expanded={isQuizExpanded}
+            aria-label="Open Daily Quiz"
+            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white flex items-center justify-between gap-2 cursor-pointer select-none text-left transition hover:brightness-105"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <FieldIcon field={activeChallenge.icon} size={18} />
@@ -316,73 +312,21 @@ export default function MobileExplorePage() {
               )}
             </div>
 
-            <div
-              className="flex items-center gap-1.5 shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {isQuizExpanded && (
-                <div className="flex items-center gap-1 mr-1">
-                  {activeQuizzes.map((r, i) => {
-                    const answered = Boolean(selectedAnswers[r.id]);
-                    const right = selectedAnswers[r.id] === r.correctId;
-                    const active = i === roundIdx % activeQuizzes.length;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setRoundIdx(i)}
-                        className={`w-5 h-5 rounded font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center ${
-                          active
-                            ? "bg-[#38BDF8] text-[#0F1E36]"
-                            : answered
-                            ? right
-                              ? "bg-white/20 text-[#7DD3FC]"
-                              : "bg-white/10 text-slate-400"
-                            : "bg-white/10 text-slate-300 hover:bg-white/20"
-                        }`}
-                        title={`Question ${i + 1}`}
-                      >
-                        {i + 1}
-                      </button>
-                    );
-                  })}
-                </div>
+            <span className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
+              {isQuizExpanded ? (
+                <ChevronUp className="w-4 h-4 text-[#7DD3FC]" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-[#7DD3FC]" />
               )}
+            </span>
+          </button>
 
-              <button
-                type="button"
-                onClick={() => setIsQuizExpanded((prev) => !prev)}
-                aria-expanded={isQuizExpanded}
-                aria-label={isQuizExpanded ? "Close Quiz" : "Expand Quiz"}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 border border-white/15 font-mono text-[11px] font-bold text-white transition cursor-pointer"
-              >
-                <span>{isQuizExpanded ? "Close" : "Expand"}</span>
-                {isQuizExpanded ? (
-                  <ChevronUp className="w-3.5 h-3.5 text-[#7DD3FC]" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5 text-[#7DD3FC]" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Expandable Question & Options Body */}
           {isQuizExpanded && (
             <div className="p-3.5 space-y-2.5 border-t border-[#2B4875]/30 animate-rise">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0284C7]">
-                  {activeChallenge.domain}
-                </span>
-                <span className="text-[11px] font-mono font-semibold text-slate-400">
-                  {(roundIdx % activeQuizzes.length) + 1} / {activeQuizzes.length}
-                </span>
-              </div>
-
               <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
                 {activeChallenge.question}
               </h3>
 
-              {/* 3 Compact Options */}
               <div className="space-y-1.5">
                 {activeChallenge.options.map((opt, idx) => {
                   const isSelected = chosenOptionId === opt.id;
@@ -441,7 +385,6 @@ export default function MobileExplorePage() {
                 })}
               </div>
 
-              {/* Compact Instant Explanation Strip */}
               {chosenOptionId && (
                 <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2.5 animate-rise">
                   <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
@@ -450,16 +393,6 @@ export default function MobileExplorePage() {
                     </strong>{" "}
                     {activeChallenge.verdictTitle}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoundIdx((prev) => (prev + 1) % activeQuizzes.length)
-                    }
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#182C4E] text-white font-mono text-xs font-bold hover:brightness-110 active:scale-[0.98] transition cursor-pointer shrink-0"
-                  >
-                    <span>Next</span>
-                    <ArrowRight className="w-3 h-3 text-[#7DD3FC]" />
-                  </button>
                 </div>
               )}
             </div>
