@@ -211,6 +211,18 @@ function SeamlessLoopVideo({
 export default function WelcomeSplashPage() {
   const router = useRouter();
 
+  // Strict 0-scrolling document lock
+  useEffect(() => {
+    const origHtmlOverflow = document.documentElement.style.overflow;
+    const origBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = origHtmlOverflow;
+      document.body.style.overflow = origBodyOverflow;
+    };
+  }, []);
+
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -715,7 +727,7 @@ export default function WelcomeSplashPage() {
   };
 
   return (
-    <div className="min-h-dvh w-full bg-[#030812] text-white relative overflow-hidden select-none flex flex-col justify-between">
+    <div className="h-dvh max-h-dvh w-full bg-[#030812] text-white relative overflow-hidden select-none flex flex-col justify-between">
       {/* =====================================================================
           1. AMBIENT VIDEO BACKDROP
          ===================================================================== */}
@@ -758,10 +770,10 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between lg:justify-center">
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-4 sm:px-6 lg:px-10 py-2 sm:py-3 lg:py-5 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
-          <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
+          <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[9/16] max-h-[min(540px,76dvh)] xl:max-h-[min(620px,80dvh)] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
             <SeamlessLoopVideo
               src="/brand/welcome_loop.mp4"
               isActive={isDesktop}
@@ -770,12 +782,12 @@ export default function WelcomeSplashPage() {
         </div>
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
-        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between lg:justify-center min-h-[calc(100dvh-2.5rem)] lg:min-h-0 lg:my-auto lg:space-y-6">
+        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between lg:justify-center h-full max-h-full overflow-hidden lg:space-y-3 xl:space-y-5">
           {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT ON DESKTOP & CENTER-LOWER ON MOBILE PORTAL */}
-          <header className={`w-full space-y-2 sm:space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
+          <header className={`w-full transition-all duration-500 ease-out shrink-0 ${authOpen ? "space-y-1 sm:space-y-1.5 pt-0.5 sm:pt-1" : "space-y-2 sm:space-y-2.5"}`}>
             <div className={`w-full flex transition-all duration-500 ease-out ${
               authOpen
-                ? "justify-center text-center lg:justify-start lg:text-left translate-y-3.5 lg:translate-y-0"
+                ? "justify-center text-center lg:justify-start lg:text-left translate-y-1 lg:translate-y-0"
                 : "justify-start text-left"
             }`}>
               <div className={`inline-flex flex-col select-none transition-all duration-500 ease-out ${
@@ -786,14 +798,14 @@ export default function WelcomeSplashPage() {
                 <QuantersVectorWordmark
                   className={`w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out ${
                     authOpen
-                      ? "h-7 sm:h-8 md:h-10 lg:h-12 max-w-[190px] sm:max-w-[230px] md:max-w-[280px] lg:max-w-[340px]"
+                      ? "h-6 sm:h-7 md:h-8 lg:h-10 max-w-[170px] sm:max-w-[210px] md:max-w-[260px] lg:max-w-[320px]"
                       : "h-8 xs:h-9 sm:h-10 md:h-12 lg:h-14 max-w-[210px] xs:max-w-[240px] sm:max-w-[280px] md:max-w-[340px] lg:max-w-[400px]"
                   }`}
                 />
                 <div
                   className={`inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-300 ${
                     authOpen
-                      ? "mt-1 justify-center lg:justify-start"
+                      ? "mt-0.5 sm:mt-1 justify-center lg:justify-start"
                       : "mt-1.5 sm:mt-2 justify-start text-left"
                   }`}
                 >
@@ -863,16 +875,16 @@ export default function WelcomeSplashPage() {
 
           {/* B. CENTER STAGE */}
           {!authOpen ? (
-            <div className="my-auto py-4 lg:py-0 lg:my-0">
-              <div className="hidden lg:block space-y-3.5 max-w-[540px] animate-rise">
-                <h1 className="font-display font-black text-3xl xl:text-[42px] tracking-[-0.03em] text-white leading-[1.08]">
+            <div className="my-auto py-2 sm:py-3 lg:py-0 lg:my-0">
+              <div className="hidden lg:block space-y-3 xl:space-y-4 max-w-[540px] animate-rise">
+                <h1 className="font-display font-black text-2xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.08]">
                   More than a club,{" "}
-                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-4xl xl:text-[50px] tracking-normal mt-1">
+                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-3xl xl:text-[46px] tracking-normal mt-1">
                     a scientific journey.
                   </span>
                 </h1>
 
-                <p className="text-sm text-slate-300/90 leading-relaxed max-w-[460px]">
+                <p className="text-xs sm:text-sm text-slate-300/90 leading-relaxed max-w-[460px]">
                   Join hands-on workshops, verify laboratory and technical skills,
                   collaborate across scientific teams, and build your academic
                   track record at the University of Algiers 1.
@@ -881,21 +893,21 @@ export default function WelcomeSplashPage() {
             </div>
           ) : (
             <div
-              className="flex-1 w-full cursor-pointer lg:hidden"
+              className="flex-1 min-h-0 w-full cursor-pointer lg:hidden"
               onClick={() => setAuthOpen(false)}
               aria-hidden="true"
             />
           )}
 
           {/* C. BOTTOM INTERACTIVE DOCK */}
-          <footer className="w-full space-y-3.5 lg:space-y-4">
+          <footer className="w-full space-y-2 sm:space-y-3 lg:space-y-3.5 shrink-0">
             {!authOpen ? (
-              <div className="w-full space-y-3.5 animate-rise">
+              <div className="w-full space-y-2.5 sm:space-y-3.5 animate-rise">
                 {/* Phone Editorial Statement right above Start button */}
                 <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                  <p className="font-display font-black text-xl sm:text-2xl tracking-[-0.02em] text-white leading-tight">
+                  <p className="font-display font-black text-lg sm:text-2xl tracking-[-0.02em] text-white leading-tight">
                     More than a club,{" "}
-                    <span className="font-editorial italic font-normal text-[#38E4FF] text-[26px] sm:text-3xl">
+                    <span className="font-editorial italic font-normal text-[#38E4FF] text-2xl sm:text-3xl">
                       a scientific journey.
                     </span>
                   </p>
@@ -908,37 +920,37 @@ export default function WelcomeSplashPage() {
                     setAuthOpen(true);
                     setPendingPostLogin(null);
                   }}
-                  className="w-full h-14 px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                  className="w-full h-12 sm:h-14 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-display font-black text-lg tracking-tight text-[#061326]">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <span className="font-display font-black text-base sm:text-lg tracking-tight text-[#061326]">
                       Start
                     </span>
                     <span className="h-4 w-px bg-slate-300" />
-                    <span className="font-mono text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+                    <span className="font-mono text-[11px] sm:text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
                       Member Portal
                     </span>
                   </div>
 
-                  <div className="w-9 h-9 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </div>
                 </button>
 
                 {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
-                <div className="pt-2">
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2.5" />
+                <div className="pt-1 sm:pt-2">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2 sm:mb-2.5" />
                   <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-6 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      className="h-5 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
-                    <span className="h-6 sm:h-7 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
+                    <span className="h-5 sm:h-7 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
-                      className="h-8 sm:h-9 lg:h-10 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+                      className="h-7 sm:h-9 lg:h-10 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
@@ -1032,19 +1044,19 @@ export default function WelcomeSplashPage() {
                 data-modal="true"
                 role="dialog"
                 aria-label="Member Sign In"
-                className="w-full bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/35 hover:border-[#38BDF8]/50 rounded-2xl p-5 sm:p-6 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] space-y-3.5 text-left animate-rise transition-all"
+                className="w-full max-h-[calc(100dvh-4.5rem)] sm:max-h-[calc(100dvh-5.5rem)] lg:max-h-[min(580px,82dvh)] bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/35 hover:border-[#38BDF8]/50 rounded-2xl p-3.5 sm:p-5 lg:p-4 xl:p-5 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col text-left animate-rise transition-all overflow-hidden"
               >
                 {/* Header (Clean, Zero Redundant Box Badges) */}
-                <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/8">
+                <div className="flex items-center justify-between gap-3 pb-1.5 sm:pb-2 border-b border-white/8 shrink-0">
                   <div>
-                    <h2 className="font-display text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
+                    <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
                       {authMode === "signin"
                         ? "Member Authentication"
                         : authMode === "recovery"
                         ? "Reset Password"
                         : "Create New Account"}
                     </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                       {authMode === "signin"
                         ? "Sign in to access your QUANTA club portal"
                         : authMode === "recovery"
@@ -1060,14 +1072,14 @@ export default function WelcomeSplashPage() {
                       setShowForgotPassword(false);
                     }}
                     aria-label="Close login panel"
-                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#38BDF8]/50 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#38BDF8]/50 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
 
                 {/* Modern Clean Tabs (No Clunky Boxes) */}
-                <div className="flex items-center gap-5 sm:gap-6 border-b border-white/10 pt-1 pb-2">
+                <div className="flex items-center gap-4 sm:gap-6 border-b border-white/10 pt-1 pb-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -1075,9 +1087,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
+                    className={`text-xs sm:text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "signin"
-                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -1090,9 +1102,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
+                    className={`text-xs sm:text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "register"
-                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -1101,7 +1113,7 @@ export default function WelcomeSplashPage() {
                   {authMode === "recovery" && (
                     <button
                       type="button"
-                      className="text-sm font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                      className="text-xs sm:text-sm font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                     >
                       Reset Password
                     </button>
@@ -1110,7 +1122,7 @@ export default function WelcomeSplashPage() {
 
                 {/* Saved Login: simple, clean, no nested boxes, only member name */}
                 {savedLogins.length > 0 && authMode === "signin" && (
-                  <div className="space-y-1.5 pt-0.5">
+                  <div className="space-y-1 pt-1 shrink-0">
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
                       Saved Login
                     </span>
@@ -1127,14 +1139,14 @@ export default function WelcomeSplashPage() {
                               handleSavedAccountLogin(saved);
                             }
                           }}
-                          className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
                         >
                           <img
                             src={saved.avatarUrl}
                             alt=""
-                            className="w-5 h-5 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
+                            className="w-4 h-4 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
                           />
-                          <span className="truncate max-w-[150px]">{saved.fullName}</span>
+                          <span className="truncate max-w-[130px]">{saved.fullName}</span>
                           <button
                             type="button"
                             onClick={(e) => removeSavedLogin(saved.email, e)}
@@ -1151,20 +1163,20 @@ export default function WelcomeSplashPage() {
                 )}
 
                 {errorMsg && (
-                  <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs font-semibold text-center">
+                  <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs font-semibold text-center shrink-0">
                     {errorMsg}
                   </div>
                 )}
 
                 {successMsg && (
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200 text-xs font-semibold text-center flex items-center justify-center gap-1.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-400/35 text-emerald-200 text-xs font-semibold text-center flex items-center justify-center gap-1.5 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                     <span>{successMsg}</span>
                   </div>
                 )}
 
                 {authMode === "recovery" ? (
-                  <div className="space-y-3.5 animate-rise">
+                  <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar space-y-2.5 pr-0.5 pt-1 animate-rise">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
@@ -1443,17 +1455,17 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : authMode === "signin" ? (
-                    <div className="space-y-2.5">
-                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2.5">
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar space-y-2 pr-0.5 pt-1">
+                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2">
                         <div>
                           <label
                             htmlFor="signin-email"
-                            className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1"
                           >
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-email"
                               type="email"
@@ -1464,16 +1476,16 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center justify-between mb-1">
                             <label
                               htmlFor="signin-password"
-                              className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300"
+                              className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300"
                             >
                               Password
                             </label>
@@ -1484,13 +1496,13 @@ export default function WelcomeSplashPage() {
                                 setAuthMode("recovery");
                                 setForgotStep("search");
                               }}
-                              className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
+                              className="text-[10.5px] font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
                             >
                               Forgot password?
                             </button>
                           </div>
                           <div className="relative">
-                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-password"
                               type={showPassword ? "text" : "password"}
@@ -1501,12 +1513,12 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-10 pl-9 pr-9 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
@@ -1519,7 +1531,7 @@ export default function WelcomeSplashPage() {
                         </div>
 
                         {lockoutRemaining > 0 && (
-                          <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold flex items-center gap-2">
+                          <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold flex items-center gap-2">
                             <Clock className="w-4 h-4 text-rose-400 shrink-0" />
                             <span>Too many attempts. Lockout active for {lockoutRemaining}s</span>
                           </div>
@@ -1528,13 +1540,13 @@ export default function WelcomeSplashPage() {
                         <button
                           type="submit"
                           disabled={signInLoading || lockoutRemaining > 0}
-                          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                          className="w-full h-10 sm:h-11 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                           <span>{signInLoading ? "Authenticating..." : "Sign In"}</span>
                           <ArrowRight className="w-4 h-4" />
                         </button>
 
-                        <p className="text-[10px] text-slate-400 text-center pt-1 leading-relaxed">
+                        <p className="text-[10px] text-slate-400 text-center pt-0.5 leading-relaxed">
                           By signing in, you agree to the{" "}
                           <button
                             type="button"
@@ -1556,9 +1568,9 @@ export default function WelcomeSplashPage() {
                       </form>
 
                       {/* Divider + Continue with Google */}
-                      <div className="flex items-center gap-3 py-1">
+                      <div className="flex items-center gap-3 py-0.5">
                         <span className="h-px flex-1 bg-white/10" />
-                        <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400">
                           OR
                         </span>
                         <span className="h-px flex-1 bg-white/10" />
@@ -1568,7 +1580,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-10 sm:h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>
@@ -1577,285 +1589,285 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-2.5">
-                    <form onSubmit={handleRegister} noValidate className="space-y-2.5">
-                      {/* Clean Role Tabs */}
-                      <div className="flex items-center gap-5 border-b border-white/10 pb-2">
-                        <button
-                          type="button"
-                          onClick={() => setRegisterAsAlumni(false)}
-                          className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
-                            !registerAsAlumni
-                              ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                              : "text-slate-400 hover:text-slate-200"
-                          }`}
-                        >
-                          Student Member
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRegisterAsAlumni(true)}
-                          className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
-                            registerAsAlumni
-                              ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                              : "text-slate-400 hover:text-slate-200"
-                          }`}
-                        >
-                          QUANTA Alumni
-                        </button>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="register-fullname"
-                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
-                        >
-                          Full Legal Name
-                        </label>
-                        <div className="relative">
-                          <User className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            id="register-fullname"
-                            type="text"
-                            name="name"
-                            autoComplete="name"
-                            required
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Full Legal Name"
-                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="register-email"
-                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
-                        >
-                          Email Address
-                        </label>
-                        <div className="relative">
-                          <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            id="register-email"
-                            type="email"
-                            name="email"
-                            autoComplete="username email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@univ-alger.dz"
-                            className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="register-password"
-                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
-                        >
-                          Password (min. 8 characters)
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            id="register-password"
-                            type={showPassword ? "text" : "password"}
-                            name="new-password"
-                            autoComplete="new-password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="At least 8 characters (letters & numbers)"
-                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
-                          />
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar space-y-2 pr-0.5 pt-1">
+                      <form onSubmit={handleRegister} noValidate className="space-y-2">
+                        {/* Clean Role Tabs */}
+                        <div className="flex items-center gap-5 border-b border-white/10 pb-1.5">
                           <button
                             type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
-                            aria-label="Toggle password visibility"
+                            onClick={() => setRegisterAsAlumni(false)}
+                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
+                              !registerAsAlumni
+                                ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
                           >
-                            {showPassword ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
+                            Student Member
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRegisterAsAlumni(true)}
+                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
+                              registerAsAlumni
+                                ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
+                          >
+                            QUANTA Alumni
                           </button>
                         </div>
 
-                        {/* Real-time Password Strength Meter */}
-                        {password.length > 0 && (() => {
-                          const evalRes = evaluatePasswordStrength(password);
-                          return (
-                            <div className="space-y-1 pt-1.5">
-                              <div className="flex items-center justify-between text-[10px] font-mono">
-                                <span className="text-slate-400">Security Strength:</span>
-                                <span
-                                  className={`font-bold ${
-                                    evalRes.score <= 1
-                                      ? "text-rose-400"
-                                      : evalRes.score === 2
-                                      ? "text-amber-400"
-                                      : evalRes.score === 3
-                                      ? "text-sky-400"
-                                      : "text-emerald-400"
-                                  }`}
-                                >
-                                  {evalRes.label}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-4 gap-1 h-1">
-                                {[1, 2, 3, 4].map((stepNum) => (
-                                  <div
-                                    key={stepNum}
-                                    className={`rounded-full transition-all duration-300 ${
-                                      evalRes.score >= stepNum
-                                        ? evalRes.score <= 1
-                                          ? "bg-rose-500"
-                                          : evalRes.score === 2
-                                          ? "bg-amber-500"
-                                          : evalRes.score === 3
-                                          ? "bg-sky-400"
-                                          : "bg-emerald-400"
-                                        : "bg-white/10"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="register-confirm-password"
-                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
-                        >
-                          Confirm Password
-                        </label>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                          <input
-                            id="register-confirm-password"
-                            type={showConfirmPassword ? "text" : "password"}
-                            name="confirm-password"
-                            autoComplete="new-password"
-                            required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm your password"
-                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
-                            aria-label="Toggle confirm password visibility"
+                        <div>
+                          <label
+                            htmlFor="register-fullname"
+                            className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1"
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                        {confirmPassword.length > 0 && (
-                          <div className="pt-1 text-[10px] font-mono flex items-center gap-1">
-                            {password === confirmPassword ? (
-                              <span className="text-emerald-400 flex items-center gap-1 font-bold">
-                                <Check className="w-3 h-3" /> Passwords match
-                              </span>
-                            ) : (
-                              <span className="text-rose-400 font-bold">
-                                Passwords do not match
-                              </span>
-                            )}
+                            Full Legal Name
+                          </label>
+                          <div className="relative">
+                            <User className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              id="register-fullname"
+                              type="text"
+                              name="name"
+                              autoComplete="name"
+                              required
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              placeholder="Full Legal Name"
+                              className="w-full h-9.5 sm:h-10 pl-9 pr-3 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                            />
                           </div>
-                        )}
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="register-email"
+                            className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1"
+                          >
+                            Email Address
+                          </label>
+                          <div className="relative">
+                            <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              id="register-email"
+                              type="email"
+                              name="email"
+                              autoComplete="username email"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="name@univ-alger.dz"
+                              className="w-full h-9.5 sm:h-10 pl-9 pr-3 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="register-password"
+                            className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1"
+                          >
+                            Password (min. 8 characters)
+                          </label>
+                          <div className="relative">
+                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              id="register-password"
+                              type={showPassword ? "text" : "password"}
+                              name="new-password"
+                              autoComplete="new-password"
+                              required
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="At least 8 characters (letters & numbers)"
+                              className="w-full h-9.5 sm:h-10 pl-9 pr-9 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                              aria-label="Toggle password visibility"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+
+                          {/* Real-time Password Strength Meter */}
+                          {password.length > 0 && (() => {
+                            const evalRes = evaluatePasswordStrength(password);
+                            return (
+                              <div className="space-y-0.5 pt-1">
+                                <div className="flex items-center justify-between text-[10px] font-mono">
+                                  <span className="text-slate-400">Security Strength:</span>
+                                  <span
+                                    className={`font-bold ${
+                                      evalRes.score <= 1
+                                        ? "text-rose-400"
+                                        : evalRes.score === 2
+                                        ? "text-amber-400"
+                                        : evalRes.score === 3
+                                        ? "text-sky-400"
+                                        : "text-emerald-400"
+                                    }`}
+                                  >
+                                    {evalRes.label}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-4 gap-1 h-1">
+                                  {[1, 2, 3, 4].map((stepNum) => (
+                                    <div
+                                      key={stepNum}
+                                      className={`rounded-full transition-all duration-300 ${
+                                        evalRes.score >= stepNum
+                                          ? evalRes.score <= 1
+                                            ? "bg-rose-500"
+                                            : evalRes.score === 2
+                                            ? "bg-amber-500"
+                                            : evalRes.score === 3
+                                            ? "bg-sky-400"
+                                            : "bg-emerald-400"
+                                          : "bg-white/10"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="register-confirm-password"
+                            className="block text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1"
+                          >
+                            Confirm Password
+                          </label>
+                          <div className="relative">
+                            <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              id="register-confirm-password"
+                              type={showConfirmPassword ? "text" : "password"}
+                              name="confirm-password"
+                              autoComplete="new-password"
+                              required
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm your password"
+                              className="w-full h-9.5 sm:h-10 pl-9 pr-9 rounded-xl bg-[#030914]/90 border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                              aria-label="Toggle confirm password visibility"
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                          {confirmPassword.length > 0 && (
+                            <div className="pt-0.5 text-[10px] font-mono flex items-center gap-1">
+                              {password === confirmPassword ? (
+                                <span className="text-emerald-400 flex items-center gap-1 font-bold">
+                                  <Check className="w-3 h-3" /> Passwords match
+                                </span>
+                              ) : (
+                                <span className="text-rose-400 font-bold">
+                                  Passwords do not match
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Terms of Service & Privacy Policy Consent */}
+                        <label className="flex items-start gap-2 pt-0.5 text-[10.5px] text-slate-300 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="mt-0.5 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
+                          />
+                          <span className="leading-tight text-slate-400">
+                            I agree to the{" "}
+                            <button
+                              type="button"
+                              onClick={() => setTermsModalOpen("terms")}
+                              className="text-[#38BDF8] hover:underline font-semibold"
+                            >
+                              Terms of Service
+                            </button>{" "}
+                            and{" "}
+                            <button
+                              type="button"
+                              onClick={() => setTermsModalOpen("privacy")}
+                              className="text-[#38BDF8] hover:underline font-semibold"
+                            >
+                              Privacy Policy
+                            </button>
+                            .
+                          </span>
+                        </label>
+
+                        {/* Primary Create Account Button */}
+                        <button
+                          type="submit"
+                          disabled={registerLoading}
+                          className="w-full h-10 sm:h-11 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          <span>{registerLoading ? "Creating Account..." : "Create Account"}</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </form>
+
+                      {/* Divider + Sign up with Google */}
+                      <div className="flex items-center gap-3 py-0.5">
+                        <span className="h-px flex-1 bg-white/10" />
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400">
+                          OR
+                        </span>
+                        <span className="h-px flex-1 bg-white/10" />
                       </div>
 
-                      {/* Terms of Service & Privacy Policy Consent */}
-                      <label className="flex items-start gap-2.5 pt-1 text-[11px] text-slate-300 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={agreedToTerms}
-                          onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          className="mt-0.5 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
-                        />
-                        <span className="leading-tight text-slate-400">
-                          I agree to the{" "}
-                          <button
-                            type="button"
-                            onClick={() => setTermsModalOpen("terms")}
-                            className="text-[#38BDF8] hover:underline font-semibold"
-                          >
-                            QUANTERS Terms of Service
-                          </button>{" "}
-                          and{" "}
-                          <button
-                            type="button"
-                            onClick={() => setTermsModalOpen("privacy")}
-                            className="text-[#38BDF8] hover:underline font-semibold"
-                          >
-                            Privacy Policy
-                          </button>
-                          .
-                        </span>
-                      </label>
-
-                      {/* Primary Create Account Button */}
                       <button
-                        type="submit"
-                        disabled={registerLoading}
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        type="button"
+                        disabled={googleLoading}
+                        onClick={handleNativeFirebaseGooglePopup}
+                        className="w-full h-10 sm:h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                       >
-                        <span>{registerLoading ? "Creating Account..." : "Create Account"}</span>
-                        <ArrowRight className="w-4 h-4" />
+                        <GoogleLogoSvg className="w-4 h-4" />
+                        <span>
+                          {googleLoading ? "Connecting to Google..." : "Sign up with Google"}
+                        </span>
                       </button>
-                    </form>
-
-                    {/* Divider + Sign up with Google: Identical to Sign In */}
-                    <div className="flex items-center gap-3 py-1.5">
-                      <span className="h-px flex-1 bg-white/10" />
-                      <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400">
-                        OR
-                      </span>
-                      <span className="h-px flex-1 bg-white/10" />
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={googleLoading}
-                      onClick={handleNativeFirebaseGooglePopup}
-                      className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
-                    >
-                      <GoogleLogoSvg className="w-4 h-4" />
-                      <span>
-                        {googleLoading ? "Connecting to Google..." : "Sign up with Google"}
-                      </span>
-                    </button>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
             {authOpen && (
-              <div className="hidden lg:block pt-1">
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2" />
+              <div className="hidden xl:block pt-1 shrink-0">
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1.5" />
                 <div className="flex items-center justify-between px-2">
                   <img
                     src="/brand/univ_quanta_asset2.png"
                     alt="Quanta Scientific Club"
-                    className="h-6 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+                    className="h-5 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
                   />
-                  <span className="h-6 w-px bg-white/20 shrink-0 mx-2" />
+                  <span className="h-5 w-px bg-white/20 shrink-0 mx-2" />
                   <img
                     src="/brand/QUANTERS_white_logo.svg"
                     alt="Faculty of Sciences - University of Algiers 1"
-                    className="h-8 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
+                    className="h-7 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
                   />
                 </div>
               </div>
