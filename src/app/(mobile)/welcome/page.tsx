@@ -46,7 +46,14 @@ import {
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" className={`shrink-0 ${className}`} aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      style={{ width: "18px", height: "18px", minWidth: "18px", minHeight: "18px", maxWidth: "18px", maxHeight: "18px" }}
+      className={`shrink-0 ${className}`}
+      aria-hidden="true"
+    >
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82Z"
@@ -1435,7 +1442,7 @@ export default function WelcomeSplashPage() {
                             type="button"
                             disabled={googleLoading}
                             onClick={handleNativeFirebaseGooglePopup}
-                            className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                            className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                           >
                             <GoogleLogoSvg className="w-4 h-4" />
                             <span>
@@ -1680,7 +1687,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>
@@ -1942,7 +1949,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>

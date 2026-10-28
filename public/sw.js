@@ -4,7 +4,7 @@
  * API snapshot fallback, and native Push / System notifications.
  */
 
-const CACHE_VERSION = "quanters-pwa-v5.0";
+const CACHE_VERSION = "quanters-pwa-v6.0";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
