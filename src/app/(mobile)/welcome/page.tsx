@@ -1147,23 +1147,28 @@ export default function WelcomeSplashPage() {
                 aria-label="Member Sign In"
                 className="w-full max-h-[calc(100dvh-3.5rem)] sm:max-h-[calc(100dvh-4.5rem)] lg:max-h-[min(640px,84dvh)] bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/40 hover:border-[#38BDF8]/55 rounded-2xl sm:rounded-3xl p-3 sm:p-4.5 lg:p-5 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col text-left animate-rise transition-all overflow-hidden"
               >
-                {/* Header (Clean, Standard Mobile Typography) */}
-                <div className="flex items-center justify-between gap-3 pb-1.5 border-b border-white/10 shrink-0">
-                  <div>
-                    <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
-                      {authMode === "signin"
-                        ? "Member Authentication"
-                        : authMode === "recovery"
-                        ? "Reset Password"
-                        : "Create New Account"}
-                    </h2>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      {authMode === "signin"
-                        ? "Sign in to access your QUANTA club portal"
-                        : authMode === "recovery"
-                        ? "Enter your email to receive recovery instructions"
-                        : "Register your credentials to join QUANTERS"}
-                    </p>
+                {/* Header (Clean, Original & Compact) */}
+                <div className="flex items-center justify-between gap-2.5 pb-1 border-b border-white/10 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
+                      <ShieldCheck className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h2 className="font-display text-sm sm:text-base font-black text-white tracking-tight leading-tight">
+                        {authMode === "signin"
+                          ? "Member Sign In"
+                          : authMode === "recovery"
+                          ? "Reset Password"
+                          : "Create Member Account"}
+                      </h2>
+                      <p className="text-[11px] text-slate-300">
+                        {authMode === "signin"
+                          ? "Access your QUANTA club portal"
+                          : authMode === "recovery"
+                          ? "Receive recovery instructions"
+                          : "Register credentials to join QUANTERS"}
+                      </p>
+                    </div>
                   </div>
 
                   <button
@@ -1173,57 +1178,64 @@ export default function WelcomeSplashPage() {
                       setShowForgotPassword(false);
                     }}
                     aria-label="Close login panel"
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 hover:border-[#38BDF8]/50 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 hover:border-[#38BDF8]/50 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {/* Modern Clean Tabs with Standard Touch Targets */}
-                <div className="flex items-center gap-6 border-b border-white/10 pt-1 pb-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("signin");
-                      setErrorMsg(null);
-                      setSuccessMsg(null);
-                    }}
-                    className={`text-sm sm:text-base font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
-                      authMode === "signin"
-                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("register");
-                      setErrorMsg(null);
-                      setSuccessMsg(null);
-                    }}
-                    className={`text-sm sm:text-base font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
-                      authMode === "register"
-                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    Create Account
-                  </button>
-                  {authMode === "recovery" && (
+                {/* Original Tactile Segmented Switch */}
+                {authMode !== "recovery" ? (
+                  <div className="grid grid-cols-2 p-1 rounded-xl bg-[#040C1A]/90 border border-white/10 shrink-0">
                     <button
                       type="button"
-                      className="text-sm sm:text-base font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                      onClick={() => {
+                        setAuthMode("signin");
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                      }}
+                      className={`h-8 rounded-lg font-display font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        authMode === "signin"
+                          ? "bg-[#0284C7] text-white shadow-[0_2px_8px_rgba(2,132,199,0.5)]"
+                          : "text-slate-400 hover:text-white"
+                      }`}
                     >
-                      Reset Password
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Sign In</span>
                     </button>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("register");
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                      }}
+                      className={`h-8 rounded-lg font-display font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        authMode === "register"
+                          ? "bg-[#0284C7] text-white shadow-[0_2px_8px_rgba(2,132,199,0.5)]"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>Create Account</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between px-1 shrink-0 text-xs">
+                    <span className="text-[#38E4FF] font-display font-black">Reset Password</span>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("signin")}
+                      className="text-slate-400 hover:text-white font-mono text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <ArrowRight className="w-3 h-3 rotate-180" /> Back to Sign In
+                    </button>
+                  </div>
+                )}
 
                 {/* Saved Login: simple, clean, no nested boxes, only member name */}
                 {savedLogins.length > 0 && authMode === "signin" && (
-                  <div className="space-y-1 pt-1 shrink-0">
+                  <div className="space-y-1 pt-0.5 shrink-0">
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
                       Saved Login
                     </span>
@@ -1240,7 +1252,7 @@ export default function WelcomeSplashPage() {
                               handleSavedAccountLogin(saved);
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
                         >
                           <img
                             src={saved.avatarUrl}
@@ -1556,17 +1568,17 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : authMode === "signin" ? (
-                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2.5 sm:space-y-3">
-                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2.5 sm:space-y-3">
+                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2">
+                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2">
                         <div>
                           <label
                             htmlFor="signin-email"
-                            className="block text-xs font-bold text-slate-200 mb-1"
+                            className="block text-[11px] font-bold text-slate-200 mb-0.5"
                           >
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-email"
                               type="email"
@@ -1577,16 +1589,16 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-3 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-0.5">
                             <label
                               htmlFor="signin-password"
-                              className="block text-xs font-bold text-slate-200"
+                              className="block text-[11px] font-bold text-slate-200"
                             >
                               Password
                             </label>
@@ -1597,13 +1609,13 @@ export default function WelcomeSplashPage() {
                                 setAuthMode("recovery");
                                 setForgotStep("search");
                               }}
-                              className="text-xs font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
+                              className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
                             >
                               Forgot password?
                             </button>
                           </div>
                           <div className="relative">
-                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-password"
                               type={showPassword ? "text" : "password"}
@@ -1614,26 +1626,26 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-10 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
-                                <EyeOff className="w-4 h-4" />
+                                <EyeOff className="w-3.5 h-3.5" />
                               ) : (
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
                         </div>
 
                         {lockoutRemaining > 0 && (
-                          <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-rose-400 shrink-0" />
+                          <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] font-mono font-bold flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                             <span>Too many attempts. Lockout active for {lockoutRemaining}s</span>
                           </div>
                         )}
@@ -1641,13 +1653,13 @@ export default function WelcomeSplashPage() {
                         <button
                           type="submit"
                           disabled={signInLoading || lockoutRemaining > 0}
-                          className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs sm:text-sm tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                          className="w-full h-10 sm:h-11 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs sm:text-sm tracking-wider uppercase shadow-[0_6px_20px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                           <span>{signInLoading ? "Authenticating..." : "Sign In"}</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
 
-                        <p className="text-[11px] text-slate-400 text-center pt-0.5 leading-relaxed">
+                        <p className="text-[10px] text-slate-400 text-center leading-tight">
                           By signing in, you agree to the{" "}
                           <button
                             type="button"
@@ -1669,7 +1681,7 @@ export default function WelcomeSplashPage() {
                       </form>
 
                       {/* Divider + Continue with Google */}
-                      <div className="flex items-center gap-3 py-1">
+                      <div className="flex items-center gap-3 py-0.5">
                         <span className="h-px flex-1 bg-white/10" />
                         <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
                           OR
@@ -1681,7 +1693,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
+                        className="w-full h-10 sm:h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>
@@ -1690,14 +1702,14 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2 sm:space-y-2.5">
-                      <form onSubmit={handleRegister} noValidate className="space-y-2 sm:space-y-2.5">
+                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-1.5 sm:space-y-2">
+                      <form onSubmit={handleRegister} noValidate className="space-y-1.5 sm:space-y-2">
                         {/* Clean Text Selector for Student Member vs Alumni (NO BOX) */}
-                        <div className="flex items-center gap-5 pb-0.5">
+                        <div className="flex items-center gap-4 pb-0.5">
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(false)}
-                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
+                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                               !registerAsAlumni
                                 ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                                 : "text-slate-400 hover:text-slate-200"
@@ -1708,7 +1720,7 @@ export default function WelcomeSplashPage() {
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(true)}
-                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
+                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                               registerAsAlumni
                                 ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                                 : "text-slate-400 hover:text-slate-200"
@@ -1721,12 +1733,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-fullname"
-                            className="block text-xs font-bold text-slate-200 mb-1"
+                            className="block text-[11px] font-bold text-slate-200 mb-0.5"
                           >
                             Full Legal Name
                           </label>
                           <div className="relative">
-                            <User className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-fullname"
                               type="text"
@@ -1736,7 +1748,7 @@ export default function WelcomeSplashPage() {
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
                               placeholder="Full Legal Name"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-3 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1744,12 +1756,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-email"
-                            className="block text-xs font-bold text-slate-200 mb-1"
+                            className="block text-[11px] font-bold text-slate-200 mb-0.5"
                           >
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-email"
                               type="email"
@@ -1759,7 +1771,7 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-3 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1767,12 +1779,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-password"
-                            className="block text-xs font-bold text-slate-200 mb-1"
+                            className="block text-[11px] font-bold text-slate-200 mb-0.5"
                           >
                             Password (min. 8 characters)
                           </label>
                           <div className="relative">
-                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-password"
                               type={showPassword ? "text" : "password"}
@@ -1781,49 +1793,34 @@ export default function WelcomeSplashPage() {
                               required
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              placeholder="At least 8 characters (letters & numbers)"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              placeholder="Min. 8 chars (letters & numbers)"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-10 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
-                                <EyeOff className="w-4 h-4" />
+                                <EyeOff className="w-3.5 h-3.5" />
                               ) : (
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
-
-                          {/* Real-time Password Strength Meter */}
                           {password.length > 0 && (() => {
                             const evalRes = evaluatePasswordStrength(password);
                             return (
-                              <div className="space-y-1 pt-1.5">
-                                <div className="flex items-center justify-between text-xs font-mono">
-                                  <span className="text-slate-400">Security Strength:</span>
-                                  <span
-                                    className={`font-bold ${
-                                      evalRes.score <= 1
-                                        ? "text-rose-400"
-                                        : evalRes.score === 2
-                                        ? "text-amber-400"
-                                        : evalRes.score === 3
-                                        ? "text-sky-400"
-                                        : "text-emerald-400"
-                                    }`}
-                                  >
-                                    {evalRes.label}
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-4 gap-1.5 h-1.5">
+                              <div className="flex items-center justify-between pt-0.5 text-[10px] font-mono">
+                                <span className="text-slate-400">Strength: <strong className={
+                                  evalRes.score <= 1 ? "text-rose-400" : evalRes.score === 2 ? "text-amber-400" : evalRes.score === 3 ? "text-sky-400" : "text-emerald-400"
+                                }>{evalRes.label}</strong></span>
+                                <div className="flex items-center gap-1 w-16 h-1">
                                   {[1, 2, 3, 4].map((stepNum) => (
                                     <div
                                       key={stepNum}
-                                      className={`rounded-full transition-all duration-300 ${
+                                      className={`flex-1 h-full rounded-full transition-all duration-300 ${
                                         evalRes.score >= stepNum
                                           ? evalRes.score <= 1
                                             ? "bg-rose-500"
@@ -1845,12 +1842,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-confirm-password"
-                            className="block text-xs font-bold text-slate-200 mb-1"
+                            className="block text-[11px] font-bold text-slate-200 mb-0.5"
                           >
                             Confirm Password
                           </label>
                           <div className="relative">
-                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-4 h-4 text-[#38BDF8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-confirm-password"
                               type={showConfirmPassword ? "text" : "password"}
@@ -1859,27 +1856,27 @@ export default function WelcomeSplashPage() {
                               required
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              placeholder="Confirm your password"
-                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              placeholder="Confirm password"
+                              className="w-full h-10 min-h-[40px] pl-9 pr-10 rounded-xl bg-[#061224]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-1 focus:ring-[#38BDF8]/30 text-xs sm:text-sm font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle confirm password visibility"
                             >
                               {showConfirmPassword ? (
-                                <EyeOff className="w-4 h-4" />
+                                <EyeOff className="w-3.5 h-3.5" />
                               ) : (
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3.5 h-3.5" />
                               )}
                             </button>
                           </div>
                           {confirmPassword.length > 0 && (
-                            <div className="pt-1 text-xs font-mono flex items-center gap-1.5">
+                            <div className="pt-0.5 text-[10px] font-mono flex items-center gap-1">
                               {password === confirmPassword ? (
                                 <span className="text-emerald-400 flex items-center gap-1 font-bold">
-                                  <Check className="w-3.5 h-3.5" /> Passwords match
+                                  <Check className="w-3 h-3" /> Passwords match
                                 </span>
                               ) : (
                                 <span className="text-rose-400 font-bold">
@@ -1891,21 +1888,21 @@ export default function WelcomeSplashPage() {
                         </div>
 
                         {/* Terms of Service & Privacy Policy Consent */}
-                        <label className="flex items-start gap-2 pt-0.5 text-xs text-slate-300 cursor-pointer select-none">
+                        <label className="flex items-center gap-2 pt-0.5 text-[10.5px] text-slate-300 cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={agreedToTerms}
                             onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            className="mt-0.5 w-4 h-4 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
+                            className="w-3.5 h-3.5 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
                           />
-                          <span className="leading-tight text-slate-300 text-xs">
+                          <span className="leading-tight text-slate-300">
                             I agree to the{" "}
                             <button
                               type="button"
                               onClick={() => setTermsModalOpen("terms")}
                               className="text-[#38BDF8] hover:underline font-bold"
                             >
-                              Terms of Service
+                              Terms
                             </button>{" "}
                             and{" "}
                             <button
@@ -1923,10 +1920,10 @@ export default function WelcomeSplashPage() {
                         <button
                           type="submit"
                           disabled={registerLoading}
-                          className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs sm:text-sm tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                          className="w-full h-10 sm:h-11 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white text-xs sm:text-sm tracking-wider uppercase shadow-[0_6px_20px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                           <span>{registerLoading ? "Creating Account..." : "Create Account"}</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </form>
 
@@ -1943,7 +1940,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
+                        className="w-full h-10 sm:h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
                         <span>
