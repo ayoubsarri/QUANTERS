@@ -835,7 +835,11 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-3.5 sm:px-6 lg:px-10 pt-1.5 sm:pt-3 lg:pt-5 pb-1.5 sm:pb-4 lg:pb-6 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
+      <div className={`relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-3.5 sm:px-6 lg:px-10 ${
+        authOpen
+          ? "pt-1.5 sm:pt-3 lg:pt-5 pb-1.5 sm:pb-4 lg:pb-6"
+          : "pt-4 sm:pt-6 lg:pt-8 pb-3.5 sm:pb-5 lg:pb-7"
+      } flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden`}>
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[9/16] max-h-[min(540px,76dvh)] xl:max-h-[min(620px,80dvh)] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
@@ -942,16 +946,16 @@ export default function WelcomeSplashPage() {
 
           {/* B. CENTER STAGE */}
           {!authOpen && (
-            <div className="my-auto py-1 sm:py-2 lg:py-0 lg:my-0">
-              <div className="hidden lg:block space-y-3 xl:space-y-4 max-w-[540px] animate-rise">
-                <h1 className="font-display font-black text-2xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.08]">
+            <div className="my-auto py-2 sm:py-3 lg:py-0 lg:my-0">
+              <div className="space-y-2 sm:space-y-3 xl:space-y-4 max-w-[540px] animate-rise drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                <h1 className="font-display font-black text-2xl xs:text-[28px] sm:text-3xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.12] lg:leading-[1.08]">
                   More than a club,{" "}
-                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-3xl xl:text-[46px] tracking-normal mt-1">
+                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-[28px] xs:text-[32px] sm:text-4xl xl:text-[46px] tracking-normal mt-0.5 lg:mt-1">
                     a scientific journey.
                   </span>
                 </h1>
 
-                <p className="text-xs sm:text-sm text-slate-300/90 leading-relaxed max-w-[460px]">
+                <p className="text-xs xs:text-[13px] sm:text-sm text-slate-200/95 leading-relaxed max-w-[480px]">
                   Join hands-on workshops, verify laboratory and technical skills,
                   collaborate across scientific teams, and build your academic
                   track record at the University of Algiers 1.
@@ -963,17 +967,7 @@ export default function WelcomeSplashPage() {
           {/* C. BOTTOM INTERACTIVE DOCK (OR CENTERED AUTH MODAL WHEN OPEN) */}
           <footer className="w-full shrink-0">
             {!authOpen ? (
-              <div className="w-full space-y-1.5 sm:space-y-2 animate-rise">
-                {/* Phone Editorial Statement right above Start button */}
-                <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                  <p className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-[-0.02em] text-white leading-snug">
-                    More than a club,{" "}
-                    <span className="font-editorial italic font-normal text-[#38E4FF] text-xl xs:text-2xl sm:text-3xl">
-                      a scientific journey.
-                    </span>
-                  </p>
-                </div>
-
+              <div className="w-full space-y-2 sm:space-y-2.5 animate-rise">
                 {/* Active Session Card (If previously signed in, shows explicit user info and quick Switch button) */}
                 {isAuthenticated && currentMemberId && (() => {
                   const activeMember = members.find((m) => m.id === currentMemberId);
@@ -1020,38 +1014,38 @@ export default function WelcomeSplashPage() {
                   );
                 })()}
 
-                {/* Primary Bottom Start Button */}
+                {/* Primary Bottom Start Button (Enlarged & Touch Optimized) */}
                 <button
                   type="button"
                   onClick={() => {
                     setAuthOpen(true);
                     setPendingPostLogin(null);
                   }}
-                  className="w-full h-11 sm:h-12 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                  className="w-full h-[52px] sm:h-14 px-4.5 sm:px-6 rounded-2xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3">
-                    <span className="font-display font-black text-base sm:text-lg tracking-tight text-[#061326]">
+                  <div className="flex items-center gap-3 sm:gap-3.5">
+                    <span className="font-display font-black text-lg sm:text-xl tracking-tight text-[#061326]">
                       Start
                     </span>
-                    <span className="h-4 w-px bg-slate-300" />
-                    <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-[0.1em] text-slate-600">
+                    <span className="h-5 w-px bg-slate-300" />
+                    <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-[0.12em] text-slate-600">
                       Member Portal
                     </span>
                   </div>
 
-                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
-                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
+                    <ArrowRight className="w-4.5 h-4.5 stroke-[2.5]" />
                   </div>
                 </button>
 
                 {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
-                <div className="pt-0.5 pb-0.5">
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1" />
+                <div className="pt-1 pb-0.5">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1.5" />
                   <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-4 sm:h-5 w-auto max-h-4 sm:max-h-5 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      className="h-4.5 sm:h-5.5 w-auto max-h-4.5 sm:max-h-5.5 object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
                     <span className="h-3.5 sm:h-4 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
