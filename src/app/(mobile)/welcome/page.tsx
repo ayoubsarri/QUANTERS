@@ -968,10 +968,10 @@ export default function WelcomeSplashPage() {
             {!authOpen ? (
               <div className="w-full space-y-2 sm:space-y-2.5 animate-rise">
                 {/* Phone Editorial Statement right above Start button */}
-                <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                  <p className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-[-0.02em] text-white leading-snug">
+                <div className="lg:hidden px-1 drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)]">
+                  <p className="font-display font-black text-xl xs:text-[22px] sm:text-2xl tracking-[-0.03em] text-white leading-[1.12]">
                     More than a club,{" "}
-                    <span className="font-editorial italic font-normal text-[#38E4FF] text-xl xs:text-2xl sm:text-3xl">
+                    <span className="block font-editorial italic font-normal text-[#38E4FF] text-2xl xs:text-[26px] sm:text-3xl tracking-normal mt-0.5">
                       a scientific journey.
                     </span>
                   </p>
