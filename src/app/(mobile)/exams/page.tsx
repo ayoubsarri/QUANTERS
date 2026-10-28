@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -31,10 +31,24 @@ export default function ExamsHubPage() {
   const members = useQuantersStore((s) => s.members);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
-  const currentMember =
-    (isAuthenticated && currentMemberId
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const activeMember =
+    isAuthenticated && currentMemberId
       ? members.find((m) => m.id === currentMemberId)
-      : undefined) || FALLBACK_SESSION_MEMBER;
+      : undefined;
+
+  useEffect(() => {
+    if (hydrated && (!isAuthenticated || !currentMemberId || !activeMember)) {
+      router.replace("/welcome");
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
+
+  const currentMember = activeMember || FALLBACK_SESSION_MEMBER;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] =
@@ -62,6 +76,14 @@ export default function ExamsHubPage() {
 
     return matchesCategory && matchesSearch;
   });
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
+    return (
+      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
+        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <MobileAppShell>

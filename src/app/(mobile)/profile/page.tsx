@@ -168,10 +168,24 @@ export default function MobileProfilePage() {
   const lastSyncedAt = useQuantersStore((s) => s.lastSyncedAt);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
-  const member =
-    (isAuthenticated && currentMemberId
+  const [hydrated, setHydrated] = useState(false);
+
+  React.useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const activeMember =
+    isAuthenticated && currentMemberId
       ? members.find((m) => m.id === currentMemberId)
-      : undefined) || FALLBACK_SESSION_MEMBER;
+      : undefined;
+
+  React.useEffect(() => {
+    if (hydrated && (!isAuthenticated || !currentMemberId || !activeMember)) {
+      router.replace("/welcome");
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
+
+  const member = activeMember || FALLBACK_SESSION_MEMBER;
   const dept = departments.find((d) => d.id === member.departmentId);
   const team = teams.find((t) => t.id === member.teamId);
   const buddy = members.find((m) => m.id === member.buddyId);
@@ -425,6 +439,14 @@ export default function MobileProfilePage() {
   const displayWilaya = member.wilaya || "Algiers (16)";
   const displayHousing = member.housingType || "Family Home";
   const displayCommute = member.commuteTime || "< 30 min";
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
+    return (
+      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
+        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <MobileAppShell>

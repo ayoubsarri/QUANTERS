@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -40,10 +40,24 @@ export default function SubmitProjectPage() {
   const submitBadgeProject = useQuantersStore((s) => s.submitBadgeProject);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
-  const currentMember =
-    (isAuthenticated && currentMemberId
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const activeMember =
+    isAuthenticated && currentMemberId
       ? members.find((m) => m.id === currentMemberId)
-      : undefined) || FALLBACK_SESSION_MEMBER;
+      : undefined;
+
+  useEffect(() => {
+    if (hydrated && (!isAuthenticated || !currentMemberId || !activeMember)) {
+      router.replace("/welcome");
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
+
+  const currentMember = activeMember || FALLBACK_SESSION_MEMBER;
 
   const [projectTitle, setProjectTitle] = useState("");
   const [category, setCategory] = useState("General");
@@ -116,6 +130,14 @@ export default function SubmitProjectPage() {
   const mySubmissions = projectSubmissions.filter(
     (s) => s.memberId === currentMember.id
   );
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
+    return (
+      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
+        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <MobileAppShell>

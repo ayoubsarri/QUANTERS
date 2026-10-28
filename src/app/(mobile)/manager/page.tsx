@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   Award,
@@ -163,11 +164,56 @@ export default function MobileManagerWorkspacePage() {
   const activeTeams = teams.filter((t) => !t.archived);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
-  // Active signed-in member from the Organigramme
-  const currentMember =
-    (isAuthenticated && currentMemberId
+  const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const activeMember =
+    isAuthenticated && currentMemberId
       ? members.find((m) => m.id === currentMemberId)
-      : undefined) || FALLBACK_SESSION_MEMBER;
+      : undefined;
+
+  const currentMember = activeMember || FALLBACK_SESSION_MEMBER;
+
+  const isManager = Boolean(
+    isAuthenticated &&
+      activeMember &&
+      (activeMember.roles.some((r) =>
+        [
+          "Super Admin",
+          "Executive",
+          "HR Head",
+          "Department Head",
+          "Co-Manager",
+          "Team Leader",
+          "Workshop Organizer",
+          "Reviewer",
+        ].includes(r)
+      ) ||
+        departments.some((d) => d.headMemberId === activeMember.id || d.coManagerMemberId === activeMember.id) ||
+        teams.some((t) => t.leaderMemberId === activeMember.id))
+  );
+
+  useEffect(() => {
+    if (hydrated) {
+      if (!isAuthenticated || !currentMemberId || !activeMember) {
+        router.replace("/welcome");
+      } else if (!isManager) {
+        router.replace("/home");
+      }
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, isManager, router]);
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember || !isManager) {
+    return (
+      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
+        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   // Derive Organigramme Roles directly from Admin Dashboard state (departments, teams, settings)
   const managedDepts = departments.filter(

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   ArrowRight,
@@ -47,10 +48,25 @@ export default function MobileHomeHubPage() {
   const resumeMembershipSelf = useQuantersStore((s) => s.resumeMembershipSelf);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
-  const member =
-    (isAuthenticated && currentMemberId
+  const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const activeMember =
+    isAuthenticated && currentMemberId
       ? members.find((m) => m.id === currentMemberId)
-      : undefined) || FALLBACK_SESSION_MEMBER;
+      : undefined;
+
+  useEffect(() => {
+    if (hydrated && (!isAuthenticated || !currentMemberId || !activeMember)) {
+      router.replace("/welcome");
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
+
+  const member = activeMember || FALLBACK_SESSION_MEMBER;
   const isAlumni = member.status === "Alumni";
   const dept = departments.find((d) => d.id === member.departmentId);
   const isAdmin = member.roles.some((r) =>
@@ -255,6 +271,14 @@ export default function MobileHomeHubPage() {
     } catch {}
     setShowInstallGuide(false);
   };
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
+    return (
+      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
+        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <MobileAppShell>

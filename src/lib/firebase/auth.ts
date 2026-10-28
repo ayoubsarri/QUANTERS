@@ -97,7 +97,30 @@ export async function signInWithFirebaseGooglePopup(): Promise<{
         message: "Google Sign-In is currently unavailable.",
       };
     }
-    const cred = await signInWithPopup(fbAuth, googleProvider);
+
+    // Strict account isolation: explicitly clear any existing Firebase Auth session
+    // so stale credentials or another signed-in Google account never leaks into this attempt
+    if (fbAuth.currentUser) {
+      await fbAuth.signOut().catch(() => {});
+    }
+
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+
+    // Strict 25s timeout so Google OAuth never hangs indefinitely on mobile browsers or quota throttles
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      const timer = setTimeout(() => {
+        const timeoutErr = new Error("Google Sign-In timed out. Please check your connection and try again.");
+        (timeoutErr as any).code = "auth/timeout";
+        reject(timeoutErr);
+      }, 25000);
+      if (typeof timer.unref === "function") timer.unref();
+    });
+
+    const cred = await Promise.race([
+      signInWithPopup(fbAuth, googleProvider),
+      timeoutPromise,
+    ]);
+
     const user = cred.user;
     if (!user || !user.email) {
       return {
@@ -121,6 +144,13 @@ export async function signInWithFirebaseGooglePopup(): Promise<{
     ) {
       return { ok: false, cancelled: true, errorCode: code };
     }
+    if (code === "auth/timeout") {
+      return {
+        ok: false,
+        errorCode: "auth/timeout",
+        message: "Google Sign-In took too long to respond. Please check your internet connection and try again.",
+      };
+    }
     if (
       code === "auth/popup-blocked" ||
       code === "auth/operation-not-supported-in-this-environment"
@@ -128,6 +158,7 @@ export async function signInWithFirebaseGooglePopup(): Promise<{
       try {
         const fbAuth = getFirebaseAuth();
         if (fbAuth) {
+          googleProvider.setCustomParameters({ prompt: "select_account" });
           await signInWithRedirect(fbAuth, googleProvider);
           return { ok: false, redirecting: true };
         }
@@ -416,7 +447,11 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
       return data;
     }
     return null;
-  } catch {
+  } catch (err: any) {
+    const code = String(err?.code || "");
+    if (code.includes("resource-exhausted") || code.includes("quota")) {
+      console.warn("[Firestore Quota] Spark read quota limit reached. Continuing seamlessly with local cache.");
+    }
     return null;
   }
 }
@@ -625,8 +660,13 @@ export async function pushErpStateToFirestore(
     }
 
     return cleanPayload;
-  } catch (err) {
-    console.warn("[Firestore Push Error]", err);
+  } catch (err: any) {
+    const code = String(err?.code || "");
+    if (code.includes("resource-exhausted") || code.includes("quota")) {
+      console.warn("[Firestore Quota] Spark write quota reached for today. Delta changes safely stored in local cache.");
+    } else {
+      console.warn("[Firestore Push Error]", err);
+    }
     return null;
   }
 }

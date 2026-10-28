@@ -31,6 +31,7 @@ import {
   sendFirebasePasswordReset,
   signInWithFirebaseEmailPassword,
   signInWithFirebaseGooglePopup,
+  signOutFromFirebase,
 } from "@/lib/firebase/auth";
 import {
   checkLoginLockout,
@@ -241,6 +242,9 @@ export default function WelcomeSplashPage() {
     changeMemberPassword,
     syncWithServer,
     pullExactUpdatesFromServer,
+    logout,
+    isAuthenticated,
+    currentMemberId,
   } = useQuantersStore();
 
   // In-page Login Drawer state
@@ -436,7 +440,13 @@ export default function WelcomeSplashPage() {
     member: Member | undefined,
     redirectPath: string
   ) => {
-    await syncWithServer(true);
+    // Non-blocking sync with a strict 2s deadline so Firestore quota exhaustion / network latency
+    // never traps the user on the login screen or causes prolonged spinning
+    Promise.race([
+      syncWithServer(true),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]).catch(() => {});
+
     if (!member) {
       router.push(redirectPath);
       return;
@@ -481,6 +491,10 @@ export default function WelcomeSplashPage() {
     }
 
     setSignInLoading(true);
+
+    // Pre-flight session clearance
+    logout();
+    await signOutFromFirebase().catch(() => {});
 
     if (members.length === 0) {
       await pullExactUpdatesFromServer().catch(() => {});
@@ -672,6 +686,13 @@ export default function WelcomeSplashPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
     setGoogleLoading(true);
+
+    // Pre-flight session clearance: strictly wipe any existing session or credentials
+    // so that if this Google Sign-In is aborted, fails, or times out, the client remains
+    // 100% unauthenticated and never resurrects or leaks an old session
+    logout();
+    await signOutFromFirebase().catch(() => {});
+
     try {
       const popupRes = await signInWithFirebaseGooglePopup();
       if (popupRes.ok && popupRes.email) {
@@ -910,6 +931,52 @@ export default function WelcomeSplashPage() {
                     </span>
                   </p>
                 </div>
+
+                {/* Active Session Card (If previously signed in, shows explicit user info and quick Switch button) */}
+                {isAuthenticated && currentMemberId && (() => {
+                  const activeMember = members.find((m) => m.id === currentMemberId);
+                  if (!activeMember) return null;
+                  const isSuper = activeMember.roles.includes("Super Admin");
+                  return (
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-[#091527]/95 border border-[#38BDF8]/40 flex items-center justify-between gap-2 shadow-[0_12px_32px_rgba(0,0,0,0.8)] animate-rise">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <img
+                          src={activeMember.avatarUrl}
+                          alt={activeMember.fullName}
+                          className="w-8 h-8 rounded-full object-cover border border-[#38BDF8]/60 shrink-0"
+                        />
+                        <div className="min-w-0 text-left">
+                          <p className="text-xs font-display font-black text-white truncate">
+                            {activeMember.fullName}
+                          </p>
+                          <p className="text-[10px] font-mono text-[#38BDF8] truncate">
+                            {isSuper ? "Super Admin" : activeMember.roles[0] || "Member"} · Active Session
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => router.push(isSuper ? "/admin/overview" : "/home")}
+                          className="px-2.5 py-1 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#030812] font-display font-black text-[11px] transition cursor-pointer shadow-xs"
+                        >
+                          Resume
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout();
+                            signOutFromFirebase().catch(() => {});
+                          }}
+                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-mono text-[10px] transition cursor-pointer"
+                          title="Sign out to switch to another account"
+                        >
+                          Switch
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Primary Bottom Start Button */}
                 <button
