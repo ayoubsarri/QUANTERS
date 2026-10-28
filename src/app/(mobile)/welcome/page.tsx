@@ -46,7 +46,7 @@ import {
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" className={`shrink-0 ${className}`} aria-hidden="true">
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82Z"
@@ -1622,9 +1622,9 @@ export default function WelcomeSplashPage() {
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
-                                <EyeOff className="w-4.5 h-4.5" />
+                                <EyeOff className="w-4 h-4" />
                               ) : (
-                                <Eye className="w-4.5 h-4.5" />
+                                <Eye className="w-4 h-4" />
                               )}
                             </button>
                           </div>
@@ -1682,7 +1682,7 @@ export default function WelcomeSplashPage() {
                         onClick={handleNativeFirebaseGooglePopup}
                         className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
-                        <GoogleLogoSvg className="w-4.5 h-4.5" />
+                        <GoogleLogoSvg className="w-4 h-4" />
                         <span>
                           {googleLoading ? "Connecting to Google..." : "Continue with Google"}
                         </span>
@@ -1790,9 +1790,9 @@ export default function WelcomeSplashPage() {
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
-                                <EyeOff className="w-4.5 h-4.5" />
+                                <EyeOff className="w-4 h-4" />
                               ) : (
-                                <Eye className="w-4.5 h-4.5" />
+                                <Eye className="w-4 h-4" />
                               )}
                             </button>
                           </div>
@@ -1868,9 +1868,9 @@ export default function WelcomeSplashPage() {
                               aria-label="Toggle confirm password visibility"
                             >
                               {showConfirmPassword ? (
-                                <EyeOff className="w-4.5 h-4.5" />
+                                <EyeOff className="w-4 h-4" />
                               ) : (
-                                <Eye className="w-4.5 h-4.5" />
+                                <Eye className="w-4 h-4" />
                               )}
                             </button>
                           </div>
@@ -1944,7 +1944,7 @@ export default function WelcomeSplashPage() {
                         onClick={handleNativeFirebaseGooglePopup}
                         className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
-                        <GoogleLogoSvg className="w-4.5 h-4.5" />
+                        <GoogleLogoSvg className="w-4 h-4" />
                         <span>
                           {googleLoading ? "Connecting to Google..." : "Sign up with Google"}
                         </span>
