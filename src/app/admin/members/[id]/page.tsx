@@ -796,22 +796,6 @@ export default function AdminMemberDetailCardPage() {
                   <MapPin className="w-4 h-4 text-[#0284C7]" />
                   Residence, Housing &amp; Commute Card
                 </h2>
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${
-                    member.canStayLate !== false
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-800 border-amber-200"
-                  }`}
-                >
-                  {member.canStayLate !== false ? (
-                    <>
-                      <Check className="w-3 h-3" />
-                      <span>Can Stay After 16:30 / Saturdays</span>
-                    </>
-                  ) : (
-                    <span>Daytime Shifts Only (&lt;16:30)</span>
-                  )}
-                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">

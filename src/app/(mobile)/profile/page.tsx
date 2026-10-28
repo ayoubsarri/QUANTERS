@@ -808,12 +808,6 @@ export default function MobileProfilePage() {
               <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#182C4E]">
                 Commute: {displayCommute}
               </span>
-              {member.canStayLate !== false && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#E0F2FE] border border-[#BAE6FD] text-xs font-bold text-[#0369A1]">
-                  <Check className="w-3 h-3 text-[#0284C7]" />
-                  <span>Saturday / Late Sessions</span>
-                </span>
-              )}
             </div>
           </div>
 
