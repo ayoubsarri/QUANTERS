@@ -4,7 +4,7 @@
  * API snapshot fallback, and native Push / System notifications.
  */
 
-const CACHE_VERSION = "quanters-pwa-v6.0";
+const CACHE_VERSION = "quanters-pwa-v8.0";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -281,7 +281,7 @@ self.addEventListener("fetch", (event) => {
         const pagesCache = await caches.open(PAGES_CACHE);
         const cleanPathKey = url.pathname;
         try {
-          const networkResp = await fetch(request);
+          const networkResp = await fetch(new Request(request, { cache: "no-cache" }));
           if (networkResp && networkResp.status === 200) {
             await pagesCache.put(request, networkResp.clone());
             if (isNavigation) {

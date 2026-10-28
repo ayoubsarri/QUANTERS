@@ -189,9 +189,18 @@ export function PwaOfflineManager() {
     setOnlineStatus(navigator.onLine);
 
     if ("serviceWorker" in navigator) {
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
         .then((reg) => {
+          reg.update().catch(() => {});
           const conn = (navigator as unknown as { connection?: { saveData?: boolean } })
             .connection;
           const saveData = Boolean(conn?.saveData) || userLowDataMode;
