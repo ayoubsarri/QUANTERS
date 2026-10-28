@@ -1315,11 +1315,11 @@ export default function WelcomeSplashPage() {
                       {forgotStep === "search" && (
                         <form onSubmit={handleFindAccount} noValidate className="space-y-3">
                           <div>
-                            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                            <label className="block text-xs font-semibold text-slate-200 mb-1.5">
                               Registered Email Address
                             </label>
                             <div className="relative">
-                              <Mail className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                              <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                               <input
                                 type="email"
                                 required
@@ -1329,7 +1329,7 @@ export default function WelcomeSplashPage() {
                                   if (forgotPasswordStatus) setForgotPasswordStatus(null);
                                 }}
                                 placeholder="name@univ-alger.dz"
-                                className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-3 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 focus:border-[#38BDF8] text-white text-sm font-medium placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#38BDF8]/40 shadow-inner"
+                                className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-white text-sm sm:text-base font-medium placeholder:text-slate-400 focus:outline-none transition shadow-inner"
                               />
                             </div>
                           </div>
@@ -1337,7 +1337,7 @@ export default function WelcomeSplashPage() {
                           <button
                             type="submit"
                             disabled={forgotPasswordLoading}
-                            className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
+                            className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
                           >
                             {forgotPasswordLoading ? (
                               <span>Dispatching recovery link...</span>
@@ -1562,12 +1562,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="signin-email"
-                            className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-xs font-semibold text-slate-200 mb-1.5"
                           >
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-email"
                               type="email"
@@ -1578,7 +1578,7 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-3 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1587,7 +1587,7 @@ export default function WelcomeSplashPage() {
                           <div className="flex items-center justify-between mb-1.5">
                             <label
                               htmlFor="signin-password"
-                              className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300"
+                              className="block text-xs font-semibold text-slate-200"
                             >
                               Password
                             </label>
@@ -1604,7 +1604,7 @@ export default function WelcomeSplashPage() {
                             </button>
                           </div>
                           <div className="relative">
-                            <KeyRound className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="signin-password"
                               type={showPassword ? "text" : "password"}
@@ -1615,12 +1615,12 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-11 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
@@ -1693,15 +1693,15 @@ export default function WelcomeSplashPage() {
                   ) : (
                     <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 py-1 space-y-3">
                       <form onSubmit={handleRegister} noValidate className="space-y-3">
-                        {/* Clean Role Tabs with standard touch targets */}
-                        <div className="flex items-center gap-6 border-b border-white/10 pb-2">
+                        {/* Segmented Control for Student Member vs Alumni */}
+                        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#030914]/80 border border-white/10 mb-1">
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(false)}
-                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-1 ${
+                            className={`h-9 rounded-lg font-display text-xs font-bold transition-all cursor-pointer ${
                               !registerAsAlumni
-                                ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-[#0284C7] text-white shadow-sm"
+                                : "text-slate-400 hover:text-white"
                             }`}
                           >
                             Student Member
@@ -1709,10 +1709,10 @@ export default function WelcomeSplashPage() {
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(true)}
-                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-1 ${
+                            className={`h-9 rounded-lg font-display text-xs font-bold transition-all cursor-pointer ${
                               registerAsAlumni
-                                ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-[#0284C7] text-white shadow-sm"
+                                : "text-slate-400 hover:text-white"
                             }`}
                           >
                             QUANTA Alumni
@@ -1722,12 +1722,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-fullname"
-                            className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-xs font-semibold text-slate-200 mb-1.5"
                           >
                             Full Legal Name
                           </label>
                           <div className="relative">
-                            <User className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <User className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-fullname"
                               type="text"
@@ -1737,7 +1737,7 @@ export default function WelcomeSplashPage() {
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
                               placeholder="Full Legal Name"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-3 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1745,12 +1745,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-email"
-                            className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-xs font-semibold text-slate-200 mb-1.5"
                           >
                             Email Address
                           </label>
                           <div className="relative">
-                            <Mail className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-email"
                               type="email"
@@ -1760,7 +1760,7 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-3 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1768,12 +1768,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-password"
-                            className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-xs font-semibold text-slate-200 mb-1.5"
                           >
                             Password (min. 8 characters)
                           </label>
                           <div className="relative">
-                            <KeyRound className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-password"
                               type={showPassword ? "text" : "password"}
@@ -1783,12 +1783,12 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="At least 8 characters (letters & numbers)"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-11 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle password visibility"
                             >
                               {showPassword ? (
@@ -1846,12 +1846,12 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-confirm-password"
-                            className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                            className="block text-xs font-semibold text-slate-200 mb-1.5"
                           >
                             Confirm Password
                           </label>
                           <div className="relative">
-                            <KeyRound className="w-4.5 h-4.5 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <KeyRound className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               id="register-confirm-password"
                               type={showConfirmPassword ? "text" : "password"}
@@ -1861,12 +1861,12 @@ export default function WelcomeSplashPage() {
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
                               placeholder="Confirm your password"
-                              className="w-full h-11 sm:h-12 pl-10 sm:pl-11 pr-11 py-2.5 rounded-xl bg-[#030914]/90 border border-white/20 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-white cursor-pointer transition"
                               aria-label="Toggle confirm password visibility"
                             >
                               {showConfirmPassword ? (
