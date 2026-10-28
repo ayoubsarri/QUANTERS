@@ -249,11 +249,11 @@ export function PersonalQRModal({
 
         {/* 2. Compact Identity Lockup */}
         <div className="px-4 py-2.5 flex items-center gap-3 shrink-0 relative z-10 border-b border-white/5 bg-white/[0.02]">
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 w-14 h-14">
             <img
               src={member.avatarUrl}
               alt={member.fullName}
-              className="w-13 h-13 sm:w-14 sm:h-14 rounded-xl object-cover border-2 border-[#38BDF8] shadow-[0_4px_16px_rgba(56,189,248,0.35)]"
+              className="w-14 h-14 min-w-[56px] max-w-[56px] min-h-[56px] max-h-[56px] rounded-xl object-cover border-2 border-[#38BDF8] shadow-[0_4px_16px_rgba(56,189,248,0.35)] shrink-0"
             />
             <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md bg-emerald-500 border border-[#091730] flex items-center justify-center shadow-xs">
               <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
@@ -282,21 +282,21 @@ export function PersonalQRModal({
 
         {/* 3. Pro Scannable QR Core (Zero filler text) */}
         <div className="px-4 py-3 flex-1 flex flex-col items-center justify-center shrink-0 relative z-10">
-          <div className="relative p-2.5 rounded-2xl bg-white shadow-[0_12px_36px_rgba(0,0,0,0.6)] border-2 border-white flex flex-col items-center">
+          <div className="relative p-2 rounded-xl bg-white shadow-[0_12px_36px_rgba(0,0,0,0.6)] border-2 border-white flex flex-col items-center shrink-0">
             {qrDataUrl ? (
               <img
                 src={qrDataUrl}
                 alt={`QR ID for ${member.fullName}`}
-                className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-md"
+                className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-md"
               />
             ) : (
-              <div className="w-36 h-36 flex items-center justify-center text-slate-500 text-xs font-mono">
+              <div className="w-32 h-32 flex items-center justify-center text-slate-500 text-xs font-mono">
                 Generating QR...
               </div>
             )}
           </div>
 
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#101F38] border border-[#2B4875]/70 text-[10px] font-mono text-[#7DD3FC]">
+          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#101F38] border border-[#2B4875]/70 text-[10px] font-mono text-[#7DD3FC]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
             <span>SCAN TO VERIFY PASS</span>
           </div>
