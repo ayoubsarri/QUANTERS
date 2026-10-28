@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   Award,
+  Bell,
   BookOpen,
   Building2,
   CalendarDays,
@@ -46,6 +47,11 @@ import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
 import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { AvatarUploader } from "@/components/shared/AvatarUploader";
+import {
+  loadNotificationPrefs,
+  NOTIFICATION_PREFS_KEY,
+  dispatchSystemNotification,
+} from "@/components/shared/PwaOfflineManager";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { signInWithFirebaseGooglePopup } from "@/lib/firebase/auth";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
@@ -181,6 +187,44 @@ export default function MobileProfilePage() {
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleToast, setScheduleToast] = useState<string | null>(null);
+
+  const [notifsActive, setNotifsActive] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const prefs = loadNotificationPrefs();
+      return prefs.pushEnabled && ("Notification" in window ? Notification.permission === "granted" : false);
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (notifsActive) {
+      const prefs = loadNotificationPrefs();
+      prefs.pushEnabled = false;
+      window.localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
+      setNotifsActive(false);
+    } else {
+      let perm = Notification.permission;
+      if (perm === "default") {
+        perm = await Notification.requestPermission();
+      }
+      if (perm === "granted") {
+        const prefs = loadNotificationPrefs();
+        prefs.pushEnabled = true;
+        window.localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
+        setNotifsActive(true);
+        dispatchSystemNotification({
+          title: "QUANTERS",
+          body: "Notifications enabled. You will receive live club updates.",
+          url: "/notifications",
+        });
+      } else {
+        alert("Notifications are disabled in your browser settings. Please enable them to receive alerts.");
+      }
+    }
+  };
 
   // Change Password by Old Email modal state
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -977,6 +1021,36 @@ export default function MobileProfilePage() {
               )}
             </button>
           </div>
+
+          {/* Quick Push Notification Toggle Button */}
+          <button
+            type="button"
+            onClick={handleToggleNotifications}
+            className="w-full h-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-between px-3.5 transition active:scale-[0.99] cursor-pointer shadow-sm"
+          >
+            <div className="flex items-center gap-2">
+              <Bell
+                className={`w-3.5 h-3.5 ${
+                  notifsActive ? "text-[#0284C7]" : "text-slate-400"
+                }`}
+              />
+              <span>System Notifications</span>
+            </div>
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 ${
+                notifsActive
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-slate-100 text-slate-500 border border-slate-200"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  notifsActive ? "bg-emerald-500" : "bg-slate-400"
+                }`}
+              />
+              <span>{notifsActive ? "Active" : "Inactive"}</span>
+            </span>
+          </button>
 
           {member.roles.some((r) =>
             ["Super Admin", "Executive", "HR Head"].includes(r)

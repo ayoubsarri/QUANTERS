@@ -106,12 +106,13 @@ self.addEventListener("message", (event) => {
     const { title, body, url, tag, priority } = event.data.payload;
     if (self.registration && self.registration.showNotification) {
       event.waitUntil(
-        self.registration.showNotification(title || "QUANTERS Notification", {
-          body: body || "You have a new update in QUANTERS.",
+        self.registration.showNotification(title || "QUANTERS", {
+          body: body || "New update in QUANTERS.",
           icon: "/icons/icon-192.png",
           badge: "/icons/icon-96.png",
           tag: tag || `quanters-${Date.now()}`,
           renotify: true,
+          vibrate: [100, 50, 100],
           requireInteraction: priority === "Action needed",
           data: { url: url || "/notifications" },
         })
@@ -122,8 +123,8 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("push", (event) => {
   let payload = {
-    title: "QUANTERS · QUANTA Scientific Club",
-    body: "New club dispatch available in your inbox.",
+    title: "QUANTERS",
+    body: "New update in QUANTERS.",
     url: "/notifications",
   };
   try {
@@ -142,6 +143,9 @@ self.addEventListener("push", (event) => {
       body: payload.body,
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-96.png",
+      tag: "quanters-push",
+      renotify: true,
+      vibrate: [100, 50, 100],
       data: { url: payload.url || "/notifications" },
     })
   );

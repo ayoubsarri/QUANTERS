@@ -75,32 +75,49 @@ export async function dispatchSystemNotification(payload: {
 }) {
   if (typeof window === "undefined") return;
 
-  // Dispatch custom in-app event so PwaOfflineManager shows a live toast banner
-  window.dispatchEvent(
-    new CustomEvent("quanters:live-notification", { detail: payload })
-  );
-
   const prefs = loadNotificationPrefs();
   if (!prefs.pushEnabled) return;
 
   if ("Notification" in window && Notification.permission === "granted") {
     try {
+      const cleanTitle = payload.title || "QUANTERS";
+      const cleanBody = payload.body || "New update in QUANTERS.";
+      const targetUrl = payload.url || "/notifications";
+
+      // 1. Trigger via Service Worker for native OS/Chrome/Safari integration (even when active)
       if ("serviceWorker" in navigator) {
         const reg = await navigator.serviceWorker.ready;
-        if (reg && reg.active) {
-          reg.active.postMessage({
-            type: "SHOW_NOTIFICATION",
-            payload,
-          });
+        if (reg && reg.showNotification) {
+          await reg.showNotification(cleanTitle, {
+            body: cleanBody,
+            icon: "/icons/icon-192.png",
+            badge: "/icons/icon-96.png",
+            tag: `quanters-${Date.now()}`,
+            renotify: true,
+            vibrate: [100, 50, 100],
+            requireInteraction: payload.priority === "Action needed",
+            data: { url: targetUrl },
+          } as unknown as NotificationOptions);
           return;
         }
       }
-      new Notification(payload.title, {
-        body: payload.body,
+
+      // 2. Fallback to direct Notification constructor
+      const notif = new Notification(cleanTitle, {
+        body: cleanBody,
         icon: "/icons/icon-192.png",
+        badge: "/icons/icon-96.png",
+        tag: `quanters-${Date.now()}`,
+        data: { url: targetUrl },
       });
+      notif.onclick = () => {
+        window.focus();
+        if (targetUrl) {
+          window.location.href = targetUrl;
+        }
+      };
     } catch {
-      // Fallback to in-app toast only
+      // Ignored
     }
   }
 }
@@ -116,13 +133,49 @@ export function PwaOfflineManager() {
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
   const pullExactUpdatesFromServer = useQuantersStore((s) => s.pullExactUpdatesFromServer);
 
-  const [liveToast, setLiveToast] = useState<{
-    title: string;
-    body: string;
-    url?: string;
-  } | null>(null);
-
+  const [showPermPrompt, setShowPermPrompt] = useState(false);
   const prevMessagesCountRef = useRef<number>(messages.length);
+
+  // Check first-time permission prompt
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    try {
+      const alreadyAsked = window.localStorage.getItem("quanters_perm_asked_v1");
+      if (Notification.permission === "default" && !alreadyAsked) {
+        const timer = setTimeout(() => {
+          setShowPermPrompt(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
+
+  const handleRequestPerm = async () => {
+    setShowPermPrompt(false);
+    try {
+      window.localStorage.setItem("quanters_perm_asked_v1", "true");
+      if ("Notification" in window) {
+        const res = await Notification.requestPermission();
+        if (res === "granted") {
+          const prefs = loadNotificationPrefs();
+          prefs.pushEnabled = true;
+          window.localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
+          dispatchSystemNotification({
+            title: "QUANTERS",
+            body: "Notifications enabled. You will receive live club updates.",
+            url: "/notifications",
+          });
+        }
+      }
+    } catch {}
+  };
+
+  const handleDismissPerm = () => {
+    setShowPermPrompt(false);
+    try {
+      window.localStorage.setItem("quanters_perm_asked_v1", "dismissed");
+    } catch {}
+  };
 
   // 1. Hydrate local cache, register Service Worker, and pull ONLY exact delta updates
   useEffect(() => {
@@ -213,30 +266,12 @@ export function PwaOfflineManager() {
       saveToLocalCache();
     };
 
-    const handleLiveNotif = (e: Event) => {
-      const custom = e as CustomEvent<{
-        title: string;
-        body: string;
-        url?: string;
-      }>;
-      if (custom.detail) {
-        setLiveToast(custom.detail);
-        setTimeout(() => {
-          setLiveToast((curr) =>
-            curr?.title === custom.detail.title ? null : curr
-          );
-        }, 4500);
-      }
-    };
-
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    window.addEventListener("quanters:live-notification", handleLiveNotif);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("quanters:live-notification", handleLiveNotif);
     };
   }, [
     setOnlineStatus,
@@ -324,47 +359,40 @@ export function PwaOfflineManager() {
     };
   }, [saveToLocalCache, syncWithServer]);
 
-  if (!liveToast) {
-    return null;
-  }
-
-  return (
-    <div className="fixed top-2.5 left-1/2 -translate-x-1/2 z-[180] px-3 w-full max-w-[440px] space-y-2 pointer-events-none">
-      <div
-        onClick={() => {
-          const target = liveToast.url || "/notifications";
-          setLiveToast(null);
-          router.push(target);
-        }}
-        role="button"
-        tabIndex={0}
-        className="pointer-events-auto bg-[#0B192E]/95 backdrop-blur-md text-white border border-[#38BDF8]/45 rounded-xl px-3.5 py-2.5 shadow-2xl flex items-start justify-between gap-2.5 text-xs cursor-pointer animate-rise"
-      >
-        <div className="flex items-start gap-2.5 min-w-0">
-          <span className="w-7 h-7 rounded-lg bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0 mt-0.5">
-            <Bell className="w-3.5 h-3.5" />
-          </span>
-          <div className="min-w-0">
-            <div className="font-display font-black text-xs text-white truncate">
-              {liveToast.title}
-            </div>
-            <div className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
-              {liveToast.body}
+  if (showPermPrompt) {
+    return (
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] px-3 w-full max-w-[400px]">
+        <div className="bg-[#0B192E]/95 backdrop-blur-md text-white border border-[#38BDF8]/40 rounded-2xl p-3 shadow-2xl flex items-center justify-between gap-3 animate-rise">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-8 h-8 rounded-xl bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0">
+              <Bell className="w-4 h-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="font-extrabold text-xs text-white">Enable Notifications</div>
+              <div className="text-[10px] text-slate-300 truncate">Receive instant workshop & task alerts</div>
             </div>
           </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleRequestPerm}
+              className="h-7 px-3 rounded-lg bg-gradient-to-r from-[#0284C7] to-[#00E5FF] text-[#051326] text-[11px] font-black cursor-pointer active:scale-95 shadow-sm"
+            >
+              Enable
+            </button>
+            <button
+              type="button"
+              onClick={handleDismissPerm}
+              className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
+              aria-label="Dismiss"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setLiveToast(null);
-          }}
-          className="text-slate-400 hover:text-white p-0.5 cursor-pointer shrink-0"
-          aria-label="Dismiss notification"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }
