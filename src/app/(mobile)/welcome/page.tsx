@@ -1031,20 +1031,20 @@ export default function WelcomeSplashPage() {
                     setAuthOpen(true);
                     setPendingPostLogin(null);
                   }}
-                  className="w-full h-[52px] sm:h-14 px-4.5 sm:px-6 rounded-2xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                  className="w-full h-[52px] sm:h-14 px-4 sm:px-5 rounded-2xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
-                  <div className="flex items-center gap-3 sm:gap-3.5">
-                    <span className="font-display font-black text-lg sm:text-xl tracking-tight text-[#061326]">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <span className="font-display font-black text-base sm:text-lg tracking-tight text-[#061326] shrink-0 leading-none">
                       Start
                     </span>
-                    <span className="h-5 w-px bg-slate-300" />
-                    <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-[0.12em] text-slate-600">
+                    <span className="h-4 w-px bg-slate-300/80 shrink-0" />
+                    <span className="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.1em] text-slate-600 truncate leading-none">
                       Member Portal
                     </span>
                   </div>
 
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
-                    <ArrowRight className="w-4.5 h-4.5 stroke-[2.5]" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center shrink-0 transition shadow-sm">
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                   </div>
                 </button>
 
