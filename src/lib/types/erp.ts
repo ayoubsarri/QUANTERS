@@ -340,6 +340,7 @@ export interface Member {
   graduationYear?: string;
   alumniPosition?: string;
   alumniAccessEnabled?: boolean;
+  preferredLanguage?: AppLanguage;
   // HR Extended KYC: Residence, Hardware/PC & Professional Links
   wilaya?: string;
   commune?: string;
@@ -717,6 +718,8 @@ export interface DailyQuizItem {
   active: boolean;
 }
 
+export type AppLanguage = "en" | "ar";
+
 export type QuoteCategory =
   | "Quran & Revelation"
   | "Prophet Muhammad"
@@ -729,9 +732,13 @@ export interface DailyQuoteItem {
   id: string;
   dayOfYear: number; // 1..365
   text: string;
+  textAr?: string;
   author: string;
+  authorAr?: string;
   eraOrRole: string;
+  eraOrRoleAr?: string;
   category: QuoteCategory;
+  categoryAr?: string;
   isCustom?: boolean;
 }
 
@@ -856,6 +863,7 @@ export interface SystemSettings {
   pinnedQuoteId?: string;
   dailyQuoteDayOffset?: number;
   // Firebase Free-Tier & User Quota Optimization Controls
+  defaultLanguage?: AppLanguage;
   quotaSaverPreset?: "standard" | "aggressive" | "ultra";
   syncStrategy?: "instant" | "debounced_30s" | "manual_offline";
   clientCacheTtlMinutes?: number;

@@ -28,6 +28,7 @@ import { FieldIcon } from "@/components/shared/FieldIcon";
 import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { DEFAULT_RANK_LEVELS } from "@/lib/types/erp";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function MobileHomeHubPage() {
   const members = useQuantersStore((s) => s.members);
@@ -48,6 +49,7 @@ export default function MobileHomeHubPage() {
   const resumeMembershipSelf = useQuantersStore((s) => s.resumeMembershipSelf);
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
+  const { t, lang, isRtl } = useTranslation();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
 
@@ -328,8 +330,8 @@ export default function MobileHomeHubPage() {
               <Link
                 href="/admin/overview"
                 className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[#38BDF8] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
-                title="Open Admin Console"
-                aria-label="Open Admin Console"
+                title={isRtl ? "لوحة الإدارة" : "Open Admin Console"}
+                aria-label={isRtl ? "لوحة الإدارة" : "Open Admin Console"}
               >
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
               </Link>
@@ -338,9 +340,9 @@ export default function MobileHomeHubPage() {
             <Link
               href="/manager"
               className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-white border border-slate-200/90 text-[10px] sm:text-[11px] font-mono font-bold text-[#0F1E36] hover:border-[#182C4E] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
-              title="Department & Team Operations"
+              title={isRtl ? "إدارة الأقسام والفرق" : "Department & Team Operations"}
             >
-              <span>Desk</span>
+              <span>{isRtl ? "المكتب" : "Desk"}</span>
             </Link>
 
             <Link
@@ -393,14 +395,16 @@ export default function MobileHomeHubPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="font-display font-black text-xs text-white tracking-tight truncate">
-                      Download QUANTERS App
+                      {isRtl ? "تحميل تطبيق كوانترز" : "Download QUANTERS App"}
                     </span>
                     <span className="px-1 py-0.2 rounded-full bg-[#38E4FF]/15 border border-[#38E4FF]/30 text-[8.5px] font-mono font-bold text-[#38E4FF] shrink-0">
-                      OFFLINE &amp; FAST
+                      {isRtl ? "سريع ودون إنترنت" : "OFFLINE & FAST"}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-300 font-sans truncate">
-                    Install on your home screen for 1-tap optical check-in and updates.
+                    {isRtl
+                      ? "ثبّت التطبيق على شاشتك الرئيسية للتسجيل السريع والتحديثات."
+                      : "Install on your home screen for 1-tap optical check-in and updates."}
                   </p>
                 </div>
               </div>
@@ -411,7 +415,7 @@ export default function MobileHomeHubPage() {
                 className="shrink-0 h-7 px-2.5 rounded-lg bg-[#38E4FF] hover:bg-[#2DD4BF] text-[#061326] font-display font-black text-[11px] shadow-xs active:scale-95 transition flex items-center gap-1 cursor-pointer"
               >
                 <Download className="w-3 h-3 stroke-[2.5]" />
-                <span>Install</span>
+                <span>{isRtl ? "تثبيت" : "Install"}</span>
               </button>
             </div>
 
@@ -578,7 +582,7 @@ export default function MobileHomeHubPage() {
               {member.badgeIds.length}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
-              Badges
+              {isRtl ? "الشارات" : "Badges"}
             </span>
           </Link>
 
@@ -590,7 +594,7 @@ export default function MobileHomeHubPage() {
               {member.workshopsCompletedCount}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
-              Sessions
+              {isRtl ? "الورشات" : "Sessions"}
             </span>
           </Link>
 
@@ -602,7 +606,7 @@ export default function MobileHomeHubPage() {
               {member.projectsCompletedCount}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
-              Projects
+              {isRtl ? "المشاريع" : "Projects"}
             </span>
           </Link>
 
@@ -614,7 +618,7 @@ export default function MobileHomeHubPage() {
               {member.xpTotal.toLocaleString()}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
-              Total XP
+              {isRtl ? "النقاط" : "Total XP"}
             </span>
           </Link>
         </div>
@@ -675,7 +679,7 @@ export default function MobileHomeHubPage() {
                 />
               </svg>
               <span className="font-editorial italic text-base text-[#BAE6FD] shrink-0">
-                Star<span className="hidden sm:inline"> of the Month</span>
+                {isRtl ? "نجم الشهر" : <>Star<span className="hidden sm:inline"> of the Month</span></>}
               </span>
               <span className="text-white/30 text-xs">·</span>
               <span className="text-xs font-display font-bold text-white">
@@ -726,17 +730,17 @@ export default function MobileHomeHubPage() {
             <div className="flex items-baseline justify-between px-0.5">
               <div className="flex items-baseline gap-1.5">
                 <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
-                  NEXT SESSION
+                  {isRtl ? "الورشة القادمة" : "NEXT SESSION"}
                 </h2>
                 <span className="font-editorial italic text-base text-slate-500">
-                  scheduled lab
+                  {isRtl ? "مخبر مبرمج" : "scheduled lab"}
                 </span>
               </div>
               <Link
                 href="/workshops"
                 className="font-mono text-xs font-bold text-[#182C4E] hover:text-[#0284C7] hover:underline"
               >
-                All sessions →
+                {isRtl ? "جميع الورشات ←" : "All sessions →"}
               </Link>
             </div>
 
@@ -774,7 +778,7 @@ export default function MobileHomeHubPage() {
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                 <span className="font-mono text-xs font-semibold text-slate-500 tabular-nums">
-                  {nextWorkshop.seatsLeft} seats open
+                  {nextWorkshop.seatsLeft} {isRtl ? "مقعد متاح" : "seats open"}
                 </span>
 
                 <div className="flex items-center gap-2">
@@ -786,11 +790,11 @@ export default function MobileHomeHubPage() {
                       }
                       className="h-8 px-3 rounded-lg bg-[#F0F6FF] hover:bg-[#E2EEFC] text-[#162847] border border-[#D5E3F5] text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer"
                     >
-                      Reserve Seat
+                      {isRtl ? "حجز مقعد" : "Reserve Seat"}
                     </button>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5] font-mono text-xs font-bold">
-                      <Check className="w-3.5 h-3.5 text-[#0284C7]" /> Enrolled
+                      <Check className="w-3.5 h-3.5 text-[#0284C7]" /> {isRtl ? "مسجل" : "Enrolled"}
                     </span>
                   )}
                   <Link
@@ -798,7 +802,7 @@ export default function MobileHomeHubPage() {
                     className="h-8 px-3 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display border border-[#2B4875]/60 shadow-[0_4px_12px_rgba(16,31,56,0.2)] hover:brightness-110 active:scale-[0.98] transition flex items-center gap-1.5"
                   >
                     <QrCode className="w-3.5 h-3.5 text-[#7DD3FC]" />
-                    <span>Check-in</span>
+                    <span>{isRtl ? "تسجيل الحضور" : "Check-in"}</span>
                   </Link>
                 </div>
               </div>
@@ -832,18 +836,18 @@ export default function MobileHomeHubPage() {
               <div className="min-w-0">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-xs font-black font-display tracking-tight text-white">
-                    Live Check-In
+                    {isRtl ? "تسجيل الحضور المباشر" : "Live Check-In"}
                   </span>
                   <span className="text-white/30 text-xs">·</span>
                   <span className="font-mono text-[11px] text-slate-300">
-                    QR or 6-digit code
+                    {isRtl ? "رمز QR أو كود من 6 أرقام" : "QR or 6-digit code"}
                   </span>
                 </div>
               </div>
             </div>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 border border-[#7DD3FC]/30 font-mono text-[11px] font-bold text-[#7DD3FC] group-hover:translate-x-0.5 transition-transform shrink-0">
-              <span>SCAN</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "مسح" : "SCAN"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </span>
           </Link>
 
@@ -867,10 +871,10 @@ export default function MobileHomeHubPage() {
               </div>
               <div className="min-w-0">
                 <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
-                  Skill Exams
+                  {isRtl ? "اختبارات الكفاءة" : "Skill Exams"}
                 </span>
                 <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
-                  {exams.length} {exams.length === 1 ? "exam" : "exams"}
+                  {exams.length} {exams.length === 1 ? (isRtl ? "اختبار" : "exam") : (isRtl ? "اختبارات" : "exams")}
                 </span>
               </div>
             </Link>
@@ -889,10 +893,10 @@ export default function MobileHomeHubPage() {
               </div>
               <div className="min-w-0">
                 <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
-                  Projects
+                  {isRtl ? "المشاريع" : "Projects"}
                 </span>
                 <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
-                  Submit
+                  {isRtl ? "إيداع مشروع" : "Submit"}
                 </span>
               </div>
             </Link>
@@ -916,10 +920,10 @@ export default function MobileHomeHubPage() {
               </div>
               <div className="min-w-0">
                 <span className="text-[11px] sm:text-xs font-black font-display text-[#0F1E36] block leading-tight group-hover:text-[#0284C7] transition-colors">
-                  Proposals
+                  {isRtl ? "المقترحات" : "Proposals"}
                 </span>
                 <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
-                  Pitch idea
+                  {isRtl ? "طرح فكرة" : "Pitch idea"}
                 </span>
               </div>
             </Link>
@@ -935,10 +939,10 @@ export default function MobileHomeHubPage() {
             <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
-                  ASSIGNED TASKS
+                  {isRtl ? "المهام الموكلة" : "ASSIGNED TASKS"}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-sky-50 text-[#0284C7] text-[10px] font-mono font-extrabold border border-sky-200/80">
-                  Active Missions
+                  {isRtl ? "مهام قيد الإنجاز" : "Active Missions"}
                 </span>
               </div>
 
@@ -953,7 +957,7 @@ export default function MobileHomeHubPage() {
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  Active ({activeTasks.length})
+                  {isRtl ? `النشطة (${activeTasks.length})` : `Active (${activeTasks.length})`}
                 </button>
                 <button
                   type="button"

@@ -17,8 +17,10 @@ import {
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function WorkshopCheckInScannerPage() {
+  const { t, lang, isRtl } = useTranslation();
   const workshops = useQuantersStore((s) => s.workshops);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const verifyWorkshopCheckIn = useQuantersStore(
@@ -175,22 +177,22 @@ export default function WorkshopCheckInScannerPage() {
               href="/home"
               className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
+              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+              <span>{t.common.back}</span>
             </Link>
 
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] text-[10px] font-extrabold">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
-              <span>Live Session</span>
+              <span>{isRtl ? "جلسة مباشرة" : "Live Session"}</span>
             </span>
           </div>
 
           <div className="pt-0.5">
             <p className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
-              OPTICAL VERIFICATION · LIVE CHECK-IN
+              {isRtl ? "التحقق المباشر · تسجيل الحضور" : "OPTICAL VERIFICATION · LIVE CHECK-IN"}
             </p>
             <h1 className="font-display text-xl font-black tracking-tight text-[#0F1E36] leading-tight">
-              Session Check-In
+              {t.checkin.title}
             </h1>
           </div>
         </div>
@@ -317,10 +319,10 @@ export default function WorkshopCheckInScannerPage() {
         <div className="rounded-xl bg-white border border-slate-200/90 p-3.5 space-y-2.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#182C4E]">
-              6-Digit Projector Code
+              {isRtl ? "رمز الجلسة المعروض (6 أرقام)" : "6-Digit Projector Code"}
             </span>
             <span className="text-[10.5px] text-slate-500 font-medium">
-              Manual Fallback
+              {isRtl ? "إدخال يدوي" : "Manual Fallback"}
             </span>
           </div>
 
@@ -330,16 +332,16 @@ export default function WorkshopCheckInScannerPage() {
               maxLength={6}
               value={sixDigitCode}
               onChange={(e) => setSixDigitCode(e.target.value)}
-              placeholder="Enter 6-digit projector code"
-              className="flex-1 h-10 px-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-mono font-bold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition-all"
+              placeholder={isRtl ? "أدخل الرمز السداسي للورشة..." : "Enter 6-digit projector code"}
+              className="flex-1 h-10 px-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-mono font-bold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition-all text-center tracking-[0.2em]"
             />
             <button
               type="submit"
               disabled={sixDigitCode.trim().length !== 6}
               aria-label="Verify 6-digit code"
-              className="h-10 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-bold active:scale-[0.98] transition shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-10 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-bold active:scale-[0.98] transition shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed font-cairo"
             >
-              Verify
+              {t.checkin.verifyButton}
             </button>
           </form>
 

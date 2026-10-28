@@ -185,7 +185,9 @@ export default function AdminExplorePage() {
   const QUOTES_PER_PAGE = 18;
 
   const [newQuoteText, setNewQuoteText] = useState("");
+  const [newQuoteTextAr, setNewQuoteTextAr] = useState("");
   const [newQuoteAuthor, setNewQuoteAuthor] = useState("");
+  const [newQuoteAuthorAr, setNewQuoteAuthorAr] = useState("");
   const [newQuoteEra, setNewQuoteEra] = useState("");
   const [newQuoteCategory, setNewQuoteCategory] =
     useState<QuoteCategory>("Algerian Scholars");
@@ -353,7 +355,9 @@ export default function AdminExplorePage() {
     createDailyQuote({
       dayOfYear: clampedDay,
       text: newQuoteText.trim(),
+      textAr: newQuoteTextAr.trim() || undefined,
       author: newQuoteAuthor.trim(),
+      authorAr: newQuoteAuthorAr.trim() || undefined,
       eraOrRole: newQuoteEra.trim() || newQuoteCategory,
       category: newQuoteCategory,
       isCustom: true,
@@ -367,7 +371,9 @@ export default function AdminExplorePage() {
       }, 20);
     }
     setNewQuoteText("");
+    setNewQuoteTextAr("");
     setNewQuoteAuthor("");
+    setNewQuoteAuthorAr("");
     setNewQuoteEra("");
     setQuoteModalOpen(false);
     setBanner(
@@ -1090,12 +1096,22 @@ export default function AdminExplorePage() {
                       <p className="text-xs sm:text-sm italic font-editorial text-[#0F1E36] leading-relaxed">
                         &ldquo;{q.text}&rdquo;
                       </p>
+                      {q.textAr && (
+                        <p className="text-xs sm:text-sm font-sans text-slate-700 leading-relaxed pt-1 border-t border-slate-100" dir="rtl">
+                          &laquo;{q.textAr}&raquo;
+                        </p>
+                      )}
                     </div>
 
                     <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#0F1E36] truncate">
                           — {q.author}
+                          {q.authorAr && (
+                            <span className="text-slate-500 font-normal mx-1 font-sans" dir="rtl">
+                              ({q.authorAr})
+                            </span>
+                          )}
                         </p>
                       </div>
 
@@ -1922,8 +1938,11 @@ export default function AdminExplorePage() {
                         if (q && q.text && q.author) {
                           createDailyQuote({
                             text: q.text,
+                            textAr: q.textAr,
                             author: q.author,
+                            authorAr: q.authorAr,
                             eraOrRole: q.eraOrRole || "",
+                            eraOrRoleAr: q.eraOrRoleAr || "",
                             category: (q.category || "World Scientists") as QuoteCategory,
                             dayOfYear: Number(q.dayOfYear) || dailyQuotes.length + 1,
                             isCustom: true,
@@ -1975,7 +1994,7 @@ export default function AdminExplorePage() {
             >
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Quote Text *
+                  Quote Text (Original / English) *
                 </label>
                 <textarea
                   rows={3}
@@ -1984,6 +2003,20 @@ export default function AdminExplorePage() {
                   onChange={(e) => setNewQuoteText(e.target.value)}
                   placeholder="Enter the quote or verse..."
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Quote Text (Arabic / النص بالعربية - Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  dir="rtl"
+                  value={newQuoteTextAr}
+                  onChange={(e) => setNewQuoteTextAr(e.target.value)}
+                  placeholder="أدخل نص الحكمة أو الآية بالعربية..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-sans"
                 />
               </div>
 
@@ -1999,6 +2032,20 @@ export default function AdminExplorePage() {
                     onChange={(e) => setNewQuoteAuthor(e.target.value)}
                     placeholder="e.g. Malek Bennabi / Ibn al-Haytham"
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Author / Source (Arabic / القائل بالعربية - Optional)
+                  </label>
+                  <input
+                    type="text"
+                    dir="rtl"
+                    value={newQuoteAuthorAr}
+                    onChange={(e) => setNewQuoteAuthorAr(e.target.value)}
+                    placeholder="مثال: مالك بن نبي / الحسن بن الهيثم"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-sans"
                   />
                 </div>
 

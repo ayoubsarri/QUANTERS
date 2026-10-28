@@ -10,6 +10,7 @@ import {
   Download,
   Edit2,
   GraduationCap,
+  Globe,
   Link2,
   Moon,
   Plus,
@@ -27,6 +28,7 @@ import {
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { DEFAULT_RANK_LEVELS, RankLevelThreshold, SystemSettings } from "@/lib/types/erp";
 import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ErpTelemetry {
   dbSizeBytes: number;
@@ -40,6 +42,7 @@ interface ErpTelemetry {
 }
 
 export default function AdminSettingsPage() {
+  const { t, lang, setLanguage, isRtl } = useTranslation();
   const settings = useQuantersStore((s) => s.settings);
   const updateSettings = useQuantersStore((s) => s.updateSettings);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
@@ -293,6 +296,58 @@ export default function AdminSettingsPage() {
           </button>
         </div>
       )}
+
+      {/* PLATFORM LOCALIZATION & DIRECTION SWITCHER */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD] border border-[#BAE6FD] flex items-center justify-center text-[#0284C7] shadow-xs">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-extrabold text-[#0F1E36]">
+              {lang === "ar" ? "لغة المنصة والواجهة" : "Platform Language & Layout Direction"}
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              {lang === "ar"
+                ? "التبديل الفوري بين واجهة المنصة باللغة العربية (RTL) أو الإنجليزية (LTR) وحفظ الإعداد الافتراضي"
+                : "Instant hot-switching between Arabic (RTL) and English (LTR) with system default persistence"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 p-1.5 rounded-xl bg-[#F1F5F9] border border-slate-200 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setLanguage("en");
+              applyImmediatePatch({ defaultLanguage: "en" }, "Language Switch", "Switched platform interface to English (LTR)");
+            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              lang === "en"
+                ? "bg-white text-[#0F1E36] shadow-xs border border-slate-200 font-extrabold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>🇬🇧</span>
+            <span>English (LTR)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setLanguage("ar");
+              applyImmediatePatch({ defaultLanguage: "ar" }, "Language Switch", "تم تبديل واجهة المنصة إلى اللغة العربية (RTL)");
+            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer font-cairo ${
+              lang === "ar"
+                ? "bg-gradient-to-r from-[#0369A1] to-[#0284C7] text-white shadow-xs font-extrabold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>🇩🇿</span>
+            <span>العربية (RTL)</span>
+          </button>
+        </div>
+      </div>
 
       {/* 4-SECTION GOVERNANCE CONSOLE GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

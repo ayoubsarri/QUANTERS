@@ -9,6 +9,7 @@ import { MilestoneCelebrationModal } from "./MilestoneCelebrationModal";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface MobileAppShellProps {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ export function MobileAppShell({
       Boolean(s.currentMemberId) &&
       s.members.some((m) => m.id === s.currentMemberId)
   );
+  const { lang, isRtl } = useTranslation();
   const [hydrated, setHydrated] = useState(false);
   const [showQuotaBanner, setShowQuotaBanner] = useState(false);
 
@@ -73,18 +75,20 @@ export function MobileAppShell({
           </div>
           <div className="space-y-1">
             <h1 className="font-display text-base font-black text-[#0F1E36]">
-              Member Sign-In Required
+              {isRtl ? "تسجيل دخول العضو مطلوب" : "Member Sign-In Required"}
             </h1>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Please sign in with your personal QUANTA member account to access your private workspace.
+              {isRtl
+                ? "يرجى تسجيل الدخول بحساب عضوية كوانتا للوصول إلى مساحة العمل الخاصة بك."
+                : "Please sign in with your personal QUANTA member account to access your private workspace."}
             </p>
           </div>
           <Link
             href="/welcome"
             className="w-full h-10 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/75 text-white font-display text-xs font-black flex items-center justify-center gap-2 shadow-sm hover:brightness-110 transition"
           >
-            <span>Go to Member Sign In</span>
-            <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC]" />
+            <span>{isRtl ? "الانتقال إلى تسجيل الدخول" : "Go to Member Sign In"}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC] rtl:rotate-180" />
           </Link>
         </div>
       </div>
@@ -103,10 +107,14 @@ export function MobileAppShell({
               ⚡
             </span>
             <div className="min-w-0 leading-tight">
-              <span className="font-semibold block sm:inline">Local Mode Active</span>
+              <span className="font-semibold block sm:inline">
+                {isRtl ? "الوضع المحلي نشط" : "Local Mode Active"}
+              </span>
               <span className="hidden sm:inline"> — </span>
               <span className="text-[11px] text-[#B45309] block sm:inline">
-                Daily cloud quota limit reached. Your local workspace and changes remain fully preserved.
+                {isRtl
+                  ? "تم الوصول لحد الحصة اليومية. مساحة العمل المحلية وبياناتك محفوظة بالكامل."
+                  : "Daily cloud quota limit reached. Your local workspace and changes remain fully preserved."}
               </span>
             </div>
           </div>

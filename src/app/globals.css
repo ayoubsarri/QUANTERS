@@ -71,6 +71,47 @@ h4,
   font-style: italic;
 }
 
+/* =========================================================================
+   Arabic & RTL Creative Typography Framework (arabic-editorial-audit compliant)
+   - Changa: Bold, futuristic geometric display for large titles and banners
+   - Cairo: Clean, modern, high-readability scientific UI & body
+   - Amiri: High-prestige classical literary typography for quotes & heritage
+   - Disables negative tracking in RTL to safeguard cursive ligatures
+   ========================================================================= */
+[dir="rtl"] {
+  font-family: var(--font-cairo), var(--font-jakarta), system-ui, sans-serif;
+  letter-spacing: normal !important;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] .font-heading,
+[dir="rtl"] .font-display,
+[dir="rtl"] .font-syne {
+  font-family: var(--font-changa), var(--font-cairo), sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+[dir="rtl"] .font-editorial,
+[dir="rtl"] .font-serif,
+[dir="rtl"] .font-quote {
+  font-family: var(--font-amiri), Georgia, serif !important;
+  font-style: normal;
+  letter-spacing: normal !important;
+}
+
+/* BiDi Isolation: Prevent number/phone/telemetry jumping across Arabic sentences */
+.bidi-isolate,
+[dir="rtl"] .font-mono,
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="number"],
+[dir="rtl"] .metric-number {
+  unicode-bidi: isolate !important;
+}
+
 /* Prevent microscopic text anywhere — enforce human, comfortable, pro sizing */
 .text-\[8px\],
 .text-\[9px\],

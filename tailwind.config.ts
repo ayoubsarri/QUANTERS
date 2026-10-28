@@ -33,11 +33,14 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-outfit)", "var(--font-display)", "var(--font-jakarta)", "sans-serif"],
-        syne: ["var(--font-syne)", "var(--font-outfit)", "sans-serif"],
-        sans: ["var(--font-jakarta)", "var(--font-outfit)", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
+        display: ["var(--font-outfit)", "var(--font-changa)", "var(--font-cairo)", "var(--font-display)", "sans-serif"],
+        syne: ["var(--font-syne)", "var(--font-changa)", "sans-serif"],
+        sans: ["var(--font-jakarta)", "var(--font-cairo)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "var(--font-amiri)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        cairo: ["var(--font-cairo)", "sans-serif"],
+        changa: ["var(--font-changa)", "sans-serif"],
+        amiri: ["var(--font-amiri)", "serif"],
         script: ["var(--font-caveat)", "cursive"],
       },
       boxShadow: {

@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { DayOfWeek, isMemberAvailableInSlot, STUDY_HOUR_SLOTS, TimeSlot } from "@/lib/types/erp";
 
 const DAYS: { key: DayOfWeek; short: string }[] = [
@@ -34,6 +35,7 @@ const DAYS: { key: DayOfWeek; short: string }[] = [
 const SLOTS = STUDY_HOUR_SLOTS;
 
 export default function AdminOverviewPage() {
+  const { t, lang, isRtl } = useTranslation();
   const {
     members,
     teams,
@@ -154,13 +156,15 @@ export default function AdminOverviewPage() {
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block mb-0.5">
-            EXECUTIVE CONSOLE · ACADEMIC CYCLE 2026 / 2027
+            {isRtl ? "لوحة الإدارة التنفيذية · السنة الأكاديمية 2026 / 2027" : "EXECUTIVE CONSOLE · ACADEMIC CYCLE 2026 / 2027"}
           </span>
           <h1 className="font-display text-2xl sm:text-[26px] font-black text-[#0F1E36] tracking-tight leading-tight">
-            Club Pulse &amp; Governance
+            {isRtl ? "نبض النادي وحوكمة العمليات" : "Club Pulse & Governance"}
           </h1>
           <p className="font-editorial italic text-slate-500 text-sm sm:text-base mt-0.5">
-            Real-time roster telemetry, availability matrix, and operational queues.
+            {isRtl
+              ? "مؤشرات الأعضاء الآنية، مصفوفة التفرغ الأكاديمي، وقوائم العمليات."
+              : "Real-time roster telemetry, availability matrix, and operational queues."}
           </p>
         </div>
 
@@ -170,14 +174,14 @@ export default function AdminOverviewPage() {
             className="inline-flex items-center gap-2 bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white font-display font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-[0_6px_16px_rgba(15,30,54,0.16)] transition"
           >
             <QrCode className="w-3.5 h-3.5 text-[#7DD3FC]" />
-            <span>Workshops &amp; QR</span>
+            <span>{isRtl ? "الورشات ورمز QR" : "Workshops & QR"}</span>
           </Link>
           <Link
             href="/admin/members"
             className="inline-flex items-center gap-2 bg-[#F0F6FF] hover:bg-[#E2EEFF] text-[#182C4E] border border-[#D5E3F5] font-display font-extrabold text-xs px-4 py-2.5 rounded-xl transition"
           >
             <Users className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Member Directory</span>
+            <span>{isRtl ? "دليل الأعضاء" : "Member Directory"}</span>
           </Link>
         </div>
       </header>
@@ -219,7 +223,7 @@ export default function AdminOverviewPage() {
             </div>
 
             <h2 className="font-display text-lg sm:text-xl lg:text-2xl font-black tracking-tight text-white leading-tight">
-              6 Departments &amp; {activeTeams.length} Scientific Teams Active
+              {isRtl ? `6 أقسام و ${activeTeams.length} فرق علمية نشطة` : `6 Departments & ${activeTeams.length} Scientific Teams Active`}
             </h2>
 
             {/* Brand Lockup */}
@@ -242,7 +246,7 @@ export default function AdminOverviewPage() {
           <div className="mt-4 pt-3 border-t border-white/10 inline-grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2.5 bg-[#061226]/85 border border-[#38BDF8]/35 rounded-xl px-4 py-2.5 backdrop-blur-md w-fit shadow-xl">
             <div className="pr-3 border-r border-[#2B4875]/60">
               <div className="text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider text-slate-300 font-semibold whitespace-nowrap">
-                Active Members
+                {isRtl ? "الأعضاء النشطون" : "Active Members"}
               </div>
               <div className="font-display text-lg sm:text-xl font-black tabular-nums text-white mt-0.5">
                 {activeCount}
@@ -250,7 +254,7 @@ export default function AdminOverviewPage() {
             </div>
             <div className="px-1.5 sm:px-3 sm:border-r border-[#2B4875]/60">
               <div className="text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider text-slate-300 font-semibold whitespace-nowrap">
-                Trainees
+                {isRtl ? "المتدربون" : "Trainees"}
               </div>
               <div className="font-display text-lg sm:text-xl font-black tabular-nums text-[#7DD3FC] mt-0.5">
                 {traineeCount}
@@ -258,7 +262,7 @@ export default function AdminOverviewPage() {
             </div>
             <div className="px-1.5 sm:px-3 border-r border-[#2B4875]/60">
               <div className="text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider text-slate-300 font-semibold whitespace-nowrap">
-                Attendance
+                {isRtl ? "نسبة الحضور" : "Attendance"}
               </div>
               <div className="font-display text-lg sm:text-xl font-black tabular-nums text-emerald-300 mt-0.5">
                 {avgAttendance}%
@@ -266,7 +270,7 @@ export default function AdminOverviewPage() {
             </div>
             <div className="pl-1.5 sm:pl-3">
               <div className="text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider text-slate-300 font-semibold whitespace-nowrap">
-                Sci. Teams
+                {isRtl ? "الفرق العلمية" : "Sci. Teams"}
               </div>
               <div className="font-display text-lg sm:text-xl font-black tabular-nums text-amber-300 mt-0.5">
                 {activeTeams.length}
@@ -282,7 +286,7 @@ export default function AdminOverviewPage() {
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              Current Roster
+              {isRtl ? "قائمة الأعضاء" : "Current Roster"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#182C4E]">
               <Users className="w-4 h-4" />
@@ -293,19 +297,23 @@ export default function AdminOverviewPage() {
               {currentMembers.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
-              {activeCount} Active · {traineeCount} Trainees
+              {isRtl
+                ? `${activeCount} نشط · ${traineeCount} متدرب`
+                : `${activeCount} Active · ${traineeCount} Trainees`}
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
             <span className="text-slate-400 font-mono text-[10px]">
-              {inactiveCount} Inactive · {suspendedCount} Susp.
+              {isRtl
+                ? `${inactiveCount} غير نشط · ${suspendedCount} معلق`
+                : `${inactiveCount} Inactive · ${suspendedCount} Susp.`}
             </span>
             <Link
               href="/admin/members"
               className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0 transition"
             >
-              <span>View Roster</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "عرض القائمة" : "View Roster"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
@@ -314,7 +322,7 @@ export default function AdminOverviewPage() {
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              Ready to Confirm
+              {isRtl ? "جاهزون للترقية" : "Ready to Confirm"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
               <UserCheck className="w-4 h-4" />
@@ -325,19 +333,19 @@ export default function AdminOverviewPage() {
               {traineesReadyToConfirm.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1">
-              ≥90 days &amp; ≥75% attendance
+              {isRtl ? "≥90 يوماً و ≥75% نسبة حضور" : "≥90 days & ≥75% attendance"}
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
             <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
-              3-Month Track
+              {isRtl ? "مسار 3 أشهر" : "3-Month Track"}
             </span>
             <Link
               href="/admin/members?status=Trainee"
               className="text-emerald-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
-              <span>Review</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "مراجعة" : "Review"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
@@ -346,7 +354,7 @@ export default function AdminOverviewPage() {
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              Attention Needed
+              {isRtl ? "تنبيهات المتابعة" : "Attention Needed"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600">
               <AlertTriangle className="w-4 h-4" />
@@ -357,19 +365,21 @@ export default function AdminOverviewPage() {
               {membersAtRisk.length + traineesWithoutFirstTask.length}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1">
-              {membersAtRisk.length} low health · {traineesWithoutFirstTask.length} missing 1st task
+              {isRtl
+                ? `${membersAtRisk.length} نشاط منخفض · ${traineesWithoutFirstTask.length} بدون مهمة أولى`
+                : `${membersAtRisk.length} low health · ${traineesWithoutFirstTask.length} missing 1st task`}
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
             <span className="text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
-              HR Follow-up
+              {isRtl ? "متابعة الموارد البشرية" : "HR Follow-up"}
             </span>
             <Link
               href="/admin/members?status=Inactive"
               className="text-rose-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
-              <span>Inspect</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "فحص" : "Inspect"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
@@ -378,7 +388,7 @@ export default function AdminOverviewPage() {
         <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              Pending Reviews
+              {isRtl ? "المراجعات المعلقة" : "Pending Reviews"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#0284C7]">
               <Clock className="w-4 h-4" />
@@ -389,20 +399,21 @@ export default function AdminOverviewPage() {
               {totalPendingReviews}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
-              {pendingTaskDeliveries} Tasks · {pendingBadgeProjects} Badges ·{" "}
-              {pendingProposals} Proposals
+              {isRtl
+                ? `${pendingTaskDeliveries} مهام · ${pendingBadgeProjects} شارات · ${pendingProposals} مقترحات`
+                : `${pendingTaskDeliveries} Tasks · ${pendingBadgeProjects} Badges · ${pendingProposals} Proposals`}
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
             <span className="text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-md font-mono text-[10px]">
-              Review Queue
+              {isRtl ? "طابور المراجعة" : "Review Queue"}
             </span>
             <Link
               href="/admin/proposals"
               className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0"
             >
-              <span>Open Queue</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "فتح الطابور" : "Open Queue"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
@@ -415,11 +426,15 @@ export default function AdminOverviewPage() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="text-[9.5px] font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7]">
-                SCHEDULE TELEMETRY MATRIX
+                {isRtl ? "مصفوفة التفرغ الأسبوعي" : "SCHEDULE TELEMETRY MATRIX"}
               </div>
               <h2 className="font-display text-sm sm:text-base font-black text-[#0F1E36] flex items-center gap-1.5 mt-0.5">
                 <Calendar className="w-3.5 h-3.5 text-[#0284C7]" />
-                <span>7-Day Club Availability Heatmap (Saturday – Friday)</span>
+                <span>
+                  {isRtl
+                    ? "الخريطة الحرارية لتفرغ الأعضاء (السبت – الجمعة)"
+                    : "7-Day Club Availability Heatmap (Saturday – Friday)"}
+                </span>
               </h2>
             </div>
 
@@ -427,8 +442,8 @@ export default function AdminOverviewPage() {
               href="/admin/members"
               className="text-[11px] font-display font-extrabold text-[#0284C7] hover:text-[#182C4E] inline-flex items-center gap-1 transition"
             >
-              <span>Directory Slot Filter</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>{isRtl ? "تصفية الدليل حسب الفترات" : "Directory Slot Filter"}</span>
+              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
 

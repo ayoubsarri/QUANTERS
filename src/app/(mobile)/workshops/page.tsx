@@ -18,12 +18,14 @@ import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { ActivityKind, Workshop } from "@/lib/types/erp";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type WorkshopFilter = "All" | "Upcoming" | "Completed" | "Mine";
 
 const FILTER_TABS: WorkshopFilter[] = ["All", "Upcoming", "Completed", "Mine"];
 
 export default function MobileWorkshopsPage() {
+  const { t, lang, isRtl } = useTranslation();
   const workshops = useQuantersStore((s) => s.workshops);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const registerForWorkshop = useQuantersStore((s) => s.registerForWorkshop);
@@ -87,16 +89,22 @@ export default function MobileWorkshopsPage() {
           <div className="relative z-10 flex items-end justify-between gap-3">
             <div className="min-w-0 max-w-[65%]">
               <span className="font-mono text-xs font-bold tracking-[0.18em] text-[#7DD3FC] uppercase block">
-                CATALOG · 0{workshops.length} SESSIONS
+                {isRtl ? `دليل الورشات · ${workshops.length} جلسات` : `CATALOG · 0${workshops.length} SESSIONS`}
               </span>
               <h1 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight mt-1 leading-tight drop-shadow">
-                Workshops{" "}
-                <span className="font-editorial italic font-normal text-sky-200">
-                  &amp; Labs
-                </span>
+                {isRtl ? (
+                  t.workshops.catalogTitle
+                ) : (
+                  <>
+                    Workshops{" "}
+                    <span className="font-editorial italic font-normal text-sky-200">
+                      &amp; Labs
+                    </span>
+                  </>
+                )}
               </h1>
               <p className="text-xs font-mono text-slate-300/90 mt-1 drop-shadow">
-                Hands-on scientific sessions &amp; field work
+                {t.workshops.catalogSubtitle}
               </p>
             </div>
             <Link
@@ -104,7 +112,7 @@ export default function MobileWorkshopsPage() {
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#182C4E]/95 hover:bg-[#38BDF8] text-[#7DD3FC] hover:text-[#0F1E36] text-xs font-bold font-mono uppercase tracking-wider shadow-md active:scale-[0.98] transition border border-[#38BDF8]/40 shrink-0 backdrop-blur-md"
             >
               <QrCode className="w-3.5 h-3.5" />
-              <span>QR Pass</span>
+              <span>{isRtl ? "رمز الحضور" : "QR Pass"}</span>
             </Link>
           </div>
         </div>
@@ -116,6 +124,9 @@ export default function MobileWorkshopsPage() {
         >
           {FILTER_TABS.map((tab) => {
             const active = filter === tab;
+            const tabLabel = isRtl
+              ? (tab === "All" ? t.workshops.allFilter : tab === "Upcoming" ? t.workshops.upcomingFilter : tab === "Completed" ? t.workshops.completedFilter : t.workshops.registeredFilter)
+              : tab;
             return (
               <button
                 key={tab}
@@ -127,7 +138,7 @@ export default function MobileWorkshopsPage() {
                     : "text-slate-400 hover:text-slate-700"
                 }`}
               >
-                <span>{tab}</span>
+                <span>{tabLabel}</span>
                 {active && (
                   <span className="absolute inset-x-0 bottom-0 h-[2.5px] bg-[#182C4E] rounded-full" />
                 )}
@@ -409,7 +420,7 @@ export default function MobileWorkshopsPage() {
                     }
                     className="flex-1 h-11 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 text-xs font-extrabold hover:bg-slate-200 active:scale-[0.98] transition cursor-pointer"
                   >
-                    Cancel Registration
+                    {t.workshops.cancelRegistration}
                   </button>
                 ) : (
                   <button
@@ -419,7 +430,7 @@ export default function MobileWorkshopsPage() {
                     }
                     className="flex-1 h-11 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
                   >
-                    Register Seat
+                    {t.workshops.registerNow}
                   </button>
                 )}
 
@@ -428,7 +439,7 @@ export default function MobileWorkshopsPage() {
                   className="flex-1 h-11 rounded-xl bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-extrabold hover:bg-[#E0F2FE] active:scale-[0.98] transition flex items-center justify-center gap-1.5"
                 >
                   <QrCode className="w-4 h-4 text-[#0284C7]" />
-                  <span>Live QR Check-in</span>
+                  <span>{isRtl ? "رمز الحضور المباشر" : "Live QR Check-in"}</span>
                 </Link>
               </div>
             </div>

@@ -125,6 +125,7 @@ export async function dispatchSystemNotification(payload: {
 export function PwaOfflineManager() {
   const router = useRouter();
   const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
+  const activeLanguage = useQuantersStore((s) => s.activeLanguage);
   const settings = useQuantersStore((s) => s.settings);
   const messages = useQuantersStore((s) => s.messages);
   const setOnlineStatus = useQuantersStore((s) => s.setOnlineStatus);
@@ -132,6 +133,13 @@ export function PwaOfflineManager() {
   const saveToLocalCache = useQuantersStore((s) => s.saveToLocalCache);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
   const pullExactUpdatesFromServer = useQuantersStore((s) => s.pullExactUpdatesFromServer);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dir = activeLanguage === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = activeLanguage;
+    }
+  }, [activeLanguage]);
 
   const [showPermPrompt, setShowPermPrompt] = useState(false);
   const prevMessagesCountRef = useRef<number>(messages.length);

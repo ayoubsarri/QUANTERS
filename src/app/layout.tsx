@@ -6,6 +6,9 @@ import {
   Syne,
   Instrument_Serif,
   JetBrains_Mono,
+  Cairo,
+  Changa,
+  Amiri,
 } from "next/font/google";
 import "./globals.css";
 import { PwaOfflineManager } from "@/components/shared/PwaOfflineManager";
@@ -45,6 +48,27 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["500", "600", "700"],
+});
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  variable: "--font-cairo",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const changa = Changa({
+  subsets: ["arabic", "latin"],
+  variable: "--font-changa",
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+});
+
+const amiri = Amiri({
+  subsets: ["arabic", "latin"],
+  variable: "--font-amiri",
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -92,7 +116,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${syne.variable} ${display.variable} ${jakarta.variable} ${serif.variable} ${mono.variable}`}
+      className={`${outfit.variable} ${syne.variable} ${display.variable} ${jakarta.variable} ${serif.variable} ${mono.variable} ${cairo.variable} ${changa.variable} ${amiri.variable}`}
     >
       <body className="font-sans min-h-dvh flex flex-col bg-[#F4F7FB] text-[#09192F] selection:bg-[#FFE500] selection:text-[#09192F]">
         <PwaOfflineManager />

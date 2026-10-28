@@ -43,6 +43,7 @@ import {
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
 import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
@@ -145,6 +146,7 @@ function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
 
 export default function MobileProfilePage() {
   const router = useRouter();
+  const { t, lang, setLanguage, isRtl } = useTranslation();
   const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const setCurrentMemberId = useQuantersStore((s) => s.setCurrentMemberId);
@@ -577,10 +579,10 @@ export default function MobileProfilePage() {
             </button>
           </div>
 
-          <p className="mt-3 pt-3 border-t border-slate-100 text-xs sm:text-sm italic text-slate-600 font-editorial leading-relaxed">
-            &ldquo;{activeQuote.text}&rdquo;{" "}
+          <p className="mt-3 pt-3 border-t border-slate-100 text-xs sm:text-sm text-slate-600 font-editorial leading-relaxed">
+            &ldquo;{lang === "ar" && activeQuote.textAr ? activeQuote.textAr : activeQuote.text}&rdquo;{" "}
             <span className="not-italic font-sans font-semibold text-slate-400 text-xs">
-              — {activeQuote.author}
+              — {lang === "ar" && activeQuote.authorAr ? activeQuote.authorAr : activeQuote.author}
             </span>
           </p>
         </div>
@@ -987,7 +989,7 @@ export default function MobileProfilePage() {
             className="w-full h-10 rounded-xl bg-[#F0F6FF] hover:bg-[#E2EEFC] border border-[#D5E3F5] text-[#182C4E] text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
           >
             <KeyRound className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Change Password</span>
+            <span>{t.profile.changePassword}</span>
           </button>
 
           {/* Horizontally Aligned Member Governance Actions: English only, Icon + 1 Word */}
@@ -1045,6 +1047,55 @@ export default function MobileProfilePage() {
             </button>
           </div>
 
+          {/* Creative Language Switcher Card (English / العربية) */}
+          <div className="w-full rounded-2xl bg-gradient-to-b from-white to-[#F8FAFC] border border-[#E2E8F0] p-3.5 shadow-sm space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD] flex items-center justify-center text-[#0284C7] shadow-xs">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-[#0F172A] leading-tight">
+                    {lang === "ar" ? "لغة المنصة والواجهة" : "Platform Language"}
+                  </p>
+                  <p className="text-[10px] text-[#64748B] font-medium leading-tight">
+                    {lang === "ar" ? "تبديل فوري بين العربية والإنجليزية" : "Instant Arabic & English toggle"}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                {lang.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0]">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`h-8 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  lang === "en"
+                    ? "bg-white text-[#0F172A] shadow-xs border border-slate-200 font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("ar")}
+                className={`h-8 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer font-cairo ${
+                  lang === "ar"
+                    ? "bg-gradient-to-r from-[#0369A1] to-[#0284C7] text-white shadow-xs font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>🇩🇿</span>
+                <span>العربية</span>
+              </button>
+            </div>
+          </div>
+
           {/* Quick Push Notification Toggle Button */}
           <button
             type="button"
@@ -1083,7 +1134,7 @@ export default function MobileProfilePage() {
               className="w-full h-10 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition border border-[#2B4875]/60"
             >
               <LayoutDashboard className="w-3.5 h-3.5 text-[#7DD3FC]" />
-              <span>Open Admin Console</span>
+              <span>{t.profile.openAdmin}</span>
             </Link>
           )}
 
@@ -1096,7 +1147,7 @@ export default function MobileProfilePage() {
             className="w-full h-10 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out</span>
+            <span>{t.profile.signOut}</span>
           </button>
         </div>
       </div>

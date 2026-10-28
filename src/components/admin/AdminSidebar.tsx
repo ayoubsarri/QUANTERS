@@ -31,6 +31,35 @@ import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { isSuperAdminEmail } from "@/lib/firebase/config";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { RoleTemplateName } from "@/lib/types/erp";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const GROUP_LABELS_AR: Record<string, string> = {
+  "Workspace": "مساحة العمل",
+  "People": "الأعضاء والفرق",
+  "Operations": "العمليات والورشات",
+  "Recognition & KPIs": "التقدير ومؤشرات الأداء",
+  "Communication": "التواصل والإعلام",
+  "Governance": "الحوكمة والإدارة",
+};
+
+const NAV_ITEM_LABELS_AR: Record<string, string> = {
+  "Overview": "لوحة التحكم",
+  "Members": "سجل الأعضاء",
+  "Former Members": "الأعضاء السابقون",
+  "Alumni": "شبكة الخريجين",
+  "Departments & Teams": "اللجان والفرق العلمية",
+  "Workshops & Activities": "الورشات والأنشطة",
+  "Tasks & Matrix": "مصفوفة المهام",
+  "Proposals": "مقترحات المشاريع",
+  "Points & Honours": "سجل النقاط والتكريمات",
+  "Badges & Exams": "الشارات والاختبارات",
+  "Statistics": "التحليلات المتقدمة",
+  "Messages": "مركز الرسائل",
+  "Explore, Quiz & Quotes": "استكشف والتحديات اليومية",
+  "Access Control": "الصلاحيات والأدوار",
+  "Settings": "إعدادات النظام",
+  "Audit Log": "سجل التدقيق",
+};
 
 interface NavItem {
   label: string;
@@ -219,6 +248,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t, lang, isRtl } = useTranslation();
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
@@ -237,7 +267,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
       : undefined) || FALLBACK_SESSION_MEMBER;
 
   const sidebarContent = (
-    <div className="w-64 shrink-0 bg-gradient-to-b from-[#081223] via-[#0E1B31] to-[#060D1A] text-white flex flex-col h-screen border-r border-[#2B4875]/45 select-none overflow-hidden">
+    <div className="w-64 shrink-0 bg-gradient-to-b from-[#081223] via-[#0E1B31] to-[#060D1A] text-white flex flex-col h-screen border-r rtl:border-r-0 rtl:border-l border-[#2B4875]/45 select-none overflow-hidden">
       {/* Brand Header matching Member App */}
       <div className="px-4 pt-5 pb-3.5 border-b border-[#2B4875]/45">
         <div className="flex items-center justify-between">
@@ -297,10 +327,12 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           );
           if (visibleItems.length === 0) return null;
 
+          const groupDisplay = isRtl ? (GROUP_LABELS_AR[group.groupLabel] || group.groupLabel) : group.groupLabel;
+
           return (
             <div key={group.groupLabel}>
               <div className="px-2.5 mb-1 text-[9.5px] font-mono font-bold uppercase tracking-[0.14em] text-[#7DD3FC]/70">
-                {group.groupLabel}
+                {groupDisplay}
               </div>
               <div className="space-y-0.5">
                 {visibleItems.map((item) => {
@@ -309,6 +341,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                     pathname === item.href ||
                     (item.href !== "/admin/overview" && pathname?.startsWith(item.href));
                   const count = item.badgeCount ? item.badgeCount(useQuantersStore.getState()) : undefined;
+                  const itemDisplay = isRtl ? (NAV_ITEM_LABELS_AR[item.label] || item.label) : item.label;
 
                   return (
                     <Link
@@ -327,7 +360,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                             isActive ? "text-[#7DD3FC]" : "text-slate-400"
                           }`}
                         />
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{itemDisplay}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
                         {item.restricted && <Lock className="w-2.5 h-2.5 text-slate-400/80" />}
@@ -358,8 +391,8 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           href="/home"
           className="w-full py-2 px-3 rounded-xl bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/80 flex items-center justify-between text-[11px] font-display font-bold text-[#7DD3FC] hover:text-white transition"
         >
-          <span>Open Member App</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+          <span>{isRtl ? "بوابة تطبيق الأعضاء" : "Open Member App"}</span>
+          <ExternalLink className="w-3.5 h-3.5 rtl:rotate-180" />
         </Link>
 
         <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5">

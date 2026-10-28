@@ -59,7 +59,8 @@ rules_version = '2';
 //      - Safe self-editable profile fields: avatarUrl, bio, quote, availability,
 //        skills, githubUrl, linkedinUrl, portfolioUrl, cvUrl, commune, wilaya,
 //        housingType, commuteTime, canStayLate, hasLaptop, pcCapability,
-//        equipmentTags, outsideActivitiesAndVolunteering, phone, passwordHash
+//        equipmentTags, outsideActivitiesAndVolunteering, phone, passwordHash,
+//        preferredLanguage
 //
 // 3. Collection: /tasks/{taskId}
 //    Document ID: {taskId}
@@ -467,6 +468,7 @@ service cloud.firestore {
         'traineeEvaluation',
         'skills',
         'badgeIds',
+        'preferredLanguage',
         'workshopsCompletedCount',
         'projectsCompletedCount',
         'eventsAttendedCount',
@@ -526,6 +528,7 @@ service cloud.firestore {
         isValidOptionalList('skills', 50) &&
         isValidOptionalList('equipmentTags', 30) &&
         isValidOptionalList('badgeIds', 200) &&
+        isValidOptionalString('preferredLanguage', 2, 5) &&
         (!('availability' in data) || data.availability is map);
     }
 
@@ -577,7 +580,8 @@ service cloud.firestore {
         'birthDate',
         'graduationYear',
         'alumniPosition',
-        'alumniAccessEnabled'
+        'alumniAccessEnabled',
+        'preferredLanguage'
       ];
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(safeSelfEditableFields) &&
         areImmutableFieldsUnchanged([

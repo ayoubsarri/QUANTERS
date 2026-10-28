@@ -3,9 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function BottomNavBar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const isWorkshops = pathname.startsWith("/workshops");
   const isExplore = pathname.startsWith("/explore");
@@ -17,7 +19,7 @@ export function BottomNavBar() {
   const navItems = [
     {
       href: "/workshops",
-      label: "Workshops",
+      label: t.nav.workshops,
       active: isWorkshops,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -48,7 +50,7 @@ export function BottomNavBar() {
     },
     {
       href: "/explore",
-      label: "Explore",
+      label: t.nav.explore,
       active: isExplore,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -71,7 +73,7 @@ export function BottomNavBar() {
     },
     {
       href: "/home",
-      label: "Home",
+      label: t.nav.home,
       active: isHome,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -88,7 +90,7 @@ export function BottomNavBar() {
     },
     {
       href: "/badges",
-      label: "Badges",
+      label: t.nav.badges,
       active: isBadges,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -112,7 +114,7 @@ export function BottomNavBar() {
     },
     {
       href: "/profile",
-      label: "Profile",
+      label: t.nav.profile,
       active: isProfile,
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">

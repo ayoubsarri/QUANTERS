@@ -17,9 +17,11 @@ import {
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { t, lang, isRtl } = useTranslation();
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
@@ -132,9 +134,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ⚡
               </span>
               <div className="min-w-0 text-xs">
-                <span className="font-bold text-[#92400E]">Local Offline Mode Active</span> —{" "}
+                <span className="font-bold text-[#92400E]">
+                  {isRtl ? "الوضع المحلي دون إنترنت نشط" : "Local Offline Mode Active"}
+                </span>{" "}
+                —{" "}
                 <span className="text-[#B45309]">
-                  Cloud daily quota limit reached. Administrative changes are safely preserved in local storage and will sync automatically when quota refreshes.
+                  {isRtl
+                    ? "تم الوصول لحد الحصة اليومية السحابية. التعديلات الإدارية محفوظة محلياً بأمان وستتم مزامنتها تلقائياً عند تجدد الحصة."
+                    : "Cloud daily quota limit reached. Administrative changes are safely preserved in local storage and will sync automatically when quota refreshes."}
                 </span>
               </div>
             </div>
@@ -163,20 +170,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Global Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search member by name, Quanter ID, or email..."
-                className="w-full pl-9 pr-4 py-2 text-xs font-medium bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition"
+                placeholder={isRtl ? "ابحث عن عضو بالاسم أو معرّف كوانتا أو البريد..." : "Search member by name, Quanter ID, or email..."}
+                className="w-full pl-9 pr-4 rtl:pl-4 rtl:pr-9 py-2 text-xs font-medium bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition"
               />
               {searchFocused && quickResults.length > 0 && (
                 <div className="absolute left-0 right-0 top-11 bg-white rounded-2xl border border-slate-200/90 shadow-[0_14px_34px_rgba(15,30,54,0.12)] py-1.5 z-50">
                   <div className="px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-[#0284C7]">
-                    Member Directory
+                    {isRtl ? "دليل الأعضاء" : "Member Directory"}
                   </div>
                   {quickResults.map((m) => (
                     <button
@@ -230,9 +237,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               href="/home"
               className="hidden md:inline-flex items-center gap-1.5 bg-white hover:bg-[#F0F6FF] text-[#182C4E] border border-slate-200/90 px-3 py-1.5 rounded-xl text-xs font-display font-bold transition"
-              title="Open Member App"
+              title={isRtl ? "فتح تطبيق الأعضاء" : "Open Member App"}
             >
-              <span>Member App</span>
+              <span>{isRtl ? "تطبيق الأعضاء" : "Member App"}</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#0284C7]" />
             </Link>
 

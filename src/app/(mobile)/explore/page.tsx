@@ -23,6 +23,7 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { getCurrentDayOfYear, SEED_DAILY_QUIZZES } from "@/lib/data/seed";
 import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const FILTER_TABS: ("All" | ExploreCategory)[] = [
   "All",
@@ -52,6 +53,7 @@ function getPostPriorityMeta(post: ExplorePost): {
 }
 
 export default function MobileExplorePage() {
+  const { t, lang, isRtl } = useTranslation();
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const storeQuizzes = useQuantersStore((s) => s.dailyQuizzes);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
@@ -198,24 +200,30 @@ export default function MobileExplorePage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl sm:text-3xl font-black text-[#0F1E36] tracking-tight">
-                Explore{" "}
-                <span className="font-editorial italic font-normal text-[#0284C7]">
-                  The Dispatch
-                </span>
+                {isRtl ? (
+                  "استكشف مستجدات كوانتا"
+                ) : (
+                  <>
+                    Explore{" "}
+                    <span className="font-editorial italic font-normal text-[#0284C7]">
+                      The Dispatch
+                    </span>
+                  </>
+                )}
               </h1>
             </div>
             <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 font-sans">
-              Scientific journalism, fellowships, club dispatches &amp; interactive lab challenges
+              {t.explore.subtitle}
             </p>
           </div>
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search articles, topics..."
-              className="w-full h-10 pl-10 pr-4 rounded-xl bg-white border border-slate-200/90 text-xs sm:text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] shadow-2xs transition-all font-sans"
+              placeholder={isRtl ? "ابحث في المقالات والموضوعات..." : "Search articles, topics..."}
+              className="w-full h-10 pl-10 pr-4 rtl:pl-4 rtl:pr-10 rounded-xl bg-white border border-slate-200/90 text-xs sm:text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] shadow-2xs transition-all font-sans"
             />
           </div>
         </div>
@@ -227,6 +235,17 @@ export default function MobileExplorePage() {
         >
           {FILTER_TABS.map((tab) => {
             const active = selectedCategory === tab;
+            const tabLabel = isRtl
+              ? tab === "All"
+                ? "الكل"
+                : tab === "QUANTA News"
+                ? "أخبار كوانتا"
+                : tab === "Opportunities"
+                ? "الفرص والمنح"
+                : tab === "Scientific News"
+                ? "مستجدات علمية"
+                : "الفعاليات"
+              : tab;
             return (
               <button
                 key={tab}
@@ -238,7 +257,7 @@ export default function MobileExplorePage() {
                     : "bg-white text-slate-600 border border-slate-200/90 hover:bg-[#F0F6FF] hover:text-[#0F1E36]"
                 }`}
               >
-                {tab}
+                {tabLabel}
               </button>
             );
           })}

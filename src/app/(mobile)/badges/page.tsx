@@ -15,6 +15,7 @@ import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { HexagonBadgeCard } from "@/components/badges/HexagonBadgeCard";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { Badge } from "@/lib/types/erp";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type StatusFilter = "All" | "Unlocked" | "In Progress" | "Locked";
 type CategoryFilter =
@@ -40,6 +41,7 @@ const CATEGORY_PILLS: CategoryFilter[] = [
 ];
 
 export default function MobileBadgesPage() {
+  const { t, lang, isRtl } = useTranslation();
   const badges = useQuantersStore((s) => s.badges);
   const exams = useQuantersStore((s) => s.exams);
   const projectSubmissions = useQuantersStore((s) => s.projectSubmissions);
@@ -94,14 +96,15 @@ export default function MobileBadgesPage() {
             <div className="max-w-[68%]">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-xs font-bold font-mono text-[#7DD3FC] mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
-                <span>SKILL CREDENTIALS</span>
+                <span>{isRtl ? "الشارات والاعتمادات" : "SKILL CREDENTIALS"}</span>
               </div>
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
-                My Skill Badges
+                {isRtl ? "شارات الكفاءة والخبرة" : "My Skill Badges"}
               </h1>
               <p className="text-xs sm:text-sm text-sky-100/90 font-medium mt-1 font-sans drop-shadow">
-                {unlockedCount} Unlocked · {lockedCount} Locked ·{" "}
-                {CATEGORY_PILLS.length - 1} Tracks
+                {isRtl
+                  ? `${unlockedCount} مكتسبة · ${lockedCount} مغلقة · ${CATEGORY_PILLS.length - 1} مسارات`
+                  : `${unlockedCount} Unlocked · ${lockedCount} Locked · ${CATEGORY_PILLS.length - 1} Tracks`}
               </p>
             </div>
           </div>
@@ -113,14 +116,14 @@ export default function MobileBadgesPage() {
           style={{ animationDelay: "20ms" }}
         >
           <h2 className="text-sm sm:text-base font-extrabold font-display text-[#0F1E36]">
-            Filter Credentials
+            {isRtl ? "تصفية الشارات" : "Filter Credentials"}
           </h2>
           <Link
             href="/exams"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#F0F6FF] text-[#182C4E] text-xs font-extrabold font-display border border-[#D5E3F5] hover:bg-[#E0F2FE] active:scale-[0.98] transition cursor-pointer"
           >
             <FileCheck2 className="w-4 h-4 text-[#0284C7]" />
-            <span>Exams Hub</span>
+            <span>{isRtl ? "مركز الاختبارات" : "Exams Hub"}</span>
           </Link>
         </div>
 
@@ -131,6 +134,15 @@ export default function MobileBadgesPage() {
         >
           {STATUS_PILLS.map((pill) => {
             const active = statusFilter === pill.key;
+            const pillDisplay = isRtl
+              ? pill.key === "All"
+                ? "الكل"
+                : pill.key === "Unlocked"
+                ? "مكتسبة"
+                : pill.key === "In Progress"
+                ? "قيد الإنجاز"
+                : "مغلقة"
+              : pill.label;
             return (
               <button
                 key={pill.key}
@@ -142,7 +154,7 @@ export default function MobileBadgesPage() {
                     : "bg-white text-slate-600 border border-slate-200/90 hover:bg-[#F0F6FF] hover:text-[#0F1E36]"
                 }`}
               >
-                {pill.label}
+                {pillDisplay}
               </button>
             );
           })}

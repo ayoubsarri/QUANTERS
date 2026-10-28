@@ -9,6 +9,7 @@ import {
   AccessLevel,
   AccessScopeType,
   ActivityTypeKey,
+  AppLanguage,
   AuditLogEntry,
   AvailabilityGrid,
   Badge,
@@ -85,6 +86,7 @@ interface QuantersStoreState {
   isAuthenticated: boolean;
   currentMemberId: string;
   activeAdminRole: RoleTemplateName;
+  activeLanguage: AppLanguage;
   mobileFrameMode: "phone" | "responsive";
   celebration: CelebrationPayload | null;
 
@@ -126,6 +128,7 @@ interface QuantersStoreState {
   setCurrentMemberId: (id: string) => void;
   setActiveAdminRole: (role: RoleTemplateName) => void;
   setMobileFrameMode: (mode: "phone" | "responsive") => void;
+  setLanguage: (lang: AppLanguage) => void;
   triggerCelebration: (payload: CelebrationPayload | null) => void;
   loginWithEmail: (
     email: string,
@@ -822,6 +825,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   isAuthenticated: false,
   currentMemberId: "",
   activeAdminRole: "Member",
+  activeLanguage: "en",
   mobileFrameMode: "phone",
   celebration: null,
 
@@ -881,6 +885,32 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set({ activeAdminRole: role });
   },
   setMobileFrameMode: (mode) => set({ mobileFrameMode: mode }),
+  setLanguage: (lang) => {
+    const validLang: AppLanguage = lang === "ar" ? "ar" : "en";
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("quanters_lang", validLang);
+      } catch {}
+    }
+    if (typeof document !== "undefined") {
+      document.documentElement.dir = validLang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = validLang;
+    }
+    set((state) => {
+      const curMember = state.members.find((m) => m.id === state.currentMemberId);
+      if (curMember) {
+        return {
+          activeLanguage: validLang,
+          members: state.members.map((m) =>
+            m.id === state.currentMemberId ? { ...m, preferredLanguage: validLang } : m
+          ),
+        };
+      }
+      return { activeLanguage: validLang };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
   triggerCelebration: (payload) => set({ celebration: payload }),
 
   loginWithEmail: (email, password) => {
@@ -1409,7 +1439,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const lowDataRaw = window.localStorage.getItem("quanters-low-data-mode");
       const raw = window.localStorage.getItem("quanters-offline-cache-v10");
       if (!raw) {
-        if (lowDataRaw) set({ userLowDataMode: lowDataRaw === "1" });
+        const storedLang = (window.localStorage.getItem("quanters_lang") || "en") as AppLanguage;
+        const resolvedLang: AppLanguage = storedLang === "ar" ? "ar" : "en";
+        if (typeof document !== "undefined") {
+          document.documentElement.dir = resolvedLang === "ar" ? "rtl" : "ltr";
+          document.documentElement.lang = resolvedLang;
+        }
+        set({
+          activeLanguage: resolvedLang,
+          userLowDataMode: lowDataRaw ? lowDataRaw === "1" : false,
+        });
         return;
       }
       const parsed = JSON.parse(raw);
@@ -1448,7 +1487,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               : activeMember.roles[0] || "Member")
           : "Member";
 
+        const storedLang = (window.localStorage.getItem("quanters_lang") || activeMember?.preferredLanguage || parsed?.settings?.defaultLanguage || "en") as AppLanguage;
+        const resolvedLang: AppLanguage = storedLang === "ar" ? "ar" : "en";
+        if (typeof document !== "undefined") {
+          document.documentElement.dir = resolvedLang === "ar" ? "rtl" : "ltr";
+          document.documentElement.lang = resolvedLang;
+        }
+
         set({
+          activeLanguage: resolvedLang,
           isAuthenticated: validAuth,
           currentMemberId: validAuth ? parsed.currentMemberId : "",
           activeAdminRole: validAuth ? verifiedRole : "Member",
