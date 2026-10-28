@@ -1044,13 +1044,13 @@ export default function WelcomeSplashPage() {
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-4 sm:h-5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      className="h-4 sm:h-5 w-auto max-h-4 sm:max-h-5 object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
                     <span className="h-3.5 sm:h-4 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
-                      className="h-5.5 sm:h-7.5 lg:h-8.5 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+                      className="h-6 sm:h-7 lg:h-8 w-auto max-h-6 sm:max-h-7 object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
@@ -1942,7 +1942,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-10.5 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4.5 h-4.5" />
                         <span>
