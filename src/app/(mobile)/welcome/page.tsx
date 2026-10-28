@@ -944,18 +944,18 @@ export default function WelcomeSplashPage() {
             )}
           </header>
 
-          {/* B. CENTER STAGE */}
+          {/* B. CENTER STAGE (DESKTOP ONLY - NEVER OCCLUDE THE ASTRONAUT MASCOT ON MOBILE) */}
           {!authOpen && (
-            <div className="my-auto py-2 sm:py-3 lg:py-0 lg:my-0">
-              <div className="space-y-2 sm:space-y-3 xl:space-y-4 max-w-[540px] animate-rise drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
-                <h1 className="font-display font-black text-2xl xs:text-[28px] sm:text-3xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.12] lg:leading-[1.08]">
+            <div className="my-auto py-1 sm:py-2 lg:py-0 lg:my-0">
+              <div className="hidden lg:block space-y-3 xl:space-y-4 max-w-[540px] animate-rise">
+                <h1 className="font-display font-black text-2xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.08]">
                   More than a club,{" "}
-                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-[28px] xs:text-[32px] sm:text-4xl xl:text-[46px] tracking-normal mt-0.5 lg:mt-1">
+                  <span className="block font-editorial italic font-normal text-[#38E4FF] text-3xl xl:text-[46px] tracking-normal mt-1">
                     a scientific journey.
                   </span>
                 </h1>
 
-                <p className="text-xs xs:text-[13px] sm:text-sm text-slate-200/95 leading-relaxed max-w-[480px]">
+                <p className="text-xs sm:text-sm text-slate-300/90 leading-relaxed max-w-[460px]">
                   Join hands-on workshops, verify laboratory and technical skills,
                   collaborate across scientific teams, and build your academic
                   track record at the University of Algiers 1.
@@ -968,6 +968,16 @@ export default function WelcomeSplashPage() {
           <footer className="w-full shrink-0">
             {!authOpen ? (
               <div className="w-full space-y-2 sm:space-y-2.5 animate-rise">
+                {/* Phone Editorial Statement right above Start button */}
+                <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+                  <p className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-[-0.02em] text-white leading-snug">
+                    More than a club,{" "}
+                    <span className="font-editorial italic font-normal text-[#38E4FF] text-xl xs:text-2xl sm:text-3xl">
+                      a scientific journey.
+                    </span>
+                  </p>
+                </div>
+
                 {/* Active Session Card (If previously signed in, shows explicit user info and quick Switch button) */}
                 {isAuthenticated && currentMemberId && (() => {
                   const activeMember = members.find((m) => m.id === currentMemberId);
@@ -1045,13 +1055,15 @@ export default function WelcomeSplashPage() {
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-4.5 sm:h-5.5 w-auto max-h-4.5 sm:max-h-5.5 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      style={{ height: "20px", maxHeight: "20px", width: "auto" }}
+                      className="h-5 max-h-5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
-                    <span className="h-3.5 sm:h-4 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
+                    <span className="h-4 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
-                      className="h-6 sm:h-7 lg:h-8 w-auto max-h-6 sm:max-h-7 object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+                      style={{ height: "24px", maxHeight: "24px", width: "auto" }}
+                      className="h-6 max-h-6 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
