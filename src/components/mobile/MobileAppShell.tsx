@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock, X } from "lucide-react";
 import { BottomNavBar } from "./BottomNavBar";
 import { MilestoneCelebrationModal } from "./MilestoneCelebrationModal";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
+import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
 
 interface MobileAppShellProps {
   children: React.ReactNode;
@@ -33,9 +34,21 @@ export function MobileAppShell({
       s.members.some((m) => m.id === s.currentMemberId)
   );
   const [hydrated, setHydrated] = useState(false);
+  const [showQuotaBanner, setShowQuotaBanner] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
+    if (isFirestoreQuotaExhausted()) {
+      setShowQuotaBanner(true);
+    }
+    const onQuotaExhausted = () => setShowQuotaBanner(true);
+    const onQuotaReset = () => setShowQuotaBanner(false);
+    window.addEventListener("quanters:quota_exhausted", onQuotaExhausted);
+    window.addEventListener("quanters:quota_reset", onQuotaReset);
+    return () => {
+      window.removeEventListener("quanters:quota_exhausted", onQuotaExhausted);
+      window.removeEventListener("quanters:quota_reset", onQuotaReset);
+    };
   }, []);
 
   const isPublicRoute = PUBLIC_PATHS.some(
@@ -82,6 +95,31 @@ export function MobileAppShell({
     <div
       className={`min-h-dvh w-full max-w-full overflow-x-hidden flex flex-col pt-[env(safe-area-inset-top)] ${className}`}
     >
+      {/* Quota Exhausted / Offline Local-First Notification Banner */}
+      {showQuotaBanner && (
+        <div className="w-full bg-[#FFFBEB] border-b border-[#FDE68A] text-[#92400E] px-3.5 py-2 flex items-center justify-between text-xs sticky top-0 z-50 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#FEF3C7] text-[#D97706] shrink-0 font-bold text-xs">
+              ⚡
+            </span>
+            <div className="min-w-0 leading-tight">
+              <span className="font-semibold block sm:inline">Local Mode Active</span>
+              <span className="hidden sm:inline"> — </span>
+              <span className="text-[11px] text-[#B45309] block sm:inline">
+                Daily cloud quota limit reached. Your local workspace and changes remain fully preserved.
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowQuotaBanner(false)}
+            aria-label="Dismiss banner"
+            className="p-1 rounded-md text-[#B45309] hover:bg-[#FDE68A]/60 transition shrink-0 ml-2"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Responsive Multi-Viewport Container: Full-bleed on phones (360-640px), spacious on Tablet (768px) & PC (1440px) */}
       <div
         className={`flex-1 w-full flex flex-col ${

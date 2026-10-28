@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { isSuperAdminEmail } from "../firebase/config";
-import { pullErpStateFromFirestore, pushErpStateToFirestore, signOutFromFirebase } from "../firebase/auth";
+import { isFirestoreQuotaExhausted, pullErpStateFromFirestore, pushErpStateToFirestore, signOutFromFirebase } from "../firebase/auth";
 import { hashCredentialDigest, verifyCredentialDigest } from "../utils/authSecurity";
 import {
   AccessGrant,
@@ -135,7 +135,13 @@ interface QuantersStoreState {
     email: string,
     fullName?: string,
     avatarUrl?: string
-  ) => { ok: boolean; redirectPath: string; member: Member };
+  ) => { ok: boolean; redirectPath: string; member?: Member; message?: string };
+  registerWithGoogle: (
+    email: string,
+    fullName?: string,
+    avatarUrl?: string,
+    isAlumni?: boolean
+  ) => { ok: boolean; redirectPath: string; member?: Member; message?: string };
   registerAccount: (payload: {
     fullName: string;
     email: string;
@@ -1002,6 +1008,36 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { ok: true, redirectPath, member: existing };
     }
 
+    // STRICT ACCESS CONTROL: Unregistered Google accounts cannot log in on the Sign In screen
+    return {
+      ok: false,
+      redirectPath: "/welcome",
+      message: "No registered account found matching this Google email. Please click 'Create New Account' to register first.",
+    };
+  },
+
+  registerWithGoogle: (email, fullName, avatarUrl, isAlumni = false) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const state = get();
+    const isSuper = isSuperAdminEmail(cleanEmail);
+
+    if (!isAlumni && !isSuper && !state.settings.registrationOpen) {
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message: "New member registration is currently paused by Club Administration.",
+      };
+    }
+
+    const existing = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message: "An account with this email already exists. Please sign in instead.",
+      };
+    }
+
     const num = Math.floor(400 + Math.random() * 500);
     const derivedName =
       fullName?.trim() ||
@@ -1012,50 +1048,50 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
     const newMember: Member = {
       id: `mem-${Date.now()}`,
-      quanterId: `QT-26-0${num}`,
-      handle: `@quanter0${num}`,
+      quanterId: isSuper ? "QT-00-0000" : `QT-26-0${num}`,
+      handle: isSuper ? "@quanta_admin" : `@quanter0${num}`,
       email: cleanEmail,
       fullName: derivedName,
       phone: "+213 550 00 00 00",
       avatarUrl:
         avatarUrl ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
-      bio: "QUANTA Scientific Club Member",
+      bio: isSuper ? "QUANTA Club Administration" : "QUANTA Scientific Club Member",
       major: "Computer Science",
       university: "University of Algiers 1",
       academicYear: "L2",
-      tenure: "New Member",
+      tenure: isSuper ? "Bureau Leadership" : isAlumni ? "Alumni" : "New Member",
       departmentId: "dept-it",
       teamId: "team-cs-ai",
-      roles: ["Member"],
-      isBureauMember: false,
-      status: "Trainee",
+      roles: isSuper ? ["Super Admin", "Executive", "HR Head"] : isAlumni ? ["Alumni"] : ["Member"],
+      isBureauMember: isSuper,
+      status: isSuper ? "Active" : isAlumni ? "Alumni" : "Trainee",
       statusSince: "Oct 2026",
       traineeStartDate: new Date().toISOString().slice(0, 10),
       traineeDaysElapsed: 1,
       outsideActivitiesAndVolunteering: "",
       declaresOtherStudentOrg: false,
       availability: DEFAULT_AVAILABILITY,
-      xpTotal: 50,
-      xpSeason: 50,
-      xpMonth: 50,
+      xpTotal: isSuper ? 100 : 0,
+      xpSeason: isSuper ? 100 : 0,
+      xpMonth: isSuper ? 100 : 0,
       level: 1,
-      levelTitle: "Novice Quanter",
+      levelTitle: isSuper ? "Executive Quanter" : "Novice Quanter",
       attendanceRate: 100,
       onTimeTaskRate: 100,
       recentActivityScore: 100,
-      healthScore: 95,
+      healthScore: 100,
       daysSinceLastActivity: 0,
       lateTasksThisMonth: 0,
       recognitionLabels: [],
       onboardingTicks: {
-        profileComplete: false,
-        buddyAssigned: false,
-        firstTaskBeforeDay30: false,
-        firstWorkshopAttended: false,
+        profileComplete: isSuper,
+        buddyAssigned: isSuper,
+        firstTaskBeforeDay30: isSuper,
+        firstWorkshopAttended: isSuper,
       },
       traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
-      skills: ["Python", "Scientific Research"],
+      skills: ["Scientific Research"],
       badgeIds: [],
       workshopsCompletedCount: 0,
       projectsCompletedCount: 0,
@@ -1064,38 +1100,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       placementHistory: [],
     };
 
-    const isSuper = isSuperAdminEmail(cleanEmail);
-    const finalizedMember: Member = isSuper
-      ? {
-          ...newMember,
-          fullName:
-            fullName?.trim() ||
-            (cleanEmail.startsWith("hr") ? "QUANTA HR Administration" : "QUANTA Super Admin"),
-          roles: ["Super Admin", "Executive", "HR Head"],
-          isBureauMember: true,
-          status: "Active",
-          onboardingTicks: {
-            profileComplete: true,
-            buddyAssigned: true,
-            firstTaskBeforeDay30: true,
-            firstWorkshopAttended: true,
-          },
-        }
-      : newMember;
     const redirectPath = isSuper
       ? "/admin/overview"
       : state.settings.registrationOpen
       ? "/onboarding"
       : "/home";
+
     set({
-      members: [finalizedMember, ...state.members],
-      currentMemberId: finalizedMember.id,
-      activeAdminRole: isSuper ? "Super Admin" : "Member",
+      members: [newMember, ...state.members],
+      currentMemberId: newMember.id,
+      activeAdminRole: isSuper ? "Super Admin" : isAlumni ? "Alumni" : "Member",
       isAuthenticated: true,
     });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
-    return { ok: true, redirectPath, member: finalizedMember };
+    return { ok: true, redirectPath, member: newMember };
   },
 
   registerAccount: ({ fullName, email, password, isAlumni }) => {
@@ -1562,6 +1581,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       set({ isOnline: false });
       return;
     }
+    if (isFirestoreQuotaExhausted()) {
+      return;
+    }
 
     try {
       const headers: Record<string, string> = {};
@@ -1645,6 +1667,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   syncWithServer: async (force = false) => {
     const s = get();
     s.saveToLocalCache();
+
+    // Quota circuit-breaker: if Firestore quota was exhausted, save locally and return immediately with 0ms delay!
+    if (isFirestoreQuotaExhausted()) {
+      const { hasChanges } = computeClientDeltas(s);
+      set({
+        isOnline: true,
+        pendingSyncCount: s.pendingSyncCount + (hasChanges ? 1 : 0),
+      });
+      s.saveToLocalCache();
+      return;
+    }
 
     // If browser is offline or manual_offline strategy is active (unless forced)
     if (typeof navigator !== "undefined" && !navigator.onLine) {

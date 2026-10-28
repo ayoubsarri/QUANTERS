@@ -28,6 +28,7 @@ import {
   checkFirebaseGoogleRedirectResult,
   createFirebaseEmailPasswordUser,
   getFirebaseAuth,
+  isFirestoreQuotaExhausted,
   sendFirebasePasswordReset,
   signInWithFirebaseEmailPassword,
   signInWithFirebaseGooglePopup,
@@ -238,6 +239,7 @@ export default function WelcomeSplashPage() {
     members,
     loginWithEmail,
     loginWithGoogle,
+    registerWithGoogle,
     registerAccount,
     changeMemberPassword,
     syncWithServer,
@@ -544,9 +546,15 @@ export default function WelcomeSplashPage() {
         `Security Lockout: 5 failed attempts. Access paused for ${shield.remainingSeconds}s.`
       );
     } else {
-      setErrorMsg(
-        res.message || "Invalid email or password. Please verify your credentials or use password recovery."
-      );
+      if (isFirestoreQuotaExhausted() && members.length <= 1) {
+        setErrorMsg(
+          "Cloud database quota reached for today. If you registered previously on this device, check your email spelling. Otherwise, please try again when quota resets."
+        );
+      } else {
+        setErrorMsg(
+          res.message || "Invalid email or password. Please verify your credentials or use password recovery."
+        );
+      }
     }
   };
 
@@ -696,12 +704,34 @@ export default function WelcomeSplashPage() {
     try {
       const popupRes = await signInWithFirebaseGooglePopup();
       if (popupRes.ok && popupRes.email) {
-        const res = loginWithGoogle(
-          popupRes.email,
-          popupRes.fullName,
-          popupRes.avatarUrl
-        );
-        await completeAuthenticatedTransition(res.member, res.redirectPath);
+        if (authMode === "signin") {
+          const res = loginWithGoogle(
+            popupRes.email,
+            popupRes.fullName,
+            popupRes.avatarUrl
+          );
+          if (!res.ok) {
+            setErrorMsg(
+              res.message ||
+                "No registered account found matching this Google email. Please click 'Create New Account' to register."
+            );
+            return;
+          }
+          await completeAuthenticatedTransition(res.member, res.redirectPath);
+        } else {
+          // authMode === "register"
+          const res = registerWithGoogle(
+            popupRes.email,
+            popupRes.fullName,
+            popupRes.avatarUrl,
+            registerAsAlumni
+          );
+          if (!res.ok) {
+            setErrorMsg(res.message || "Unable to register account with Google.");
+            return;
+          }
+          await completeAuthenticatedTransition(res.member, res.redirectPath);
+        }
       } else if (!popupRes.cancelled && popupRes.message) {
         setErrorMsg(popupRes.message);
       }
@@ -721,6 +751,13 @@ export default function WelcomeSplashPage() {
         redirectRes.fullName,
         redirectRes.avatarUrl
       );
+      if (!res.ok) {
+        setErrorMsg(
+          res.message ||
+            "No registered account found matching this Google email. Please click 'Create New Account' to register."
+        );
+        return;
+      }
       await completeAuthenticatedTransition(res.member, res.redirectPath);
     });
     return () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -31,6 +32,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dismissedMobileNotice, setDismissedMobileNotice] = useState(false);
+  const [showQuotaBanner, setShowQuotaBanner] = useState(false);
+
+  useEffect(() => {
+    if (isFirestoreQuotaExhausted()) {
+      setShowQuotaBanner(true);
+    }
+    const onQuotaExhausted = () => setShowQuotaBanner(true);
+    const onQuotaReset = () => setShowQuotaBanner(false);
+    window.addEventListener("quanters:quota_exhausted", onQuotaExhausted);
+    window.addEventListener("quanters:quota_reset", onQuotaReset);
+    return () => {
+      window.removeEventListener("quanters:quota_exhausted", onQuotaExhausted);
+      window.removeEventListener("quanters:quota_reset", onQuotaReset);
+    };
+  }, []);
 
   const currentMember =
     isAuthenticated && currentMemberId
@@ -108,6 +124,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content Area (Independent scroll container) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Quota Exhausted / Local Offline Mode Notification Banner */}
+        {showQuotaBanner && (
+          <div className="w-full bg-[#FFFBEB] border-b border-[#FDE68A] text-[#92400E] px-4 py-2.5 flex items-center justify-between text-xs sticky top-0 z-40 shadow-sm animate-fade-in">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#FEF3C7] text-[#D97706] shrink-0 font-bold text-xs">
+                ⚡
+              </span>
+              <div className="min-w-0 text-xs">
+                <span className="font-bold text-[#92400E]">Local Offline Mode Active</span> —{" "}
+                <span className="text-[#B45309]">
+                  Cloud daily quota limit reached. Administrative changes are safely preserved in local storage and will sync automatically when quota refreshes.
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowQuotaBanner(false)}
+              aria-label="Dismiss banner"
+              className="p-1 rounded-md text-[#B45309] hover:bg-[#FDE68A]/60 transition shrink-0 ml-3"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Top Header Bar matching Member App Style */}
         <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-[0_2px_10px_rgba(15,30,54,0.03)]">
           <div className="flex items-center gap-3 flex-1 min-w-0">

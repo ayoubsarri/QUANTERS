@@ -213,21 +213,24 @@ export function PwaOfflineManager() {
       pullExactUpdatesFromServer().catch(() => {});
     }
 
-    // Real-time Cloud Firestore listener + tab focus sync so new registrations appear live in Admin
+    // Real-time Cloud Firestore listener: only start when user is authenticated to preserve Spark quotas
     let unsubFirestoreFn: (() => void) | null = null;
     let isCancelled = false;
-    subscribeToErpStateFirestore((cloudData) => {
-      // Ingest directly into store WITHOUT triggering pull or write loop!
-      if (cloudData && typeof cloudData === "object") {
-        useQuantersStore.getState().applyIncomingCloudSnapshot(cloudData);
-      }
-    }).then((fn) => {
-      if (isCancelled && fn) {
-        fn();
-      } else {
-        unsubFirestoreFn = fn;
-      }
-    });
+    const isAuth = useQuantersStore.getState().isAuthenticated;
+    if (isAuth) {
+      subscribeToErpStateFirestore((cloudData) => {
+        // Ingest directly into store WITHOUT triggering pull or write loop!
+        if (cloudData && typeof cloudData === "object") {
+          useQuantersStore.getState().applyIncomingCloudSnapshot(cloudData);
+        }
+      }).then((fn) => {
+        if (isCancelled && fn) {
+          fn();
+        } else {
+          unsubFirestoreFn = fn;
+        }
+      });
+    }
 
     let lastFocusCheck = Date.now();
     const handleWindowFocus = () => {

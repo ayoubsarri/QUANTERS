@@ -429,11 +429,45 @@ function sanitizeMembersForCloud(members: any[]): any[] {
   });
 }
 
+let firestoreQuotaExhausted = false;
+
+export function isFirestoreQuotaExhausted(): boolean {
+  if (typeof window !== "undefined") {
+    try {
+      if (window.sessionStorage.getItem("quanters_quota_exhausted") === "1") {
+        return true;
+      }
+    } catch {}
+  }
+  return firestoreQuotaExhausted;
+}
+
+export function markFirestoreQuotaExhausted(): void {
+  firestoreQuotaExhausted = true;
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.setItem("quanters_quota_exhausted", "1");
+      window.dispatchEvent(new Event("quanters:quota_exhausted"));
+    } catch {}
+  }
+}
+
+export function resetFirestoreQuotaExhausted(): void {
+  firestoreQuotaExhausted = false;
+  if (typeof window !== "undefined") {
+    try {
+      window.sessionStorage.removeItem("quanters_quota_exhausted");
+      window.dispatchEvent(new Event("quanters:quota_reset"));
+    } catch {}
+  }
+}
+
 /**
  * Pulls the latest ERP state snapshot from Cloud Firestore (`erp_state/main`) on quanters-d0312.
  */
 export async function pullErpStateFromFirestore(): Promise<Record<string, any> | null> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
+  if (isFirestoreQuotaExhausted()) return null;
   try {
     await ensureFirebaseAuthSession();
     const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
@@ -450,7 +484,8 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
   } catch (err: any) {
     const code = String(err?.code || "");
     if (code.includes("resource-exhausted") || code.includes("quota")) {
-      console.warn("[Firestore Quota] Spark read quota limit reached. Continuing seamlessly with local cache.");
+      markFirestoreQuotaExhausted();
+      console.warn("[Firestore Quota] Spark read quota limit reached. Tripping circuit breaker into local cache mode.");
     }
     return null;
   }
@@ -553,6 +588,7 @@ export async function pushErpStateToFirestore(
   deletedIdsByCollection?: Record<string, string[]>
 ): Promise<Record<string, any> | null> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
+  if (isFirestoreQuotaExhausted()) return null;
   try {
     const fbAuth = getFirebaseAuth();
     if (!fbAuth || !fbAuth.currentUser || fbAuth.currentUser.isAnonymous) {
@@ -663,7 +699,8 @@ export async function pushErpStateToFirestore(
   } catch (err: any) {
     const code = String(err?.code || "");
     if (code.includes("resource-exhausted") || code.includes("quota")) {
-      console.warn("[Firestore Quota] Spark write quota reached for today. Delta changes safely stored in local cache.");
+      markFirestoreQuotaExhausted();
+      console.warn("[Firestore Quota] Spark write quota reached for today. Tripping circuit breaker into local cache mode.");
     } else {
       console.warn("[Firestore Push Error]", err);
     }
@@ -678,6 +715,7 @@ export async function subscribeToErpStateFirestore(
   onUpdate: (data: Record<string, any>) => void
 ): Promise<(() => void) | null> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
+  if (isFirestoreQuotaExhausted()) return null;
   try {
     await ensureFirebaseAuthSession();
     const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
@@ -693,8 +731,12 @@ export async function subscribeToErpStateFirestore(
           onUpdate(data);
         }
       },
-      () => {
-        // Ignore transient listener error
+      (err: any) => {
+        const code = String(err?.code || "");
+        if (code.includes("resource-exhausted") || code.includes("quota")) {
+          markFirestoreQuotaExhausted();
+          console.warn("[Firestore Quota] Real-time listener tripped quota limit. Continuing in offline mode.");
+        }
       }
     );
     return unsubscribe;
