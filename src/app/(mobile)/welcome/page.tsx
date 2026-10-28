@@ -770,7 +770,7 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-4 sm:px-6 lg:px-10 py-2 sm:py-3 lg:py-5 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-4 sm:px-6 lg:px-10 pt-2 sm:pt-3 lg:pt-5 pb-9 sm:pb-6 lg:pb-6 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[9/16] max-h-[min(540px,76dvh)] xl:max-h-[min(620px,80dvh)] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
@@ -782,12 +782,16 @@ export default function WelcomeSplashPage() {
         </div>
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
-        <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between lg:justify-center h-full max-h-full overflow-hidden lg:space-y-3 xl:space-y-5">
+        <div className={`w-full flex-1 lg:col-span-7 flex flex-col h-full max-h-full overflow-hidden ${
+          authOpen
+            ? "justify-center space-y-2.5 sm:space-y-3.5 my-auto"
+            : "justify-between lg:justify-center lg:space-y-3 xl:space-y-5"
+        }`}>
           {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT ON DESKTOP & CENTER-LOWER ON MOBILE PORTAL */}
-          <header className={`w-full transition-all duration-500 ease-out shrink-0 ${authOpen ? "space-y-1 sm:space-y-1.5 pt-0.5 sm:pt-1" : "space-y-2 sm:space-y-2.5"}`}>
+          <header className={`w-full transition-all duration-500 ease-out shrink-0 ${authOpen ? "space-y-1 sm:space-y-1.5 pt-0.5 sm:pt-1" : "space-y-1.5 sm:space-y-2"}`}>
             <div className={`w-full flex transition-all duration-500 ease-out ${
               authOpen
-                ? "justify-center text-center lg:justify-start lg:text-left translate-y-1 lg:translate-y-0"
+                ? "justify-center text-center lg:justify-start lg:text-left translate-y-0.5 lg:translate-y-0"
                 : "justify-start text-left"
             }`}>
               <div className={`inline-flex flex-col select-none transition-all duration-500 ease-out ${
@@ -798,22 +802,22 @@ export default function WelcomeSplashPage() {
                 <QuantersVectorWordmark
                   className={`w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out ${
                     authOpen
-                      ? "h-6 sm:h-7 md:h-8 lg:h-10 max-w-[170px] sm:max-w-[210px] md:max-w-[260px] lg:max-w-[320px]"
-                      : "h-8 xs:h-9 sm:h-10 md:h-12 lg:h-14 max-w-[210px] xs:max-w-[240px] sm:max-w-[280px] md:max-w-[340px] lg:max-w-[400px]"
+                      ? "h-6 sm:h-7 md:h-8 lg:h-10 max-w-[160px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[320px]"
+                      : "h-7 xs:h-8 sm:h-9 md:h-11 lg:h-13 max-w-[190px] xs:max-w-[220px] sm:max-w-[260px] md:max-w-[320px] lg:max-w-[380px]"
                   }`}
                 />
                 <div
                   className={`inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-300 ${
                     authOpen
-                      ? "mt-0.5 sm:mt-1 justify-center lg:justify-start"
-                      : "mt-1.5 sm:mt-2 justify-start text-left"
+                      ? "mt-0.5 justify-center lg:justify-start"
+                      : "mt-1 sm:mt-1.5 justify-start text-left"
                   }`}
                 >
-                  <span className="font-display text-[10.5px] xs:text-[11px] sm:text-xs md:text-[13px] font-black tracking-[0.18em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
+                  <span className="font-display text-[10px] xs:text-[10.5px] sm:text-xs md:text-[13px] font-black tracking-[0.18em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
                     BY QUANTA
                   </span>
-                  <span className="text-white/25 font-mono text-[10px] sm:text-xs leading-none">·</span>
-                  <span className="font-mono text-[9px] xs:text-[9.5px] sm:text-[10.5px] md:text-xs font-bold tracking-[0.12em] text-slate-300 uppercase leading-none whitespace-nowrap">
+                  <span className="text-white/25 font-mono text-[9px] sm:text-xs leading-none">·</span>
+                  <span className="font-mono text-[8.5px] xs:text-[9px] sm:text-[10.5px] md:text-xs font-bold tracking-[0.12em] text-slate-300 uppercase leading-none whitespace-nowrap">
                     UNIVERSITY OF ALGIERS 1
                   </span>
                 </div>
@@ -821,8 +825,8 @@ export default function WelcomeSplashPage() {
             </div>
 
             {!authOpen && (
-              <div className="space-y-0">
-                <div className="flex items-center justify-between border-y border-white/15 py-2 px-0.5 text-xs font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+              <div className="space-y-0 pt-0.5">
+                <div className="flex items-center justify-between border-y border-white/15 py-1 px-0.5 text-[10px] sm:text-xs font-display font-extrabold tracking-[0.12em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                   <span className="text-slate-200">DISCOVER</span>
                   <span className="text-white/25">/</span>
                   <span className="text-[#38E4FF]">LEARN</span>
@@ -835,16 +839,16 @@ export default function WelcomeSplashPage() {
                 <button
                   type="button"
                   onClick={handleDownloadAppClick}
-                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-2 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-1 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
                 >
-                  <span className="font-editorial italic text-base sm:text-lg text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
+                  <span className="font-editorial italic text-xs sm:text-base text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
                     Available for phone &amp; desktop
                   </span>
 
-                  <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold tracking-[0.12em] uppercase text-[#38E4FF] group-hover:text-white transition-colors whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1 font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.1em] uppercase text-[#38E4FF] group-hover:text-white transition-colors whitespace-nowrap">
                     <svg
-                      width="14"
-                      height="14"
+                      width="12"
+                      height="12"
                       viewBox="0 0 16 16"
                       fill="none"
                       className="animate-download-bob text-[#38E4FF] group-hover:text-[#FFE500] transition-colors shrink-0"
@@ -874,8 +878,8 @@ export default function WelcomeSplashPage() {
           </header>
 
           {/* B. CENTER STAGE */}
-          {!authOpen ? (
-            <div className="my-auto py-2 sm:py-3 lg:py-0 lg:my-0">
+          {!authOpen && (
+            <div className="my-auto py-1 sm:py-2 lg:py-0 lg:my-0">
               <div className="hidden lg:block space-y-3 xl:space-y-4 max-w-[540px] animate-rise">
                 <h1 className="font-display font-black text-2xl xl:text-[38px] tracking-[-0.03em] text-white leading-[1.08]">
                   More than a club,{" "}
@@ -891,23 +895,17 @@ export default function WelcomeSplashPage() {
                 </p>
               </div>
             </div>
-          ) : (
-            <div
-              className="flex-1 min-h-0 w-full cursor-pointer lg:hidden"
-              onClick={() => setAuthOpen(false)}
-              aria-hidden="true"
-            />
           )}
 
-          {/* C. BOTTOM INTERACTIVE DOCK */}
-          <footer className="w-full space-y-2 sm:space-y-3 lg:space-y-3.5 shrink-0">
+          {/* C. BOTTOM INTERACTIVE DOCK (OR CENTERED AUTH MODAL WHEN OPEN) */}
+          <footer className="w-full shrink-0">
             {!authOpen ? (
-              <div className="w-full space-y-2.5 sm:space-y-3.5 animate-rise">
+              <div className="w-full space-y-2 sm:space-y-2.5 animate-rise">
                 {/* Phone Editorial Statement right above Start button */}
                 <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                  <p className="font-display font-black text-lg sm:text-2xl tracking-[-0.02em] text-white leading-tight">
+                  <p className="font-display font-black text-base xs:text-lg sm:text-xl tracking-[-0.02em] text-white leading-snug">
                     More than a club,{" "}
-                    <span className="font-editorial italic font-normal text-[#38E4FF] text-2xl sm:text-3xl">
+                    <span className="font-editorial italic font-normal text-[#38E4FF] text-lg xs:text-xl sm:text-2xl">
                       a scientific journey.
                     </span>
                   </p>
@@ -920,7 +918,7 @@ export default function WelcomeSplashPage() {
                     setAuthOpen(true);
                     setPendingPostLogin(null);
                   }}
-                  className="w-full h-12 sm:h-14 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                  className="w-full h-11 sm:h-13 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     <span className="font-display font-black text-base sm:text-lg tracking-tight text-[#061326]">
@@ -932,25 +930,25 @@ export default function WelcomeSplashPage() {
                     </span>
                   </div>
 
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg bg-[#07162E] group-hover:bg-[#1D63EB] text-[#38E4FF] group-hover:text-white flex items-center justify-center transition">
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </div>
                 </button>
 
                 {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
-                <div className="pt-1 sm:pt-2">
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2 sm:mb-2.5" />
+                <div className="pt-0.5">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1" />
                   <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-5 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      className="h-4 sm:h-5.5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
-                    <span className="h-5 sm:h-7 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
+                    <span className="h-4 sm:h-5.5 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
-                      className="h-7 sm:h-9 lg:h-10 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+                      className="h-6 sm:h-8 lg:h-9 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
