@@ -1,5 +1,14 @@
 {
   "projects": {
-    "default": "quanters-quanta-algiers1"
+    "default": "quanters-d0312"
+  },
+  "targets": {
+    "quanters-d0312": {
+      "hosting": {
+        "quanters": [
+          "quanters"
+        ]
+      }
+    }
   }
 }

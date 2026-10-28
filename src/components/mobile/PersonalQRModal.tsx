@@ -5,7 +5,6 @@ import QRCode from "qrcode";
 import {
   Check,
   CheckCircle2,
-  Copy,
   Download,
   ExternalLink,
   Printer,
@@ -33,7 +32,6 @@ export function PersonalQRModal({
   teamName,
 }: PersonalQRModalProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -61,16 +59,6 @@ export function PersonalQRModal({
   }, [open, verificationUrl]);
 
   if (!open) return null;
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(verificationUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-    }
-  };
 
   const handleDownload = () => {
     setIsDownloading(true);
@@ -167,6 +155,7 @@ export function PersonalQRModal({
         if (qrDataUrl) {
           const qrImg = new Image();
           qrImg.src = qrDataUrl;
+          qrImg.onerror = () => setIsDownloading(false);
           qrImg.onload = () => {
             // White plate behind QR
             context.fillStyle = "#FFFFFF";
@@ -195,12 +184,20 @@ export function PersonalQRModal({
             context.font = "bold 13px sans-serif";
             context.fillText("QUANTA RESEARCH & SCIENTIFIC CLUB", 300, 805);
 
-            // Download as image
-            const link = document.createElement("a");
-            link.download = `QUANTERS_Digital_ID_${member.quanterId}.png`;
-            link.href = cnv.toDataURL("image/png");
-            link.click();
-            setIsDownloading(false);
+            // Download as image via blob URL (zero-copy memory cleanup)
+            cnv.toBlob((blob) => {
+              if (blob) {
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.download = `QUANTERS_Digital_ID_${member.quanterId}.png`;
+                link.href = blobUrl;
+                link.click();
+                URL.revokeObjectURL(blobUrl);
+              }
+              cnv.width = 0;
+              cnv.height = 0;
+              setIsDownloading(false);
+            }, "image/png");
           };
         } else {
           setIsDownloading(false);
@@ -298,7 +295,7 @@ export function PersonalQRModal({
             </p>
           </div>
 
-          {/* REAL CAMERA-SCANNABLE QR CODE PLATE */}
+          {/* REAL CAMERA-SCANNABLE QR CODE PLATE (Pure Clean QR, No Obstructing Icon) */}
           <div className="bg-white rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.6)] flex flex-col items-center">
             {qrDataUrl ? (
               <div className="relative group">
@@ -307,12 +304,6 @@ export function PersonalQRModal({
                   alt={`Real QR ID for ${member.fullName}`}
                   className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-lg"
                 />
-                {/* Central Emblem Badge inside QR */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-10 h-10 rounded-xl bg-[#091730] border-2 border-white shadow-md flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-[#38E4FF]" />
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="w-44 h-44 flex items-center justify-center text-slate-400 text-xs font-mono">
@@ -330,46 +321,24 @@ export function PersonalQRModal({
             </div>
           </div>
 
-          {/* Security Signature Hash */}
-          <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
-            <span>HASH: SHA256-QT26</span>
+          {/* Verification Badge */}
+          <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-mono text-slate-300">
             <span className="text-[#38E4FF] font-bold">● ACTIVE PASSPORT VERIFIED</span>
           </div>
         </div>
 
         {/* BOTTOM ACTION TOOLBAR */}
-        <div className="p-4 bg-[#030914]/90 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 relative z-10">
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer"
-              title="Copy verification link"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy Link</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer disabled:opacity-50"
-              title="Download ID Pass PNG"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>{isDownloading ? "Saving..." : "Save PNG"}</span>
-            </button>
-          </div>
+        <div className="p-4 bg-[#030914]/90 border-t border-white/10 flex items-center justify-between gap-2 relative z-10">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer disabled:opacity-50"
+            title="Download ID Pass PNG"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{isDownloading ? "Saving..." : "Save PNG"}</span>
+          </button>
 
           <button
             type="button"

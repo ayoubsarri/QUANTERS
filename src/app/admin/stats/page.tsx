@@ -28,28 +28,39 @@ export default function AdminStatsPage() {
   const [deptSortBy, setDeptSortBy] = useState<"avg" | "total">("avg");
   const [exportToast, setExportToast] = useState<string | null>(null);
 
+  // Super Admin & Executive governance accounts are strictly excluded from club scoring & rankings
+  const isExcludedFromScoring = (m: (typeof members)[number]) =>
+    m.roles.includes("Super Admin") ||
+    m.roles.includes("Executive") ||
+    m.email.toLowerCase() === "quantaclubdz@gmail.com" ||
+    m.email.toLowerCase() === "hr.quanta@univ-alger.dz" ||
+    m.id === "mem-super-quanta" ||
+    m.id === "mem-super-hr";
+
+  const scoringMembers = members.filter((m) => !isExcludedFromScoring(m));
+
   const getMemberPeriodScore = (m: (typeof members)[number]) => {
     if (period === "This Month") return m.xpMonth;
     return m.xpSeason;
   };
 
-  const totalClubXp = members.reduce((sum, m) => sum + getMemberPeriodScore(m), 0);
+  const totalClubXp = scoringMembers.reduce((sum, m) => sum + getMemberPeriodScore(m), 0);
   const totalCheckins = workshops.reduce(
     (sum, w) => sum + w.attendanceRecords.filter((r) => r.status === "Present").length,
     0
   );
   const avgAttendance = Math.round(
-    members.reduce((s, m) => s + m.attendanceRate, 0) / Math.max(1, members.length)
+    scoringMembers.reduce((s, m) => s + m.attendanceRate, 0) / Math.max(1, scoringMembers.length)
   );
   const avgTaskOnTime = Math.round(
-    members.reduce((s, m) => s + m.onTimeTaskRate, 0) / Math.max(1, members.length)
+    scoringMembers.reduce((s, m) => s + m.onTimeTaskRate, 0) / Math.max(1, scoringMembers.length)
   );
   const totalBadgesAwarded = badges.reduce((sum, b) => sum + b.awardedCount, 0);
 
   // Department Analytics
   const deptRankings = departments
     .map((dept) => {
-      const deptMembers = members.filter((m) => m.departmentId === dept.id);
+      const deptMembers = scoringMembers.filter((m) => m.departmentId === dept.id);
       const count = deptMembers.length || 1;
       const totalScore = deptMembers.reduce((s, m) => s + getMemberPeriodScore(m), 0);
       const avgScore = Math.round(totalScore / count);
@@ -68,7 +79,7 @@ export default function AdminStatsPage() {
   const teamRankings = teams
     .filter((t) => !t.archived)
     .map((team) => {
-      const teamMembers = members.filter(
+      const teamMembers = scoringMembers.filter(
         (m) => m.teamId === team.id || team.memberIds.includes(m.id)
       );
       const count = Math.max(1, team.memberIds.length);
@@ -83,8 +94,8 @@ export default function AdminStatsPage() {
     })
     .sort((a, b) => b.totalScore - a.totalScore);
 
-  // Top Contributors
-  const topMembers = [...members]
+  // Top Contributors (Excludes Super Admin & Executive)
+  const topMembers = [...scoringMembers]
     .sort((a, b) => getMemberPeriodScore(b) - getMemberPeriodScore(a))
     .slice(0, 10);
 
@@ -100,6 +111,7 @@ export default function AdminStatsPage() {
     link.href = url;
     link.download = `QUANTERS_Stats_${period}.csv`;
     link.click();
+    URL.revokeObjectURL(url);
     setExportToast("Exported statistics CSV");
     setTimeout(() => setExportToast(null), 3000);
   };
@@ -172,7 +184,7 @@ export default function AdminStatsPage() {
             {totalClubXp.toLocaleString()} XP
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-            Across {members.length} members
+            Across {scoringMembers.length} members
           </div>
         </div>
 

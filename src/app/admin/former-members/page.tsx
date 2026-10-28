@@ -11,6 +11,8 @@ import {
   ClipboardCopy,
   CheckCircle2,
   Filter,
+  Trash2,
+  Archive,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
@@ -18,11 +20,13 @@ import { Member, MemberStatus } from "@/lib/types/erp";
 import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
 
 export default function AdminFormerMembersPage() {
-  const { members, departments, teams, reactivateFormerMember } = useQuantersStore();
+  const { members, departments, teams, settings, reactivateFormerMember, deleteMember } = useQuantersStore();
 
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState<"ALL" | "Resigned" | "Removed">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "Resigned" | "Removed" | "Archived">("ALL");
   const [reactivatingMember, setReactivatingMember] = useState<Member | null>(null);
+  const [purgingMember, setPurgingMember] = useState<Member | null>(null);
+  const [purgeReason, setPurgeReason] = useState("");
   const [reactivateStatus, setReactivateStatus] = useState<"Active" | "Trainee">("Active");
   const [targetDeptId, setTargetDeptId] = useState("");
   const [targetTeamId, setTargetTeamId] = useState("");
@@ -187,6 +191,17 @@ export default function AdminFormerMembersPage() {
           >
             Removed Only ({removedCount})
           </button>
+          <button
+            type="button"
+            onClick={() => setFilterType("Archived")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+              filterType === "Archived"
+                ? "bg-white text-[#182C4E] shadow-xs"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Governance Archive ({(settings.archivedMembers || []).length})
+          </button>
         </div>
 
         <div className="relative flex-1 max-w-md">
@@ -201,23 +216,87 @@ export default function AdminFormerMembersPage() {
         </div>
       </div>
 
-      {/* Former Members Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                <th className="py-3 px-4">Member</th>
-                <th className="py-3 px-4">Quanter ID</th>
-                <th className="py-3 px-4">Former Status</th>
-                <th className="py-3 px-4">Past Placement</th>
-                <th className="py-3 px-4">Reason / Departure Motif</th>
-                <th className="py-3 px-4">Decision Ref / Actor</th>
-                <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+      {/* Table: Either Governance Archive OR Former Members */}
+      {filterType === "Archived" ? (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  <th className="py-3 px-4">Archived Account</th>
+                  <th className="py-3 px-4">Quanter ID</th>
+                  <th className="py-3 px-4">Released Email</th>
+                  <th className="py-3 px-4">Platform Roles</th>
+                  <th className="py-3 px-4">Archived At</th>
+                  <th className="py-3 px-4">Archived By</th>
+                  <th className="py-3 px-4">Reason / Reference</th>
+                  <th className="py-3 px-4 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {!settings.archivedMembers || settings.archivedMembers.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-slate-400">
+                      <Archive className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                      <p className="font-bold text-slate-600">No permanently purged records</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        When a member is permanently purged &amp; archived, their historical snapshot appears here.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  settings.archivedMembers.map((arch) => (
+                    <tr key={arch.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        {arch.fullName}
+                      </td>
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-600">
+                        {arch.quanterId}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-emerald-700 font-semibold">
+                        {arch.email}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        {arch.roles?.join(", ") || "Member"}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-slate-500 whitespace-nowrap">
+                        {arch.archivedAt}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-slate-700">
+                        {arch.archivedBy}
+                      </td>
+                      <td className="py-3 px-4 max-w-xs text-slate-600">
+                        {arch.reason}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                          Email Released
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  <th className="py-3 px-4">Member</th>
+                  <th className="py-3 px-4">Quanter ID</th>
+                  <th className="py-3 px-4">Former Status</th>
+                  <th className="py-3 px-4">Past Placement</th>
+                  <th className="py-3 px-4">Reason / Departure Motif</th>
+                  <th className="py-3 px-4">Decision Ref / Actor</th>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
               {filteredMembers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
@@ -323,6 +402,17 @@ export default function AdminFormerMembersPage() {
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPurgingMember(m);
+                              setPurgeReason("");
+                            }}
+                            className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                            title="Permanently Purge & Free Email"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -333,6 +423,7 @@ export default function AdminFormerMembersPage() {
           </table>
         </div>
       </div>
+      )}
 
       {/* Centered Reactivate Modal */}
       {reactivatingMember && (
@@ -468,6 +559,77 @@ export default function AdminFormerMembersPage() {
                 className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs transition cursor-pointer shadow-xs"
               >
                 Confirm Reactivation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Centered Purge & Free Email Modal */}
+      {purgingMember && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Trash2 className="w-5 h-5" />
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                  Permanently Purge &amp; Release Email
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPurgingMember(null)}
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200/90 text-xs text-rose-900 leading-relaxed">
+              <p className="font-bold">
+                Are you sure you want to permanently purge {purgingMember.fullName} ({purgingMember.quanterId})?
+              </p>
+              <p className="mt-1 text-rose-700">
+                This removes their record from the former members directory, saves an archival snapshot into Governance Archive, and releases their email (<strong className="font-mono text-rose-950">{purgingMember.email}</strong>) so they can register again as a new applicant without encountering &apos;account already exists&apos;.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Audit / Purge Reason
+              </label>
+              <input
+                type="text"
+                value={purgeReason}
+                onChange={(e) => setPurgeReason(e.target.value)}
+                placeholder="e.g. Member requested full account reset..."
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPurgingMember(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteMember(
+                    purgingMember.id,
+                    purgeReason.trim() || "Permanently purged & archived from former members directory",
+                    true
+                  );
+                  setToastMsg(`Member '${purgingMember.fullName}' permanently purged and email released.`);
+                  setPurgingMember(null);
+                  setTimeout(() => setToastMsg(null), 3500);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition cursor-pointer"
+              >
+                Purge &amp; Release Email
               </button>
             </div>
           </div>

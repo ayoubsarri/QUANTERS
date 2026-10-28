@@ -40,7 +40,7 @@ export default function AdminPointsPage() {
 
   // Manual Point Entry Modal state
   const [manualOpen, setManualOpen] = useState(false);
-  const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || "mem-ayoub");
+  const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || "");
   const [selectedRuleId, setSelectedRuleId] = useState<string>(pointRules[0]?.id || "pr-1");
   const [customAmount, setCustomAmount] = useState<number>(pointRules[0]?.points || 15);
   const [manualReason, setManualReason] = useState<string>("");
@@ -65,15 +65,8 @@ export default function AdminPointsPage() {
   );
 
   // Monthly Honours (MotM & 6 Department Champions) state
-  const [qualitativeScores, setQualitativeScores] = useState<Record<string, number>>({
-    "mem-ayoub": 98,
-    "mem-sara": 96,
-    "mem-yasmine": 94,
-    "mem-mehdi": 91,
-    "mem-nour": 93,
-    "mem-riad": 90,
-  });
-  const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>(["mem-ayoub"]);
+  const [qualitativeScores, setQualitativeScores] = useState<Record<string, number>>({});
+  const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
 
   const sortedMembers = sortMembersByName(members);
   const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
@@ -681,6 +674,16 @@ export default function AdminPointsPage() {
                       members
                         .filter((m) => m.departmentId === dept.id)
                         .sort((a, b) => b.xpMonth - a.xpMonth)[0] || members[0];
+                    if (!candidate) {
+                      return (
+                        <tr key={dept.id} className="hover:bg-[#F8FAFD] transition-colors">
+                          <td className="py-3 px-4 font-bold text-slate-800">{dept.name}</td>
+                          <td colSpan={5} className="py-3 px-4 text-slate-400 italic">
+                            No members assigned to this department yet.
+                          </td>
+                        </tr>
+                      );
+                    }
                     const qualScore = qualitativeScores[candidate.id] ?? 92;
                     const isSelected = selectedMotmIds.includes(candidate.id);
 
@@ -910,7 +913,9 @@ export default function AdminPointsPage() {
               </div>
             </form>
           </div>
-        
+        </div>
+      )}
+
       {/* Create / Edit Point Rule Modal */}
       {ruleModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
@@ -1008,9 +1013,6 @@ export default function AdminPointsPage() {
             </form>
           </div>
         </div>
-      )}
-
-    </div>
       )}
     </>
   );

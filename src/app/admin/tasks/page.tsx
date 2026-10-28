@@ -92,10 +92,10 @@ export default function AdminTasksPage() {
   const [deadline, setDeadline] = useState("26 Oct 2026, 18:00");
   const [locationOrShift, setLocationOrShift] = useState("Faculty of Sciences · Lab A1");
   const [proposedScore, setProposedScore] = useState(25);
-  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>(["mem-ayoub"]);
+  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
 
   // Bulk Scoring state
-  const [bulkMemberIds, setBulkMemberIds] = useState<string[]>(["mem-ayoub", "mem-sara"]);
+  const [bulkMemberIds, setBulkMemberIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
   const [bulkPoints, setBulkPoints] = useState<number>(20);
   const [bulkReason, setBulkReason] = useState<string>(
     "Event Task Matrix completion — Workshop Logistics Shift"

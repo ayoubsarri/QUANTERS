@@ -19,40 +19,38 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const {
-    activeAdminRole,
-    currentMemberId,
-    members,
-    messages,
-    celebration,
-    triggerCelebration,
-    logout,
-  } = useQuantersStore();
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const members = useQuantersStore((s) => s.members);
+  const messages = useQuantersStore((s) => s.messages);
+  const celebration = useQuantersStore((s) => s.celebration);
+  const triggerCelebration = useQuantersStore((s) => s.triggerCelebration);
+  const logout = useQuantersStore((s) => s.logout);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dismissedMobileNotice, setDismissedMobileNotice] = useState(false);
 
-  const currentMember = members.find((m) => m.id === currentMemberId);
-  const hasAdminAccess =
-    currentMember?.roles.some((r) =>
-      [
-        "Super Admin",
-        "Executive",
-        "HR Head",
-        "Department Head",
-        "Co-Manager",
-        "KPI Viewer",
-        "Editor",
-      ].includes(r)
-    ) ||
-    [
-      "Super Admin",
-      "Executive",
-      "HR Head",
-      "Department Head",
-      "KPI Viewer",
-    ].includes(activeAdminRole);
+  const currentMember =
+    isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined;
+  const hasAdminAccess = Boolean(
+    isAuthenticated &&
+      currentMember &&
+      currentMember.roles.some((r) =>
+        [
+          "Super Admin",
+          "Executive",
+          "HR Head",
+          "Department Head",
+          "Co-Manager",
+          "KPI Viewer",
+          "Editor",
+        ].includes(r)
+      )
+  );
 
   if (!hasAdminAccess) {
     return (
@@ -63,18 +61,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div>
             <h1 className="font-display font-black text-lg text-white">
-              Admin Console Restricted
+              {!isAuthenticated || !currentMember
+                ? "Admin Authentication Required"
+                : "Admin Console Restricted"}
             </h1>
             <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              This console is reserved exclusively for Club Executives, HR Heads, and
-              Department Managers. You are currently signed in as a regular member.
+              {!isAuthenticated || !currentMember
+                ? "Please sign in with an authorized QUANTA Executive, HR Head, or Department Manager account to access the Admin Console."
+                : "This console is reserved exclusively for Club Executives, HR Heads, and Department Managers. You are currently signed in as a regular member."}
             </p>
           </div>
           <Link
-            href="/home"
+            href={!isAuthenticated || !currentMember ? "/welcome" : "/home"}
             className="inline-flex items-center justify-center w-full h-11 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:brightness-110 text-white text-xs font-display font-extrabold shadow-md transition"
           >
-            Return to Member App
+            {!isAuthenticated || !currentMember
+              ? "Sign In at Member Portal"
+              : "Return to Member App"}
           </Link>
         </div>
       </div>
@@ -176,6 +179,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="hidden sm:inline-flex items-center gap-1.5 bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] px-3 py-1.5 rounded-xl text-xs font-display font-extrabold">
               <ShieldCheck className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>{activeAdminRole}</span>
+              {activeAdminRole === "KPI Viewer" && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 ml-1 font-bold">
+                  Read Only
+                </span>
+              )}
             </div>
 
             {/* Member App Quick Switch */}

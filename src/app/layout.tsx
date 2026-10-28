@@ -5,9 +5,7 @@ import {
   Outfit,
   Syne,
   Instrument_Serif,
-  IBM_Plex_Sans_Arabic,
   JetBrains_Mono,
-  Caveat,
 } from "next/font/google";
 import "./globals.css";
 import { PwaOfflineManager } from "@/components/shared/PwaOfflineManager";
@@ -43,22 +41,10 @@ const serif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
-const arabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-arabic",
-  weight: ["400", "500", "600", "700"],
-});
-
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["500", "600", "700"],
-});
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-caveat",
-  weight: ["600", "700"],
 });
 
 export const viewport: Viewport = {
@@ -106,7 +92,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${syne.variable} ${display.variable} ${jakarta.variable} ${serif.variable} ${arabic.variable} ${mono.variable} ${caveat.variable}`}
+      className={`${outfit.variable} ${syne.variable} ${display.variable} ${jakarta.variable} ${serif.variable} ${mono.variable}`}
     >
       <body className="font-sans min-h-dvh flex flex-col bg-[#F4F7FB] text-[#09192F] selection:bg-[#FFE500] selection:text-[#09192F]">
         <PwaOfflineManager />

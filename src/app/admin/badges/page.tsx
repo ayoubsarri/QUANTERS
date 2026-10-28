@@ -7,6 +7,7 @@ import {
   BookOpen,
   Check,
   CheckCircle2,
+  Cloud,
   Clock,
   Code2,
   Copy,
@@ -25,7 +26,8 @@ import {
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { ALL_FIELD_ICONS, FieldIcon, FieldIconMeta } from "@/components/shared/FieldIcon";
+import { ALL_FIELD_ICONS, FieldIcon, FieldIconMeta, FIELD_CATEGORIES } from "@/components/shared/FieldIcon";
+import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import {
   Badge,
   BadgeCategory,
@@ -71,7 +73,12 @@ export default function AdminBadgesPage() {
   const members = useQuantersStore((s) => s.members);
   const badgeCategories = useQuantersStore((s) => s.badgeCategories);
   const addBadgeCategory = useQuantersStore((s) => s.addBadgeCategory);
+  const updateBadgeCategory = useQuantersStore((s) => s.updateBadgeCategory);
   const deleteBadgeCategory = useQuantersStore((s) => s.deleteBadgeCategory);
+  const projectCategories = useQuantersStore((s) => s.projectCategories);
+  const addProjectCategory = useQuantersStore((s) => s.addProjectCategory);
+  const deleteProjectCategory = useQuantersStore((s) => s.deleteProjectCategory);
+  const updateProjectCategory = useQuantersStore((s) => s.updateProjectCategory);
 
   const createBadge = useQuantersStore((s) => s.createBadge);
   const updateBadge = useQuantersStore((s) => s.updateBadge);
@@ -88,7 +95,12 @@ export default function AdminBadgesPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [requirementFilter, setRequirementFilter] = useState<string>("All");
   const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
+  const [newProjectCategoryInput, setNewProjectCategoryInput] = useState("");
+  const [editingProjectCategory, setEditingProjectCategory] = useState<string | null>(null);
+  const [editProjectCategoryVal, setEditProjectCategoryVal] = useState("");
   const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [editingBadgeCatName, setEditingBadgeCatName] = useState<string | null>(null);
+  const [editBadgeCatValue, setEditBadgeCatValue] = useState<string>("");
   const [banner, setBanner] = useState<string | null>(null);
 
   // --- BADGE CREATION MODAL STATE ---
@@ -121,12 +133,12 @@ export default function AdminBadgesPage() {
 
   // --- MANUAL ASSIGN STATE ---
   const [assigningBadge, setAssigningBadge] = useState<Badge | null>(null);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(["mem-ayoub"]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
   const [assignReason, setAssignReason] = useState("Demonstrated deep practical proficiency in laboratory workshops.");
 
   // --- REVOKE STATE ---
   const [revokingBadge, setRevokingBadge] = useState<Badge | null>(null);
-  const [revokeMemberId, setRevokeMemberId] = useState<string>(members[0]?.id || "mem-ayoub");
+  const [revokeMemberId, setRevokeMemberId] = useState<string>(members[0]?.id || "");
   const [revokeReason, setRevokeReason] = useState("");
 
   // --- EXAMS MANAGER STATE ---
@@ -136,6 +148,9 @@ export default function AdminBadgesPage() {
   const [examTitle, setExamTitle] = useState("");
   const [examBadgeId, setExamBadgeId] = useState(badges[0]?.id || "");
   const [examCategory, setExamCategory] = useState<BadgeCategory>("Science");
+  const [examIcon, setExamIcon] = useState<string>("astronomy");
+  const [examIconCategoryFilter, setExamIconCategoryFilter] = useState<string>("All");
+  const [examIconSearch, setExamIconSearch] = useState<string>("");
   const [examLevel, setExamLevel] = useState<WorkshopLevel>("Beginner");
   const [examXpReward, setExamXpReward] = useState(100);
   const [examDuration, setExamDuration] = useState(60);
@@ -311,6 +326,7 @@ export default function AdminBadgesPage() {
     setExamTitle("");
     setExamBadgeId(badges[0]?.id || "");
     setExamCategory("Science");
+    setExamIcon("astronomy");
     setExamLevel("Beginner");
     setExamXpReward(100);
     setExamDuration(60);
@@ -332,6 +348,7 @@ export default function AdminBadgesPage() {
     setExamTitle(exam.title);
     setExamBadgeId(exam.badgeId);
     setExamCategory(exam.category || "Science");
+    setExamIcon(exam.iconName || "astronomy");
     setExamLevel(exam.level);
     setExamXpReward(exam.xpReward);
     setExamDuration(exam.durationMinutes);
@@ -350,6 +367,7 @@ export default function AdminBadgesPage() {
         title: examTitle.trim(),
         badgeId: examBadgeId,
         category: examCategory,
+        iconName: examIcon,
         level: examLevel,
         xpReward: examXpReward,
         durationMinutes: examDuration,
@@ -361,9 +379,10 @@ export default function AdminBadgesPage() {
       setBanner(`Updated exam '${examTitle}' with ${examQuestions.length} questions!`);
     } else {
       createBadgeExam({
-        badgeId: examBadgeId,
+        badgeId: examBadgeId || "badge-standalone",
         title: examTitle.trim(),
         category: examCategory,
+        iconName: examIcon,
         level: examLevel,
         xpReward: examXpReward,
         durationMinutes: examDuration,
@@ -494,6 +513,23 @@ export default function AdminBadgesPage() {
   const selectedBadgeIconMeta = useMemo(() => {
     return ALL_FIELD_ICONS.find((f) => f.key === newBadgeIcon) || ALL_FIELD_ICONS[0];
   }, [newBadgeIcon]);
+
+  const filteredExamIcons = useMemo(() => {
+    return ALL_FIELD_ICONS.filter((f) => {
+      const matchesCategory =
+        examIconCategoryFilter === "All" || f.category === examIconCategoryFilter;
+      const matchesSearch =
+        !examIconSearch ||
+        f.label.toLowerCase().includes(examIconSearch.toLowerCase()) ||
+        f.code.toLowerCase().includes(examIconSearch.toLowerCase()) ||
+        f.key.toLowerCase().includes(examIconSearch.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [examIconCategoryFilter, examIconSearch]);
+
+  const selectedExamIconMeta = useMemo(() => {
+    return ALL_FIELD_ICONS.find((f) => f.key === examIcon) || ALL_FIELD_ICONS[0];
+  }, [examIcon]);
 
   return (
     <div className="space-y-6">
@@ -650,6 +686,25 @@ export default function AdminBadgesPage() {
           </div>
 
           {/* Badges Grid */}
+          {filteredBadges.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200/90 p-10 text-center space-y-2.5">
+              <Award className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-sm font-extrabold text-[#0F1E36]">
+                No Badges in Library Yet
+              </p>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Create verifiable badges across 69 STEM, coding, leadership, and club activity icons.
+              </p>
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:bg-[#101F38] transition cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span>Create First Badge</span>
+              </button>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
             {filteredBadges.map((badge) => {
               const canHardDelete = badge.awardedCount === 0;
@@ -729,7 +784,7 @@ export default function AdminBadgesPage() {
                       type="button"
                       onClick={() => {
                         setAssigningBadge(badge);
-                        setSelectedMemberIds(["mem-ayoub"]);
+                        setSelectedMemberIds(members[0]?.id ? [members[0].id] : []);
                       }}
                       className="col-span-2 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[11px] font-bold transition cursor-pointer"
                     >
@@ -775,6 +830,7 @@ export default function AdminBadgesPage() {
               );
             })}
           </div>
+          )}
         </div>
       )}
 
@@ -810,6 +866,25 @@ export default function AdminBadgesPage() {
           </div>
 
           {/* Exams Cards Grid */}
+          {filteredExams.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200/90 p-10 text-center space-y-2.5">
+              <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-sm font-extrabold text-[#0F1E36]">
+                No Online Exams Created Yet
+              </p>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Build timed MCQ online assessments with custom categories, icons, and question banks.
+              </p>
+              <button
+                type="button"
+                onClick={openCreateExamModal}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:bg-[#101F38] transition cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span>Create First Online Exam</span>
+              </button>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredExams.map((ex) => {
               const linkedBadge = badges.find((b) => b.id === ex.badgeId);
@@ -903,12 +978,136 @@ export default function AdminBadgesPage() {
               );
             })}
           </div>
+          )}
         </div>
       )}
 
       {/* TAB 3: PROJECT SUBMISSIONS */}
       {activeTab === "projects" && (
-        <div className="space-y-3.5">
+        <div className="space-y-4">
+          {/* Project Categories Manager Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <FolderGit2 className="w-4 h-4 text-[#0284C7]" />
+                  <h3 className="font-extrabold text-sm text-[#0F1E36]">
+                    Project Categories Manager
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure submission categories available to members in the mobile Project Submission desk.
+                </p>
+              </div>
+
+              {/* Add Category Form */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newProjectCategoryInput}
+                  onChange={(e) => setNewProjectCategoryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newProjectCategoryInput.trim()) {
+                      e.preventDefault();
+                      addProjectCategory(newProjectCategoryInput.trim());
+                      setBanner(`Added project category '${newProjectCategoryInput.trim()}'.`);
+                      setNewProjectCategoryInput("");
+                    }
+                  }}
+                  placeholder="New category name..."
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs w-44 sm:w-52 focus:outline-none focus:border-[#182C4E]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newProjectCategoryInput.trim()) {
+                      addProjectCategory(newProjectCategoryInput.trim());
+                      setBanner(`Added project category '${newProjectCategoryInput.trim()}'.`);
+                      setNewProjectCategoryInput("");
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-xs font-bold transition cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5 inline mr-1" />
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Category Chips List */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+              {projectCategories.map((cat) => (
+                <div
+                  key={cat}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200/90 text-xs font-bold text-slate-800"
+                >
+                  {editingProjectCategory === cat ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={editProjectCategoryVal}
+                        onChange={(e) => setEditProjectCategoryVal(e.target.value)}
+                        className="px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-semibold w-32"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editProjectCategoryVal.trim() && editProjectCategoryVal.trim() !== cat) {
+                            updateProjectCategory(cat, editProjectCategoryVal.trim());
+                            setBanner(`Updated category '${cat}' to '${editProjectCategoryVal.trim()}'.`);
+                          }
+                          setEditingProjectCategory(null);
+                        }}
+                        className="p-1 hover:text-emerald-700 text-emerald-600 cursor-pointer"
+                        title="Save rename"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProjectCategory(null)}
+                        className="p-1 hover:text-slate-700 text-slate-400 cursor-pointer"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{cat}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingProjectCategory(cat);
+                          setEditProjectCategoryVal(cat);
+                        }}
+                        className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
+                        title="Edit category name"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      {projectCategories.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Delete project category '${cat}'?`)) {
+                              deleteProjectCategory(cat);
+                              setBanner(`Deleted project category '${cat}'.`);
+                            }
+                          }}
+                          className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5"
+                          title="Delete category"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
           {projectSubmissions.map((sub) => (
             <div
               key={sub.id}
@@ -918,6 +1117,9 @@ export default function AdminBadgesPage() {
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-[#0284C7] border border-sky-200/80">
                     Target Badge: {sub.badgeTitle}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    Category: {sub.category}
                   </span>
                   <span
                     className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
@@ -945,17 +1147,32 @@ export default function AdminBadgesPage() {
                 </p>
               </div>
 
-              {sub.repoUrl && (
-                <a
-                  href={sub.repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#0284C7] hover:underline"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  <span>{sub.repoUrl}</span>
-                </a>
-              )}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {sanitizeExternalUrl(sub.driveUrl) && (
+                  <a
+                    href={sanitizeExternalUrl(sub.driveUrl)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-medium text-blue-800 hover:bg-blue-100 transition"
+                  >
+                    <Cloud className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Cloud / Google Drive Deliverables</span>
+                    <ExternalLink className="w-3 h-3 opacity-75" />
+                  </a>
+                )}
+                {sanitizeExternalUrl(sub.repoUrl) && (
+                  <a
+                    href={sanitizeExternalUrl(sub.repoUrl)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono font-medium text-slate-800 hover:bg-slate-200 transition"
+                  >
+                    <FolderGit2 className="w-3.5 h-3.5 text-slate-600" />
+                    <span>GitHub / Repo: {sub.repoUrl}</span>
+                    <ExternalLink className="w-3 h-3 opacity-75" />
+                  </a>
+                )}
+              </div>
 
               {/* Reviewer Comment & Grading Controls */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
@@ -1050,9 +1267,18 @@ export default function AdminBadgesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Category
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setManageCategoriesOpen(true)}
+                      className="text-[10.5px] font-extrabold text-[#0284C7] hover:underline cursor-pointer"
+                    >
+                      Manage
+                    </button>
+                  </div>
                   <select
                     value={newBadgeCategory}
                     onChange={(e) => setNewBadgeCategory(e.target.value as BadgeCategory)}
@@ -1175,16 +1401,7 @@ export default function AdminBadgesPage() {
                 {/* Category Pills & Search */}
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
-                    {(
-                      [
-                        "All",
-                        "Software & Tech",
-                        "Engineering & Hardware",
-                        "Science & Research",
-                        "Creative & Media",
-                        "Leadership & Operations",
-                      ] as const
-                    ).map((cat) => (
+                    {([ "All", ...FIELD_CATEGORIES ] as const).map((cat) => (
                       <button
                         key={cat}
                         type="button"
@@ -1318,9 +1535,18 @@ export default function AdminBadgesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Category
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setManageCategoriesOpen(true)}
+                      className="text-[10.5px] font-extrabold text-[#0284C7] hover:underline cursor-pointer"
+                    >
+                      Manage
+                    </button>
+                  </div>
                   <select
                     value={editBadgeCategory}
                     onChange={(e) => setEditBadgeCategory(e.target.value as BadgeCategory)}
@@ -1461,7 +1687,7 @@ export default function AdminBadgesPage() {
 
             <form onSubmit={handleExamSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* General Exam Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Exam Title *
@@ -1477,14 +1703,41 @@ export default function AdminBadgesPage() {
                 </div>
 
                 <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Category *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setManageCategoriesOpen(true)}
+                      className="text-[10.5px] font-extrabold text-[#0284C7] hover:underline cursor-pointer"
+                    >
+                      Manage
+                    </button>
+                  </div>
+                  <select
+                    value={examCategory}
+                    onChange={(e) => setExamCategory(e.target.value as BadgeCategory)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200 rounded-xl font-bold"
+                  >
+                    {badgeCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Linked Target Badge *
+                    Linked Target Badge
                   </label>
                   <select
                     value={examBadgeId}
                     onChange={(e) => setExamBadgeId(e.target.value)}
                     className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200 rounded-xl font-bold"
                   >
+                    <option value="">-- Standalone Assessment / Link Later --</option>
                     {badges.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name} (+{b.xpReward} XP)
@@ -1494,7 +1747,7 @@ export default function AdminBadgesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Level
@@ -1540,6 +1793,20 @@ export default function AdminBadgesPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Max Attempts
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={examMaxAttempts}
+                    onChange={(e) => setExamMaxAttempts(Number(e.target.value))}
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200 rounded-xl font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     XP Reward
                   </label>
                   <input
@@ -1550,6 +1817,83 @@ export default function AdminBadgesPage() {
                     onChange={(e) => setExamXpReward(Number(e.target.value))}
                     className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200 rounded-xl font-mono font-bold"
                   />
+                </div>
+              </div>
+
+              {/* Exam Icon & Domain Picker */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Exam Icon &amp; Scientific Domain
+                  </label>
+                  {selectedExamIconMeta && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 border border-sky-200/90 text-xs font-bold text-[#0284C7] shadow-2xs">
+                      <div className={`w-4 h-4 rounded-md ${selectedExamIconMeta.bgTint} ${selectedExamIconMeta.textColor} flex items-center justify-center shrink-0`}>
+                        <FieldIcon field={selectedExamIconMeta.key} size={12} colored />
+                      </div>
+                      <span className="font-semibold text-slate-800">{selectedExamIconMeta.label}</span>
+                      <span className="text-[10px] font-mono text-sky-500">({selectedExamIconMeta.code})</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                    {([ "All", ...FIELD_CATEGORIES ] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setExamIconCategoryFilter(cat)}
+                        className={`px-2 py-0.5 rounded-lg font-medium whitespace-nowrap transition cursor-pointer ${
+                          examIconCategoryFilter === cat
+                            ? "bg-[#182C4E] text-white shadow-2xs"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {cat === "All" ? `All (${ALL_FIELD_ICONS.length})` : cat.split(" & ")[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={examIconSearch}
+                    onChange={(e) => setExamIconSearch(e.target.value)}
+                    placeholder="Search icon..."
+                    className="w-28 sm:w-36 px-2 py-0.5 text-[11px] bg-white border border-slate-200/90 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0284C7]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-2 rounded-xl bg-[#F8FAFC] border border-slate-200/90 max-h-36 overflow-y-auto">
+                  {filteredExamIcons.map((f: FieldIconMeta) => {
+                    const isSelected = examIcon === f.key || examIcon === f.label;
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => setExamIcon(f.key)}
+                        className={`flex items-center gap-2 p-1.5 rounded-xl border text-left transition cursor-pointer ${
+                          isSelected
+                            ? "bg-white border-[#0284C7] ring-2 ring-[#0284C7]/20 shadow-2xs"
+                            : "bg-white/80 border-slate-200/80 hover:bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-lg ${f.bgTint} ${f.textColor} border ${f.borderColor} flex items-center justify-center shrink-0`}
+                        >
+                          <FieldIcon field={f.key} size={13} colored />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[11px] font-bold truncate text-slate-800">
+                            {f.label}
+                          </div>
+                          <div className="text-[9px] font-mono text-slate-400 truncate">
+                            {f.code}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1935,21 +2279,76 @@ export default function AdminBadgesPage() {
               </button>
             </div>
 
-            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
               {badgeCategories.map((cat) => (
                 <div
                   key={cat}
-                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
+                  className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
                 >
-                  <span className="font-bold text-slate-800">{cat}</span>
-                  {badgeCategories.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => deleteBadgeCategory(cat)}
-                      className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition cursor-pointer"
-                    >
-                      Delete
-                    </button>
+                  {editingBadgeCatName === cat ? (
+                    <div className="flex items-center gap-1.5 flex-1">
+                      <input
+                        type="text"
+                        value={editBadgeCatValue}
+                        onChange={(e) => setEditBadgeCatValue(e.target.value)}
+                        className="flex-1 px-2.5 py-1 rounded-lg border border-[#0284C7] bg-white text-xs font-bold"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editBadgeCatValue.trim() && editBadgeCatValue.trim() !== cat) {
+                            updateBadgeCategory(cat, editBadgeCatValue.trim());
+                            if (newBadgeCategory === cat) setNewBadgeCategory(editBadgeCatValue.trim());
+                            if (editBadgeCategory === cat) setEditBadgeCategory(editBadgeCatValue.trim());
+                            if (examCategory === cat) setExamCategory(editBadgeCatValue.trim());
+                            setBanner(`Renamed badge category '${cat}' to '${editBadgeCatValue.trim()}'.`);
+                          }
+                          setEditingBadgeCatName(null);
+                        }}
+                        className="p-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+                        title="Save Rename"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingBadgeCatName(null)}
+                        className="p-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 cursor-pointer"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-bold text-slate-800">{cat}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingBadgeCatName(cat);
+                            setEditBadgeCatValue(cat);
+                          }}
+                          className="px-2 py-0.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[11px] inline-flex items-center gap-1 transition cursor-pointer"
+                        >
+                          <Pencil className="w-3 h-3 text-[#0284C7]" />
+                          <span>Edit</span>
+                        </button>
+                        {badgeCategories.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              deleteBadgeCategory(cat);
+                              setBanner(`Deleted badge category '${cat}'.`);
+                            }}
+                            className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               ))}

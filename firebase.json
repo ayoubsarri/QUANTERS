@@ -1,18 +1,19 @@
 {
   "firestore": {
+    "database": "(default)",
+    "location": "eur3",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "source": ".",
+    "site": "quanters",
+    "public": "out",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "frameworksBackend": {
-      "region": "europe-west1"
-    },
     "headers": [
       {
         "source": "**",
@@ -44,6 +45,14 @@
           {
             "key": "Strict-Transport-Security",
             "value": "max-age=63072000; includeSubDomains; preload"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.google.com wss://*.firebaseio.com; img-src 'self' data: blob: https:; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self';"
+          },
+          {
+            "key": "Cross-Origin-Resource-Policy",
+            "value": "same-origin"
           }
         ]
       },
@@ -68,6 +77,28 @@
             "value": "/"
           }
         ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/admin/members/*.txt",
+        "destination": "/admin/members/member.txt"
+      },
+      {
+        "source": "/admin/members/**",
+        "destination": "/admin/members/member.html"
+      },
+      {
+        "source": "/exams/*.txt",
+        "destination": "/exams/exam.txt"
+      },
+      {
+        "source": "/exams/**",
+        "destination": "/exams/exam.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }

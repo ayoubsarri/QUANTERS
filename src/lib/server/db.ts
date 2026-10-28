@@ -11,6 +11,8 @@ import {
   SEED_ACCESS_GRANTS,
   SEED_AUDIT_LOGS,
   SEED_BADGES,
+  SEED_DAILY_QUOTES_365,
+  SEED_DAILY_QUIZZES,
   SEED_DEPARTMENTS,
   SEED_EXAMS,
   SEED_EXPLORE_POSTS,
@@ -41,6 +43,8 @@ export type ErpCollectionKey =
   | "projectSubmissions"
   | "proposals"
   | "explorePosts"
+  | "dailyQuizzes"
+  | "dailyQuotes"
   | "messages"
   | "invitations"
   | "accessGrants"
@@ -69,6 +73,8 @@ export interface ErpDatabaseSnapshot {
   projectSubmissions: typeof SEED_PROJECT_SUBMISSIONS;
   proposals: typeof SEED_PROPOSALS;
   explorePosts: typeof SEED_EXPLORE_POSTS;
+  dailyQuizzes: typeof SEED_DAILY_QUIZZES;
+  dailyQuotes: typeof SEED_DAILY_QUOTES_365;
   messages: typeof SEED_MESSAGES;
   invitations: typeof SEED_INVITATIONS;
   accessGrants: typeof SEED_ACCESS_GRANTS;
@@ -79,11 +85,87 @@ export interface ErpDatabaseSnapshot {
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "quanters-db.json");
+const DB_VERSION = "4.3.0";
 
 let memoryCache: ErpDatabaseSnapshot | null = null;
+let lastFileMtimeMs = 0;
+
+export function sanitizeSnapshotForClient(
+  snapshot: ErpDatabaseSnapshot,
+  isPrivileged = false
+): ErpDatabaseSnapshot {
+  return {
+    ...snapshot,
+    grievances: isPrivileged ? snapshot.grievances : [],
+    ledger: isPrivileged ? snapshot.ledger : [],
+    invitations: isPrivileged ? snapshot.invitations : [],
+    accessGrants: isPrivileged ? snapshot.accessGrants : [],
+    auditLogs: isPrivileged ? snapshot.auditLogs : [],
+    exams: (snapshot.exams || []).map((exam) => ({
+      ...exam,
+      questions: (exam.questions || []).map((q) => {
+        if (isPrivileged) return q;
+        const { correctIndex, ...safeQ } = q;
+        return safeQ;
+      }),
+    })),
+    dailyQuizzes: (snapshot.dailyQuizzes || []).map((quiz) => {
+      if (isPrivileged) return quiz;
+      const { correctId, explanation, ...safeQuiz } = quiz;
+      return safeQuiz;
+    }),
+    members: (snapshot.members || []).map((m) => {
+      if (!m || typeof m !== "object") return m;
+      const {
+        password,
+        passwordHash,
+        phone,
+        wilaya,
+        commune,
+        housingType,
+        commuteTime,
+        canStayLate,
+        availability,
+        outsideActivitiesAndVolunteering,
+        declaresOtherStudentOrg,
+        resignationReason,
+        removalReason,
+        traineeEvaluation,
+        ...clean
+      } = m as unknown as Record<string, unknown>;
+      if (isPrivileged) {
+        return {
+          ...clean,
+          phone,
+          wilaya,
+          commune,
+          housingType,
+          commuteTime,
+          canStayLate,
+          availability,
+          outsideActivitiesAndVolunteering,
+          declaresOtherStudentOrg,
+          resignationReason,
+          removalReason,
+          traineeEvaluation,
+        } as unknown as typeof m;
+      }
+      return clean as unknown as typeof m;
+    }),
+    settings: {
+      ...snapshot.settings,
+      archivedMembers: isPrivileged
+        ? (snapshot.settings?.archivedMembers || []).map((m) => {
+            if (!m || typeof m !== "object") return m;
+            const { password, passwordHash, ...clean } = m as unknown as Record<string, unknown>;
+            return clean as unknown as typeof m;
+          })
+        : [],
+    },
+  };
+}
 
 export const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
-  "departments",
   "teams",
   "members",
   "workshops",
@@ -95,6 +177,8 @@ export const ALLOWED_ARRAY_KEYS: (keyof ErpDatabaseSnapshot)[] = [
   "projectSubmissions",
   "proposals",
   "explorePosts",
+  "dailyQuizzes",
+  "dailyQuotes",
   "messages",
   "invitations",
   "accessGrants",
@@ -113,7 +197,7 @@ function buildInitialCollectionVersions(stamp: string): Record<string, string> {
 function createInitialSnapshot(): ErpDatabaseSnapshot {
   const now = new Date().toISOString();
   return {
-    version: "3.2.0",
+    version: DB_VERSION,
     updatedAt: now,
     collectionVersions: buildInitialCollectionVersions(now),
     departments: SEED_DEPARTMENTS,
@@ -128,6 +212,8 @@ function createInitialSnapshot(): ErpDatabaseSnapshot {
     projectSubmissions: SEED_PROJECT_SUBMISSIONS,
     proposals: SEED_PROPOSALS,
     explorePosts: SEED_EXPLORE_POSTS,
+    dailyQuizzes: SEED_DAILY_QUIZZES,
+    dailyQuotes: SEED_DAILY_QUOTES_365,
     messages: SEED_MESSAGES.map((m) => ({
       ...m,
       archived: m.archived ?? !m.unread,
@@ -140,7 +226,7 @@ function createInitialSnapshot(): ErpDatabaseSnapshot {
   };
 }
 
-export function readErpDatabase(): {
+export function readErpDatabase(isPrivileged = false): {
   snapshot: ErpDatabaseSnapshot;
   telemetry: {
     dbSizeBytes: number;
@@ -157,21 +243,37 @@ export function readErpDatabase(): {
     if (!fs.existsSync(DB_FILE)) {
       const initial = createInitialSnapshot();
       fs.writeFileSync(DB_FILE, JSON.stringify(initial), "utf-8");
+      try {
+        lastFileMtimeMs = fs.statSync(DB_FILE).mtimeMs;
+      } catch {}
       memoryCache = initial;
-    } else if (!memoryCache) {
-      const raw = fs.readFileSync(DB_FILE, "utf-8");
-      const parsed = JSON.parse(raw) as ErpDatabaseSnapshot;
-      if (parsed.version !== "3.2.0" && parsed.version !== "3.0.0") {
-        const fresh = createInitialSnapshot();
-        fs.writeFileSync(DB_FILE, JSON.stringify(fresh), "utf-8");
-        memoryCache = fresh;
-      } else {
-        if (!parsed.collectionVersions) {
-          parsed.collectionVersions = buildInitialCollectionVersions(
-            parsed.updatedAt || new Date().toISOString()
-          );
+    } else {
+      let fileMtime = 0;
+      try {
+        fileMtime = fs.statSync(DB_FILE).mtimeMs;
+      } catch {}
+      if (!memoryCache || fileMtime > lastFileMtimeMs) {
+        const raw = fs.readFileSync(DB_FILE, "utf-8");
+        const parsed = JSON.parse(raw) as ErpDatabaseSnapshot;
+        lastFileMtimeMs = fileMtime;
+        if (parsed.version !== DB_VERSION) {
+          const fresh = createInitialSnapshot();
+          fs.writeFileSync(DB_FILE, JSON.stringify(fresh), "utf-8");
+          try {
+            lastFileMtimeMs = fs.statSync(DB_FILE).mtimeMs;
+          } catch {}
+          memoryCache = fresh;
+        } else {
+          if (!parsed.collectionVersions) {
+            parsed.collectionVersions = buildInitialCollectionVersions(
+              parsed.updatedAt || new Date().toISOString()
+            );
+          }
+          if (!Array.isArray(parsed.dailyQuizzes)) {
+            parsed.dailyQuizzes = SEED_DAILY_QUIZZES;
+          }
+          memoryCache = parsed;
         }
-        memoryCache = parsed;
       }
     }
   } catch {
@@ -191,7 +293,7 @@ export function readErpDatabase(): {
       dbSizeBytes = Buffer.byteLength(JSON.stringify(snapshot), "utf-8");
     }
   } catch {
-    dbSizeBytes = 48000;
+    dbSizeBytes = 12000;
   }
 
   const dbSizeKB = Math.round((dbSizeBytes / 1024) * 10) / 10;
@@ -203,7 +305,7 @@ export function readErpDatabase(): {
   );
 
   return {
-    snapshot,
+    snapshot: sanitizeSnapshotForClient(snapshot, isPrivileged),
     telemetry: {
       dbSizeBytes,
       dbSizeKB,
@@ -219,14 +321,15 @@ export function readErpDatabase(): {
  * Reduces read payload and quota consumption to the exact updated slices.
  */
 export function computeDeltaErpDatabase(
-  clientVersions?: Record<string, string> | null
+  clientVersions?: Record<string, string> | null,
+  isPrivileged = false
 ): {
   changedKeys: string[];
   delta: Partial<ErpDatabaseSnapshot>;
   collectionVersions: Record<string, string>;
   updatedAt: string;
 } {
-  const { snapshot } = readErpDatabase();
+  const { snapshot } = readErpDatabase(isPrivileged);
   const serverVersions =
     snapshot.collectionVersions || buildInitialCollectionVersions(snapshot.updatedAt);
 
@@ -270,12 +373,13 @@ export function computeDeltaErpDatabase(
 
 export function writeErpDatabase(
   partial: Partial<ErpDatabaseSnapshot>,
-  itemDeltas?: Record<string, ItemDeltaPatch>
+  itemDeltas?: Record<string, ItemDeltaPatch>,
+  isPrivileged = false
 ): {
   snapshot: ErpDatabaseSnapshot;
   changedKeys: string[];
 } {
-  const current = readErpDatabase().snapshot;
+  const current = readErpDatabase(isPrivileged).snapshot;
   const now = new Date().toISOString();
   const nextVersions: Record<string, string> = {
     ...(current.collectionVersions || buildInitialCollectionVersions(current.updatedAt)),
@@ -283,10 +387,21 @@ export function writeErpDatabase(
   const sanitized: Partial<ErpDatabaseSnapshot> = {};
   const changedKeys: string[] = [];
 
+  const PRIVILEGED_KEYS = new Set([
+    "settings",
+    "accessGrants",
+    "pointRules",
+    "ledger",
+    "departments",
+    "grievances",
+    "auditLogs",
+  ]);
+
   // 1. Apply granular item-level deltas first (upserted & deletedIds by item.id)
   if (itemDeltas && typeof itemDeltas === "object" && !Array.isArray(itemDeltas)) {
     for (const key of ALLOWED_ARRAY_KEYS) {
       const kStr = String(key);
+      if (!isPrivileged && PRIVILEGED_KEYS.has(kStr)) continue;
       const patch = itemDeltas[kStr];
       if (!patch || typeof patch !== "object") continue;
 
@@ -325,7 +440,6 @@ export function writeErpDatabase(
           if (typeof id !== "string") continue;
 
           if (key === "auditLogs" && indexMap.has(id)) {
-            // Audit log entries are immutable once created
             continue;
           }
 
@@ -355,11 +469,12 @@ export function writeErpDatabase(
     }
   }
 
-  // 2. Apply any full-collection replacements (only marking changed if serialized content differs)
+  // 2. Apply any full-collection replacements
   if (partial && typeof partial === "object" && !Array.isArray(partial)) {
     for (const key of ALLOWED_ARRAY_KEYS) {
       const kStr = String(key);
-      if (changedKeys.includes(kStr)) continue; // already patched via itemDeltas
+      if (!isPrivileged && PRIVILEGED_KEYS.has(kStr)) continue;
+      if (changedKeys.includes(kStr)) continue;
       const incoming = partial[key];
       if (Array.isArray(incoming)) {
         if (key === "auditLogs") {
@@ -389,6 +504,7 @@ export function writeErpDatabase(
     }
 
     if (
+      isPrivileged &&
       partial.settings &&
       typeof partial.settings === "object" &&
       !Array.isArray(partial.settings)
@@ -427,20 +543,43 @@ export function writeErpDatabase(
   const next: ErpDatabaseSnapshot = {
     ...current,
     ...sanitized,
-    version: "3.2.0",
+    version: DB_VERSION,
     updatedAt: now,
     collectionVersions: nextVersions,
   };
+  if (Array.isArray(next.members)) {
+    next.members = next.members.map((m) => {
+      if (!m || typeof m !== "object") return m;
+      const { password: _strippedPassword, passwordHash: _strippedHash, ...clean } = m as unknown as Record<string, unknown>;
+      return clean as unknown as typeof m;
+    });
+  }
+  if (next.settings && Array.isArray(next.settings.archivedMembers)) {
+    next.settings.archivedMembers = next.settings.archivedMembers.map((m) => {
+      if (!m || typeof m !== "object") return m;
+      const { password: _strippedPassword, passwordHash: _strippedHash, ...clean } = m as unknown as Record<string, unknown>;
+      return clean as unknown as typeof m;
+    });
+  }
+  if (Array.isArray(next.auditLogs) && next.auditLogs.length > 500) {
+    next.auditLogs = next.auditLogs.slice(0, 500);
+  }
+  if (Array.isArray(next.ledger) && next.ledger.length > 600) {
+    next.ledger = next.ledger.slice(0, 600);
+  }
   memoryCache = next;
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
-    const tmpFile = `${DB_FILE}.tmp`;
+    const tmpFile = `${DB_FILE}.${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`;
     fs.writeFileSync(tmpFile, JSON.stringify(next), "utf-8");
     fs.renameSync(tmpFile, DB_FILE);
+    try {
+      lastFileMtimeMs = fs.statSync(DB_FILE).mtimeMs;
+    } catch {}
   } catch {
-    // Fallback if file system is read-only in serverless edge
+    // Fallback if file system is read-only
   }
-  return { snapshot: next, changedKeys };
+  return { snapshot: sanitizeSnapshotForClient(next), changedKeys };
 }

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import {
   computeDeltaErpDatabase,
+  ItemDeltaPatch,
   readErpDatabase,
+  sanitizeSnapshotForClient,
   writeErpDatabase,
 } from "@/lib/server/db";
 
@@ -31,6 +34,21 @@ function hasPrototypePollutionKeys(value: unknown, depth = 0): boolean {
 
 function checkRateLimit(clientKey: string): boolean {
   const now = Date.now();
+
+  // Periodic eviction of expired records to prevent unbounded memory growth (DoS)
+  if (writeRateMap.size > 2000) {
+    for (const [k, v] of writeRateMap.entries()) {
+      if (now > v.resetAt) {
+        writeRateMap.delete(k);
+      }
+    }
+    // Hard cap on rate map size (FIFO eviction) if still oversized
+    if (writeRateMap.size > 5000) {
+      const keysToDelete = Array.from(writeRateMap.keys()).slice(0, 1000);
+      for (const k of keysToDelete) writeRateMap.delete(k);
+    }
+  }
+
   const entry = writeRateMap.get(clientKey);
   if (!entry || now > entry.resetAt) {
     writeRateMap.set(clientKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
@@ -38,6 +56,25 @@ function checkRateLimit(clientKey: string): boolean {
   }
   entry.count += 1;
   return entry.count <= RATE_LIMIT_MAX_WRITES;
+}
+
+function isPrivilegedRequest(req: NextRequest): boolean {
+  const secret = process.env.QUANTERS_ADMIN_SECRET;
+  if (!secret || secret.trim().length < 16 || secret === "undefined") {
+    return false;
+  }
+  const authHeader = req.headers.get("authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (token.length === secret.length) {
+      try {
+        return crypto.timingSafeEqual(Buffer.from(token, "utf-8"), Buffer.from(secret, "utf-8"));
+      } catch {
+        return false;
+      }
+    }
+  }
+  return false;
 }
 
 function computeQuotaTelemetry(
@@ -64,7 +101,9 @@ function computeQuotaTelemetry(
 }
 
 export async function GET(req: NextRequest) {
-  const { snapshot, telemetry } = readErpDatabase();
+  const isPrivileged = isPrivilegedRequest(req);
+  const { snapshot: rawSnapshot, telemetry } = readErpDatabase();
+  const snapshot = sanitizeSnapshotForClient(rawSnapshot, isPrivileged);
   const etag = `W/"${snapshot.updatedAt}-${telemetry.dbSizeBytes}"`;
   const ifNoneMatch = req.headers.get("if-none-match");
   const sinceParam = req.nextUrl.searchParams.get("since");
@@ -94,7 +133,7 @@ export async function GET(req: NextRequest) {
     try {
       const clientVersions = JSON.parse(versionsParam) as Record<string, string>;
       const { changedKeys, delta, collectionVersions, updatedAt } =
-        computeDeltaErpDatabase(clientVersions);
+        computeDeltaErpDatabase(clientVersions, isPrivileged);
 
       if (changedKeys.length === 0) {
         return new NextResponse(null, {
@@ -184,6 +223,22 @@ export async function POST(req: NextRequest) {
 
     const originHeader = req.headers.get("origin");
     const hostHeader = req.headers.get("host");
+
+    // If request lacks browser origin metadata, require authorization bearer token or admin secret
+    if (!originHeader && !secFetchSite) {
+      if (!isPrivilegedRequest(req)) {
+        return NextResponse.json(
+          {
+            type: "https://quanters.quanta.dz/problems/unauthorized",
+            title: "Authorization Required",
+            status: 401,
+            detail: "Direct API state mutations require valid authorization credentials.",
+          },
+          { status: 401 }
+        );
+      }
+    }
+
     if (originHeader && hostHeader) {
       try {
         const originHost = new URL(originHeader).host;
@@ -226,6 +281,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Payload Size Limit (DoS Protection)
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        {
+          type: "https://quanters.quanta.dz/problems/payload-too-large",
+          title: "Payload Too Large",
+          status: 413,
+          detail: `Request Content-Length exceeds 2 MB limit.`,
+        },
+        { status: 413 }
+      );
+    }
+
     const rawBody = await req.text();
     const byteLength = Buffer.byteLength(rawBody, "utf-8");
     if (byteLength > MAX_BODY_BYTES) {
@@ -240,51 +308,90 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Deep Prototype Pollution Guard
-    if (
-      rawBody.includes('"__proto__"') ||
-      rawBody.includes('"constructor"') ||
-      rawBody.includes('"prototype"')
-    ) {
-      const parsedCheck = JSON.parse(rawBody);
-      if (hasPrototypePollutionKeys(parsedCheck)) {
+    // 5. Safe Single-Pass JSON Parse & Deep Prototype Pollution Guard
+    let body: Record<string, unknown>;
+    try {
+      const parsed = JSON.parse(rawBody);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         return NextResponse.json(
           {
             type: "https://quanters.quanta.dz/problems/invalid-payload",
-            title: "Forbidden Prototype Key",
+            title: "Malformed JSON Object",
             status: 400,
-            detail: "Payload contains forbidden prototype pollution keys.",
+            detail: "Request body must be a valid JSON object.",
           },
           { status: 400 }
         );
       }
-    }
-
-    const body = JSON.parse(rawBody);
-    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      body = parsed as Record<string, unknown>;
+    } catch {
       return NextResponse.json(
         {
-          type: "https://quanters.quanta.dz/problems/invalid-payload",
-          title: "Malformed JSON Object",
+          type: "https://quanters.quanta.dz/problems/invalid-json",
+          title: "Malformed JSON",
           status: 400,
-          detail: "Request body must be a valid JSON object.",
+          detail: "Unable to parse request body as JSON.",
         },
         { status: 400 }
       );
     }
 
+    if (hasPrototypePollutionKeys(body)) {
+      return NextResponse.json(
+        {
+          type: "https://quanters.quanta.dz/problems/invalid-payload",
+          title: "Forbidden Prototype Key",
+          status: 400,
+          detail: "Payload contains forbidden prototype pollution keys.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const isPrivileged = isPrivilegedRequest(req);
+    const PRIVILEGED_MUTATION_KEYS = [
+      "settings",
+      "accessGrants",
+      "pointRules",
+      "ledger",
+      "departments",
+      "grievances",
+      "auditLogs",
+    ];
+
     const payload = body.data && typeof body.data === "object" ? body.data : {};
     const itemDeltas =
       body.itemDeltas && typeof body.itemDeltas === "object"
-        ? body.itemDeltas
+        ? (body.itemDeltas as Record<string, ItemDeltaPatch>)
         : undefined;
     const clientVersions =
       body.clientVersions && typeof body.clientVersions === "object"
         ? (body.clientVersions as Record<string, string>)
         : undefined;
 
-    const { snapshot: updated, changedKeys } = writeErpDatabase(payload, itemDeltas);
-    const { telemetry } = readErpDatabase();
+    if (!isPrivileged) {
+      const hasPrivilegedPayloadKeys = Object.keys(payload).some((k) =>
+        PRIVILEGED_MUTATION_KEYS.includes(k)
+      );
+      const hasPrivilegedDeltaKeys =
+        itemDeltas &&
+        Object.keys(itemDeltas).some((k) => PRIVILEGED_MUTATION_KEYS.includes(k));
+
+      if (hasPrivilegedPayloadKeys || hasPrivilegedDeltaKeys) {
+        return NextResponse.json(
+          {
+            type: "https://quanters.quanta.dz/problems/forbidden-mutation",
+            title: "Forbidden Administrative Mutation",
+            status: 403,
+            detail: "Direct mutation of administrative collections requires privileged credentials.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    const { snapshot: updated, changedKeys } = writeErpDatabase(payload, itemDeltas, isPrivileged);
+    const { telemetry } = readErpDatabase(isPrivileged);
     const etag = `W/"${updated.updatedAt}-${telemetry.dbSizeBytes}"`;
     const enrichedTelemetry = computeQuotaTelemetry(
       telemetry,
@@ -300,7 +407,7 @@ export async function POST(req: NextRequest) {
           mergedClientVersions[k] = updated.collectionVersions[k];
         }
       }
-      const diff = computeDeltaErpDatabase(mergedClientVersions);
+      const diff = computeDeltaErpDatabase(mergedClientVersions, isPrivileged);
       if (diff.changedKeys.length > 0) {
         serverDelta = diff.delta as Record<string, unknown>;
       }

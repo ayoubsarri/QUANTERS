@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
+import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 type ExamCategoryFilter = "All" | "Science" | "Technology";
@@ -29,8 +30,11 @@ export default function ExamsHubPage() {
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const members = useQuantersStore((s) => s.members);
 
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const currentMember =
-    members.find((m) => m.id === currentMemberId) || members[0];
+    (isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined) || FALLBACK_SESSION_MEMBER;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] =

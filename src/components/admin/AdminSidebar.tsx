@@ -27,6 +27,8 @@ import {
   X,
 } from "lucide-react";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
+import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
+import { isSuperAdminEmail } from "@/lib/firebase/config";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { RoleTemplateName } from "@/lib/types/erp";
 
@@ -42,6 +44,21 @@ interface NavItem {
 interface NavGroup {
   groupLabel: string;
   items: NavItem[];
+}
+
+function isSuperAdminAccount(m?: { roles?: string[]; email?: string; id?: string; quanterId?: string; handle?: string } | null): boolean {
+  if (!m) return false;
+  if (m.id === "mem-super-quanta" || m.id === "mem-super-hr" || (m.id && m.id.startsWith("mem-super"))) return true;
+  if (m.quanterId === "QT-00-0000") return true;
+  if (m.handle === "@quanta_admin" || m.handle === "@quanta_hr") return true;
+  if (m.roles && (m.roles.includes("Super Admin") || m.roles.includes("Executive"))) return true;
+  if (m.email) {
+    const clean = m.email.trim().toLowerCase();
+    if (isSuperAdminEmail(clean)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 const NAV_GROUPS: NavGroup[] = [
@@ -64,7 +81,11 @@ const NAV_GROUPS: NavGroup[] = [
         icon: Users,
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "KPI Viewer"],
         badgeCount: (s) =>
-          s.members.filter((m) => ["Trainee", "Active", "Inactive", "Suspended"].includes(m.status)).length,
+          s.members.filter(
+            (m) =>
+              ["Trainee", "Active", "Inactive", "Suspended"].includes(m.status) &&
+              !isSuperAdminAccount(m)
+          ).length || undefined,
       },
       {
         label: "Former Members",
@@ -72,7 +93,11 @@ const NAV_GROUPS: NavGroup[] = [
         icon: UserX,
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"],
         badgeCount: (s) =>
-          s.members.filter((m) => ["Resigned", "Removed"].includes(m.status)).length || undefined,
+          s.members.filter(
+            (m) =>
+              ["Resigned", "Removed"].includes(m.status) &&
+              !isSuperAdminAccount(m)
+          ).length || undefined,
       },
       {
         label: "Alumni",
@@ -80,7 +105,11 @@ const NAV_GROUPS: NavGroup[] = [
         icon: GraduationCap,
         allowedRoles: ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "KPI Viewer"],
         badgeCount: (s) =>
-          s.members.filter((m) => m.status === "Alumni").length || undefined,
+          s.members.filter(
+            (m) =>
+              m.status === "Alumni" &&
+              !isSuperAdminAccount(m)
+          ).length || undefined,
       },
       {
         label: "Departments & Teams",
@@ -190,19 +219,22 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const state = useQuantersStore();
-  const { activeAdminRole, currentMemberId, members, logout } = state;
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const members = useQuantersStore((s) => s.members);
+  const logout = useQuantersStore((s) => s.logout);
 
   const adminUser =
-    members.find(
-      (m) =>
-        m.id === currentMemberId &&
-        m.roles.some((r) =>
-          ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"].includes(r)
+    (isAuthenticated && currentMemberId
+      ? members.find(
+          (m) =>
+            m.id === currentMemberId &&
+            m.roles.some((r) =>
+              ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"].includes(r)
+            )
         )
-    ) ||
-    members.find((m) => m.id === "mem-lotfi") ||
-    members[0];
+      : undefined) || FALLBACK_SESSION_MEMBER;
 
   const sidebarContent = (
     <div className="w-64 shrink-0 bg-gradient-to-b from-[#081223] via-[#0E1B31] to-[#060D1A] text-white flex flex-col h-screen border-r border-[#2B4875]/45 select-none overflow-hidden">
@@ -276,7 +308,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                   const isActive =
                     pathname === item.href ||
                     (item.href !== "/admin/overview" && pathname?.startsWith(item.href));
-                  const count = item.badgeCount ? item.badgeCount(state) : undefined;
+                  const count = item.badgeCount ? item.badgeCount(useQuantersStore.getState()) : undefined;
 
                   return (
                     <Link

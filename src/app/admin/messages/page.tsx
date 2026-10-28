@@ -90,7 +90,7 @@ export default function AdminMessagesPage() {
     if (next === "All Trainees")
       setSelectedTarget("All Trainees (Qualification Cohort)");
     if (next === "Specific Member")
-      setSelectedTarget(members[0]?.fullName || "Ayoub Sarri");
+      setSelectedTarget(members[0]?.fullName || "");
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -126,7 +126,7 @@ export default function AdminMessagesPage() {
       selectedGrievance.id,
       statusSelect,
       hrNotesInput.trim(),
-      "Yasmine Bouzid (HR Head)"
+      "HR Administration"
     );
     setBanner(`Updated grievance '${selectedGrievance.subject}' to ${statusSelect}`);
     setSelectedGrievance(null);
@@ -175,7 +175,7 @@ export default function AdminMessagesPage() {
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              <span>Confidential Grievances (الشكاوى)</span>
+              <span>Confidential Grievances</span>
               {pendingGrievances.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-mono font-black">
                   {pendingGrievances.length}
@@ -214,7 +214,7 @@ export default function AdminMessagesPage() {
               </div>
               <div>
                 <h2 className="font-display font-black text-base text-white">
-                  Confidential Member Grievance Desk · مكتب الشكاوى السري
+                  Confidential Member Grievance Desk
                 </h2>
                 <p className="text-xs text-slate-300">
                   Visible ONLY to HR Head &amp; Executive Bureau. Department managers have zero access.
@@ -428,8 +428,8 @@ export default function AdminMessagesPage() {
                       >
                         <option value="Pending HR Review">Pending HR Review</option>
                         <option value="Under Investigation">Under Investigation</option>
-                        <option value="Resolved">Resolved (تمت المعالجة)</option>
-                        <option value="Dismissed">Dismissed (مرفوضة)</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Dismissed">Dismissed</option>
                       </select>
                     </div>
 

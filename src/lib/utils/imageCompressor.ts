@@ -92,6 +92,11 @@ export async function compressAndResizeImage(
         const base64Length = webpDataUrl.split(",")[1]?.length || 0;
         const compressedBytes = Math.round((base64Length * 3) / 4);
 
+        // Release GPU memory backing-store immediately after base64 conversion
+        canvas.width = 0;
+        canvas.height = 0;
+        img.src = "";
+
         resolve({
           dataUrl: webpDataUrl,
           originalBytes: file.size,

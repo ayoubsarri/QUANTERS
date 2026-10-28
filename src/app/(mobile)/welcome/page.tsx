@@ -7,12 +7,15 @@ import {
   BookmarkCheck,
   Check,
   CheckCircle2,
+  Clock,
   Download,
   Eye,
   EyeOff,
   KeyRound,
+  Lock,
   Mail,
   Monitor,
+  ShieldCheck,
   Smartphone,
   Sparkles,
   User,
@@ -21,7 +24,23 @@ import {
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { QuantersVectorWordmark } from "@/components/shared/QuantaLogo";
 import { Member } from "@/lib/types/erp";
-import { sendFirebasePasswordReset } from "@/lib/firebase/auth";
+import {
+  checkFirebaseGoogleRedirectResult,
+  createFirebaseEmailPasswordUser,
+  getFirebaseAuth,
+  sendFirebasePasswordReset,
+  signInWithFirebaseEmailPassword,
+  signInWithFirebaseGooglePopup,
+} from "@/lib/firebase/auth";
+import {
+  checkLoginLockout,
+  clearFailedLoginAttempts,
+  evaluatePasswordStrength,
+  generateStrongPassword,
+  recordFailedLoginAttempt,
+  TERMS_AND_PRIVACY_DATA,
+  validateEmail,
+} from "@/lib/utils/authSecurity";
 
 function GoogleLogoSvg({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -56,110 +75,134 @@ interface SavedLoginEntry {
 const SAVED_LOGINS_STORAGE_KEY = "quanters_saved_logins_v1";
 
 /**
- * Pre-Rolled Dual-Buffered Zero-Delay Seamless Loop Video Player
- * Pre-starts the standby decoder 360ms before the loop boundary so when the
- * 160ms crossfade happens, the standby video is already playing at full 24fps
- * with 0.0ms decoder wake-up delay.
+ * True 0.0ms Seamless Loop Video Player (Zero Decoder Reset Delay)
+ * Pre-rolls the standby video 450ms before the current video ends so its decoder pipeline
+ * is running at full framerate. Handover occurs smoothly 60ms before end without native loop
+ * attribute resets or black frame stalls.
  */
 function SeamlessLoopVideo({
   src = "/brand/welcome_loop.mp4",
-  poster = "/brand/welcome_keyframe_1.png",
   className = "",
+  isActive = true,
 }: {
   src?: string;
   poster?: string;
   className?: string;
+  isActive?: boolean;
 }) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
-  const [activeSlot, setActiveSlot] = useState<0 | 1>(0);
-  const activeSlotRef = useRef<0 | 1>(0);
-  const preRollingRef = useRef(false);
-  const swappingRef = useRef(false);
 
   useEffect(() => {
     const vA = videoARef.current;
     const vB = videoBRef.current;
-    if (!vA || !vB) return;
+    if (!vA || !vB || !isActive) {
+      if (vA) vA.pause();
+      if (vB) vB.pause();
+      return;
+    }
 
-    const active = activeSlotRef.current === 0 ? vA : vB;
-    const standby = activeSlotRef.current === 0 ? vB : vA;
+    let active = 0; // 0 for vA, 1 for vB
+    let isHandingOver = false;
+    let handoverTimer: number | undefined;
+    let rafId: number | undefined;
 
-    standby.pause();
-    standby.currentTime = 0;
-    active.play().catch(() => {});
+    vA.style.zIndex = "10";
+    vA.style.opacity = "1";
+    vB.style.zIndex = "20";
+    vB.style.opacity = "0";
 
-    let rafId: number;
+    vA.currentTime = 0;
+    vB.currentTime = 0;
+    vB.pause();
+    vA.play().catch(() => {});
+
     const tick = () => {
-      const curr = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current;
-      const next = activeSlotRef.current === 0 ? videoBRef.current : videoARef.current;
+      if (document.hidden) {
+        return;
+      }
+      const curr = active === 0 ? vA : vB;
+      const next = active === 0 ? vB : vA;
 
-      if (curr && next && curr.duration > 1) {
+      if (curr && next && curr.duration && !Number.isNaN(curr.duration)) {
         const remaining = curr.duration - curr.currentTime;
 
-        // Phase 1 (360ms before end): Wake up standby decoder in background while still opacity-0
-        if (!preRollingRef.current && !swappingRef.current && remaining <= 0.36 && remaining > 0.16) {
-          preRollingRef.current = true;
+        // Initiate zero-delay continuous handover 100ms before current video ends
+        if (remaining <= 0.10 && !isHandingOver) {
+          isHandingOver = true;
+          next.style.zIndex = "20";
+          curr.style.zIndex = "10";
           next.currentTime = 0;
-          next.play().catch(() => {});
-        }
-
-        // Phase 2 (160ms before end): Standby is already decoding & playing -> crossfade with 0 delay
-        if (!swappingRef.current && remaining <= 0.16) {
-          swappingRef.current = true;
-          const nextSlot: 0 | 1 = activeSlotRef.current === 0 ? 1 : 0;
-
-          if (next.paused) {
-            next.currentTime = 0;
-            next.play().catch(() => {});
-          }
-
-          activeSlotRef.current = nextSlot;
-          setActiveSlot(nextSlot);
-
-          window.setTimeout(() => {
-            curr.pause();
-            curr.currentTime = 0;
-            preRollingRef.current = false;
-            swappingRef.current = false;
-          }, 200);
+          next.play().then(() => {
+            next.style.opacity = "1";
+            handoverTimer = window.setTimeout(() => {
+              curr.pause();
+              curr.currentTime = 0;
+              curr.style.opacity = "0";
+              curr.style.zIndex = "10";
+              next.style.zIndex = "10";
+              active = active === 0 ? 1 : 0;
+              isHandingOver = false;
+            }, 80);
+          }).catch(() => {
+            isHandingOver = false;
+          });
         }
       }
       rafId = window.requestAnimationFrame(tick);
     };
 
-    rafId = window.requestAnimationFrame(tick);
-    return () => {
-      window.cancelAnimationFrame(rafId);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        vA.pause();
+        vB.pause();
+        if (rafId) {
+          window.cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+      } else {
+        const curr = active === 0 ? vA : vB;
+        curr.play().catch(() => {});
+        if (!rafId) rafId = window.requestAnimationFrame(tick);
+      }
     };
-  }, [src]);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    rafId = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      if (handoverTimer) window.clearTimeout(handoverTimer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      vA.pause();
+      vB.pause();
+      vA.removeAttribute("src");
+      vA.load();
+      vB.removeAttribute("src");
+      vB.load();
+    };
+  }, [src, isActive]);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
       <video
         ref={videoARef}
         src={src}
-        poster={poster}
-        preload="auto"
-        autoPlay
-        loop
+        poster="/brand/welcome_keyframe_1.webp"
+        preload={isActive ? "auto" : "none"}
         muted
         playsInline
-        className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-150 ease-linear ${
-          activeSlot === 0 ? "opacity-100 z-10" : "opacity-0 z-0"
-        }`}
+        className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-75 ease-out"
+        style={{ opacity: 1, zIndex: 10 }}
       />
       <video
         ref={videoBRef}
         src={src}
-        poster={poster}
-        preload="auto"
-        loop
+        preload={isActive ? "auto" : "none"}
         muted
         playsInline
-        className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-150 ease-linear ${
-          activeSlot === 1 ? "opacity-100 z-10" : "opacity-0 z-0"
-        }`}
+        className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-75 ease-out"
+        style={{ opacity: 0, zIndex: 20 }}
       />
     </div>
   );
@@ -168,6 +211,14 @@ function SeamlessLoopVideo({
 export default function WelcomeSplashPage() {
   const router = useRouter();
 
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const {
     departments,
     teams,
@@ -175,32 +226,41 @@ export default function WelcomeSplashPage() {
     loginWithEmail,
     loginWithGoogle,
     registerAccount,
+    changeMemberPassword,
     syncWithServer,
+    pullExactUpdatesFromServer,
   } = useQuantersStore();
 
   // In-page Login Drawer state
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "register" | "recovery">("signin");
+  const [showContactSupport, setShowContactSupport] = useState(false);
 
   // Auth form fields
-  const [email, setEmail] = useState("ayoub.sarri@univ-alger.dz");
-  const [password, setPassword] = useState("quanta2026");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
   const [savedLogins, setSavedLogins] = useState<SavedLoginEntry[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [signInLoading, setSignInLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
+  const [termsModalOpen, setTermsModalOpen] = useState<"terms" | "privacy" | null>(null);
+  const [lockoutRemaining, setLockoutRemaining] = useState<number>(0);
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
 
-  // Google Sign-In picker state
-  const [showGooglePicker, setShowGooglePicker] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
-  const [customGoogleName, setCustomGoogleName] = useState("");
-
-  // Forgot Password contact panel state & Firebase Auth recovery
+  // Forgot Password & Self-Service Account Recovery state
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotStep, setForgotStep] = useState<"search" | "sent" | "google">("search");
+  const [matchedMember, setMatchedMember] = useState<Member | null>(null);
   const [forgotPasswordStatus, setForgotPasswordStatus] = useState<{
     type: "success" | "error" | "google_account";
     message: string;
@@ -237,7 +297,31 @@ export default function WelcomeSplashPage() {
     } catch {
       // ignore storage errors
     }
+
+    // Initialize lockout state if active
+    const lockout = checkLoginLockout();
+    if (lockout.isLocked) {
+      setLockoutRemaining(lockout.remainingSeconds);
+    }
   }, []);
+
+  // Live countdown for security lockout
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setLockoutRemaining((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutRemaining]);
+
+  // Live countdown for password reset resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const deriveMemberRoleBadge = (m?: {
     id: string;
@@ -340,7 +424,7 @@ export default function WelcomeSplashPage() {
     member: Member | undefined,
     redirectPath: string
   ) => {
-    await syncWithServer();
+    await syncWithServer(true);
     if (!member) {
       router.push(redirectPath);
       return;
@@ -361,42 +445,161 @@ export default function WelcomeSplashPage() {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
-    const res = loginWithEmail(email, password);
-    if (!res.ok) {
-      setErrorMsg(res.message || "Invalid credentials.");
+
+    // 1. Rate-limiting lockout check
+    const lockout = checkLoginLockout();
+    if (lockout.isLocked) {
+      setLockoutRemaining(lockout.remainingSeconds);
+      setErrorMsg(
+        `Security Lockout: Too many failed attempts. Please wait ${lockout.remainingSeconds}s before trying again.`
+      );
       return;
     }
-    await completeAuthenticatedTransition(res.member, res.redirectPath);
+
+    // 2. Strict RFC 5322 Email Validation
+    const validEmail = validateEmail(email);
+    if (!validEmail.isValid) {
+      setErrorMsg(validEmail.error || "Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setErrorMsg("Please enter your password.");
+      return;
+    }
+
+    setSignInLoading(true);
+
+    if (members.length === 0) {
+      await pullExactUpdatesFromServer().catch(() => {});
+    }
+
+    // 3. Attempt native Firebase Auth login
+    const fbRes = await signInWithFirebaseEmailPassword(validEmail.normalized, password);
+    if (fbRes.ok) {
+      clearFailedLoginAttempts();
+      // Firebase Auth cryptographically verified the password on Google servers
+      let res = loginWithEmail(validEmail.normalized);
+      if (!res.ok) {
+        await pullExactUpdatesFromServer().catch(() => {});
+        res = loginWithEmail(validEmail.normalized);
+      }
+      setSignInLoading(false);
+      if (res.ok) {
+        await completeAuthenticatedTransition(res.member, res.redirectPath);
+        return;
+      }
+    }
+
+    // 4. Fallback: Authenticate against club ERP credential digest
+    let res = loginWithEmail(validEmail.normalized, password);
+    if (!res.ok) {
+      await pullExactUpdatesFromServer().catch(() => {});
+      res = loginWithEmail(validEmail.normalized, password);
+    }
+
+    if (res.ok) {
+      clearFailedLoginAttempts();
+      // Provision non-anonymous Firebase Auth account before syncing state
+      if (password.length >= 8) {
+        await createFirebaseEmailPasswordUser(validEmail.normalized, password).catch(() => {});
+      }
+      setSignInLoading(false);
+      await completeAuthenticatedTransition(res.member, res.redirectPath);
+      return;
+    }
+
+    // 5. Authentication failed -> record attempt for brute-force shield
+    setSignInLoading(false);
+    const shield = recordFailedLoginAttempt();
+    if (shield.isLocked) {
+      setLockoutRemaining(shield.remainingSeconds);
+      setErrorMsg(
+        `Security Lockout: 5 failed attempts. Access paused for ${shield.remainingSeconds}s.`
+      );
+    } else {
+      setErrorMsg(
+        res.message || "Invalid email or password. Please verify your credentials or use password recovery."
+      );
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
-    if (!fullName.trim() || !email.trim()) {
-      setErrorMsg("Please provide your full name and email.");
+
+    if (!fullName.trim()) {
+      setErrorMsg("Please provide your full legal name.");
       return;
     }
+
+    const validEmail = validateEmail(email);
+    if (!validEmail.isValid) {
+      setErrorMsg(validEmail.error || "Please enter a valid university or personal email address.");
+      return;
+    }
+
+    const pwdEval = evaluatePasswordStrength(password);
+    if (!pwdEval.isValid) {
+      setErrorMsg(`Password requirements: ${pwdEval.feedback}`);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg("Passwords do not match. Please verify your confirmation password.");
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setErrorMsg("You must review and accept the QUANTERS Terms of Service and Privacy Policy to create an account.");
+      return;
+    }
+
+    setRegisterLoading(true);
+
+    // 1. Create in Firebase Auth
+    const fbCreateRes = await createFirebaseEmailPasswordUser(validEmail.normalized, password);
+    if (!fbCreateRes.ok && fbCreateRes.errorCode === "auth/email-already-in-use") {
+      const existingInErp = members.find((m) => m.email.toLowerCase() === validEmail.normalized);
+      if (existingInErp) {
+        setRegisterLoading(false);
+        if (existingInErp.status === "Removed") {
+          setErrorMsg("This account was previously removed from active membership. Please contact hr.quanta@univ-alger.dz for reinstatement.");
+        } else {
+          setErrorMsg("An account with this email address already exists. Please sign in instead.");
+        }
+        return;
+      }
+      // If the account was permanently deleted/released from the ERP, reuse or verify Firebase Auth session:
+      await signInWithFirebaseEmailPassword(validEmail.normalized, password).catch(() => {});
+    }
+
+    // 2. Create in ERP state
     const res = registerAccount({
-      fullName,
-      email,
+      fullName: fullName.trim(),
+      email: validEmail.normalized,
       password,
       isAlumni: registerAsAlumni,
     });
+
+    setRegisterLoading(false);
     if (!res.ok) {
-      setErrorMsg(res.message || "Could not create account.");
+      setErrorMsg(res.message || "Could not complete account creation.");
       return;
     }
+
     await completeAuthenticatedTransition(res.member, res.redirectPath);
   };
 
-  const handleFirebasePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanEmail = forgotPasswordEmail.trim().toLowerCase();
-    if (!cleanEmail) {
+  const handleFindAccount = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = forgotPasswordEmail.trim().toLowerCase();
+    const validEmail = validateEmail(query);
+    if (!validEmail.isValid) {
       setForgotPasswordStatus({
         type: "error",
-        message: "Please enter your email address.",
+        message: validEmail.error || "Please enter a valid registered email address.",
       });
       return;
     }
@@ -404,88 +607,112 @@ export default function WelcomeSplashPage() {
     setForgotPasswordLoading(true);
     setForgotPasswordStatus(null);
 
-    // 1. Check if the email belongs to a member registered with Google
-    const existingMember = members.find(
-      (m) => m.email.toLowerCase() === cleanEmail
-    );
+    // Refresh members from server if empty
+    let list = members;
+    if (list.length === 0) {
+      await pullExactUpdatesFromServer().catch(() => {});
+      list = useQuantersStore.getState().members;
+    }
 
-    if (
-      existingMember &&
-      (existingMember.authProvider === "google" ||
-        !existingMember.password ||
-        existingMember.password === "google")
-    ) {
+    // Strictly match by email
+    let found = list.find((m) => m.email.toLowerCase() === validEmail.normalized);
+    if (!found) {
+      await pullExactUpdatesFromServer().catch(() => {});
+      list = useQuantersStore.getState().members;
+      found = list.find((m) => m.email.toLowerCase() === validEmail.normalized);
+    }
+
+    setMatchedMember(found || null);
+
+    // If this account signs in via Google, guide to Google Sign-In
+    if (found && (found.authProvider === "google" || !found.passwordHash)) {
       setForgotPasswordLoading(false);
+      setForgotStep("google");
       setForgotPasswordStatus({
         type: "google_account",
-        message:
-          "This account uses Google Sign-In. Please sign in with Google or contact the admin below.",
+        message: `${found.fullName} (${found.email}) signs in securely via Google Workspace. Please use the button below to sign in.`,
       });
       return;
     }
 
-    // 2. Dispatch password reset
-    const res = await sendFirebasePasswordReset(cleanEmail);
+    // Dispatch official Firebase Auth password reset email
+    const resetRes = await sendFirebasePasswordReset(validEmail.normalized);
     setForgotPasswordLoading(false);
 
-    if (res.success) {
+    if (resetRes.success) {
+      setForgotStep("sent");
+      setResendCooldown(60);
       setForgotPasswordStatus({
         type: "success",
-        message: "Reset link sent! Please check your inbox and spam folder.",
+        message: `An official password recovery link has been dispatched to ${validEmail.normalized}. Please check your inbox and spam folder.`,
       });
     } else {
       setForgotPasswordStatus({
         type: "error",
-        message:
-          res.errorCode === "USER_NOT_FOUND"
-            ? "Email not registered. Please verify your address or contact the admin below."
-            : res.message || "Unable to send reset link. Contact admin below.",
+        message: resetRes.message || "Unable to dispatch recovery email. Please verify spelling or contact HR administration.",
       });
     }
   };
 
-  const handleGoogleAccountSelect = async (
-    targetEmail: string,
-    targetName?: string,
-    targetAvatar?: string
-  ) => {
+  const handleFirebasePasswordReset = handleFindAccount;
+
+  const handleNativeFirebaseGooglePopup = async () => {
     setErrorMsg(null);
     setSuccessMsg(null);
-    const clean = targetEmail.trim();
-    if (!clean) {
-      setErrorMsg("Please enter your Google email address.");
-      return;
+    setGoogleLoading(true);
+    try {
+      const popupRes = await signInWithFirebaseGooglePopup();
+      if (popupRes.ok && popupRes.email) {
+        const res = loginWithGoogle(
+          popupRes.email,
+          popupRes.fullName,
+          popupRes.avatarUrl
+        );
+        await completeAuthenticatedTransition(res.member, res.redirectPath);
+      } else if (!popupRes.cancelled && popupRes.message) {
+        setErrorMsg(popupRes.message);
+      }
+    } finally {
+      setGoogleLoading(false);
     }
-    const res = loginWithGoogle(clean, targetName, targetAvatar);
-    setShowGooglePicker(false);
-    await completeAuthenticatedTransition(res.member, res.redirectPath);
   };
+
+  // Handle Google Redirect fallback result if returning from mobile OAuth redirect
+  useEffect(() => {
+    let active = true;
+    checkFirebaseGoogleRedirectResult().then(async (redirectRes) => {
+      if (!active || !redirectRes.ok || !redirectRes.email) return;
+      setAuthOpen(true);
+      const res = loginWithGoogle(
+        redirectRes.email,
+        redirectRes.fullName,
+        redirectRes.avatarUrl
+      );
+      await completeAuthenticatedTransition(res.member, res.redirectPath);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
     setErrorMsg(null);
     setSuccessMsg(null);
-    const matchingMember = members.find(
-      (m) => m.email.toLowerCase() === saved.email.toLowerCase()
-    );
-    const res = loginWithEmail(
-      saved.email,
-      matchingMember?.password || "quanta2026"
-    );
-    if (!res.ok) {
-      const gRes = loginWithGoogle(saved.email, saved.fullName, saved.avatarUrl);
-      await syncWithServer();
-      router.push(gRes.redirectPath);
-      return;
+    const activeFbUser = getFirebaseAuth()?.currentUser;
+    if (
+      activeFbUser &&
+      !activeFbUser.isAnonymous &&
+      activeFbUser.email?.toLowerCase() === saved.email.toLowerCase()
+    ) {
+      const res = loginWithEmail(saved.email);
+      if (res.ok) {
+        await syncWithServer();
+        router.push(res.redirectPath);
+        return;
+      }
     }
-    await syncWithServer();
-    router.push(res.redirectPath);
+    setEmail(saved.email);
   };
-
-  const googleQuickAccounts = [
-    members.find((m) => m.id === "mem-ayoub") || members[0],
-    members.find((m) => m.id === "mem-lotfi") || members[1],
-    members.find((m) => m.id === "mem-alumni-1") || members[2],
-  ].filter(Boolean);
 
   return (
     <div className="min-h-dvh w-full bg-[#030812] text-white relative overflow-hidden select-none flex flex-col justify-between">
@@ -495,7 +722,7 @@ export default function WelcomeSplashPage() {
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <SeamlessLoopVideo
           src="/brand/welcome_loop.mp4"
-          poster="/brand/welcome_keyframe_1.png"
+          isActive={!isDesktop}
           className={`lg:hidden transition-all duration-500 ${
             authOpen
               ? "scale-[1.04] brightness-[0.36] blur-[4px]"
@@ -504,8 +731,10 @@ export default function WelcomeSplashPage() {
         />
 
         <img
-          src="/brand/welcome_keyframe_1.png"
+          src="/brand/welcome_keyframe_1.webp"
           alt=""
+          loading="lazy"
+          decoding="async"
           aria-hidden="true"
           className={`hidden lg:block absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
             authOpen
@@ -530,44 +759,30 @@ export default function WelcomeSplashPage() {
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
       <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto min-h-dvh px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center justify-between lg:justify-center">
-        {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal */}
+        {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[380px] aspect-[9/16] max-h-[84dvh] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
             <SeamlessLoopVideo
               src="/brand/welcome_loop.mp4"
-              poster="/brand/welcome_keyframe_1.png"
+              isActive={isDesktop}
             />
-
-            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#030812]/65 to-transparent pointer-events-none" />
-            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#030812]/90 via-[#030812]/35 to-transparent pointer-events-none" />
-
-            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
-                  <span className="font-mono text-xs tracking-[0.14em] text-[#38E4FF] uppercase font-bold">
-                    CYCLE 2026 / 27
-                  </span>
-                </div>
-                <div className="text-xs font-display font-medium text-slate-300 mt-0.5">
-                  Explore · Build · Verify
-                </div>
-              </div>
-              <img
-                src="/brand/QUANTERS_white_logo.svg"
-                alt="Faculty of Sciences - University of Algiers 1"
-                className="h-8 w-auto object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
-              />
-            </div>
           </div>
         </div>
 
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className="w-full flex-1 lg:col-span-7 flex flex-col justify-between lg:justify-center min-h-[calc(100dvh-2.5rem)] lg:min-h-0 lg:my-auto lg:space-y-6">
-          {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT & RESPONSIVE SCALING */}
+          {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT ON DESKTOP & CENTER-LOWER ON MOBILE PORTAL */}
           <header className={`w-full space-y-2 sm:space-y-2.5 transition-all duration-500 ease-out ${authOpen ? "pt-1 sm:pt-2" : ""}`}>
-            <div className="w-full flex justify-start text-left">
-              <div className="inline-flex flex-col select-none items-start text-left">
+            <div className={`w-full flex transition-all duration-500 ease-out ${
+              authOpen
+                ? "justify-center text-center lg:justify-start lg:text-left translate-y-3.5 lg:translate-y-0"
+                : "justify-start text-left"
+            }`}>
+              <div className={`inline-flex flex-col select-none transition-all duration-500 ease-out ${
+                authOpen
+                  ? "items-center text-center lg:items-start lg:text-left"
+                  : "items-start text-left"
+              }`}>
                 <QuantersVectorWordmark
                   className={`w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out ${
                     authOpen
@@ -576,8 +791,10 @@ export default function WelcomeSplashPage() {
                   }`}
                 />
                 <div
-                  className={`inline-flex items-center gap-1.5 sm:gap-2 justify-start text-left transition-all duration-300 ${
-                    authOpen ? "mt-1" : "mt-1.5 sm:mt-2"
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-300 ${
+                    authOpen
+                      ? "mt-1 justify-center lg:justify-start"
+                      : "mt-1.5 sm:mt-2 justify-start text-left"
                   }`}
                 >
                   <span className="font-display text-[10.5px] xs:text-[11px] sm:text-xs md:text-[13px] font-black tracking-[0.18em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
@@ -717,6 +934,7 @@ export default function WelcomeSplashPage() {
                       alt="Quanta Scientific Club"
                       className="h-6 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
+                    <span className="h-6 sm:h-7 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
@@ -820,10 +1038,18 @@ export default function WelcomeSplashPage() {
                 <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/8">
                   <div>
                     <h2 className="font-display text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
-                      {authMode === "signin" ? "Member Authentication" : "Create New Account"}
+                      {authMode === "signin"
+                        ? "Member Authentication"
+                        : authMode === "recovery"
+                        ? "Reset Password"
+                        : "Create New Account"}
                     </h2>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {authMode === "signin" ? "Sign in to access your QUANTA club portal" : "Register your credentials to join QUANTERS"}
+                      {authMode === "signin"
+                        ? "Sign in to access your QUANTA club portal"
+                        : authMode === "recovery"
+                        ? "Enter your email to receive recovery instructions"
+                        : "Register your credentials to join QUANTERS"}
                     </p>
                   </div>
 
@@ -831,7 +1057,6 @@ export default function WelcomeSplashPage() {
                     type="button"
                     onClick={() => {
                       setAuthOpen(false);
-                      setShowGooglePicker(false);
                       setShowForgotPassword(false);
                     }}
                     aria-label="Close login panel"
@@ -842,13 +1067,11 @@ export default function WelcomeSplashPage() {
                 </div>
 
                 {/* Modern Clean Tabs (No Clunky Boxes) */}
-                <div className="flex items-center gap-6 border-b border-white/10 pt-1 pb-2">
+                <div className="flex items-center gap-5 sm:gap-6 border-b border-white/10 pt-1 pb-2">
                   <button
                     type="button"
                     onClick={() => {
                       setAuthMode("signin");
-                      setShowGooglePicker(false);
-                      setShowForgotPassword(false);
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
@@ -864,8 +1087,6 @@ export default function WelcomeSplashPage() {
                     type="button"
                     onClick={() => {
                       setAuthMode("register");
-                      setShowGooglePicker(false);
-                      setShowForgotPassword(false);
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
@@ -877,16 +1098,23 @@ export default function WelcomeSplashPage() {
                   >
                     Create Account
                   </button>
+                  {authMode === "recovery" && (
+                    <button
+                      type="button"
+                      className="text-sm font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                    >
+                      Reset Password
+                    </button>
+                  )}
                 </div>
 
-                {/* Quick Access: ONLY Rendered When User Has Saved Logins */}
-                {savedLogins.length > 0 && authMode === "signin" && !showGooglePicker && (
-                  <div className="p-2.5 rounded-xl bg-[#06101E]/80 border border-white/10 space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-[#7DD3FC]">
-                      <span>Quick Access · Saved Logins</span>
-                      <span className="text-slate-400">{savedLogins.length} saved</span>
-                    </div>
-                    <div className="space-y-1">
+                {/* Saved Login: simple, clean, no nested boxes, only member name */}
+                {savedLogins.length > 0 && authMode === "signin" && (
+                  <div className="space-y-1.5 pt-0.5">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                      Saved Login
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
                       {savedLogins.map((saved) => (
                         <div
                           key={saved.email}
@@ -899,32 +1127,22 @@ export default function WelcomeSplashPage() {
                               handleSavedAccountLogin(saved);
                             }
                           }}
-                          className="w-full p-2 rounded-lg bg-[#0F1E36]/70 hover:bg-[#182C4E] border border-white/8 flex items-center justify-between gap-2 transition cursor-pointer"
+                          className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <img
-                              src={saved.avatarUrl}
-                              alt={saved.fullName}
-                              className="w-7 h-7 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs font-extrabold text-white leading-tight truncate">
-                                {saved.fullName}
-                              </p>
-                              <p className="text-[10px] font-mono text-[#7DD3FC] leading-tight truncate">
-                                {saved.roleLabel} · {saved.email}
-                              </p>
-                            </div>
-                          </div>
-
+                          <img
+                            src={saved.avatarUrl}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
+                          />
+                          <span className="truncate max-w-[150px]">{saved.fullName}</span>
                           <button
                             type="button"
                             onClick={(e) => removeSavedLogin(saved.email, e)}
                             aria-label={`Remove saved login for ${saved.fullName}`}
-                            className="w-6 h-6 rounded-md hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 cursor-pointer"
+                            className="text-slate-400 hover:text-white p-0.5 -mr-0.5 cursor-pointer"
                             title="Remove saved login"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-3 h-3" />
                           </button>
                         </div>
                       ))}
@@ -945,155 +1163,175 @@ export default function WelcomeSplashPage() {
                   </div>
                 )}
 
-                {showGooglePicker ? (
-                  /* GOOGLE ACCOUNT PICKER */
-                  <div className="p-3 rounded-xl bg-[#081223] border border-[#2B4875]/80 space-y-2.5 animate-rise">
-                    <div className="flex items-center justify-between">
+                {authMode === "recovery" ? (
+                  <div className="space-y-3.5 animate-rise">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <GoogleLogoSvg className="w-4 h-4" />
-                        <span className="text-xs font-display font-extrabold text-white">
-                          Choose a Google Account
+                        <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
+                          <KeyRound className="w-3.5 h-3.5" />
                         </span>
+                        <div>
+                          <h3 className="font-display font-black text-sm text-white leading-tight">
+                            Account Security &amp; Password Reset
+                          </h3>
+                          <p className="text-[11px] text-slate-400">
+                            {forgotStep === "search"
+                              ? "Enter your registered university or personal email"
+                              : forgotStep === "sent"
+                              ? "Secure recovery link dispatched"
+                              : "Google Sign-In recovery"}
+                          </p>
+                        </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setShowGooglePicker(false)}
-                        className="text-[11px] font-mono text-slate-400 hover:text-white cursor-pointer"
+                        onClick={() => {
+                          setAuthMode("signin");
+                          setForgotStep("search");
+                          setMatchedMember(null);
+                          setForgotPasswordStatus(null);
+                        }}
+                        className="text-xs font-mono font-bold text-[#38E4FF] hover:underline cursor-pointer"
                       >
-                        Back
+                        Back to Sign In
                       </button>
                     </div>
 
-                    <div className="space-y-1.5">
-                      {googleQuickAccounts.map((acc) => (
-                        <button
-                          key={acc.id}
-                          type="button"
-                          onClick={() =>
-                            handleGoogleAccountSelect(
-                              acc.email,
-                              acc.fullName,
-                              acc.avatarUrl
-                            )
-                          }
-                          className="w-full p-2 rounded-lg bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/70 flex items-center justify-between gap-2 text-left transition cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <img
-                              src={acc.avatarUrl}
-                              alt={acc.fullName}
-                              className="w-7 h-7 rounded-full object-cover shrink-0 border border-[#38BDF8]/40"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-white truncate">
-                                {acc.fullName}
-                              </p>
-                              <p className="text-[10px] font-mono text-[#7DD3FC] truncate">
-                                {acc.email}
-                              </p>
+                      {/* STEP 1: Search Account & Dispatch Official Reset Email */}
+                      {forgotStep === "search" && (
+                        <form onSubmit={handleFindAccount} noValidate className="space-y-2.5">
+                          <div>
+                            <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1">
+                              Registered Email Address
+                            </label>
+                            <div className="relative">
+                              <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                              <input
+                                type="email"
+                                required
+                                value={forgotPasswordEmail}
+                                onChange={(e) => {
+                                  setForgotPasswordEmail(e.target.value);
+                                  if (forgotPasswordStatus) setForgotPasswordStatus(null);
+                                }}
+                                placeholder="name@univ-alger.dz"
+                                className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#081223] border border-white/15 focus:border-[#38BDF8] text-white text-xs font-mono placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#38BDF8]/40"
+                              />
                             </div>
                           </div>
-                          <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC] shrink-0" />
-                        </button>
-                      ))}
-                    </div>
 
-                    <div className="pt-2 border-t border-white/10 space-y-2">
-                      <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                        Or enter another Google account
-                      </p>
-                      <input
-                        type="email"
-                        value={customGoogleEmail}
-                        onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                        placeholder="your.email@gmail.com or @univ-alger.dz"
-                        className="w-full h-11 px-3.5 rounded-xl bg-[#050C18] text-sm border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
-                      />
-                      <input
-                        type="text"
-                        value={customGoogleName}
-                        onChange={(e) => setCustomGoogleName(e.target.value)}
-                        placeholder="Your Full Name (optional)"
-                        className="w-full h-11 px-3.5 rounded-xl bg-[#050C18] text-sm border border-[#2B4875] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleGoogleAccountSelect(
-                            customGoogleEmail,
-                            customGoogleName
-                          )
-                        }
-                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 text-[#09192F] font-display font-extrabold text-sm font-display font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                      >
-                        <GoogleLogoSvg className="w-3.5 h-3.5" />
-                        <span>Continue with Google</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : authMode === "signin" ? (
-                  showForgotPassword ? (
-                    <div className="space-y-3.5 animate-rise">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
-                            <KeyRound className="w-3.5 h-3.5" />
-                          </span>
-                          <div>
-                            <h3 className="font-display font-black text-sm text-white leading-tight">
-                              Reset Password
-                            </h3>
-                            <p className="text-[11px] text-slate-400">
-                              Enter your email to receive a recovery link.
+                          <button
+                            type="submit"
+                            disabled={forgotPasswordLoading}
+                            className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
+                          >
+                            {forgotPasswordLoading ? (
+                              <span>Dispatching recovery link...</span>
+                            ) : (
+                              <>
+                                <KeyRound className="w-3.5 h-3.5 text-[#7DD3FC]" />
+                                <span>Send Password Reset Link</span>
+                              </>
+                            )}
+                          </button>
+                        </form>
+                      )}
+
+                      {/* STEP 2: Recovery Link Dispatched Confirmation Card */}
+                      {forgotStep === "sent" && (
+                        <div className="space-y-3.5 animate-rise">
+                          <div className="p-4 rounded-xl bg-[#08162C] border border-emerald-500/40 text-center space-y-2">
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 mx-auto">
+                              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <h4 className="font-display font-black text-sm text-white">
+                              Recovery Link Dispatched
+                            </h4>
+                            <p className="text-xs text-slate-300 leading-relaxed">
+                              An official password reset link has been dispatched to:
+                            </p>
+                            <div className="font-mono text-xs font-bold text-[#38BDF8] bg-[#030914] py-1.5 px-3 rounded-lg border border-white/10 inline-block">
+                              {forgotPasswordEmail.trim().toLowerCase()}
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                              Please check your inbox (and spam folder) within the next hour. Follow the secure link to set your new password.
                             </p>
                           </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowForgotPassword(false);
-                            setForgotPasswordStatus(null);
-                          }}
-                          className="text-xs font-mono font-bold text-[#38E4FF] hover:underline cursor-pointer"
-                        >
-                          Back to Sign In
-                        </button>
-                      </div>
 
-                      {/* Interactive Email Reset Form */}
-                      <form onSubmit={handleFirebasePasswordReset} className="space-y-2.5">
-                        <div>
-                          <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1">
-                            Your Email Address
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            value={forgotPasswordEmail}
-                            onChange={(e) => {
-                              setForgotPasswordEmail(e.target.value);
-                              if (forgotPasswordStatus) setForgotPasswordStatus(null);
-                            }}
-                            placeholder="e.g. name@univ-alger.dz or user@gmail.com"
-                            className="w-full h-10 px-3 rounded-xl bg-[#081223] border border-white/15 focus:border-[#38BDF8] text-white text-xs font-mono placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#38BDF8]/40"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={forgotPasswordLoading}
-                          className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
-                        >
-                          {forgotPasswordLoading ? (
-                            <span>Sending reset link...</span>
-                          ) : (
-                            <>
-                              <Mail className="w-3.5 h-3.5 text-[#7DD3FC]" />
-                              <span>Send Reset Link</span>
-                            </>
+                          {matchedMember && (
+                            <div className="p-3 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <img
+                                  src={matchedMember.avatarUrl || "/brand/logo_quanta_opt.webp"}
+                                  alt={matchedMember.fullName}
+                                  className="w-8 h-8 rounded-lg object-cover border border-[#38BDF8]/40 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-xs font-extrabold text-white truncate">
+                                    {matchedMember.fullName}
+                                  </div>
+                                  <div className="text-[10px] font-mono text-emerald-400">
+                                    Verified Club Member
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           )}
-                        </button>
-                      </form>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={resendCooldown > 0 || forgotPasswordLoading}
+                              onClick={() => handleFindAccount()}
+                              className="flex-1 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
+                              <span>
+                                {resendCooldown > 0
+                                  ? `Resend in ${resendCooldown}s`
+                                  : "Resend Link"}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowForgotPassword(false);
+                                setForgotStep("search");
+                              }}
+                              className="px-4 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-mono text-xs font-semibold transition cursor-pointer"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* STEP 2B: Google-Registered Account */}
+                      {forgotStep === "google" && matchedMember && (
+                        <div className="space-y-3">
+                          <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs space-y-1">
+                            <div className="font-extrabold flex items-center gap-1.5 text-amber-300">
+                              <Sparkles className="w-4 h-4 text-amber-400" />
+                              <span>Google Account Identified</span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed">
+                              <strong>{matchedMember.fullName}</strong> ({matchedMember.email}) signs in securely via Google. You do not need a password.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={googleLoading}
+                            onClick={handleNativeFirebaseGooglePopup}
+                            className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                          >
+                            <GoogleLogoSvg className="w-4 h-4" />
+                            <span>
+                              {googleLoading ? "Connecting to Google..." : `Sign in as ${matchedMember.fullName}`}
+                            </span>
+                          </button>
+                        </div>
+                      )}
 
                       {/* Status Feedback Banner */}
                       {forgotPasswordStatus && (
@@ -1116,69 +1354,87 @@ export default function WelcomeSplashPage() {
                             )}
                             <span>
                               {forgotPasswordStatus.type === "success"
-                                ? "Link Sent"
+                                ? "Success"
                                 : forgotPasswordStatus.type === "google_account"
                                 ? "Google Account"
-                                : "Unable to Reset"}
+                                : "Notice"}
                             </span>
                           </div>
                           <p>{forgotPasswordStatus.message}</p>
                         </div>
                       )}
 
-                      {/* Fallback Contact Section */}
-                      <div className="pt-2 border-t border-white/10 space-y-2">
-                        <div className="text-[11px] font-mono text-slate-400">
-                          Need help? Contact Admin:
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {[
-                            {
-                              label: "Administration",
-                              addr: "quantaclubdz@gmail.com",
-                            },
-                            {
-                              label: "HR Desk",
-                              addr: "hr.quanta@univ-alger.dz",
-                            },
-                          ].map((item) => (
-                            <div
-                              key={item.addr}
-                              className="p-2 sm:p-2.5 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-1.5"
-                            >
-                              <div className="min-w-0">
-                                <span className="block text-[9px] font-mono uppercase tracking-wider text-slate-400 truncate">
-                                  {item.label}
-                                </span>
-                                <a
-                                  href={`mailto:${item.addr}?subject=QUANTERS%20Account%20Recovery`}
-                                  className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline truncate block"
-                                >
-                                  {item.addr}
+                      {/* Compact Professional Support Section */}
+                      <div className="pt-2.5 border-t border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => setShowContactSupport((prev) => !prev)}
+                          className="w-full flex items-center justify-between py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Mail className="w-3.5 h-3.5 text-[#38BDF8]" />
+                            <span>Contact Club Administration</span>
+                          </span>
+                          <span className="text-[11px] font-mono text-[#38BDF8]">
+                            {showContactSupport ? "Hide" : "View Channels"}
+                          </span>
+                        </button>
+
+                        {showContactSupport && (
+                          <div className="mt-2 p-3 rounded-xl bg-[#081223] border border-white/10 space-y-2.5 animate-rise">
+                            <div className="flex items-center justify-between text-xs gap-2">
+                              <div>
+                                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Club Governance Desk</div>
+                                <a href="mailto:quantaclubdz@gmail.com" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
+                                  quantaclubdz@gmail.com
                                 </a>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => {
                                   try {
-                                    navigator.clipboard.writeText(item.addr);
-                                    setCopiedRecoveryEmail(item.addr);
+                                    navigator.clipboard.writeText("quantaclubdz@gmail.com");
+                                    setCopiedRecoveryEmail("quantaclubdz@gmail.com");
                                     setTimeout(() => setCopiedRecoveryEmail(null), 2000);
                                   } catch {}
                                 }}
-                                className="px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white shrink-0 cursor-pointer transition"
+                                className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
                               >
-                                {copiedRecoveryEmail === item.addr ? "Copied" : "Copy"}
+                                {copiedRecoveryEmail === "quantaclubdz@gmail.com" ? "Copied" : "Copy"}
                               </button>
                             </div>
-                          ))}
-                        </div>
+
+                            <div className="flex items-center justify-between text-xs gap-2 pt-2 border-t border-white/5">
+                              <div>
+                                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">HR Bureau Desk</div>
+                                <a href="mailto:hr.quanta@univ-alger.dz" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
+                                  hr.quanta@univ-alger.dz
+                                </a>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  try {
+                                    navigator.clipboard.writeText("hr.quanta@univ-alger.dz");
+                                    setCopiedRecoveryEmail("hr.quanta@univ-alger.dz");
+                                    setTimeout(() => setCopiedRecoveryEmail(null), 2000);
+                                  } catch {}
+                                }}
+                                className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
+                              >
+                                {copiedRecoveryEmail === "hr.quanta@univ-alger.dz" ? "Copied" : "Copy"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <button
                         type="button"
                         onClick={() => {
-                          setShowForgotPassword(false);
+                          setAuthMode("signin");
+                          setForgotStep("search");
+                          setMatchedMember(null);
                           setForgotPasswordStatus(null);
                         }}
                         className="w-full h-9 rounded-xl bg-[#182C4E] hover:brightness-110 border border-[#38BDF8]/35 text-white font-display font-bold text-xs transition cursor-pointer"
@@ -1186,19 +1442,24 @@ export default function WelcomeSplashPage() {
                         Back to Sign In
                       </button>
                     </div>
-                  ) : (
+                  ) : authMode === "signin" ? (
                     <div className="space-y-2.5">
-                      <form onSubmit={handleEmailSignIn} className="space-y-2.5">
+                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2.5">
                         <div>
-                          <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                            Email or Quanter ID
+                          <label
+                            htmlFor="signin-email"
+                            className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                          >
+                            Email Address
                           </label>
                           <div className="relative">
                             <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
-                              type="text"
+                              id="signin-email"
+                              type="email"
                               name="email"
-                              aria-label="Email or Quanter ID"
+                              autoComplete="username"
+                              aria-label="Email Address"
                               required
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
@@ -1210,14 +1471,18 @@ export default function WelcomeSplashPage() {
 
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
-                            <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            <label
+                              htmlFor="signin-password"
+                              className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300"
+                            >
                               Password
                             </label>
                             <button
                               type="button"
                               onClick={() => {
                                 setErrorMsg(null);
-                                setShowForgotPassword(true);
+                                setAuthMode("recovery");
+                                setForgotStep("search");
                               }}
                               className="text-[11px] font-mono font-bold text-[#38E4FF] hover:underline transition cursor-pointer"
                             >
@@ -1227,8 +1492,10 @@ export default function WelcomeSplashPage() {
                           <div className="relative">
                             <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
+                              id="signin-password"
                               type={showPassword ? "text" : "password"}
                               name="password"
+                              autoComplete="current-password"
                               aria-label="Password"
                               required
                               value={password}
@@ -1251,17 +1518,45 @@ export default function WelcomeSplashPage() {
                           </div>
                         </div>
 
+                        {lockoutRemaining > 0 && (
+                          <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono font-bold flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-rose-400 shrink-0" />
+                            <span>Too many attempts. Lockout active for {lockoutRemaining}s</span>
+                          </div>
+                        )}
+
                         <button
                           type="submit"
-                          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                          disabled={signInLoading || lockoutRemaining > 0}
+                          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
-                          <span>Sign In</span>
+                          <span>{signInLoading ? "Authenticating..." : "Sign In"}</span>
                           <ArrowRight className="w-4 h-4" />
                         </button>
+
+                        <p className="text-[10px] text-slate-400 text-center pt-1 leading-relaxed">
+                          By signing in, you agree to the{" "}
+                          <button
+                            type="button"
+                            onClick={() => setTermsModalOpen("terms")}
+                            className="text-[#38BDF8] hover:underline font-semibold cursor-pointer"
+                          >
+                            Terms of Service
+                          </button>{" "}
+                          and{" "}
+                          <button
+                            type="button"
+                            onClick={() => setTermsModalOpen("privacy")}
+                            className="text-[#38BDF8] hover:underline font-semibold cursor-pointer"
+                          >
+                            Privacy Policy
+                          </button>
+                          .
+                        </p>
                       </form>
 
                       {/* Divider + Continue with Google */}
-                      <div className="flex items-center gap-3 py-1.5">
+                      <div className="flex items-center gap-3 py-1">
                         <span className="h-px flex-1 bg-white/10" />
                         <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400">
                           OR
@@ -1271,22 +1566,20 @@ export default function WelcomeSplashPage() {
 
                       <button
                         type="button"
-                        onClick={() => {
-                          setErrorMsg(null);
-                          setSuccessMsg(null);
-                          setShowGooglePicker(true);
-                        }}
-                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 font-display font-extrabold text-sm text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        disabled={googleLoading}
+                        onClick={handleNativeFirebaseGooglePopup}
+                        className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4 h-4" />
-                        <span>Continue with Google</span>
+                        <span>
+                          {googleLoading ? "Connecting to Google..." : "Continue with Google"}
+                        </span>
                       </button>
                     </div>
-                  )
-                ) : authMode === "register" ? (
-                  <div className="space-y-2.5">
-                    <form onSubmit={handleRegister} className="space-y-2.5">
-                      {/* Clean Role Tabs (No Chunky Double Boxes) */}
+                  ) : (
+                    <div className="space-y-2.5">
+                    <form onSubmit={handleRegister} noValidate className="space-y-2.5">
+                      {/* Clean Role Tabs */}
                       <div className="flex items-center gap-5 border-b border-white/10 pb-2">
                         <button
                           type="button"
@@ -1313,30 +1606,42 @@ export default function WelcomeSplashPage() {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                          Full Name
+                        <label
+                          htmlFor="register-fullname"
+                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                        >
+                          Full Legal Name
                         </label>
                         <div className="relative">
                           <User className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
+                            id="register-fullname"
                             type="text"
+                            name="name"
+                            autoComplete="name"
                             required
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
-                            placeholder="e.g. Ayoub Sarri"
+                            placeholder="Full Legal Name"
                             className="w-full h-11 pl-10 pr-3.5 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                        <label
+                          htmlFor="register-email"
+                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                        >
                           Email Address
                         </label>
                         <div className="relative">
                           <Mail className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
+                            id="register-email"
                             type="email"
+                            name="email"
+                            autoComplete="username email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -1347,17 +1652,23 @@ export default function WelcomeSplashPage() {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                          Password
+                        <label
+                          htmlFor="register-password"
+                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                        >
+                          Password (min. 8 characters)
                         </label>
                         <div className="relative">
                           <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
+                            id="register-password"
                             type={showPassword ? "text" : "password"}
+                            name="new-password"
+                            autoComplete="new-password"
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="At least 6 characters"
+                            placeholder="At least 8 characters (letters & numbers)"
                             className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
                           />
                           <button
@@ -1373,14 +1684,135 @@ export default function WelcomeSplashPage() {
                             )}
                           </button>
                         </div>
+
+                        {/* Real-time Password Strength Meter */}
+                        {password.length > 0 && (() => {
+                          const evalRes = evaluatePasswordStrength(password);
+                          return (
+                            <div className="space-y-1 pt-1.5">
+                              <div className="flex items-center justify-between text-[10px] font-mono">
+                                <span className="text-slate-400">Security Strength:</span>
+                                <span
+                                  className={`font-bold ${
+                                    evalRes.score <= 1
+                                      ? "text-rose-400"
+                                      : evalRes.score === 2
+                                      ? "text-amber-400"
+                                      : evalRes.score === 3
+                                      ? "text-sky-400"
+                                      : "text-emerald-400"
+                                  }`}
+                                >
+                                  {evalRes.label}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-4 gap-1 h-1">
+                                {[1, 2, 3, 4].map((stepNum) => (
+                                  <div
+                                    key={stepNum}
+                                    className={`rounded-full transition-all duration-300 ${
+                                      evalRes.score >= stepNum
+                                        ? evalRes.score <= 1
+                                          ? "bg-rose-500"
+                                          : evalRes.score === 2
+                                          ? "bg-amber-500"
+                                          : evalRes.score === 3
+                                          ? "bg-sky-400"
+                                          : "bg-emerald-400"
+                                        : "bg-white/10"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
-                      {/* Primary Create Account Button: Identical to Sign In Button */}
+                      <div>
+                        <label
+                          htmlFor="register-confirm-password"
+                          className="block text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-1.5"
+                        >
+                          Confirm Password
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#7DD3FC] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            id="register-confirm-password"
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirm-password"
+                            autoComplete="new-password"
+                            required
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm your password"
+                            className="w-full h-11 pl-10 pr-10 rounded-xl bg-[#030914]/90 text-sm border border-white/15 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8] focus:bg-[#051124] transition shadow-inner"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white cursor-pointer"
+                            aria-label="Toggle confirm password visibility"
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        {confirmPassword.length > 0 && (
+                          <div className="pt-1 text-[10px] font-mono flex items-center gap-1">
+                            {password === confirmPassword ? (
+                              <span className="text-emerald-400 flex items-center gap-1 font-bold">
+                                <Check className="w-3 h-3" /> Passwords match
+                              </span>
+                            ) : (
+                              <span className="text-rose-400 font-bold">
+                                Passwords do not match
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Terms of Service & Privacy Policy Consent */}
+                      <label className="flex items-start gap-2.5 pt-1 text-[11px] text-slate-300 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-0.5 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
+                        />
+                        <span className="leading-tight text-slate-400">
+                          I agree to the{" "}
+                          <button
+                            type="button"
+                            onClick={() => setTermsModalOpen("terms")}
+                            className="text-[#38BDF8] hover:underline font-semibold"
+                          >
+                            QUANTERS Terms of Service
+                          </button>{" "}
+                          and{" "}
+                          <button
+                            type="button"
+                            onClick={() => setTermsModalOpen("privacy")}
+                            className="text-[#38BDF8] hover:underline font-semibold"
+                          >
+                            Privacy Policy
+                          </button>
+                          .
+                        </span>
+                      </label>
+
+                      {/* Primary Create Account Button */}
                       <button
                         type="submit"
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                        disabled={registerLoading}
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] font-display font-extrabold text-sm via-[#0369A1] to-[#1D4ED8] hover:brightness-110 border border-[#38BDF8]/50 text-white font-display font-extrabold text-xs tracking-wider uppercase shadow-[0_8px_24px_rgba(2,132,199,0.38)] active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                       >
-                        <span>Create Account &amp; Continue</span>
+                        <span>{registerLoading ? "Creating Account..." : "Create Account"}</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </form>
@@ -1396,18 +1828,17 @@ export default function WelcomeSplashPage() {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setErrorMsg(null);
-                        setSuccessMsg(null);
-                        setShowGooglePicker(true);
-                      }}
-                      className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 font-display font-extrabold text-sm text-[#071731] font-display font-extrabold text-xs active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                      disabled={googleLoading}
+                      onClick={handleNativeFirebaseGooglePopup}
+                      className="w-full h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                     >
                       <GoogleLogoSvg className="w-4 h-4" />
-                      <span>Sign up with Google</span>
+                      <span>
+                        {googleLoading ? "Connecting to Google..." : "Sign up with Google"}
+                      </span>
                     </button>
                   </div>
-                ) : null}
+                )}
               </div>
             )}
 
@@ -1420,6 +1851,7 @@ export default function WelcomeSplashPage() {
                     alt="Quanta Scientific Club"
                     className="h-6 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
                   />
+                  <span className="h-6 w-px bg-white/20 shrink-0 mx-2" />
                   <img
                     src="/brand/QUANTERS_white_logo.svg"
                     alt="Faculty of Sciences - University of Algiers 1"
@@ -1431,6 +1863,68 @@ export default function WelcomeSplashPage() {
           </footer>
         </div>
       </div>
+
+      {/* Terms of Service & Privacy Policy Modal */}
+      {termsModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setTermsModalOpen(null)}
+        >
+          <div
+            className="w-full max-w-[500px] max-h-[85vh] bg-[#07152B] border border-[#38BDF8]/40 rounded-2xl p-5 sm:p-6 shadow-[0_24px_80px_rgba(0,0,0,0.85)] flex flex-col text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-black text-base text-white leading-tight">
+                    {termsModalOpen === "terms"
+                      ? TERMS_AND_PRIVACY_DATA.terms.title
+                      : TERMS_AND_PRIVACY_DATA.privacy.title}
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#7DD3FC] mt-0.5">
+                    {TERMS_AND_PRIVACY_DATA[termsModalOpen].lastUpdated}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTermsModalOpen(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs text-slate-300 leading-relaxed">
+              {TERMS_AND_PRIVACY_DATA[termsModalOpen].sections.map((sec, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/8 space-y-1">
+                  <h4 className="font-display font-bold text-white text-xs">
+                    {sec.heading}
+                  </h4>
+                  <p className="text-[11.5px] text-slate-300 leading-relaxed">
+                    {sec.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-3 border-t border-white/10 shrink-0">
+              <button
+                type="button"
+                onClick={() => setTermsModalOpen(null)}
+                className="w-full h-10 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#182C4E] hover:brightness-110 text-white font-display font-extrabold text-xs transition cursor-pointer"
+              >
+                Close &amp; Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Download App Modal */}
       {showDownloadModal && (

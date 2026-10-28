@@ -20,6 +20,7 @@ import {
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { getCurrentDayOfYear, SEED_DAILY_QUIZZES } from "@/lib/data/seed";
 import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
 
@@ -54,7 +55,8 @@ export default function MobileExplorePage() {
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const storeQuizzes = useQuantersStore((s) => s.dailyQuizzes);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
-  const addManualPointsEntry = useQuantersStore((s) => s.addManualPointsEntry);
+  const ledger = useQuantersStore((s) => s.ledger);
+  const submitDailyQuizAnswer = useQuantersStore((s) => s.submitDailyQuizAnswer);
 
   const [selectedCategory, setSelectedCategory] = useState<
     "All" | ExploreCategory
@@ -71,19 +73,33 @@ export default function MobileExplorePage() {
   );
   const [rewardedRounds, setRewardedRounds] = useState<string[]>([]);
 
+  // Restore completed quizzes from localStorage to prevent quiz reload XP farming
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !currentMemberId) return;
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem(`quanters_completed_quizzes_${currentMemberId}`) || "[]"
+      );
+      if (Array.isArray(stored)) {
+        setRewardedRounds((prev) => Array.from(new Set([...prev, ...stored])));
+      }
+    } catch {}
+  }, [currentMemberId]);
+
   const todayQuiz = React.useMemo(() => {
     const raw =
       storeQuizzes && storeQuizzes.length > 0
         ? storeQuizzes.filter((q) => q.active !== false)
         : SEED_DAILY_QUIZZES;
     const list = raw.length > 0 ? raw : SEED_DAILY_QUIZZES;
+    if (list.length === 0) return null;
     const todayIso = new Date().toISOString().slice(0, 10);
     const exactDateMatch = list.find((q) => q.dateLabel === todayIso);
     if (exactDateMatch) return exactDateMatch;
     const pinned = list.find((q) => q.isPinnedToday);
     if (pinned) return pinned;
     const dayIdx = (getCurrentDayOfYear(0) - 1) % list.length;
-    return list[dayIdx] || list[0];
+    return list[dayIdx] || list[0] || null;
   }, [storeQuizzes]);
 
   // Always sort published posts so Important / Featured / Newest appear first
@@ -108,29 +124,48 @@ export default function MobileExplorePage() {
   });
 
   const heroPost =
-    publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0];
+    publishedPosts.length > 0
+      ? publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0]
+      : null;
 
   const activeChallenge = todayQuiz;
-  const chosenOptionId = selectedAnswers[activeChallenge.id] || null;
-  const isSolvedCorrect = chosenOptionId === activeChallenge.correctId;
+  const chosenOptionId = activeChallenge
+    ? selectedAnswers[activeChallenge.id] || null
+    : null;
+  const isSolvedCorrect = activeChallenge
+    ? chosenOptionId === activeChallenge.correctId
+    : false;
+
+  const isAlreadyRewarded = React.useMemo(() => {
+    if (!activeChallenge || !currentMemberId) return false;
+    const inLedger = ledger.some(
+      (e) =>
+        e.memberId === currentMemberId &&
+        (e.ruleLabel?.includes(activeChallenge.id) ||
+          e.reason?.includes(activeChallenge.id) ||
+          e.ruleLabel?.includes(activeChallenge.verdictTitle) ||
+          e.reason?.includes(activeChallenge.verdictTitle))
+    );
+    return inLedger || rewardedRounds.includes(activeChallenge.id);
+  }, [ledger, activeChallenge, currentMemberId, rewardedRounds]);
 
   const handleSelectOption = (optionId: string) => {
-    if (selectedAnswers[activeChallenge.id]) return;
+    if (!activeChallenge || selectedAnswers[activeChallenge.id]) return;
     setSelectedAnswers((prev) => ({
       ...prev,
       [activeChallenge.id]: optionId,
     }));
 
-    if (optionId === activeChallenge.correctId) {
-      if (!rewardedRounds.includes(activeChallenge.id)) {
-        setRewardedRounds((prev) => [...prev, activeChallenge.id]);
-        addManualPointsEntry(
-          currentMemberId,
-          activeChallenge.xpReward,
-          `Daily Quiz: ${activeChallenge.verdictTitle}`,
-          "Quiz"
+    if (optionId === activeChallenge.correctId && !isAlreadyRewarded) {
+      const nextRewarded = Array.from(new Set([...rewardedRounds, activeChallenge.id]));
+      setRewardedRounds(nextRewarded);
+      try {
+        localStorage.setItem(
+          `quanters_completed_quizzes_${currentMemberId}`,
+          JSON.stringify(nextRewarded)
         );
-      }
+      } catch {}
+      submitDailyQuizAnswer(activeChallenge.id, optionId);
     }
   };
 
@@ -286,118 +321,120 @@ export default function MobileExplorePage() {
         )}
 
         {/* SINGLE DAILY QUIZ BUTTON & COLLAPSIBLE CARD */}
-        <div
-          className="rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.05)] overflow-hidden animate-rise"
-          style={{ animationDelay: "110ms" }}
-        >
-          <button
-            type="button"
-            onClick={() => setIsQuizExpanded((prev) => !prev)}
-            aria-expanded={isQuizExpanded}
-            aria-label="Open Daily Quiz"
-            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white flex items-center justify-between gap-2 cursor-pointer select-none text-left transition hover:brightness-105"
+        {activeChallenge && (
+          <div
+            className="rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.05)] overflow-hidden animate-rise"
+            style={{ animationDelay: "110ms" }}
           >
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <FieldIcon field={activeChallenge.icon} size={18} />
-              <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
-                Quiz
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
-                +{activeChallenge.xpReward} XP
-              </span>
-              {!isQuizExpanded && (
-                <span className="text-xs text-sky-100/85 font-sans truncate ml-1">
-                  {activeChallenge.question}
+            <button
+              type="button"
+              onClick={() => setIsQuizExpanded((prev) => !prev)}
+              aria-expanded={isQuizExpanded}
+              aria-label="Open Daily Quiz"
+              className="w-full px-3.5 py-2.5 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white flex items-center justify-between gap-2 cursor-pointer select-none text-left transition hover:brightness-105"
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <FieldIcon field={activeChallenge.icon} size={18} />
+                <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
+                  Quiz
                 </span>
-              )}
-            </div>
-
-            <span className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
-              {isQuizExpanded ? (
-                <ChevronUp className="w-4 h-4 text-[#7DD3FC]" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-[#7DD3FC]" />
-              )}
-            </span>
-          </button>
-
-          {isQuizExpanded && (
-            <div className="p-3.5 space-y-2.5 border-t border-[#2B4875]/30 animate-rise">
-              <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
-                {activeChallenge.question}
-              </h3>
-
-              <div className="space-y-1.5">
-                {activeChallenge.options.map((opt, idx) => {
-                  const isSelected = chosenOptionId === opt.id;
-                  const isRightOption = opt.id === activeChallenge.correctId;
-                  const showResult = Boolean(chosenOptionId);
-
-                  let cardStyle =
-                    "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
-                  let badgeStyle = "bg-[#182C4E] text-white";
-
-                  if (showResult) {
-                    if (isRightOption) {
-                      cardStyle =
-                        "bg-[#F0F6FF] border-[#0284C7] text-[#0F1E36]";
-                      badgeStyle = "bg-[#0284C7] text-white";
-                    } else if (isSelected && !isRightOption) {
-                      cardStyle =
-                        "bg-slate-100 border-slate-300 text-slate-500 opacity-85";
-                      badgeStyle = "bg-slate-400 text-white";
-                    } else {
-                      cardStyle =
-                        "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
-                      badgeStyle = "bg-slate-200 text-slate-500";
-                    }
-                  }
-
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={showResult}
-                      onClick={() => handleSelectOption(opt.id)}
-                      className={`w-full py-2 px-2.5 rounded-lg border text-left transition-all flex items-center gap-2.5 ${cardStyle} ${
-                        showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
-                      }`}
-                    >
-                      <span
-                        className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
-                      >
-                        {showResult && isRightOption ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          String.fromCharCode(65 + idx)
-                        )}
-                      </span>
-                      <span className="flex-1 text-xs font-bold font-display leading-snug">
-                        {opt.label}
-                      </span>
-                      {showResult && isRightOption && (
-                        <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
-                          +{activeChallenge.xpReward} XP
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
+                  +{activeChallenge.xpReward} XP
+                </span>
+                {!isQuizExpanded && (
+                  <span className="text-xs text-sky-100/85 font-sans truncate ml-1">
+                    {activeChallenge.question}
+                  </span>
+                )}
               </div>
 
-              {chosenOptionId && (
-                <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2.5 animate-rise">
-                  <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
-                    <strong className="font-mono text-[#0284C7]">
-                      {isSolvedCorrect ? "✓ Correct:" : "Answer:"}
-                    </strong>{" "}
-                    {activeChallenge.verdictTitle}
-                  </p>
+              <span className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
+                {isQuizExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-[#7DD3FC]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-[#7DD3FC]" />
+                )}
+              </span>
+            </button>
+
+            {isQuizExpanded && (
+              <div className="p-3.5 space-y-2.5 border-t border-[#2B4875]/30 animate-rise">
+                <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
+                  {activeChallenge.question}
+                </h3>
+
+                <div className="space-y-1.5">
+                  {activeChallenge.options.map((opt, idx) => {
+                    const isSelected = chosenOptionId === opt.id;
+                    const isRightOption = opt.id === activeChallenge.correctId;
+                    const showResult = Boolean(chosenOptionId);
+
+                    let cardStyle =
+                      "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
+                    let badgeStyle = "bg-[#182C4E] text-white";
+
+                    if (showResult) {
+                      if (isRightOption) {
+                        cardStyle =
+                          "bg-[#F0F6FF] border-[#0284C7] text-[#0F1E36]";
+                        badgeStyle = "bg-[#0284C7] text-white";
+                      } else if (isSelected && !isRightOption) {
+                        cardStyle =
+                          "bg-slate-100 border-slate-300 text-slate-500 opacity-85";
+                        badgeStyle = "bg-slate-400 text-white";
+                      } else {
+                        cardStyle =
+                          "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
+                        badgeStyle = "bg-slate-200 text-slate-500";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        disabled={showResult}
+                        onClick={() => handleSelectOption(opt.id)}
+                        className={`w-full py-2 px-2.5 rounded-lg border text-left transition-all flex items-center gap-2.5 ${cardStyle} ${
+                          showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
+                        }`}
+                      >
+                        <span
+                          className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
+                        >
+                          {showResult && isRightOption ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            String.fromCharCode(65 + idx)
+                          )}
+                        </span>
+                        <span className="flex-1 text-xs font-bold font-display leading-snug">
+                          {opt.label}
+                        </span>
+                        {showResult && isRightOption && (
+                          <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
+                            +{activeChallenge.xpReward} XP
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+
+                {chosenOptionId && (
+                  <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2.5 animate-rise">
+                    <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
+                      <strong className="font-mono text-[#0284C7]">
+                        {isSolvedCorrect ? "✓ Correct:" : "Answer:"}
+                      </strong>{" "}
+                      {activeChallenge.verdictTitle}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Priority Feed List: New & Important Dispatches First */}
         <div className="space-y-2.5">
@@ -605,11 +642,7 @@ export default function MobileExplorePage() {
                 {activeArticle.externalUrl ? (
                   <div className="flex items-center gap-2">
                     <a
-                      href={
-                        /^https?:\/\//i.test(activeArticle.externalUrl.trim())
-                          ? activeArticle.externalUrl.trim()
-                          : "https://quanta-algiers.dz"
-                      }
+                      href={sanitizeExternalUrl(activeArticle.externalUrl) || "https://quanta-algiers.dz"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="h-10 px-4 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"

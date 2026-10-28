@@ -42,7 +42,10 @@ const securityHeaders = [
   },
 ];
 
+const isStaticExport = process.env.FIREBASE_STATIC_EXPORT === "1";
+
 const nextConfig: NextConfig = {
+  ...(isStaticExport ? { output: "export" } : {}),
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
   poweredByHeader: false,
@@ -52,14 +55,27 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  ...(isStaticExport
+    ? {}
+    : {
+        async headers() {
+          return [
+            {
+              source: "/sw.js",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=0, must-revalidate",
+                },
+              ],
+            },
+            {
+              source: "/(.*)",
+              headers: securityHeaders,
+            },
+          ];
+        },
+      }),
 };
 
 export default nextConfig;

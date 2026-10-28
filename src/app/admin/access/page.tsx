@@ -26,7 +26,20 @@ const ROLES: RoleTemplateName[] = [
 ];
 
 export default function AdminAccessPage() {
-  const { members, departments } = useQuantersStore();
+  const members = useQuantersStore((s) => s.members);
+  const departments = useQuantersStore((s) => s.departments);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+
+  if (activeAdminRole !== "Super Admin" && activeAdminRole !== "Executive") {
+    return (
+      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 max-w-lg mx-auto my-12 shadow-sm">
+        <h2 className="text-base font-bold text-slate-800 font-display">Access Restricted</h2>
+        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+          Super Admin or Executive role is strictly required to modify access grants and assign administrative roles.
+        </p>
+      </div>
+    );
+  }
 
   const [grantModalOpen, setGrantModalOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id || "");

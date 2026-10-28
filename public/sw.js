@@ -4,7 +4,7 @@
  * API snapshot fallback, and native Push / System notifications.
  */
 
-const CACHE_VERSION = "quanters-pwa-v4.0";
+const CACHE_VERSION = "quanters-pwa-v5.0";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -19,7 +19,8 @@ const CORE_PRECACHE_URLS = [
   "/profile",
   "/checkin",
   "/exams",
-  "/exams/exam-astrophysics",
+  "/exams/exam",
+  "/admin/members/member",
   "/projects/submit",
   "/proposals",
   "/notifications",
@@ -34,9 +35,8 @@ const CORE_PRECACHE_URLS = [
   "/brand/univ_logo_d.svg",
   "/brand/univ_logo_darkmode.svg",
   "/brand/univ_logo.svg",
-  "/brand/hero_rank_banner.png",
-  "/brand/checkin_cosmic_banner.png",
-  "/brand/welcome_keyframe_1.png",
+  "/brand/welcome_keyframe_1.webp",
+  "/brand/admin_overview_banner_bg.webp",
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,7 +46,7 @@ self.addEventListener("install", (event) => {
       await Promise.allSettled(
         CORE_PRECACHE_URLS.map(async (url) => {
           try {
-            const res = await fetch(url, { credentials: "same-origin" });
+            const res = await fetch(url, { credentials: "same-origin", cache: "no-cache" });
             if (res && res.ok) {
               await cache.put(url, res.clone());
             }
@@ -175,17 +175,38 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
 
+  // Bypass byte-range requests (e.g. video streaming) to prevent browser buffer stalls
+  if (request.headers.has("range")) return;
+
   const url = new URL(request.url);
   if (!url.protocol.startsWith("http")) return;
+  if (
+    url.origin !== self.location.origin &&
+    !url.hostname.includes("fonts.gstatic.com") &&
+    !url.hostname.includes("fonts.googleapis.com")
+  ) {
+    return;
+  }
 
   // 1. API Snapshot Endpoint (/api/erp) -> Network-First with Offline Snapshot Fallback
   if (url.pathname === "/api/erp") {
+    const hasAuth = request.headers.has("authorization");
+    const isDeltaQuery = url.searchParams.has("versions") || url.searchParams.has("since");
+
     event.respondWith(
       (async () => {
         const apiCache = await caches.open(API_CACHE);
         try {
           const networkResp = await fetch(request);
-          if (networkResp && networkResp.status === 200) {
+          const ct = networkResp?.headers?.get("content-type") || "";
+          // Only cache complete, unprivileged master snapshots to prevent delta cache poisoning or credential leakage
+          if (
+            networkResp &&
+            networkResp.status === 200 &&
+            ct.includes("application/json") &&
+            !hasAuth &&
+            !isDeltaQuery
+          ) {
             await apiCache.put("/api/erp", networkResp.clone());
           }
           return networkResp;
@@ -268,16 +289,33 @@ self.addEventListener("fetch", (event) => {
           const exactMatch = await pagesCache.match(request);
           if (exactMatch) return exactMatch;
 
+          // RSC payloads must NEVER receive HTML fallbacks (prevents Next.js Flight parse crashes)
+          if (!isNavigation) {
+            return new Response("", {
+              status: 503,
+              statusText: "Service Unavailable Offline",
+              headers: { "Content-Type": "text/x-component" },
+            });
+          }
+
           const pathMatch = await pagesCache.match(cleanPathKey);
           if (pathMatch) return pathMatch;
 
-          if (isNavigation) {
-            const homeShell =
-              (await pagesCache.match("/home")) ||
-              (await pagesCache.match("/welcome")) ||
-              (await pagesCache.match("/"));
-            if (homeShell) return homeShell;
+          // Route-aware dynamic offline shell matching (L3-PWA-02)
+          if (cleanPathKey.startsWith("/admin/members/")) {
+            const memberShell = await pagesCache.match("/admin/members/member");
+            if (memberShell) return memberShell;
           }
+          if (cleanPathKey.startsWith("/exams/")) {
+            const examShell = await pagesCache.match("/exams/exam");
+            if (examShell) return examShell;
+          }
+
+          const homeShell =
+            (await pagesCache.match("/home")) ||
+            (await pagesCache.match("/welcome")) ||
+            (await pagesCache.match("/"));
+          if (homeShell) return homeShell;
 
           return new Response(
             "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>QUANTERS Offline</title><style>body{font-family:system-ui,sans-serif;background:#040C1A;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100dvh;margin:0;padding:24px;text-align:center}.card{max-width:380px;background:#0A1A30;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px}a{display:inline-block;margin-top:16px;padding:10px 20px;background:#1D63EB;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;font-size:13px}</style></head><body><div class='card'><h2>QUANTERS Offline Mode</h2><p style='color:#94a3b8;font-size:13px'>Your connection is offline. Cached screens and your local member data remain available.</p><a href='/home'>Open Cached Member Hub</a></div></body></html>",

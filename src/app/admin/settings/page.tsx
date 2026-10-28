@@ -2,23 +2,30 @@
 
 import React, { useEffect, useState } from "react";
 import {
+  Award,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Database,
   Download,
+  Edit2,
   GraduationCap,
   Link2,
   Moon,
+  Plus,
   QrCode,
   RefreshCw,
   Save,
   ShieldCheck,
   Sliders,
   Sparkles,
+  Terminal,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { SystemSettings } from "@/lib/types/erp";
+import { DEFAULT_RANK_LEVELS, RankLevelThreshold, SystemSettings } from "@/lib/types/erp";
 import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
 
 interface ErpTelemetry {
@@ -33,15 +40,20 @@ interface ErpTelemetry {
 }
 
 export default function AdminSettingsPage() {
-  const state = useQuantersStore();
-  const { settings, updateSettings, syncWithServer, compactAndPruneQuota } = state;
+  const settings = useQuantersStore((s) => s.settings);
+  const updateSettings = useQuantersStore((s) => s.updateSettings);
+  const syncWithServer = useQuantersStore((s) => s.syncWithServer);
+  const compactAndPruneQuota = useQuantersStore((s) => s.compactAndPruneQuota);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+  const membersCount = useQuantersStore((s) => s.members.length);
+  const ledgerCount = useQuantersStore((s) => s.ledger.length);
+  const auditLogsCount = useQuantersStore((s) => s.auditLogs.length);
 
   const [formState, setFormState] = useState<SystemSettings>({
     ...settings,
     onboardingAutoApprove: settings.onboardingAutoApprove ?? true,
     qrRotationSeconds: settings.qrRotationSeconds ?? 30,
     checkinGraceMinutes: settings.checkinGraceMinutes ?? 15,
-    geofenceVerification: settings.geofenceVerification ?? true,
     waitlistAutoPromote: settings.waitlistAutoPromote ?? true,
     examFreezeMode: settings.examFreezeMode ?? false,
     quietHoursEnabled: settings.quietHoursEnabled ?? true,
@@ -59,7 +71,7 @@ export default function AdminSettingsPage() {
   const [telemetry, setTelemetry] = useState<ErpTelemetry>({
     dbSizeBytes: 43820,
     dbSizeKB: 42.8,
-    memberCount: state.members.length,
+    memberCount: membersCount,
     quotaUsedPercent: 0.08,
     estimatedDailyReadsPerUser: 10,
     estimatedDailyWritesPerUser: 5,
@@ -81,6 +93,87 @@ export default function AdminSettingsPage() {
     setFormState((prev) => ({ ...prev, ...patch }));
     updateSettings(patch, reason);
     setBanner(msg);
+  };
+
+  // Advanced & Developer Options Accordion (collapsed by default)
+  const [devOptionsExpanded, setDevOptionsExpanded] = useState(false);
+  // Member Rank Levels Accordion (collapsed by default, expandable on demand)
+  const [rankLevelsExpanded, setRankLevelsExpanded] = useState(false);
+
+  // Dynamic Member Rank Levels & XP Progression System
+  const rankLevels: RankLevelThreshold[] =
+    formState.rankLevels && formState.rankLevels.length > 0
+      ? formState.rankLevels
+      : DEFAULT_RANK_LEVELS;
+
+  const [editingRankLevel, setEditingRankLevel] = useState<RankLevelThreshold | null>(null);
+  const [rankModalOpen, setRankModalOpen] = useState(false);
+  const [levelForm, setLevelForm] = useState<RankLevelThreshold>({
+    level: 1,
+    minXp: 0,
+    maxXp: 999,
+    title: "Novice Quanter",
+    badgeName: "Novice",
+    colorHex: "#38BDF8",
+  });
+
+  const handleOpenAddRank = () => {
+    const nextLevel = rankLevels.length + 1;
+    const lastLevel = rankLevels[rankLevels.length - 1];
+    const nextMinXp = lastLevel
+      ? typeof lastLevel.maxXp === "number"
+        ? lastLevel.maxXp + 1
+        : lastLevel.minXp + 1000
+      : 0;
+    setLevelForm({
+      level: nextLevel,
+      minXp: nextMinXp,
+      maxXp: nextMinXp + 999,
+      title: `Rank Lv. ${nextLevel}`,
+      badgeName: "Scholar",
+      colorHex: "#38BDF8",
+    });
+    setEditingRankLevel(null);
+    setRankModalOpen(true);
+  };
+
+  const handleOpenEditRank = (rank: RankLevelThreshold) => {
+    setEditingRankLevel(rank);
+    setLevelForm({ ...rank });
+    setRankModalOpen(true);
+  };
+
+  const handleSaveRankLevel = (e: React.FormEvent) => {
+    e.preventDefault();
+    let updated: RankLevelThreshold[];
+    if (editingRankLevel) {
+      updated = rankLevels.map((r) =>
+        r.level === editingRankLevel.level ? { ...levelForm } : r
+      );
+    } else {
+      updated = [...rankLevels, { ...levelForm }];
+    }
+    updated.sort((a, b) => a.level - b.level);
+    applyImmediatePatch(
+      { rankLevels: updated },
+      `Updated Rank Level Lv. ${levelForm.level} (${levelForm.title})`,
+      `Saved Rank Level Lv. ${levelForm.level} (${levelForm.title})`
+    );
+    setRankModalOpen(false);
+  };
+
+  const handleDeleteRankLevel = (levelNum: number) => {
+    if (rankLevels.length <= 1) {
+      alert("At least one rank level must remain in the progression system.");
+      return;
+    }
+    if (!window.confirm(`Delete Rank Level Lv. ${levelNum}?`)) return;
+    const updated = rankLevels.filter((r) => r.level !== levelNum);
+    applyImmediatePatch(
+      { rankLevels: updated },
+      `Deleted Rank Level Lv. ${levelNum}`,
+      `Deleted Rank Level Lv. ${levelNum}`
+    );
   };
 
   const handleCopyRegistrationLink = async () => {
@@ -108,24 +201,25 @@ export default function AdminSettingsPage() {
   };
 
   const handleExportBackup = () => {
+    const fullState = useQuantersStore.getState();
     const exportPayload = {
       exportedAt: new Date().toISOString(),
       season: settings.currentSeasonLabel,
-      departments: state.departments,
-      teams: state.teams,
-      members: state.members,
-      workshops: state.workshops,
-      tasks: state.tasks,
-      pointRules: state.pointRules,
-      ledger: state.ledger,
-      badges: state.badges,
-      exams: state.exams,
-      projectSubmissions: state.projectSubmissions,
-      proposals: state.proposals,
-      explorePosts: state.explorePosts,
-      messages: state.messages,
-      accessGrants: state.accessGrants,
-      auditLogs: state.auditLogs,
+      departments: fullState.departments,
+      teams: fullState.teams,
+      members: fullState.members,
+      workshops: fullState.workshops,
+      tasks: fullState.tasks,
+      pointRules: fullState.pointRules,
+      ledger: fullState.ledger,
+      badges: fullState.badges,
+      exams: fullState.exams,
+      projectSubmissions: fullState.projectSubmissions,
+      proposals: fullState.proposals,
+      explorePosts: fullState.explorePosts,
+      messages: fullState.messages,
+      accessGrants: fullState.accessGrants,
+      auditLogs: fullState.auditLogs,
       settings: formState,
     };
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
@@ -136,15 +230,26 @@ export default function AdminSettingsPage() {
     a.href = url;
     a.download = `quanters-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
+    URL.revokeObjectURL(url);
     setBanner("Exported full platform state JSON backup");
   };
+
+  if (activeAdminRole !== "Super Admin" && activeAdminRole !== "Executive") {
+    return (
+      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 max-w-lg mx-auto my-12 shadow-sm">
+        <h2 className="text-base font-bold text-slate-800 font-display">Access Restricted</h2>
+        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+          Super Admin role is strictly required to modify platform governance parameters and operational quotas.
+        </p>
+      </div>
+    );
+  }
 
   const regOpen = formState.registrationOpen;
   const alumniActive = formState.alumniAccessGlobal;
   const autoApprove = formState.onboardingAutoApprove ?? true;
   const qrSec = formState.qrRotationSeconds ?? 30;
   const graceMin = formState.checkinGraceMinutes ?? 15;
-  const geofence = formState.geofenceVerification ?? true;
   const waitlistAuto = formState.waitlistAutoPromote ?? true;
   const examFreeze = formState.examFreezeMode ?? false;
   const quietHours = formState.quietHoursEnabled ?? true;
@@ -424,47 +529,6 @@ export default function AdminSettingsPage() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Row 3: Campus Geofence Verification */}
-            <div className="flex items-center justify-between gap-3 pt-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#0F1E36]">
-                    Campus Geofence Verification
-                  </span>
-                  <span
-                    className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold border ${
-                      geofence
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-slate-100 text-slate-600 border-slate-200"
-                    }`}
-                  >
-                    {geofence ? "ENABLED" : "DISABLED"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500">
-                  Verify member proximity to Faculty of Sciences lecture halls
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  applyImmediatePatch(
-                    { geofenceVerification: !geofence },
-                    "Toggled campus geofence verification",
-                    `Campus Geofence Verification ${!geofence ? "ENABLED" : "DISABLED"}`
-                  )
-                }
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition cursor-pointer shrink-0 ${
-                  geofence
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                    : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
-                }`}
-              >
-                {geofence ? "Enabled" : "Disabled"}
-              </button>
             </div>
 
             {/* Row 4: Waitlist Auto-Promotion */}
@@ -842,282 +906,589 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* SECTION 5: FIREBASE FREE-TIER & USER QUOTA OPTIMIZER */}
+            {/* SECTION 5: MEMBER RANK LEVELS & XP PROGRESSION SYSTEM (COLLAPSIBLE ACCORDION) */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setRankLevelsExpanded(!rankLevelsExpanded)}
+          className="w-full px-4 py-3 bg-[#F8FAFD] hover:bg-slate-100/80 transition flex items-center justify-between gap-3 text-left cursor-pointer border-b border-slate-200/90"
+        >
+          <div className="flex items-center gap-2.5">
+            <Award className="w-4 h-4 text-[#0284C7] shrink-0" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+                  5. Member Rank Levels &amp; XP Progression System
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#0284C7]/10 text-[#0284C7] border border-[#0284C7]/20">
+                  {rankLevels.length} Progression Tiers
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Configure XP thresholds, rank titles, and emblems across all {rankLevels.length} progression tiers (Lv. 1 {rankLevels[0]?.title || "Novice"} to Lv. {rankLevels[rankLevels.length - 1]?.level || 10} {rankLevels[rankLevels.length - 1]?.title || "Luminary"})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[11px] font-mono font-semibold text-slate-500 hidden sm:inline">
+              {rankLevelsExpanded ? "Collapse" : "Expand"}
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
+                rankLevelsExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </div>
+        </button>
+
+        {rankLevelsExpanded && (
+          <div className="p-4 space-y-4 animate-rise">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <span className="text-xs text-slate-500">
+                Dynamic rank level calculation automatically updates member rank titles upon XP award.
+              </span>
+              <button
+                type="button"
+                onClick={handleOpenAddRank}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer shadow-xs self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Rank Level</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-50/60">
+                    <th className="py-2.5 px-3">Level</th>
+                    <th className="py-2.5 px-3">Rank Title</th>
+                    <th className="py-2.5 px-3">XP Threshold</th>
+                    <th className="py-2.5 px-3">Emblem / Badge</th>
+                    <th className="py-2.5 px-3">Color Accent</th>
+                    <th className="py-2.5 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rankLevels.map((rank) => (
+                    <tr key={rank.level} className="hover:bg-slate-50/70 transition">
+                      <td className="py-2.5 px-3 font-mono font-black text-slate-900 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-md bg-[#182C4E] text-white font-mono font-bold text-[11px]">
+                          Lv. {rank.level}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-bold text-slate-800">
+                        {rank.title}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono font-semibold text-slate-600 whitespace-nowrap">
+                        {typeof rank.maxXp === "number"
+                          ? `${rank.minXp.toLocaleString()} – ${rank.maxXp.toLocaleString()} XP`
+                          : `${rank.minXp.toLocaleString()}+ XP`}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-600">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px]">
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          <span>{rank.badgeName || "Emblem"}</span>
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <div className="inline-flex items-center gap-1.5">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-300"
+                            style={{ backgroundColor: rank.colorHex || "#38BDF8" }}
+                          />
+                          <span className="font-mono text-[10.5px] text-slate-500">
+                            {rank.colorHex || "#38BDF8"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditRank(rank)}
+                            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                            title="Edit Rank Level"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRankLevel(rank.level)}
+                            className="p-1.5 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                            title="Delete Rank Level"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ADVANCED & DEVELOPER OPTIONS (COLLAPSIBLE ACCORDION - COLLAPSED BY DEFAULT) */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setDevOptionsExpanded(!devOptionsExpanded)}
+          className="w-full px-4 py-3.5 bg-slate-50 hover:bg-slate-100/80 flex items-center justify-between transition cursor-pointer text-left"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-[#182C4E] text-white flex items-center justify-center">
+              <Terminal className="w-4 h-4 text-[#38E4FF]" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                  Advanced &amp; Developer Options
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-600 text-[10px] font-mono">
+                  {devOptionsExpanded ? "Expanded" : "Click to Expand"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Firebase Free-Tier &amp; User Quota Optimizer, Database Snapshots, and WAL Engine
+              </p>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#0284C7]" />
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-              5. Firebase Free-Tier &amp; User Quota Optimizer
-            </h2>
-            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-bold">
-              {formState.quotaSaverPreset === "ultra"
-                ? "94% QUOTA SAVED"
-                : formState.quotaSaverPreset === "aggressive"
-                  ? "85% QUOTA SAVED"
-                  : "STANDARD MODE"}
+            <span className="text-xs font-bold text-slate-500">
+              {devOptionsExpanded ? "Hide" : "Show"}
             </span>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
+                devOptionsExpanded ? "rotate-180" : ""
+              }`}
+            />
           </div>
+        </button>
 
-          <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600">
-            <span>
-              Est. Spark Free-Tier Capacity:{" "}
-              <strong className="text-[#0284C7]">
-                {formState.quotaSaverPreset === "ultra"
-                  ? "10,000"
-                  : formState.quotaSaverPreset === "aggressive"
-                    ? "4,000"
-                    : "700"}{" "}
-                Daily Active Users
-              </strong>
-            </span>
-          </div>
-        </div>
+        {devOptionsExpanded && (
+          <div className="p-4 space-y-6 border-t border-slate-200/90 animate-rise bg-[#FAFBFD]">
+            {/* SUB-SECTION: FIREBASE FREE-TIER & USER QUOTA OPTIMIZER */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+              <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0284C7]" />
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+                    Firebase Free-Tier &amp; User Quota Optimizer
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-bold">
+                    {formState.quotaSaverPreset === "ultra"
+                      ? "94% QUOTA SAVED"
+                      : formState.quotaSaverPreset === "aggressive"
+                        ? "85% QUOTA SAVED"
+                        : "STANDARD MODE"}
+                  </span>
+                </div>
 
-        <div className="p-4 space-y-4">
-          {/* Row A: 3 One-Click Quota Presets */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {[
-              {
-                key: "standard" as const,
-                title: "Standard Mode",
-                badge: "0% Reduction",
-                desc: "Instant read/write sync · 256px WebP avatars · 5m local cache TTL",
-                patch: {
-                  quotaSaverPreset: "standard" as const,
-                  syncStrategy: "instant" as const,
-                  clientCacheTtlMinutes: 5,
-                  maxImageDimensionPx: 256,
-                  webpCompressionQuality: 82,
-                  disableVideoOnCellular: false,
-                },
-              },
-              {
-                key: "aggressive" as const,
-                title: "Aggressive Quota-Saver",
-                badge: "Recommended · -85% Reads/Writes",
-                desc: "30s batched writes · ETag 304 cache (15m TTL) · 160px WebP avatars (~8 KB)",
-                patch: {
-                  quotaSaverPreset: "aggressive" as const,
-                  syncStrategy: "debounced_30s" as const,
-                  clientCacheTtlMinutes: 15,
-                  maxImageDimensionPx: 160,
-                  webpCompressionQuality: 75,
-                  disableVideoOnCellular: true,
-                },
-              },
-              {
-                key: "ultra" as const,
-                title: "Ultra Free-Tier Mode",
-                badge: "Max Savings · -94% Quota",
-                desc: "Offline-first manual/exit sync · 60m cache TTL · 128px WebP (~4 KB) · Static hero poster",
-                patch: {
-                  quotaSaverPreset: "ultra" as const,
-                  syncStrategy: "manual_offline" as const,
-                  clientCacheTtlMinutes: 60,
-                  maxImageDimensionPx: 128,
-                  webpCompressionQuality: 65,
-                  disableVideoOnCellular: true,
-                },
-              },
-            ].map((item) => {
-              const active = (formState.quotaSaverPreset || "aggressive") === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() =>
-                    applyImmediatePatch(
-                      item.patch,
-                      `Switched Firebase Quota Optimizer preset to ${item.title}`,
-                      `Activated ${item.title} (${item.badge})`
-                    )
-                  }
-                  className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
-                    active
-                      ? "bg-[#EBF3FC] border-[#182C4E] shadow-xs"
-                      : "bg-[#F8FAFD] border-slate-200/90 hover:border-slate-300"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-extrabold text-[#0F1E36]">
-                        {item.title}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold ${
+                <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600">
+                  <span>
+                    Est. Spark Free-Tier Capacity:{" "}
+                    <strong className="text-[#0284C7]">
+                      {formState.quotaSaverPreset === "ultra"
+                        ? "10,000"
+                        : formState.quotaSaverPreset === "aggressive"
+                          ? "4,000"
+                          : "700"}{" "}
+                      Daily Active Users
+                    </strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* Row A: 3 One-Click Quota Presets */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    {
+                      key: "standard" as const,
+                      title: "Standard Mode",
+                      badge: "0% Reduction",
+                      desc: "Instant read/write sync · 256px WebP avatars · 5m local cache TTL",
+                      patch: {
+                        quotaSaverPreset: "standard" as const,
+                        syncStrategy: "instant" as const,
+                        clientCacheTtlMinutes: 5,
+                        maxImageDimensionPx: 256,
+                        webpCompressionQuality: 82,
+                        disableVideoOnCellular: false,
+                      },
+                    },
+                    {
+                      key: "aggressive" as const,
+                      title: "Aggressive Quota-Saver",
+                      badge: "Recommended · -85% Reads/Writes",
+                      desc: "30s batched writes · ETag 304 cache (15m TTL) · 160px WebP avatars (~8 KB)",
+                      patch: {
+                        quotaSaverPreset: "aggressive" as const,
+                        syncStrategy: "debounced_30s" as const,
+                        clientCacheTtlMinutes: 15,
+                        maxImageDimensionPx: 160,
+                        webpCompressionQuality: 75,
+                        disableVideoOnCellular: true,
+                      },
+                    },
+                    {
+                      key: "ultra" as const,
+                      title: "Ultra Free-Tier Mode",
+                      badge: "Max Savings · -94% Quota",
+                      desc: "Offline-first manual/exit sync · 60m cache TTL · 128px WebP (~4 KB) · Static hero poster",
+                      patch: {
+                        quotaSaverPreset: "ultra" as const,
+                        syncStrategy: "manual_offline" as const,
+                        clientCacheTtlMinutes: 60,
+                        maxImageDimensionPx: 128,
+                        webpCompressionQuality: 65,
+                        disableVideoOnCellular: true,
+                      },
+                    },
+                  ].map((item) => {
+                    const active = (formState.quotaSaverPreset || "aggressive") === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() =>
+                          applyImmediatePatch(
+                            item.patch,
+                            `Switched Firebase Quota Optimizer preset to ${item.title}`,
+                            `Activated ${item.title} (${item.badge})`
+                          )
+                        }
+                        className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                           active
-                            ? "bg-[#182C4E] text-white"
-                            : "bg-slate-200/80 text-slate-700"
+                            ? "bg-[#EBF3FC] border-[#182C4E] shadow-xs"
+                            : "bg-[#F8FAFD] border-slate-200/90 hover:border-slate-300"
                         }`}
                       >
-                        {item.badge}
-                      </span>
+                        <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-extrabold text-[#0F1E36]">
+                              {item.title}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded font-mono text-[9.5px] font-bold ${
+                                active
+                                  ? "bg-[#182C4E] text-white"
+                                  : "bg-slate-200/80 text-slate-700"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                            {item.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Row B: Fine-Grained Quota & Offline Controls */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                  {/* Write Sync Strategy */}
+                  <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-800">Write Sync Strategy</div>
+                      <div className="text-[10px] text-slate-500">Controls Firestore write frequency</div>
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                      {item.desc}
-                    </p>
+                    <select
+                      value={formState.syncStrategy || "debounced_30s"}
+                      onChange={(e) =>
+                        applyImmediatePatch(
+                          {
+                            syncStrategy: e.target.value as SystemSettings["syncStrategy"],
+                          },
+                          "Updated write sync strategy",
+                          `Write sync strategy set to ${e.target.value}`
+                        )
+                      }
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
+                    >
+                      <option value="instant">Instant (Every Action)</option>
+                      <option value="debounced_30s">Batched (30s Coalesced)</option>
+                      <option value="manual_offline">Offline-First (Manual / Reconnect)</option>
+                    </select>
                   </div>
+
+                  {/* Client Local Cache TTL */}
+                  <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-800">Client Cache TTL</div>
+                      <div className="text-[10px] text-slate-500">How long data stays cached</div>
+                    </div>
+                    <select
+                      value={formState.clientCacheTtlMinutes ?? 15}
+                      onChange={(e) =>
+                        applyImmediatePatch(
+                          { clientCacheTtlMinutes: Number(e.target.value) },
+                          "Updated client cache TTL",
+                          `Client cache TTL set to ${e.target.value} minutes`
+                        )
+                      }
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
+                    >
+                      <option value={5}>5 minutes</option>
+                      <option value={15}>15 minutes (Standard)</option>
+                      <option value={30}>30 minutes</option>
+                      <option value={60}>60 minutes (Ultra-Saver)</option>
+                    </select>
+                  </div>
+
+                  {/* Max Image Dimension */}
+                  <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-800">Avatar Max Bounds</div>
+                      <div className="text-[10px] text-slate-500">Canvas compression target</div>
+                    </div>
+                    <select
+                      value={formState.maxImageDimensionPx ?? 160}
+                      onChange={(e) =>
+                        applyImmediatePatch(
+                          { maxImageDimensionPx: Number(e.target.value) },
+                          "Updated max avatar dimension",
+                          `Avatar max bounds set to ${e.target.value}px`
+                        )
+                      }
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
+                    >
+                      <option value={128}>128×128px (~4 KB)</option>
+                      <option value={160}>160×160px (~8 KB)</option>
+                      <option value={256}>256×256px (~18 KB)</option>
+                    </select>
+                  </div>
+
+                  {/* Prune Quota Button */}
+                  <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-800">Auto-Compact WAL</div>
+                      <div className="text-[10px] text-slate-500">Prune history &amp; free payload</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const res = compactAndPruneQuota();
+                        await syncWithServer(true);
+                        setBanner(
+                          `Compacted database payload: saved ${res.bytesSaved} bytes (${res.prunedCount} stale archived notices pruned)`
+                        );
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Database className="w-3.5 h-3.5" />
+                      <span>Compact &amp; Free Quota</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SUB-SECTION: DATABASE & STATE SNAPSHOT ENGINE */}
+            <div className="bg-white p-3.5 sm:px-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-[#0284C7]">
+                  <Database className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold text-[#0F1E36]">
+                      Database &amp; State Snapshot Engine
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      HEALTHY · {telemetry.dbSizeKB} KB
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    {telemetry.memberCount} members · {ledgerCount} ledger rows ·{" "}
+                    {auditLogsCount} audit logs · Quota used: {telemetry.quotaUsedPercent}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleSyncNow}
+                  disabled={syncing}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
+                  <span>Sync Now</span>
                 </button>
-              );
-            })}
+
+                <button
+                  type="button"
+                  onClick={handleExportBackup}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
+                  <span>Export Full State JSON</span>
+                </button>
+              </div>
+            </div>
           </div>
+        )}
+      </div>
 
-          {/* Row B: Fine-Grained Quota & Offline Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-            {/* Write Sync Strategy */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
-              <div>
-                <div className="text-[11px] font-bold text-slate-800">Write Sync Strategy</div>
-                <div className="text-[10px] text-slate-500">Controls Firestore write frequency</div>
-              </div>
-              <select
-                value={formState.syncStrategy || "debounced_30s"}
-                onChange={(e) =>
-                  applyImmediatePatch(
-                    {
-                      syncStrategy: e.target.value as SystemSettings["syncStrategy"],
-                    },
-                    "Updated write sync strategy",
-                    `Write sync strategy set to ${e.target.value}`
-                  )
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
-              >
-                <option value="instant">Instant (Every Action)</option>
-                <option value="debounced_30s">Batched (30s Coalesced)</option>
-                <option value="manual_offline">Offline-First (Manual / Reconnect)</option>
-              </select>
-            </div>
-
-            {/* Client Local Cache TTL */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
-              <div>
-                <div className="text-[11px] font-bold text-slate-800">Client Read Cache TTL</div>
-                <div className="text-[10px] text-slate-500">Serves tab switches from local PWA cache</div>
-              </div>
-              <div className="flex items-center gap-1">
-                {[5, 15, 60].map((mins) => (
-                  <button
-                    key={mins}
-                    type="button"
-                    onClick={() =>
-                      applyImmediatePatch(
-                        { clientCacheTtlMinutes: mins },
-                        `Updated client read cache TTL to ${mins}m`,
-                        `Client read cache TTL set to ${mins} minutes`
-                      )
-                    }
-                    className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
-                      (formState.clientCacheTtlMinutes ?? 15) === mins
-                        ? "bg-[#182C4E] text-white border-[#182C4E]"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    {mins}m
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Avatar Compression Cap */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
-              <div>
-                <div className="text-[11px] font-bold text-slate-800">Avatar WebP Dimension Cap</div>
-                <div className="text-[10px] text-slate-500">Zero Firebase Storage bucket overhead</div>
-              </div>
-              <div className="flex items-center gap-1">
-                {[128, 160, 256].map((px) => (
-                  <button
-                    key={px}
-                    type="button"
-                    onClick={() =>
-                      applyImmediatePatch(
-                        { maxImageDimensionPx: px },
-                        `Updated avatar max dimension to ${px}px`,
-                        `Avatar WebP dimension cap set to ${px}×${px}px`
-                      )
-                    }
-                    className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-bold border transition cursor-pointer ${
-                      formState.maxImageDimensionPx === px
-                        ? "bg-[#182C4E] text-white border-[#06182C]"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    {px}px
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Compact & Prune Clutter Action */}
-            <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
-              <div>
-                <div className="text-[11px] font-bold text-slate-800">Payload Compaction</div>
-                <div className="text-[10px] text-slate-500">Prunes stale read notices &amp; shrinks URLs</div>
+      {/* CREATE / EDIT RANK LEVEL MODAL */}
+      {rankModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-[#182C4E] text-white">
+                  <Award className="w-4 h-4 text-[#38E4FF]" />
+                </span>
+                <h3 className="font-extrabold text-sm text-slate-900">
+                  {editingRankLevel ? `Edit Rank Lv. ${levelForm.level}` : "Add New Rank Level"}
+                </h3>
               </div>
               <button
                 type="button"
-                onClick={async () => {
-                  const res = compactAndPruneQuota();
-                  await syncWithServer(true);
-                  setBanner(
-                    `Compacted database payload: saved ${res.bytesSaved} bytes (${res.prunedCount} stale archived notices pruned)`
-                  );
-                }}
-                className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                onClick={() => setRankModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
               >
-                <Database className="w-3.5 h-3.5" />
-                <span>Compact &amp; Free Quota</span>
+                ✕
               </button>
             </div>
+
+            <form onSubmit={handleSaveRankLevel} className="space-y-3">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Level Number *
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    required
+                    value={levelForm.level}
+                    onChange={(e) =>
+                      setLevelForm({ ...levelForm, level: parseInt(e.target.value) || 1 })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Badge Emblem Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={levelForm.badgeName || ""}
+                    onChange={(e) =>
+                      setLevelForm({ ...levelForm, badgeName: e.target.value })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Official Rank Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={levelForm.title}
+                  onChange={(e) =>
+                    setLevelForm({ ...levelForm, title: e.target.value })
+                  }
+                  placeholder="e.g. Quantum Explorer, Lab Specialist..."
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Minimum XP *
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={levelForm.minXp}
+                    onChange={(e) =>
+                      setLevelForm({ ...levelForm, minXp: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Maximum XP
+                  </label>
+                  <input
+                    type="number"
+                    min={levelForm.minXp}
+                    value={levelForm.maxXp ?? ""}
+                    onChange={(e) =>
+                      setLevelForm({
+                        ...levelForm,
+                        maxXp: e.target.value === "" ? undefined : parseInt(e.target.value) || undefined,
+                      })
+                    }
+                    placeholder="Infinity / Unbounded"
+                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Color Accent (Hex Code)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={levelForm.colorHex || "#38BDF8"}
+                    onChange={(e) =>
+                      setLevelForm({ ...levelForm, colorHex: e.target.value })
+                    }
+                    className="w-8 h-8 rounded-lg border border-slate-300 cursor-pointer p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={levelForm.colorHex || "#38BDF8"}
+                    onChange={(e) =>
+                      setLevelForm({ ...levelForm, colorHex: e.target.value })
+                    }
+                    className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setRankModalOpen(false)}
+                  className="px-4 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  {editingRankLevel ? "Save Rank Level" : "Create Rank Level"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
-
-      {/* COMPACT DATABASE & BACKUP BAR */}
-      <div className="bg-white p-3.5 sm:px-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-[#0284C7]">
-            <Database className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-[#0F1E36]">
-                Database &amp; State Snapshot Engine
-              </span>
-              <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                HEALTHY · {telemetry.dbSizeKB} KB
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 font-mono">
-              {telemetry.memberCount} members · {state.ledger.length} ledger rows ·{" "}
-              {state.auditLogs.length} audit logs · Quota used: {telemetry.quotaUsedPercent}%
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleSyncNow}
-            disabled={syncing}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
-            <span>Sync Now</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExportBackup}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
-            <span>Export Full State JSON</span>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

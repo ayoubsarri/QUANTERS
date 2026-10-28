@@ -137,8 +137,21 @@ export default function MobileWorkshopsPage() {
         </div>
 
         {/* Workshops & Activities — Clean Unified Cards */}
-        <div className="space-y-2.5">
-          {filteredWorkshops.map((ws, idx) => {
+        {filteredWorkshops.length === 0 ? (
+          <div className="p-8 rounded-2xl bg-white border border-slate-200/90 text-center space-y-2 animate-rise">
+            <div className="w-12 h-12 rounded-xl bg-[#F0F6FF] text-[#182C4E] flex items-center justify-center mx-auto border border-[#D5E3F5]">
+              <Calendar className="w-6 h-6 text-[#0284C7]" />
+            </div>
+            <h3 className="font-display font-extrabold text-sm text-[#0F1E36]">
+              No Scheduled Sessions Yet
+            </h3>
+            <p className="text-xs text-slate-500 font-editorial italic max-w-xs mx-auto">
+              New workshops, scientific labs, and club activities will be scheduled and published here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {filteredWorkshops.map((ws, idx) => {
             const isRegistered =
               ws.registeredMemberIds.includes(currentMemberId);
             const isAttended = ws.attendanceRecords.some(
@@ -235,7 +248,8 @@ export default function MobileWorkshopsPage() {
             );
           })}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Workshop Detail Modal */}
       {activeWorkshop && (

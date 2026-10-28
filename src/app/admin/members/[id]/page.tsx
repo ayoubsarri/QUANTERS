@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   Activity,
   AlertTriangle,
@@ -19,6 +19,7 @@ import {
   Mail,
   MapPin,
   Monitor,
+  PauseCircle,
   Phone,
   Plus,
   QrCode,
@@ -29,7 +30,8 @@ import {
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { DayOfWeek, MemberStatus, TimeSlot } from "@/lib/types/erp";
+import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
+import { DayOfWeek, isMemberAvailableInSlot, MemberStatus, STUDY_HOUR_SLOTS, TimeSlot } from "@/lib/types/erp";
 import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
 
 const DAYS: DayOfWeek[] = [
@@ -41,13 +43,19 @@ const DAYS: DayOfWeek[] = [
   "Thursday",
   "Friday",
 ];
-const SLOTS: TimeSlot[] = ["Morning", "Afternoon", "Evening"];
+const SLOTS: TimeSlot[] = STUDY_HOUR_SLOTS.map((s) => s.key);
 
 type TabId = "profile" | "activity" | "badges" | "availability" | "history" | "hr";
 
 export default function AdminMemberDetailCardPage() {
   const params = useParams<{ id: string }>();
-  const memberId = params?.id || "mem-ayoub";
+  const pathname = usePathname();
+  const rawParamId = params?.id || "";
+  const pathLastSegment = (pathname || "").split("/").filter(Boolean).pop() || "";
+  const memberId =
+    rawParamId && rawParamId !== "member"
+      ? rawParamId
+      : pathLastSegment || rawParamId;
 
   const {
     members,
@@ -60,9 +68,24 @@ export default function AdminMemberDetailCardPage() {
     confirmTraineeToActive,
     awardBadgeManually,
     changeMemberStatus,
+    pullExactUpdatesFromServer,
   } = useQuantersStore();
 
-  const member = members.find((m) => m.id === memberId) || members[0];
+  useEffect(() => {
+    pullExactUpdatesFromServer().catch(() => {});
+  }, [pullExactUpdatesFromServer]);
+
+  const member =
+    members.find(
+      (m) =>
+        m.id === memberId ||
+        m.quanterId.toLowerCase() === memberId.toLowerCase() ||
+        m.email.toLowerCase() === memberId.toLowerCase()
+    ) ||
+    (memberId.startsWith("mem-")
+      ? members.find((m) => m.id.startsWith(memberId) || m.id.includes(memberId))
+      : undefined);
+
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [showDigitalIdModal, setShowDigitalIdModal] = useState(false);
 
@@ -74,17 +97,27 @@ export default function AdminMemberDetailCardPage() {
   // HR Status Transition modal state
   const [hrModalType, setHrModalType] = useState<MemberStatus | null>(null);
   const [hrReason, setHrReason] = useState("");
-  const [hrActorName, setHrActorName] = useState("Yasmine Bouzid (HR Head)");
+  const [hrActorName, setHrActorName] = useState("HR Administration");
   const [hrDecisionRef, setHrDecisionRef] = useState("DEC-BUREAU-2026-10");
   const [hrGraduationYear, setHrGraduationYear] = useState("2026");
   const [hrSuspensionEnd, setHrSuspensionEnd] = useState("2026-11-30");
 
   if (!member) {
     return (
-      <div className="p-8 bg-white rounded-2xl border border-slate-200/90">
-        <p className="text-sm font-bold text-slate-700">Member not found.</p>
-        <Link href="/admin/members" className="text-xs font-bold text-[#0284C7] underline mt-2 block">
-          Return to Member Directory
+      <div className="p-8 bg-white rounded-2xl border border-slate-200/90 text-center space-y-3">
+        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mx-auto text-slate-500">
+          <User className="w-5 h-5" />
+        </div>
+        <h2 className="text-base font-extrabold text-[#0F1E36]">Member Record Loading or Not Found</h2>
+        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          Searching for member ID <code className="font-mono bg-slate-100 px-1 py-0.5 rounded">{memberId}</code>.
+        </p>
+        <Link
+          href="/admin/members"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 transition mt-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Member Directory</span>
         </Link>
       </div>
     );
@@ -129,7 +162,7 @@ export default function AdminMemberDetailCardPage() {
       memberId: member.id,
       toStatus: hrModalType,
       reason: hrReason.trim(),
-      actorName: hrActorName.trim() || "Yasmine Bouzid (HR Head)",
+      actorName: hrActorName.trim() || "HR Administration",
       decisionReference: hrModalType === "Removed" ? hrDecisionRef : undefined,
       graduationYear: hrModalType === "Alumni" ? hrGraduationYear : undefined,
       suspensionEndDate: hrModalType === "Suspended" ? hrSuspensionEnd : undefined,
@@ -152,6 +185,32 @@ export default function AdminMemberDetailCardPage() {
       ? "bg-amber-500"
       : "bg-rose-500";
 
+  const isPaused =
+    member.status === "Inactive" &&
+    (Boolean(member.suspensionEndDate) ||
+      member.statusHistory.some(
+        (sh) =>
+          sh.reason.toLowerCase().includes("pause") ||
+          sh.reason.toLowerCase().includes("frozen") ||
+          sh.toStatus === "Inactive"
+      ));
+
+  const latestPauseRecord = member.statusHistory.find(
+    (sh) =>
+      sh.toStatus === "Inactive" &&
+      (sh.reason.toLowerCase().includes("pause") ||
+        sh.reason.toLowerCase().includes("frozen") ||
+        Boolean(sh.suspensionEndDate))
+  );
+
+  const pauseDurationLabel =
+    member.suspensionEndDate ||
+    latestPauseRecord?.suspensionEndDate ||
+    "Temporary Leave";
+  const pauseReasonLabel =
+    latestPauseRecord?.reason || "Voluntarily paused by member";
+  const pauseDateLabel = latestPauseRecord?.date || member.statusSince;
+
   return (
     <>
       <div className="space-y-6 max-w-[1500px] mx-auto animate-rise">
@@ -169,6 +228,61 @@ export default function AdminMemberDetailCardPage() {
           </span>
         </div>
 
+      {/* Paused / Frozen Status Alert Banner (Shown prominently if member is Inactive / Paused) */}
+      {isPaused && (
+        <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 p-5 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <PauseCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-black uppercase tracking-wider text-amber-950 font-display">
+                    Membership Status: Paused (Frozen)
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-amber-200 text-amber-900 border border-amber-300">
+                    Duration: {pauseDurationLabel}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono text-amber-800 bg-white/80 border border-amber-200">
+                    Paused on {pauseDateLabel}
+                  </span>
+                </div>
+                <p className="text-xs text-amber-900/90 mt-1 font-medium leading-relaxed">
+                  <strong>Reason given:</strong> {pauseReasonLabel}. Mandatory workshop attendance and task delivery are temporarily frozen.
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Reactivate Actions directly on the banner */}
+            <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setHrModalType("Active");
+                  setHrReason("Reactivated to full Active status from paused state by HR");
+                }}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Return to Active</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setHrModalType("Trainee");
+                  setHrReason("Returned to Trainee qualification trial from paused state by HR");
+                }}
+                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Return to Trainee</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Member Master Header + Trainee 3-Ring Confirmation Tracker */}
       <section className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -185,9 +299,16 @@ export default function AdminMemberDetailCardPage() {
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F4F7FB] text-slate-700 border border-slate-200/90 tabular-nums">
                   {member.quanterId}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F0F6FF] text-[#182C4E]">
-                  {member.status}
-                </span>
+                {isPaused ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                    <PauseCircle className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Paused ({pauseDurationLabel})</span>
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F0F6FF] text-[#182C4E]">
+                    {member.status}
+                  </span>
+                )}
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold border tabular-nums ${healthColor}`}
                 >
@@ -799,9 +920,8 @@ export default function AdminMemberDetailCardPage() {
                 </span>
                 <a
                   href={
-                    member.githubUrl && /^https?:\/\//i.test(member.githubUrl.trim())
-                      ? member.githubUrl.trim()
-                      : `https://github.com/${member.handle.replace("@", "")}`
+                    sanitizeExternalUrl(member.githubUrl) ||
+                    `https://github.com/${encodeURIComponent(member.handle.replace("@", ""))}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -811,11 +931,7 @@ export default function AdminMemberDetailCardPage() {
                   <ExternalLink className="w-3 h-3 text-[#29D2FF]" />
                 </a>
                 <a
-                  href={
-                    member.linkedinUrl && /^https?:\/\//i.test(member.linkedinUrl.trim())
-                      ? member.linkedinUrl.trim()
-                      : "https://linkedin.com"
-                  }
+                  href={sanitizeExternalUrl(member.linkedinUrl) || "https://linkedin.com"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition"
@@ -824,11 +940,7 @@ export default function AdminMemberDetailCardPage() {
                   <ExternalLink className="w-3 h-3" />
                 </a>
                 <a
-                  href={
-                    member.portfolioUrl && /^https?:\/\//i.test(member.portfolioUrl.trim())
-                      ? member.portfolioUrl.trim()
-                      : "https://quanta-algiers.dz"
-                  }
+                  href={sanitizeExternalUrl(member.portfolioUrl) || "https://quanta-algiers.dz"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#F4F7FB] hover:bg-slate-200 text-slate-800 border border-slate-200/90 text-xs font-bold transition"
@@ -837,11 +949,7 @@ export default function AdminMemberDetailCardPage() {
                   <ExternalLink className="w-3 h-3 text-[#0284C7]" />
                 </a>
                 <a
-                  href={
-                    member.cvUrl && /^https?:\/\//i.test(member.cvUrl.trim())
-                      ? member.cvUrl.trim()
-                      : "https://quanta-algiers.dz/cv"
-                  }
+                  href={sanitizeExternalUrl(member.cvUrl) || "https://quanta-algiers.dz/cv"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition"
@@ -1004,7 +1112,7 @@ export default function AdminMemberDetailCardPage() {
         <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
           <div>
             <h3 className="text-sm font-extrabold text-[#0F1E36]">
-              Visual Weekly Availability Grid (Saturday – Friday × Morning / Afternoon / Evening)
+              Visual Weekly Study & Free Hours Grid (Saturday – Friday × 08:00–18:00 Hour-by-Hour)
             </h3>
             <p className="text-xs text-slate-500">
               Used by the Free Slot Finder to match {member.fullName} with workshop &amp; logistics
@@ -1017,9 +1125,9 @@ export default function AdminMemberDetailCardPage() {
               <thead>
                 <tr className="border-b border-slate-200/90 text-[10px] font-extrabold uppercase text-slate-400">
                   <th className="py-2.5 px-3">Day</th>
-                  {SLOTS.map((s) => (
-                    <th key={s} className="py-2.5 px-3 text-center">
-                      {s}
+                  {STUDY_HOUR_SLOTS.map((s) => (
+                    <th key={s.key} className="py-2.5 px-2 text-center font-mono">
+                      {s.label}
                     </th>
                   ))}
                 </tr>
@@ -1028,12 +1136,15 @@ export default function AdminMemberDetailCardPage() {
                 {DAYS.map((day) => (
                   <tr key={day}>
                     <td className="py-2.5 px-3 font-bold text-slate-800">{day}</td>
-                    {SLOTS.map((slot) => {
-                      const isFree = member.availability?.[day]?.includes(slot);
+                    {STUDY_HOUR_SLOTS.map((slotMeta) => {
+                      const isFree = isMemberAvailableInSlot(
+                        member.availability?.[day],
+                        slotMeta.key
+                      );
                       return (
-                        <td key={slot} className="py-2 px-2 text-center">
+                        <td key={slotMeta.key} className="py-2 px-1.5 text-center">
                           <div
-                            className={`inline-flex items-center justify-center gap-1 w-full py-2 px-3 rounded-xl font-bold text-xs ${
+                            className={`inline-flex items-center justify-center gap-1 w-full py-1.5 px-2 rounded-lg font-mono font-bold text-[11px] ${
                               isFree
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : "bg-slate-50 text-slate-400"
@@ -1041,11 +1152,11 @@ export default function AdminMemberDetailCardPage() {
                           >
                             {isFree ? (
                               <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Free Slot</span>
+                                <Check className="w-3 h-3 shrink-0" />
+                                <span>Free</span>
                               </>
                             ) : (
-                              "Busy"
+                              "Study"
                             )}
                           </div>
                         </td>
@@ -1176,14 +1287,64 @@ export default function AdminMemberDetailCardPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Reactivate / Return to Active */}
               <button
                 type="button"
-                onClick={() => setHrModalType("Inactive")}
+                onClick={() => {
+                  setHrReason(isPaused ? `Resumed active membership from pause (${pauseReasonLabel})` : "Reactivated to Active Member: Returned from inactive status");
+                  setHrModalType("Active");
+                }}
+                className={`p-3.5 rounded-xl border transition text-left cursor-pointer ${
+                  member.status === "Inactive" || member.status === "Suspended"
+                    ? "border-emerald-400 bg-emerald-100/80 hover:bg-emerald-200/90 shadow-sm ring-2 ring-emerald-500/20"
+                    : "border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Reactivate to Active Member
+                  </span>
+                  {(member.status === "Inactive" || member.status === "Suspended") && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white">
+                      Recommended
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-emerald-800 mt-1">
+                  Lift pause, inactivity or suspension and restore full active membership privileges
+                </div>
+              </button>
+
+              {/* Reactivate / Return to Trainee */}
+              <button
+                type="button"
+                onClick={() => {
+                  setHrReason("Reinstated to Trainee status: Continuing onboarding qualification");
+                  setHrModalType("Trainee");
+                }}
+                className="p-3.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-left transition cursor-pointer"
+              >
+                <div className="text-xs font-extrabold text-sky-900 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-sky-600" />
+                  Reinstate as Trainee Member
+                </div>
+                <div className="text-[11px] text-sky-800 mt-1">
+                  Return to probationary trainee status and resume 3-month qualification tracking
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setHrReason("Marked Inactive: Exam leave or prolonged silence");
+                  setHrModalType("Inactive");
+                }}
                 className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100 text-left transition cursor-pointer"
               >
-                <div className="text-xs font-extrabold text-amber-900">Set Inactive</div>
+                <div className="text-xs font-extrabold text-amber-900">Set Inactive (Pause / Freeze)</div>
                 <div className="text-[11px] text-amber-700 mt-0.5">
-                  Flag member for ≥30 days silence or exam leave
+                  Flag member for ≥30 days silence or member-requested pause
                 </div>
               </button>
 
@@ -1323,6 +1484,30 @@ export default function AdminMemberDetailCardPage() {
               </button>
             </div>
             <form onSubmit={handleStatusTransition} className="mt-4 space-y-3.5 text-xs">
+              {hrModalType === "Active" && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 space-y-1">
+                  <div className="font-extrabold flex items-center gap-1.5 text-xs text-emerald-900">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Reactivating to Full Active Status
+                  </div>
+                  <div className="text-[11px] leading-relaxed">
+                    This will immediately lift any pause, inactivity flag, or temporary freeze on <strong>{member.fullName}</strong>. Their profile will be fully restored with active club privileges, workshop check-in, and department task assignments.
+                  </div>
+                </div>
+              )}
+
+              {hrModalType === "Trainee" && (
+                <div className="p-3 rounded-xl bg-sky-50 border border-sky-200/90 text-sky-800 space-y-1">
+                  <div className="font-extrabold flex items-center gap-1.5 text-xs text-sky-900">
+                    <Clock className="w-3.5 h-3.5 text-sky-600" />
+                    Reinstating as Trainee Member
+                  </div>
+                  <div className="text-[11px] leading-relaxed">
+                    This sets <strong>{member.fullName}</strong> to Trainee status with ongoing 3-ring qualification tracking and buddy assignment.
+                  </div>
+                </div>
+              )}
+
               {hrModalType === "Suspended" && (
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { subscribeToErpStateFirestore } from "@/lib/firebase/auth";
 
 export const OFFLINE_WARM_ROUTES = [
   "/",
@@ -106,16 +107,14 @@ export async function dispatchSystemNotification(payload: {
 
 export function PwaOfflineManager() {
   const router = useRouter();
-  const {
-    userLowDataMode,
-    settings,
-    messages,
-    setOnlineStatus,
-    hydrateFromLocalCache,
-    saveToLocalCache,
-    syncWithServer,
-    pullExactUpdatesFromServer,
-  } = useQuantersStore();
+  const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
+  const settings = useQuantersStore((s) => s.settings);
+  const messages = useQuantersStore((s) => s.messages);
+  const setOnlineStatus = useQuantersStore((s) => s.setOnlineStatus);
+  const hydrateFromLocalCache = useQuantersStore((s) => s.hydrateFromLocalCache);
+  const saveToLocalCache = useQuantersStore((s) => s.saveToLocalCache);
+  const syncWithServer = useQuantersStore((s) => s.syncWithServer);
+  const pullExactUpdatesFromServer = useQuantersStore((s) => s.pullExactUpdatesFromServer);
 
   const [liveToast, setLiveToast] = useState<{
     title: string;
@@ -155,15 +154,44 @@ export function PwaOfflineManager() {
         .catch(() => {});
     }
 
-    // Quota-Saver Exact Delta Check: fetch only collections whose version changed
-    const ttlMs = (settings.clientCacheTtlMinutes || 15) * 60 * 1000;
-    const lastCheck = Number(
-      window.sessionStorage.getItem("quanters-last-etag-check") || "0"
-    );
-    if (navigator.onLine && Date.now() - lastCheck > ttlMs) {
+    // Fetch latest updates from /api/erp or Cloud Firestore on mount
+    if (navigator.onLine) {
       window.sessionStorage.setItem("quanters-last-etag-check", String(Date.now()));
       pullExactUpdatesFromServer().catch(() => {});
     }
+
+    // Real-time Cloud Firestore listener + tab focus sync so new registrations appear live in Admin
+    let unsubFirestoreFn: (() => void) | null = null;
+    let isCancelled = false;
+    subscribeToErpStateFirestore((cloudData) => {
+      // Ingest directly into store WITHOUT triggering pull or write loop!
+      if (cloudData && typeof cloudData === "object") {
+        useQuantersStore.getState().applyIncomingCloudSnapshot(cloudData);
+      }
+    }).then((fn) => {
+      if (isCancelled && fn) {
+        fn();
+      } else {
+        unsubFirestoreFn = fn;
+      }
+    });
+
+    let lastFocusCheck = Date.now();
+    const handleWindowFocus = () => {
+      const now = Date.now();
+      // Quota-friendly: only check server on focus if at least 5 minutes have elapsed
+      if (navigator.onLine && now - lastFocusCheck > 300_000) {
+        lastFocusCheck = now;
+        pullExactUpdatesFromServer().catch(() => {});
+      }
+    };
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      isCancelled = true;
+      if (unsubFirestoreFn) unsubFirestoreFn();
+      window.removeEventListener("focus", handleWindowFocus);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -233,14 +261,68 @@ export function PwaOfflineManager() {
     prevMessagesCountRef.current = messages.length;
   }, [messages]);
 
-  // 4. Silently persist store changes to localStorage
+  // 4. Persist local data mutations to localStorage & auto-sync to Server / Cloud Firestore
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const unsub = useQuantersStore.subscribe(() => {
-      saveToLocalCache();
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const DATA_KEYS = [
+      "departments",
+      "teams",
+      "members",
+      "invitations",
+      "workshops",
+      "workshopCategories",
+      "tasks",
+      "pointRules",
+      "ledger",
+      "badges",
+      "badgeCategories",
+      "exams",
+      "examCompletions",
+      "projectSubmissions",
+      "projectCategories",
+      "proposals",
+      "explorePosts",
+      "dailyQuizzes",
+      "dailyQuotes",
+      "messages",
+      "accessGrants",
+      "auditLogs",
+      "grievances",
+      "settings",
+    ] as const;
+
+    const unsub = useQuantersStore.subscribe((state, prevState) => {
+      // If lastSyncedAt or lastServerEtag changed in this set(), it came from a server/cloud pull/push
+      if (
+        state.lastSyncedAt !== prevState.lastSyncedAt ||
+        state.lastServerEtag !== prevState.lastServerEtag
+      ) {
+        return;
+      }
+
+      const dataMutated = DATA_KEYS.some((k) => state[k] !== prevState[k]);
+      const authMutated =
+        state.isAuthenticated !== prevState.isAuthenticated ||
+        state.currentMemberId !== prevState.currentMemberId ||
+        state.activeAdminRole !== prevState.activeAdminRole;
+
+      if (dataMutated || authMutated) {
+        saveToLocalCache();
+      }
+
+      if (dataMutated) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          syncWithServer(true).catch(() => {});
+        }, 250);
+      }
     });
-    return () => unsub();
-  }, [saveToLocalCache]);
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unsub();
+    };
+  }, [saveToLocalCache, syncWithServer]);
 
   if (!liveToast) {
     return null;

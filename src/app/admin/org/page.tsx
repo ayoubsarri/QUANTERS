@@ -41,17 +41,34 @@ export default function AdminOrgStructurePage() {
     setTimeout(() => setSavedToast(null), 3500);
   };
 
-  // Active members eligible for leadership/team selection (sorted A-Z for keyboard jump)
-  const activeMembers = sortMembersByName(
-    members.filter((m) =>
-      ["Active", "Trainee", "Inactive", "Suspended"].includes(m.status)
+  const isSuperAdminAccount = (m: (typeof members)[number]) =>
+    m.roles.includes("Super Admin") ||
+    m.email.toLowerCase() === "quantaclubdz@gmail.com" ||
+    m.email.toLowerCase() === "hr.quanta@univ-alger.dz" ||
+    m.id === "mem-super-quanta" ||
+    m.id === "mem-super-hr";
+
+  const eligibleLeaderMembers = sortMembersByName(
+    members.filter(
+      (m) =>
+        !isSuperAdminAccount(m) &&
+        ["Active", "Trainee"].includes(m.status)
     )
   );
 
-  // Executive Officers Modal State
-  const currentPresidentId = settings.presidentId || "mem-lotfi";
-  const currentVpId = settings.vicePresidentId || "mem-sara";
-  const currentSgId = settings.secretaryGeneralId || "mem-yasmine";
+  // Active members eligible for leadership/team selection (sorted A-Z for keyboard jump)
+  const activeMembers = sortMembersByName(
+    members.filter(
+      (m) =>
+        !isSuperAdminAccount(m) &&
+        ["Active", "Trainee", "Inactive", "Suspended"].includes(m.status)
+    )
+  );
+
+  // Executive Officers Modal State — Super Admin is NOT defaulted to VP/SG
+  const currentPresidentId = settings.presidentId || "";
+  const currentVpId = settings.vicePresidentId || "";
+  const currentSgId = settings.secretaryGeneralId || "";
 
   const [execModalOpen, setExecModalOpen] = useState(false);
   const [selectedPresidentId, setSelectedPresidentId] = useState(currentPresidentId);
@@ -64,7 +81,7 @@ export default function AdminOrgStructurePage() {
   const [teamName, setTeamName] = useState("");
   const [teamField, setTeamField] = useState("");
   const [teamDesc, setTeamDesc] = useState("");
-  const [teamLeaderId, setTeamLeaderId] = useState(members[0]?.id || "mem-ayoub");
+  const [teamLeaderId, setTeamLeaderId] = useState(activeMembers[0]?.id || "");
 
   // Edit Department Leaders Modal
   const [editingDept, setEditingDept] = useState<Department | null>(null);
@@ -74,7 +91,7 @@ export default function AdminOrgStructurePage() {
   // Manage Team Members Modal
   const [managingTeamId, setManagingTeamId] = useState<string | null>(null);
   const [selectedAddMemberId, setSelectedAddMemberId] = useState(
-    members[0]?.id || "mem-ayoub"
+    activeMembers[0]?.id || ""
   );
 
   const managingTeam = teams.find((t) => t.id === managingTeamId) || null;
@@ -83,19 +100,35 @@ export default function AdminOrgStructurePage() {
   const maxSize = settings.teamSizeMax || 8;
 
   const openExecModal = () => {
-    setSelectedPresidentId(settings.presidentId || "mem-lotfi");
-    setSelectedVpId(settings.vicePresidentId || "mem-sara");
-    setSelectedSgId(settings.secretaryGeneralId || "mem-yasmine");
+    setSelectedPresidentId(
+      settings.presidentId && !isSuperAdminAccount({ id: settings.presidentId } as any)
+        ? settings.presidentId
+        : ""
+    );
+    setSelectedVpId(
+      settings.vicePresidentId && !isSuperAdminAccount({ id: settings.vicePresidentId } as any)
+        ? settings.vicePresidentId
+        : ""
+    );
+    setSelectedSgId(
+      settings.secretaryGeneralId && !isSuperAdminAccount({ id: settings.secretaryGeneralId } as any)
+        ? settings.secretaryGeneralId
+        : ""
+    );
     setExecModalOpen(true);
   };
 
   const handleSaveExecOfficers = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanPresident = isSuperAdminAccount({ id: selectedPresidentId } as any) ? "" : selectedPresidentId;
+    const cleanVp = isSuperAdminAccount({ id: selectedVpId } as any) ? "" : selectedVpId;
+    const cleanSg = isSuperAdminAccount({ id: selectedSgId } as any) ? "" : selectedSgId;
+
     updateSettings(
       {
-        presidentId: selectedPresidentId,
-        vicePresidentId: selectedVpId,
-        secretaryGeneralId: selectedSgId,
+        presidentId: cleanPresident,
+        vicePresidentId: cleanVp,
+        secretaryGeneralId: cleanSg,
       },
       "Updated Executive Bureau Officers (President, VP, SG)"
     );
@@ -108,7 +141,7 @@ export default function AdminOrgStructurePage() {
     setTeamName("");
     setTeamField("Physics & Quantum Computing");
     setTeamDesc("");
-    setTeamLeaderId(members[0]?.id || "mem-ayoub");
+    setTeamLeaderId(members[0]?.id || "");
     setTeamModalOpen(true);
   };
 
@@ -161,10 +194,9 @@ export default function AdminOrgStructurePage() {
     setEditingDept(null);
   };
 
-  const presidentMember =
-    members.find((m) => m.id === currentPresidentId) || members[0];
-  const vpMember = members.find((m) => m.id === currentVpId) || members[1];
-  const sgMember = members.find((m) => m.id === currentSgId) || members[2];
+  const presidentMember = eligibleLeaderMembers.find((m) => m.id === currentPresidentId);
+  const vpMember = eligibleLeaderMembers.find((m) => m.id === currentVpId);
+  const sgMember = eligibleLeaderMembers.find((m) => m.id === currentSgId);
 
   const execCards = [
     {
@@ -255,12 +287,16 @@ export default function AdminOrgStructurePage() {
                 className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  {card.member && (
+                  {card.member ? (
                     <img
                       src={card.member.avatarUrl}
                       alt={card.member.fullName}
                       className="w-12 h-12 rounded-full object-cover border-2 border-slate-200/90 shrink-0"
                     />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center shrink-0 text-slate-400">
+                      <ShieldCheck className="w-5 h-5 text-slate-400" />
+                    </div>
                   )}
                   <div className="min-w-0">
                     <span
@@ -269,21 +305,29 @@ export default function AdminOrgStructurePage() {
                       {card.badgeText}
                     </span>
                     <div className="text-sm font-black text-[#0F1E36] truncate mt-1">
-                      {card.member?.fullName || "Unassigned"}
+                      {card.member ? card.member.fullName : "Pending Appointment"}
                     </div>
-                    <div className="text-[11px] text-slate-500 font-mono truncate">
-                      {card.member?.quanterId} · {card.member?.major}
+                    <div className="text-[11px] text-slate-400 font-mono truncate">
+                      {card.member ? `${card.member.quanterId} · ${card.member.major}` : "Position Open"}
                     </div>
                   </div>
                 </div>
 
-                {card.member && (
+                {card.member ? (
                   <Link
                     href={`/admin/members/${card.member.id}`}
                     className="px-2.5 py-1.5 rounded-xl bg-[#F4F7FB] hover:bg-[#E2EDF8] text-slate-700 text-xs font-bold shrink-0 transition"
                   >
                     Profile
                   </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={openExecModal}
+                    className="px-2.5 py-1.5 rounded-xl bg-[#F4F7FB] hover:bg-[#E2EDF8] text-[#0284C7] text-xs font-bold shrink-0 transition cursor-pointer"
+                  >
+                    Assign →
+                  </button>
                 )}
               </div>
             ))}
@@ -452,7 +496,7 @@ export default function AdminOrgStructurePage() {
                           type="button"
                           onClick={() => {
                             setManagingTeamId(team.id);
-                            setSelectedAddMemberId(activeMembers[0]?.id || "mem-ayoub");
+                            setSelectedAddMemberId(activeMembers[0]?.id || "");
                           }}
                           className="text-[11px] font-bold text-[#0284C7] hover:underline cursor-pointer"
                         >
@@ -525,11 +569,12 @@ export default function AdminOrgStructurePage() {
                   value={selectedPresidentId}
                   onChange={(e) => setSelectedPresidentId(e.target.value)}
                   onKeyDown={(e) =>
-                    handleMemberSelectKeyDown(e, activeMembers, setSelectedPresidentId)
+                    handleMemberSelectKeyDown(e, eligibleLeaderMembers, setSelectedPresidentId)
                   }
                   className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
-                  {activeMembers.map((m) => (
+                  <option value="">-- Vacant / Election Pending --</option>
+                  {eligibleLeaderMembers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName} ({m.quanterId})
                     </option>
@@ -545,11 +590,12 @@ export default function AdminOrgStructurePage() {
                   value={selectedVpId}
                   onChange={(e) => setSelectedVpId(e.target.value)}
                   onKeyDown={(e) =>
-                    handleMemberSelectKeyDown(e, activeMembers, setSelectedVpId)
+                    handleMemberSelectKeyDown(e, eligibleLeaderMembers, setSelectedVpId)
                   }
                   className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
-                  {activeMembers.map((m) => (
+                  <option value="">-- Vacant / Election Pending --</option>
+                  {eligibleLeaderMembers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName} ({m.quanterId})
                     </option>
@@ -565,11 +611,12 @@ export default function AdminOrgStructurePage() {
                   value={selectedSgId}
                   onChange={(e) => setSelectedSgId(e.target.value)}
                   onKeyDown={(e) =>
-                    handleMemberSelectKeyDown(e, activeMembers, setSelectedSgId)
+                    handleMemberSelectKeyDown(e, eligibleLeaderMembers, setSelectedSgId)
                   }
                   className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl text-slate-800 font-semibold"
                 >
-                  {activeMembers.map((m) => (
+                  <option value="">-- Vacant / Election Pending --</option>
+                  {eligibleLeaderMembers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName} ({m.quanterId})
                     </option>

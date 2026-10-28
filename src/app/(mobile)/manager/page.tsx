@@ -33,7 +33,9 @@ import {
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
+import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import {
   ClubTask,
   Member,
@@ -72,7 +74,7 @@ const SEED_WORKSPACE_NOTES: WorkspaceNote[] = [
     title: "QSSC'26 Scientific Tracks & Amphi Allocation",
     body: "Main Auditorium reserved for Saturday 09:00–16:30. All 6 scientific teams must finalize their workshop abstracts and demonstrator rosters by Thursday 18:00.",
     tag: "Operations",
-    authorName: "Sara Mansouri",
+    authorName: "Scientific Coordinator",
     authorRole: "Events Manager",
     updatedAt: "Today · 11:20",
     pinned: true,
@@ -85,7 +87,7 @@ const SEED_WORKSPACE_NOTES: WorkspaceNote[] = [
     title: "Projector QR Check-In & Local Wi-Fi Relay",
     body: "Lab A1 and Main Amphi routers tested for 150 concurrent check-ins. Keep 6-digit fallback code visible on the secondary screen.",
     tag: "Briefing",
-    authorName: "Lotfi Benali",
+    authorName: "Department Lead",
     authorRole: "IT Manager",
     updatedAt: "Yesterday · 17:45",
     pinned: true,
@@ -98,7 +100,7 @@ const SEED_WORKSPACE_NOTES: WorkspaceNote[] = [
     title: "JWST Light-Curve Dataset & Telescope Calibration",
     body: "Prepared the cleaned FITS light-curve notebook for Saturday's practical session. Team members should review transit fitting parameters.",
     tag: "Scientific",
-    authorName: "Ayoub Sarri",
+    authorName: "Technical Lead",
     authorRole: "Team Leader",
     updatedAt: "Today · 09:15",
     pinned: true,
@@ -111,7 +113,7 @@ const SEED_WORKSPACE_NOTES: WorkspaceNote[] = [
     title: "October Opening Ceremony Equipment Return",
     body: "All badges, lanyards, and acoustic cables checked back into storage room B2.",
     tag: "Handover",
-    authorName: "Sara Mansouri",
+    authorName: "Scientific Coordinator",
     authorRole: "Events Manager",
     updatedAt: "18 Oct 2026",
     pinned: false,
@@ -160,9 +162,12 @@ export default function MobileManagerWorkspacePage() {
 
   const activeTeams = teams.filter((t) => !t.archived);
 
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   // Active signed-in member from the Organigramme
   const currentMember =
-    members.find((m) => m.id === currentMemberId) || members[0];
+    (isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined) || FALLBACK_SESSION_MEMBER;
 
   // Derive Organigramme Roles directly from Admin Dashboard state (departments, teams, settings)
   const managedDepts = departments.filter(
@@ -184,10 +189,24 @@ export default function MobileManagerWorkspacePage() {
 
   // Build Organigramme Role Badges for a given member
   const getMemberOrganigrammeBadges = (mem: Member): string[] => {
+    // 1. Super Admin and HR Head system accounts: strictly reserved
+    if (
+      mem.id === "mem-super-quanta" ||
+      mem.id.startsWith("mem-super") ||
+      mem.email?.toLowerCase() === "quantaclubdz@gmail.com" ||
+      mem.email?.toLowerCase() === "hr.quanta@univ-alger.dz" ||
+      mem.roles.includes("Super Admin")
+    ) {
+      return [mem.roles.includes("Super Admin") ? "Super Admin" : "HR Head"];
+    }
+    if (mem.roles.includes("HR Head") && !mem.roles.includes("Super Admin")) {
+      return ["HR Head"];
+    }
+
     const pills: string[] = [];
-    if (settings.presidentId === mem.id) pills.push("President");
-    if (settings.vicePresidentId === mem.id) pills.push("Vice President");
-    if (settings.secretaryGeneralId === mem.id) pills.push("Secretary General");
+    if (settings.presidentId && settings.presidentId === mem.id) pills.push("President");
+    if (settings.vicePresidentId && settings.vicePresidentId === mem.id) pills.push("Vice President");
+    if (settings.secretaryGeneralId && settings.secretaryGeneralId === mem.id) pills.push("Secretary General");
 
     departments.forEach((d) => {
       if (d.headMemberId === mem.id) {
@@ -401,9 +420,9 @@ export default function MobileManagerWorkspacePage() {
   const [taskDeadline, setTaskDeadline] = useState("28 Oct 2026");
   const [taskLocation, setTaskLocation] = useState("Lab A1");
   const [taskScore, setTaskScore] = useState(25);
-  const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>([
-    "mem-ayoub",
-  ]);
+  const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>(
+    members[0]?.id ? [members[0].id] : []
+  );
 
   // Task Validation & Scoring Modal State
   const [scoringTaskModal, setScoringTaskModal] = useState<ClubTask | null>(
@@ -442,7 +461,7 @@ export default function MobileManagerWorkspacePage() {
   const [scanWorkshopId, setScanWorkshopId] = useState(
     workshops[0]?.id || "ws-python"
   );
-  const [scanTargetMemberId, setScanTargetMemberId] = useState("mem-ayoub");
+  const [scanTargetMemberId, setScanTargetMemberId] = useState(members[0]?.id || "");
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
 
   const [toastBanner, setToastBanner] = useState<string | null>(null);
@@ -484,7 +503,7 @@ export default function MobileManagerWorkspacePage() {
     setTaskScore(25);
     const defaultAssignees = assignableMembers[0]
       ? [assignableMembers[0].id]
-      : ["mem-ayoub"];
+      : [];
     setTaskAssigneeIds(defaultAssignees);
     setTaskFormModalOpen(true);
   };
@@ -530,7 +549,7 @@ export default function MobileManagerWorkspacePage() {
         ? taskAssigneeIds
         : assignableMembers[0]
         ? [assignableMembers[0].id]
-        : ["mem-ayoub"];
+        : [];
 
     if (editingTask) {
       updateTask(editingTask.id, {
@@ -595,22 +614,35 @@ export default function MobileManagerWorkspacePage() {
     e.preventDefault();
     if (!scoringTaskModal || !feedbackNote.trim()) return;
 
-    const targetAssignee =
-      scoringTaskModal.assignees[0]?.memberId || "mem-ayoub";
-
-    validateAndScoreTask({
-      taskId: scoringTaskModal.id,
-      memberId: targetAssignee,
-      scoreType,
-      awardedScore: customScore,
-      feedback: feedbackNote.trim(),
-      validatorName: `${currentMember.fullName} (${primaryRoleLabel})`,
-    });
+    const assignees = scoringTaskModal.assignees || [];
+    if (assignees.length === 0) {
+      validateAndScoreTask({
+        taskId: scoringTaskModal.id,
+        memberId: currentMemberId,
+        scoreType,
+        awardedScore: customScore,
+        feedback: feedbackNote.trim(),
+        validatorName: `${currentMember.fullName} (${primaryRoleLabel})`,
+      });
+    } else {
+      // Validate and score ALL assignees on the task fairly
+      for (const a of assignees) {
+        if (!a.memberId) continue;
+        validateAndScoreTask({
+          taskId: scoringTaskModal.id,
+          memberId: a.memberId,
+          scoreType,
+          awardedScore: customScore,
+          feedback: feedbackNote.trim(),
+          validatorName: `${currentMember.fullName} (${primaryRoleLabel})`,
+        });
+      }
+    }
 
     setRestoredTaskIds((prev) =>
       prev.filter((id) => id !== scoringTaskModal.id)
     );
-    setToastBanner(`Validated "${scoringTaskModal.title}" (+${customScore} XP)`);
+    setToastBanner(`Validated "${scoringTaskModal.title}" for ${assignees.length || 1} assignee(s) (+${customScore} XP)`);
     setScoringTaskModal(null);
   };
 
@@ -2046,11 +2078,11 @@ export default function MobileManagerWorkspacePage() {
                 Portfolio &amp; Research Links
               </span>
               <div className="grid grid-cols-2 gap-1.5">
-                {portfolioMember.githubUrl && (
+                {sanitizeExternalUrl(portfolioMember.githubUrl) && (
                   <a
-                    href={portfolioMember.githubUrl}
+                    href={sanitizeExternalUrl(portfolioMember.githubUrl)!}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between"
                   >
                     <span className="flex items-center gap-1.5">
@@ -2060,11 +2092,11 @@ export default function MobileManagerWorkspacePage() {
                     <ExternalLink className="w-3 h-3 text-[#64748B]" />
                   </a>
                 )}
-                {portfolioMember.linkedinUrl && (
+                {sanitizeExternalUrl(portfolioMember.linkedinUrl) && (
                   <a
-                    href={portfolioMember.linkedinUrl}
+                    href={sanitizeExternalUrl(portfolioMember.linkedinUrl)!}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between"
                   >
                     <span className="flex items-center gap-1.5">
@@ -2074,11 +2106,11 @@ export default function MobileManagerWorkspacePage() {
                     <ExternalLink className="w-3 h-3 text-[#64748B]" />
                   </a>
                 )}
-                {portfolioMember.portfolioUrl && (
+                {sanitizeExternalUrl(portfolioMember.portfolioUrl) && (
                   <a
-                    href={portfolioMember.portfolioUrl}
+                    href={sanitizeExternalUrl(portfolioMember.portfolioUrl)!}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="px-2.5 py-2 rounded-lg bg-[#F8FAFC] border border-slate-200 hover:border-[#0284C7] text-xs font-bold text-[#0F172A] flex items-center justify-between col-span-2"
                   >
                     <span className="flex items-center gap-1.5">

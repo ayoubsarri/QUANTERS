@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Archive,
@@ -14,13 +14,18 @@ import {
   Download,
   GraduationCap,
   MapPin,
+  Pause,
+  Play,
   QrCode,
   RotateCcw,
   Send,
+  Shield,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
+import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
+import { DEFAULT_RANK_LEVELS } from "@/lib/types/erp";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export default function MobileHomeHubPage() {
@@ -28,27 +33,76 @@ export default function MobileHomeHubPage() {
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const workshops = useQuantersStore((s) => s.workshops);
   const tasks = useQuantersStore((s) => s.tasks);
+  const exams = useQuantersStore((s) => s.exams);
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const messages = useQuantersStore((s) => s.messages);
   const departments = useQuantersStore((s) => s.departments);
+  const teams = useQuantersStore((s) => s.teams);
+  const settings = useQuantersStore((s) => s.settings);
   const registerForWorkshop = useQuantersStore((s) => s.registerForWorkshop);
   const confirmTaskReceipt = useQuantersStore((s) => s.confirmTaskReceipt);
   const deliverTask = useQuantersStore((s) => s.deliverTask);
   const archiveTask = useQuantersStore((s) => s.archiveTask);
   const unarchiveTask = useQuantersStore((s) => s.unarchiveTask);
+  const resumeMembershipSelf = useQuantersStore((s) => s.resumeMembershipSelf);
 
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const member =
-    members.find((m) => m.id === currentMemberId) || members[0];
+    (isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined) || FALLBACK_SESSION_MEMBER;
   const isAlumni = member.status === "Alumni";
   const dept = departments.find((d) => d.id === member.departmentId);
   const isAdmin = member.roles.some((r) =>
     ["Super Admin", "Executive", "HR Head", "Department Head"].includes(r)
   );
 
+  const leadershipTitle = useMemo(() => {
+    // 1. Super Admin and HR Head system accounts: strictly take precedence
+    if (
+      member.id === "mem-super-quanta" ||
+      member.id.startsWith("mem-super") ||
+      member.email?.toLowerCase() === "quantaclubdz@gmail.com" ||
+      member.email?.toLowerCase() === "hr.quanta@univ-alger.dz" ||
+      member.roles.includes("Super Admin")
+    ) {
+      return member.roles.includes("Super Admin") ? "Super Admin" : "HR Head";
+    }
+    if (member.roles.includes("HR Head") && !member.roles.includes("Super Admin")) {
+      return "HR Head";
+    }
+
+    // 2. Executive Bureau Officers (for regular student members ONLY)
+    if (settings.presidentId && member.id === settings.presidentId) return "Club President";
+    if (settings.vicePresidentId && member.id === settings.vicePresidentId) return "Vice President";
+    if (settings.secretaryGeneralId && member.id === settings.secretaryGeneralId) return "Secretary General";
+
+    const headDept = departments.find(
+      (d) => d.headMemberId === member.id
+    );
+    if (headDept) return `Head of ${headDept.shortName || headDept.name}`;
+
+    const coDept = departments.find(
+      (d) => d.coManagerMemberId === member.id
+    );
+    if (coDept) return `Co-Manager · ${coDept.shortName || coDept.name}`;
+
+    const leadTeam = teams.find(
+      (t) => t.leaderMemberId === member.id
+    );
+    if (leadTeam) return `Team Leader · ${leadTeam.name}`;
+
+    if (member.roles.includes("Department Head"))
+      return dept ? `Head · ${dept.shortName}` : "Department Head";
+    if (member.roles.includes("Co-Manager"))
+      return dept ? `Co-Manager · ${dept.shortName}` : "Co-Manager";
+
+    return null;
+  }, [member, settings, departments, teams, dept]);
+
   const motmMember =
     members.find((m) => m.recognitionLabels.includes("Member of the Month")) ||
-    members.find((m) => m.id === "mem-sara") ||
-    members[1];
+    null;
 
   const unreadCount = messages.filter((m) => m.unread).length;
   const nextWorkshop =
@@ -82,11 +136,33 @@ export default function MobileHomeHubPage() {
     member.id
   );
 
-  const xpSeasonMax = 1000;
-  const xpProgressPct = Math.min(
-    100,
-    Math.round(((member.xpSeason || 820) / xpSeasonMax) * 100)
-  );
+  // Dynamic Rank Tier Calculation - 100% synchronized with member's actual score
+  const rankLevels =
+    settings?.rankLevels && settings.rankLevels.length > 0
+      ? settings.rankLevels
+      : DEFAULT_RANK_LEVELS;
+  const currentTier =
+    rankLevels.find((r) => r.level === member.level) ||
+    rankLevels.find(
+      (r) =>
+        (member.xpTotal || 0) >= r.minXp &&
+        (typeof r.maxXp !== "number" || (member.xpTotal || 0) <= r.maxXp)
+    ) ||
+    rankLevels[0];
+  const nextTier = rankLevels.find((r) => r.level === (currentTier?.level || member.level) + 1);
+  const currentScore = isAlumni
+    ? member.xpTotal || 0
+    : member.xpSeason ?? member.xpTotal ?? 0;
+  const tierMin = currentTier?.minXp || 0;
+  const tierMax =
+    typeof currentTier?.maxXp === "number" ? currentTier.maxXp : tierMin + 1000;
+  const tierSpan = Math.max(1, tierMax - tierMin + 1);
+  const scoreInTier = Math.max(0, currentScore - tierMin);
+  const xpProgressPct =
+    typeof currentTier?.maxXp === "number"
+      ? Math.min(100, Math.max(0, Math.round((scoreInTier / tierSpan) * 100)))
+      : 100;
+  const xpToNext = nextTier ? Math.max(0, nextTier.minXp - currentScore) : 0;
 
   const handleDeliverSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +187,12 @@ export default function MobileHomeHubPage() {
       document.referrer.includes("android-app://");
 
     // 2. Check cached installation verification
-    const cachedInstall = localStorage.getItem("quanters_app_installed") === "true";
+    let cachedInstall = false;
+    try {
+      cachedInstall = localStorage.getItem("quanters_app_installed") === "true";
+    } catch {
+      // Private browsing / storage quota restriction
+    }
 
     if (isStandalone || cachedInstall) {
       setIsAppInstalled(true);
@@ -131,7 +212,9 @@ export default function MobileHomeHubPage() {
     // 4. Listen for appinstalled (fires when app is successfully installed)
     const handleAppInstalled = () => {
       setIsAppInstalled(true);
-      localStorage.setItem("quanters_app_installed", "true");
+      try {
+        localStorage.setItem("quanters_app_installed", "true");
+      } catch {}
       setDeferredPrompt(null);
       setShowInstallGuide(false);
     };
@@ -152,7 +235,9 @@ export default function MobileHomeHubPage() {
         const choiceResult = await deferredPrompt.userChoice;
         if (choiceResult.outcome === "accepted") {
           setIsAppInstalled(true);
-          localStorage.setItem("quanters_app_installed", "true");
+          try {
+            localStorage.setItem("quanters_app_installed", "true");
+          } catch {}
         }
         setDeferredPrompt(null);
       } catch {
@@ -165,7 +250,9 @@ export default function MobileHomeHubPage() {
 
   const markInstalledManually = () => {
     setIsAppInstalled(true);
-    localStorage.setItem("quanters_app_installed", "true");
+    try {
+      localStorage.setItem("quanters_app_installed", "true");
+    } catch {}
     setShowInstallGuide(false);
   };
 
@@ -191,11 +278,17 @@ export default function MobileHomeHubPage() {
 
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex items-center gap-1 font-mono text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider truncate">
-                <span className="font-bold text-[#0284C7] shrink-0">
-                  {isAlumni
-                    ? `ALUMNI ’${member.graduationYear?.slice(-2) || "26"}`
-                    : dept?.shortName || "IT & Tech"}
-                </span>
+                {leadershipTitle ? (
+                  <span className="font-bold text-sky-800 bg-sky-50 border border-sky-200/90 px-1.5 py-0.2 rounded-md shrink-0">
+                    {leadershipTitle}
+                  </span>
+                ) : (
+                  <span className="font-bold text-[#0284C7] shrink-0">
+                    {isAlumni
+                      ? `ALUMNI ’${member.graduationYear?.slice(-2) || "26"}`
+                      : dept?.shortName || "IT & Tech"}
+                  </span>
+                )}
                 <span className="text-slate-300 shrink-0 hidden sm:inline">·</span>
                 <span className="shrink-0 hidden sm:inline">{member.quanterId}</span>
               </div>
@@ -210,11 +303,11 @@ export default function MobileHomeHubPage() {
             {isAdmin && (
               <Link
                 href="/admin/overview"
-                className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[9.5px] sm:text-[11px] font-mono font-bold text-white flex items-center gap-1 sm:gap-1.5 justify-center transition active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-[#38BDF8] flex items-center justify-center transition active:scale-95 shadow-2xs shrink-0"
                 title="Open Admin Console"
+                aria-label="Open Admin Console"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shrink-0" />
-                <span>Open Admin Console</span>
+                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
               </Link>
             )}
 
@@ -265,24 +358,24 @@ export default function MobileHomeHubPage() {
         {!isAppInstalled && (
           <div
             data-testid="pwa-install-box"
-            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0C1D38] via-[#08152B] to-[#040C1A] border border-[#38BDF8]/40 p-3.5 sm:p-4 text-white shadow-[0_12px_32px_rgba(0,0,0,0.35)] animate-rise"
+            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0C1D38] via-[#08152B] to-[#040C1A] border border-[#38BDF8]/35 px-3 py-2 text-white shadow-sm animate-rise"
             style={{ animationDelay: "20ms" }}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1D63EB] to-[#0B2564] border border-[#38E4FF]/40 flex items-center justify-center shrink-0 shadow-inner">
-                  <Download className="w-5 h-5 text-[#38E4FF]" />
+            <div className="flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1D63EB] to-[#0B2564] border border-[#38E4FF]/40 flex items-center justify-center shrink-0 shadow-inner">
+                  <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-display font-black text-xs sm:text-sm text-white tracking-tight truncate">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-display font-black text-xs text-white tracking-tight truncate">
                       Download QUANTERS App
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-full bg-[#38E4FF]/15 border border-[#38E4FF]/30 text-[9px] font-mono font-bold text-[#38E4FF] shrink-0">
+                    <span className="px-1 py-0.2 rounded-full bg-[#38E4FF]/15 border border-[#38E4FF]/30 text-[8.5px] font-mono font-bold text-[#38E4FF] shrink-0">
                       OFFLINE &amp; FAST
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-300 font-sans truncate">
+                  <p className="text-[10px] text-slate-300 font-sans truncate">
                     Install on your home screen for 1-tap optical check-in and updates.
                   </p>
                 </div>
@@ -291,9 +384,9 @@ export default function MobileHomeHubPage() {
               <button
                 type="button"
                 onClick={handleInstallApp}
-                className="shrink-0 h-9 px-3.5 rounded-xl bg-[#38E4FF] hover:bg-[#2DD4BF] text-[#061326] font-display font-black text-xs shadow-[0_4px_16px_rgba(56,228,255,0.35)] active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
+                className="shrink-0 h-7 px-2.5 rounded-lg bg-[#38E4FF] hover:bg-[#2DD4BF] text-[#061326] font-display font-black text-[11px] shadow-xs active:scale-95 transition flex items-center gap-1 cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Download className="w-3 h-3 stroke-[2.5]" />
                 <span>Install</span>
               </button>
             </div>
@@ -338,6 +431,45 @@ export default function MobileHomeHubPage() {
           </div>
         )}
 
+        {/* Paused (Frozen) Membership Status Banner */}
+        {member.status === "Inactive" && (
+          <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border-2 border-amber-400/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-rise">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Pause className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-950 font-display">
+                    Membership Paused (Frozen)
+                  </span>
+                  {member.suspensionEndDate && (
+                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-black bg-amber-200 text-amber-950 border border-amber-300">
+                      Duration: {member.suspensionEndDate}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-amber-900 font-medium mt-0.5 leading-snug">
+                  {member.statusHistory?.[member.statusHistory.length - 1]?.reason || "Your membership is temporarily on pause. Mandatory workshops and task deadlines are on hold."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                resumeMembershipSelf({
+                  memberId: member.id,
+                  reason: "Member resumed active membership from Home dashboard",
+                });
+              }}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer shrink-0"
+            >
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>Resume Active Membership</span>
+            </button>
+          </div>
+        )}
+
         {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card */}
         <div
           className="relative rounded-xl p-4 sm:p-5 text-white overflow-hidden bg-[#040814] border border-slate-900 shadow-[0_16px_38px_rgba(3,8,18,0.32)] animate-rise group"
@@ -359,7 +491,7 @@ export default function MobileHomeHubPage() {
               </span>
               <span className="text-white/30 text-xs">·</span>
               <span className="font-mono text-xs text-slate-300 uppercase tracking-wider">
-                {member.status}
+                {leadershipTitle || member.status}
               </span>
             </div>
 
@@ -389,9 +521,9 @@ export default function MobileHomeHubPage() {
               ) : (
                 <>
                   <span className="text-white font-bold tabular-nums">
-                    {Math.round((member.xpSeason / 1000) * 100)}%
+                    {xpProgressPct}%
                   </span>{" "}
-                  · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to R0{member.level + 1}
+                  · {xpToNext > 0 ? `${xpToNext.toLocaleString()} XP to Lv. ${(currentTier?.level || member.level) + 1}` : "Max Rank Achieved"}
                 </>
               )}
             </p>
@@ -492,6 +624,7 @@ export default function MobileHomeHubPage() {
         )}
 
         {/* Softened Cosmic Slate-Navy Editorial Honour Ribbon (Star of the Month) */}
+        {motmMember && (
         <div
           className="rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] text-white border border-[#2B4875]/65 border-l-[3px] border-l-[#38BDF8] px-3 py-2 shadow-[0_6px_18px_rgba(16,31,56,0.14)] animate-rise"
           style={{ animationDelay: "130ms" }}
@@ -558,6 +691,7 @@ export default function MobileHomeHubPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Next Session — Clean Unified Card */}
         {nextWorkshop && (
@@ -712,7 +846,7 @@ export default function MobileHomeHubPage() {
                   Skill Exams
                 </span>
                 <span className="font-mono text-[10px] text-slate-500 block leading-tight mt-0.5">
-                  6 exams
+                  {exams.length} {exams.length === 1 ? "exam" : "exams"}
                 </span>
               </div>
             </Link>
@@ -775,12 +909,12 @@ export default function MobileHomeHubPage() {
             style={{ animationDelay: "280ms" }}
           >
             <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-              <div className="flex items-baseline gap-1.5">
+              <div className="flex items-center gap-2">
                 <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
                   ASSIGNED TASKS
                 </h2>
-                <span className="font-editorial italic text-base text-slate-500">
-                  missions
+                <span className="px-2 py-0.5 rounded-full bg-sky-50 text-[#0284C7] text-[10px] font-mono font-extrabold border border-sky-200/80">
+                  Active Missions
                 </span>
               </div>
 
@@ -814,7 +948,7 @@ export default function MobileHomeHubPage() {
             </div>
 
             {taskTab === "active" ? (
-              <div className="divide-y divide-slate-200/80">
+              <div className="space-y-2.5">
                 {activeTasks.map((task) => {
                   const line = task.assignees.find(
                     (a) => a.memberId === member.id
@@ -823,35 +957,64 @@ export default function MobileHomeHubPage() {
                   return (
                     <div
                       key={task.id}
-                      className="py-2.5 first:pt-0 last:pb-0 space-y-2"
+                      className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/90 hover:bg-slate-50 transition-colors space-y-2.5"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#0284C7]">
-                            {task.category} // {line.roleInTask}
-                          </span>
-                          <h3 className="text-sm font-extrabold font-display text-[#0F1E36] mt-0.5">
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-md bg-sky-50 text-[#0284C7] border border-sky-200/80 font-mono text-[10.5px] font-bold uppercase tracking-wider">
+                              {task.category}
+                            </span>
+                            <span className="text-slate-300 text-xs font-mono">·</span>
+                            <span className="px-2 py-0.5 rounded-md bg-white text-slate-700 border border-slate-200 text-[11px] font-semibold">
+                              {line.roleInTask}
+                            </span>
+                          </div>
+                          <h3 className="text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
                             {task.title}
                           </h3>
-                          <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5 font-mono">
-                            <Clock className="w-3 h-3 text-slate-400" />
+                          <p className="text-xs text-slate-500 flex items-center gap-1.5 font-mono">
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                             <span>
                               {task.deadline} · {task.locationOrShift}
                             </span>
                           </p>
                         </div>
-                        <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5] font-mono text-xs font-bold shrink-0 tabular-nums">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#162847] border border-[#D5E3F5] font-mono text-xs font-bold shrink-0 tabular-nums">
                           +{line.proposedScore} XP
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
-                        <span className="font-mono text-xs text-slate-500">
-                          STATE:{" "}
-                          <strong className="text-[#0F1E36] font-bold uppercase">
-                            {line.status}
-                          </strong>
-                        </span>
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/60 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10.5px] font-mono font-bold uppercase text-slate-400">
+                            State:
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${
+                              line.status === "Validated"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : line.status === "Delivered"
+                                ? "bg-sky-50 text-sky-700 border-sky-200"
+                                : line.status === "In progress"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                line.status === "Validated"
+                                  ? "bg-emerald-500"
+                                  : line.status === "Delivered"
+                                  ? "bg-sky-500"
+                                  : line.status === "In progress"
+                                  ? "bg-amber-500 animate-pulse"
+                                  : "bg-slate-400"
+                              }`}
+                            />
+                            <span>{line.status}</span>
+                          </span>
+                        </div>
 
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {!line.receiptConfirmed ? (

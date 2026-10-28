@@ -25,8 +25,10 @@ import {
   Mail,
   MapPin,
   Orbit,
+  Pause,
   PauseCircle,
   Pencil,
+  Play,
   Plus,
   QrCode,
   RotateCcw,
@@ -45,7 +47,9 @@ import { PlanetEmblem } from "@/components/shared/PlanetEmblem";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { AvatarUploader } from "@/components/shared/AvatarUploader";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { getActiveDailyQuote } from "@/lib/data/seed";
+import { signInWithFirebaseGooglePopup } from "@/lib/firebase/auth";
+import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
+import { DEFAULT_AVAILABILITY, FALLBACK_SESSION_MEMBER, getActiveDailyQuote } from "@/lib/data/seed";
 import {
   AvailabilityGrid,
   CommuteDuration,
@@ -53,7 +57,10 @@ import {
   GrievanceCategory,
   GrievanceUrgency,
   HousingType,
+  isMemberAvailableInSlot,
+  STUDY_HOUR_SLOTS,
   TimeSlot,
+  DEFAULT_RANK_LEVELS,
 } from "@/lib/types/erp";
 
 const DAYS: DayOfWeek[] = [
@@ -65,7 +72,7 @@ const DAYS: DayOfWeek[] = [
   "Thursday",
   "Friday",
 ];
-const SLOTS: TimeSlot[] = ["Morning", "Afternoon", "Evening"];
+const SLOTS: TimeSlot[] = STUDY_HOUR_SLOTS.map((s) => s.key);
 
 function ProgressRing({
   percent,
@@ -141,6 +148,9 @@ export default function MobileProfilePage() {
   const pauseOrResignMembershipSelf = useQuantersStore(
     (s) => s.pauseOrResignMembershipSelf
   );
+  const resumeMembershipSelf = useQuantersStore(
+    (s) => s.resumeMembershipSelf
+  );
   const submitGrievance = useQuantersStore((s) => s.submitGrievance);
   const logout = useQuantersStore((s) => s.logout);
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
@@ -151,8 +161,11 @@ export default function MobileProfilePage() {
   const pendingSyncCount = useQuantersStore((s) => s.pendingSyncCount);
   const lastSyncedAt = useQuantersStore((s) => s.lastSyncedAt);
 
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const member =
-    members.find((m) => m.id === currentMemberId) || members[0];
+    (isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined) || FALLBACK_SESSION_MEMBER;
   const dept = departments.find((d) => d.id === member.departmentId);
   const team = teams.find((t) => t.id === member.teamId);
   const buddy = members.find((m) => m.id === member.buddyId);
@@ -180,7 +193,7 @@ export default function MobileProfilePage() {
   // Pause or Resign Membership modal state
   const [pauseResignModalOpen, setPauseResignModalOpen] = useState(false);
   const [prGoogleVerified, setPrGoogleVerified] = useState(false);
-  const [prAction, setPrAction] = useState<"pause" | "resign">("pause");
+  const [prAction, setPrAction] = useState<"pause" | "resign" | "resume">("pause");
   const [prMotif, setPrMotif] = useState("");
   const [prPassword, setPrPassword] = useState("");
   const [prPauseDuration, setPrPauseDuration] = useState("Until end of semester");
@@ -212,36 +225,37 @@ export default function MobileProfilePage() {
   const [editCommute, setEditCommute] = useState<CommuteDuration>(
     member.commuteTime || "< 30 min"
   );
-  const [editGithub, setEditGithub] = useState(
-    member.githubUrl || "https://github.com/ayoub-sarri-quanta"
-  );
-  const [editLinkedin, setEditLinkedin] = useState(
-    member.linkedinUrl || "https://linkedin.com/in/ayoub-sarri"
-  );
-  const [editPortfolio, setEditPortfolio] = useState(
-    member.portfolioUrl || "https://quanta-algiers.dz/members/ayoub"
-  );
+  const [editGithub, setEditGithub] = useState(member.githubUrl || "");
+  const [editLinkedin, setEditLinkedin] = useState(member.linkedinUrl || "");
+  const [editPortfolio, setEditPortfolio] = useState(member.portfolioUrl || "");
 
   // Weekly Schedule Edit State
   const [editAvailability, setEditAvailability] = useState<AvailabilityGrid>(
-    member.availability || {
-      Saturday: ["Morning", "Afternoon"],
-      Sunday: ["Morning"],
-      Monday: [],
-      Tuesday: ["Afternoon"],
-      Wednesday: [],
-      Thursday: ["Afternoon", "Evening"],
-      Friday: ["Morning"],
-    }
+    member.availability || DEFAULT_AVAILABILITY
   );
+
+  const normalizeDaySlots = (daySlots: TimeSlot[] | undefined): TimeSlot[] => {
+    const raw = daySlots || [];
+    return SLOTS.filter((slotKey) => isMemberAvailableInSlot(raw, slotKey));
+  };
 
   const toggleSlot = (day: DayOfWeek, slot: TimeSlot) => {
     setEditAvailability((prev) => {
-      const current = prev[day] || [];
+      const current = normalizeDaySlots(prev[day]);
       const updated = current.includes(slot)
         ? current.filter((s) => s !== slot)
         : [...current, slot];
       return { ...prev, [day]: updated };
+    });
+  };
+
+  const toggleDayAllSlots = (day: DayOfWeek) => {
+    setEditAvailability((prev) => {
+      const current = normalizeDaySlots(prev[day]);
+      return {
+        ...prev,
+        [day]: current.length === SLOTS.length ? [] : [...SLOTS],
+      };
     });
   };
 
@@ -256,8 +270,8 @@ export default function MobileProfilePage() {
   const handleSelectWeekends = () => {
     setEditAvailability((prev) => ({
       ...prev,
-      Saturday: Array.from(new Set([...(prev.Saturday || []), "Morning", "Afternoon"] as TimeSlot[])),
-      Friday: Array.from(new Set([...(prev.Friday || []), "Morning", "Afternoon"] as TimeSlot[])),
+      Saturday: [...SLOTS],
+      Friday: [...SLOTS],
     }));
   };
 
@@ -273,22 +287,45 @@ export default function MobileProfilePage() {
     });
   };
 
-  const totalFreeSlots = Object.values(member.availability || {}).reduce(
-    (acc, slots) => acc + slots.length,
+  const totalFreeSlots = DAYS.reduce(
+    (acc, d) => acc + normalizeDaySlots(member.availability?.[d]).length,
     0
   );
-  const editingFreeSlots = Object.values(editAvailability).reduce(
-    (acc, slots) => acc + slots.length,
+  const editingFreeSlots = DAYS.reduce(
+    (acc, d) => acc + normalizeDaySlots(editAvailability[d]).length,
     0
   );
 
   const memberLedger = ledger.filter((l) => l.memberId === member.id);
 
-  const xpSeasonMax = 1000;
-  const xpProgressPct = Math.min(
-    100,
-    Math.round(((member.xpSeason || 820) / xpSeasonMax) * 100)
-  );
+  // Dynamic Rank Tier Calculation - 100% synchronized with member's actual score
+  const rankLevels =
+    settings?.rankLevels && settings.rankLevels.length > 0
+      ? settings.rankLevels
+      : DEFAULT_RANK_LEVELS;
+  const currentTier =
+    rankLevels.find((r) => r.level === member.level) ||
+    rankLevels.find(
+      (r) =>
+        (member.xpTotal || 0) >= r.minXp &&
+        (typeof r.maxXp !== "number" || (member.xpTotal || 0) <= r.maxXp)
+    ) ||
+    rankLevels[0];
+  const nextTier = rankLevels.find((r) => r.level === (currentTier?.level || member.level) + 1);
+  const isAlumni = member.status === "Alumni";
+  const currentScore = isAlumni
+    ? member.xpTotal || 0
+    : member.xpSeason ?? member.xpTotal ?? 0;
+  const tierMin = currentTier?.minXp || 0;
+  const tierMax =
+    typeof currentTier?.maxXp === "number" ? currentTier.maxXp : tierMin + 1000;
+  const tierSpan = Math.max(1, tierMax - tierMin + 1);
+  const scoreInTier = Math.max(0, currentScore - tierMin);
+  const xpProgressPct =
+    typeof currentTier?.maxXp === "number"
+      ? Math.min(100, Math.max(0, Math.round((scoreInTier / tierSpan) * 100)))
+      : 100;
+  const xpToNext = nextTier ? Math.max(0, nextTier.minXp - currentScore) : 0;
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
@@ -380,6 +417,47 @@ export default function MobileProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* Paused Membership Alert Banner */}
+        {member.status === "Inactive" && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/15 border-2 border-amber-400/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-rise">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Pause className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-950 font-display">
+                    Membership Paused (Frozen)
+                  </span>
+                  {member.suspensionEndDate && (
+                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-black bg-amber-200 text-amber-950 border border-amber-300">
+                      Duration: {member.suspensionEndDate}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-amber-900 font-medium mt-0.5 leading-snug">
+                  {member.statusHistory?.[member.statusHistory.length - 1]?.reason || "Your membership is temporarily paused. Attendance & task obligations are on hold."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const res = resumeMembershipSelf({
+                  memberId: member.id,
+                  reason: "Member self-reactivated active membership via Profile",
+                });
+                setScheduleToast(res.message);
+                setTimeout(() => setScheduleToast(null), 4000);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer shrink-0"
+            >
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>Resume Active Membership</span>
+            </button>
+          </div>
+        )}
 
         {/* Member Identity Dossier — Clean Architectural Card */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
@@ -478,9 +556,9 @@ export default function MobileProfilePage() {
 
             <p className="mt-1.5 text-xs font-mono text-slate-300/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               <span className="text-white font-bold tabular-nums">
-                {Math.round((member.xpSeason / 1000) * 100)}%
+                {xpProgressPct}%
               </span>{" "}
-              · {Math.max(0, 1000 - member.xpSeason).toLocaleString()} XP to R0{member.level + 1}
+              · {xpToNext > 0 ? `${xpToNext.toLocaleString()} XP to Lv. ${(currentTier?.level || member.level) + 1}` : "Max Rank Achieved"}
             </p>
           </div>
 
@@ -497,7 +575,7 @@ export default function MobileProfilePage() {
               />
             </div>
             <span className="text-xs font-mono font-bold tracking-widest text-sky-200/90 tabular-nums shrink-0">
-              {member.xpSeason}/1000
+              {currentScore.toLocaleString()} / {typeof currentTier?.maxXp === "number" ? currentTier.maxXp.toLocaleString() : "MAX"} XP
             </span>
           </div>
         </div>
@@ -667,52 +745,48 @@ export default function MobileProfilePage() {
           </div>
 
           {/* Clickable Digital Links Chips */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <a
-              href={
-                member.githubUrl && /^https?:\/\//i.test(member.githubUrl.trim())
-                  ? member.githubUrl.trim()
-                  : "https://github.com/ayoub-sarri-quanta"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 active:scale-[0.98] transition"
-            >
-              <FolderGit2 className="w-3 h-3 text-[#7DD3FC]" />
-              <span>GitHub</span>
-              <ExternalLink className="w-2.5 h-2.5 opacity-75" />
-            </a>
+          {(sanitizeExternalUrl(member.githubUrl) || sanitizeExternalUrl(member.linkedinUrl) || sanitizeExternalUrl(member.portfolioUrl)) && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {sanitizeExternalUrl(member.githubUrl) && (
+                <a
+                  href={sanitizeExternalUrl(member.githubUrl)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 active:scale-[0.98] transition"
+                >
+                  <FolderGit2 className="w-3 h-3 text-[#7DD3FC]" />
+                  <span>GitHub</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-75" />
+                </a>
+              )}
 
-            <a
-              href={
-                member.linkedinUrl && /^https?:\/\//i.test(member.linkedinUrl.trim())
-                  ? member.linkedinUrl.trim()
-                  : "https://linkedin.com/in/ayoub-sarri"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
-            >
-              <Linkedin className="w-3 h-3 text-[#0284C7]" />
-              <span>LinkedIn</span>
-              <ExternalLink className="w-2.5 h-2.5 opacity-75" />
-            </a>
+              {sanitizeExternalUrl(member.linkedinUrl) && (
+                <a
+                  href={sanitizeExternalUrl(member.linkedinUrl)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
+                >
+                  <Linkedin className="w-3 h-3 text-[#0284C7]" />
+                  <span>LinkedIn</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-75" />
+                </a>
+              )}
 
-            <a
-              href={
-                member.portfolioUrl && /^https?:\/\//i.test(member.portfolioUrl.trim())
-                  ? member.portfolioUrl.trim()
-                  : "https://quanta-algiers.dz/members/ayoub"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
-            >
-              <Globe className="w-3 h-3 text-[#0284C7]" />
-              <span>Portfolio</span>
-              <ExternalLink className="w-2.5 h-2.5 opacity-75" />
-            </a>
-          </div>
+              {sanitizeExternalUrl(member.portfolioUrl) && (
+                <a
+                  href={sanitizeExternalUrl(member.portfolioUrl)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition"
+                >
+                  <Globe className="w-3 h-3 text-[#0284C7]" />
+                  <span>Portfolio</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-75" />
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Weekly Availability Schedule Section */}
           <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-2">
@@ -871,8 +945,12 @@ export default function MobileProfilePage() {
             <button
               type="button"
               onClick={() => {
-                setPrAction("pause");
-                setPrMotif("");
+                setPrAction(member.status === "Inactive" ? "resume" : "pause");
+                setPrMotif(
+                  member.status === "Inactive"
+                    ? "Ready to return to active club participation"
+                    : ""
+                );
                 setPrPassword("");
                 setPrPauseDuration("15 Days");
                 setPrConfirmed(false);
@@ -880,10 +958,23 @@ export default function MobileProfilePage() {
                 setPrError(null);
                 setPauseResignModalOpen(true);
               }}
-              className="h-10 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer truncate"
+              className={`h-10 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer truncate ${
+                member.status === "Inactive"
+                  ? "bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-2xs font-extrabold"
+                  : "bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700"
+              }`}
             >
-              <PauseCircle className="w-4 h-4 text-slate-600 shrink-0" />
-              <span className="truncate">Membership</span>
+              {member.status === "Inactive" ? (
+                <>
+                  <Pause className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span className="truncate">Resume (Paused)</span>
+                </>
+              ) : (
+                <>
+                  <PauseCircle className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span className="truncate">Membership</span>
+                </>
+              )}
             </button>
           </div>
 
@@ -1100,10 +1191,14 @@ export default function MobileProfilePage() {
                 setPrError(null);
 
                 if (!prMotif.trim()) {
-                  setPrError("Please write a reason (motif) for this action.");
+                  setPrError(
+                    prAction === "resume"
+                      ? "Please write a brief note for returning."
+                      : "Please write a reason (motif) for this action."
+                  );
                   return;
                 }
-                if (!prPassword.trim()) {
+                if (!prPassword.trim() && !prGoogleVerified && member.passwordHash) {
                   setPrError("Please enter your account password to verify identity.");
                   return;
                 }
@@ -1116,7 +1211,7 @@ export default function MobileProfilePage() {
                   memberId: member.id,
                   action: prAction,
                   motif: prMotif.trim(),
-                  passwordConfirm: prPassword.trim(),
+                  passwordConfirm: prPassword.trim() || (prGoogleVerified ? "GOOGLE_VERIFIED" : undefined),
                   pauseUntilDate: prAction === "pause" ? prPauseDuration : undefined,
                 });
 
@@ -1132,32 +1227,83 @@ export default function MobileProfilePage() {
               className="space-y-3 text-xs"
             >
               {/* Action Switcher */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setPrAction("pause")}
-                  className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
-                    prAction === "pause"
-                      ? "bg-white text-amber-900 shadow-xs border border-amber-200"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <span>Pause Membership</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPrAction("resign")}
-                  className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
-                    prAction === "resign"
-                      ? "bg-white text-rose-900 shadow-xs border border-rose-200"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <span>Resign from Club</span>
-                </button>
-              </div>
+              {member.status === "Inactive" ? (
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPrAction("resume");
+                      if (!prMotif) setPrMotif("Ready to return to active club participation");
+                    }}
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                      prAction === "resume"
+                        ? "bg-emerald-600 text-white shadow-xs font-black"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Resume Active</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrAction("pause")}
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                      prAction === "pause"
+                        ? "bg-white text-amber-900 shadow-xs border border-amber-200"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Adjust Pause</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrAction("resign")}
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                      prAction === "resign"
+                        ? "bg-white text-rose-900 shadow-xs border border-rose-200"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Resign</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setPrAction("pause")}
+                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                      prAction === "pause"
+                        ? "bg-white text-amber-900 shadow-xs border border-amber-200"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Pause Membership</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrAction("resign")}
+                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                      prAction === "resign"
+                        ? "bg-white text-rose-900 shadow-xs border border-rose-200"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Resign from Club</span>
+                  </button>
+                </div>
+              )}
 
-              {prAction === "pause" ? (
+              {prAction === "resume" ? (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+                  <div className="font-extrabold text-emerald-900 flex items-center gap-1.5 text-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Resume Active Status</span>
+                  </div>
+                  <p className="text-[11.5px] text-emerald-800 leading-relaxed font-medium">
+                    This will immediately lift your pause/freeze, restore full Active Member status, and resume your workshop attendance &amp; team tasks.
+                  </p>
+                </div>
+              ) : prAction === "pause" ? (
                 <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
                   <p className="text-[11.5px] text-amber-900 leading-relaxed font-medium">
                     Pausing temporarily suspends mandatory attendance and tasks
@@ -1201,7 +1347,9 @@ export default function MobileProfilePage() {
                   value={prMotif}
                   onChange={(e) => setPrMotif(e.target.value)}
                   placeholder={
-                    prAction === "pause"
+                    prAction === "resume"
+                      ? "e.g., Finished exams, returning to regular club sessions..."
+                      : prAction === "pause"
                       ? "e.g., Final exam preparation, engineering project deadline, medical leave..."
                       : "e.g., Graduation, moving out of Algiers, personal reasons..."
                   }
@@ -1242,10 +1390,23 @@ export default function MobileProfilePage() {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setPrGoogleVerified(true);
-                        setPrPassword("GOOGLE_VERIFIED");
+                      onClick={async () => {
                         setPrError(null);
+                        const res = await signInWithFirebaseGooglePopup();
+                        if (
+                          res.ok &&
+                          res.email &&
+                          res.email.toLowerCase() === member.email.toLowerCase()
+                        ) {
+                          setPrGoogleVerified(true);
+                          setPrPassword("GOOGLE_VERIFIED");
+                        } else if (!res.ok) {
+                          setPrError(res.message || "Google verification was cancelled or failed.");
+                        } else {
+                          setPrError(
+                            `Google account (${res.email || "unknown"}) does not match member account (${member.email}).`
+                          );
+                        }
                       }}
                       className="w-full h-9 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-2xs"
                     >
@@ -1283,10 +1444,22 @@ export default function MobileProfilePage() {
                 />
                 <span className="text-[11px] text-slate-700 leading-tight">
                   I confirm that I understand this action and wish to{" "}
-                  <strong className={prAction === "resign" ? "text-rose-600" : "text-amber-700"}>
-                    {prAction === "pause" ? "pause" : "resign from"}
+                  <strong
+                    className={
+                      prAction === "resume"
+                        ? "text-emerald-700"
+                        : prAction === "resign"
+                        ? "text-rose-600"
+                        : "text-amber-700"
+                    }
+                  >
+                    {prAction === "resume"
+                      ? "resume my active membership"
+                      : prAction === "pause"
+                      ? "pause"
+                      : "resign from"}
                   </strong>{" "}
-                  my membership in QUANTA Club.
+                  in QUANTA Club.
                 </span>
               </label>
 
@@ -1301,12 +1474,18 @@ export default function MobileProfilePage() {
                 <button
                   type="submit"
                   className={`flex-1 h-9 rounded-xl font-extrabold text-xs text-white transition cursor-pointer shadow-xs ${
-                    prAction === "pause"
+                    prAction === "resume"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : prAction === "pause"
                       ? "bg-amber-600 hover:bg-amber-700"
                       : "bg-rose-600 hover:bg-rose-700"
                   }`}
                 >
-                  {prAction === "pause" ? "Confirm Pause" : "Confirm Resignation"}
+                  {prAction === "resume"
+                    ? "Confirm Resume Active"
+                    : prAction === "pause"
+                    ? "Confirm Pause"
+                    : "Confirm Resignation"}
                 </button>
               </div>
             </form>
@@ -1729,8 +1908,9 @@ export default function MobileProfilePage() {
             {/* 7-Day Matrix Scroll Area */}
             <div className="flex-1 overflow-y-auto p-3.5 space-y-2 text-xs">
               {DAYS.map((day) => {
-                const activeSlots = editAvailability[day] || [];
+                const activeSlots = normalizeDaySlots(editAvailability[day]);
                 const isWeekend = day === "Friday" || day === "Saturday";
+                const allSelected = activeSlots.length === SLOTS.length;
                 return (
                   <div
                     key={day}
@@ -1747,39 +1927,37 @@ export default function MobileProfilePage() {
                           </span>
                         )}
                       </div>
-                      <span className="text-[10.5px] font-mono font-bold text-slate-400">
-                        {activeSlots.length > 0
-                          ? `${activeSlots.length} active`
-                          : "Busy"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10.5px] font-mono font-bold text-slate-400">
+                          {activeSlots.length > 0
+                            ? `${activeSlots.length}/10 hrs free`
+                            : "Busy"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleDayAllSlots(day)}
+                          className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-[#0284C7] hover:bg-[#F0F6FF] cursor-pointer"
+                        >
+                          {allSelected ? "Clear" : "All Day"}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {SLOTS.map((slot) => {
-                        const isSelected = activeSlots.includes(slot);
+                    <div className="grid grid-cols-5 gap-1">
+                      {STUDY_HOUR_SLOTS.map((slotMeta) => {
+                        const isSelected = activeSlots.includes(slotMeta.key);
                         return (
                           <button
-                            key={slot}
+                            key={slotMeta.key}
                             type="button"
-                            onClick={() => toggleSlot(day, slot)}
-                            className={`py-1.5 px-1 rounded-lg text-xs font-extrabold font-display transition active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center ${
+                            onClick={() => toggleSlot(day, slotMeta.key)}
+                            className={`py-1.5 px-1 rounded-lg text-[10.5px] font-mono font-extrabold transition active:scale-[0.97] cursor-pointer text-center ${
                               isSelected
                                 ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875] shadow-xs"
                                 : "bg-white text-slate-600 border border-slate-200 hover:border-[#182C4E]/40 hover:bg-[#F0F6FF]/50"
                             }`}
                           >
-                            <span className="leading-tight">{slot}</span>
-                            <span
-                              className={`text-[9.5px] font-mono ${
-                                isSelected ? "text-[#7DD3FC]" : "text-slate-400"
-                              }`}
-                            >
-                              {slot === "Morning"
-                                ? "08–12h"
-                                : slot === "Afternoon"
-                                ? "12–16h"
-                                : "16–20h"}
-                            </span>
+                            {slotMeta.label}
                           </button>
                         );
                       })}

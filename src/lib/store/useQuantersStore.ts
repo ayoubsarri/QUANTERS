@@ -1,6 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { isSuperAdminEmail } from "../firebase/config";
+import { pullErpStateFromFirestore, pushErpStateToFirestore, signOutFromFirebase } from "../firebase/auth";
+import { hashCredentialDigest, verifyCredentialDigest } from "../utils/authSecurity";
 import {
   AccessGrant,
   AccessLevel,
@@ -31,17 +34,21 @@ import {
   PointsLedgerEntry,
   ProjectSubmission,
   Proposal,
+  ProposalVote,
   ProposalState,
   ProposalTypeKey,
   RecognitionLabel,
   RoleTemplateName,
   ScientificTeam,
+  getRankForXp,
   SystemSettings,
   Workshop,
   WorkshopLevel,
   WorkshopStatus,
 } from "../types/erp";
 import {
+  DEFAULT_AVAILABILITY,
+  FALLBACK_SESSION_MEMBER,
   SEED_ACCESS_GRANTS,
   SEED_AUDIT_LOGS,
   SEED_BADGES,
@@ -104,6 +111,7 @@ interface QuantersStoreState {
   exams: BadgeExam[];
   examCompletions: ExamCompletionRecord[];
   projectSubmissions: ProjectSubmission[];
+  projectCategories: string[];
   proposals: Proposal[];
   explorePosts: ExplorePost[];
   dailyQuizzes: DailyQuizItem[];
@@ -142,6 +150,7 @@ interface QuantersStoreState {
   logout: () => void;
   syncWithServer: (force?: boolean) => Promise<void>;
   pullExactUpdatesFromServer: () => Promise<void>;
+  applyIncomingCloudSnapshot: (cloudData: Record<string, unknown>) => void;
   setUserLowDataMode: (enabled: boolean) => void;
   setOnlineStatus: (online: boolean) => void;
   saveToLocalCache: () => void;
@@ -161,8 +170,10 @@ interface QuantersStoreState {
   completeFirstTimeProfile: (payload: {
     fullName: string;
     email?: string;
+    password?: string;
     phone: string;
     avatarUrl: string;
+    university?: string;
     major: string;
     academicYear: Member["academicYear"];
     tenure: string;
@@ -222,11 +233,15 @@ interface QuantersStoreState {
     graduationYear?: string;
     suspensionEndDate?: string;
   }) => void;
+  resumeMembershipSelf: (payload: {
+    memberId: string;
+    reason?: string;
+  }) => { ok: boolean; message: string };
   pauseOrResignMembershipSelf: (payload: {
     memberId: string;
-    action: "pause" | "resign";
+    action: "pause" | "resign" | "resume";
     motif: string;
-    passwordConfirm: string;
+    passwordConfirm?: string;
     pauseUntilDate?: string;
   }) => { ok: boolean; message: string };
   submitGrievance: (payload: {
@@ -243,6 +258,18 @@ interface QuantersStoreState {
     actorName?: string
   ) => void;
   reactivateFormerMember: (memberId: string, toStatus: "Active" | "Trainee", reason: string, actorName?: string) => void;
+  createAdminMember: (payload: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    major?: string;
+    academicYear?: Member["academicYear"];
+    departmentId: string;
+    teamId?: string;
+    status?: MemberStatus;
+    role?: RoleTemplateName;
+  }) => Member;
+  deleteMember: (memberId: string, reason?: string, permanent?: boolean) => void;
 
   // §3.1: Invitations
   createInvitations: (emails: string[], prefilledDepartmentId?: string) => void;
@@ -281,6 +308,16 @@ interface QuantersStoreState {
     linkedBadgeId?: string;
     status?: WorkshopStatus;
   }) => void;
+  updateWorkshop: (
+    workshopId: string,
+    updates: Partial<Omit<Workshop, "id">>,
+    reason?: string
+  ) => void;
+  deleteWorkshop: (
+    workshopId: string,
+    isPermanent?: boolean,
+    reason?: string
+  ) => void;
   updateWorkshopStatus: (workshopId: string, status: WorkshopStatus) => void;
   rotateWorkshopQrCode: (workshopId: string) => void;
 
@@ -325,6 +362,7 @@ interface QuantersStoreState {
   archiveAllCompletedTasks: () => void;
   // §M3: Workshops & Activities
   addWorkshopCategory: (category: string) => void;
+  updateWorkshopCategory: (oldCat: string, newCat: string) => void;
   deleteWorkshopCategory: (category: string) => void;
 
   // §M4: Tasks & Event Matrix
@@ -342,6 +380,7 @@ interface QuantersStoreState {
 
   // §M6: Badges, Exams & Project Submissions
   addBadgeCategory: (category: string) => void;
+  updateBadgeCategory: (oldCat: string, newCat: string) => void;
   deleteBadgeCategory: (category: string) => void;
   createBadge: (badge: Omit<Badge, "id" | "memberState" | "progressPercent" | "awardedCount" | "archived">) => void;
   updateBadge: (id: string, updates: Partial<Badge>) => void;
@@ -352,6 +391,9 @@ interface QuantersStoreState {
   updateBadgeExam: (id: string, updates: Partial<BadgeExam>) => void;
   deleteBadgeExam: (id: string) => void;
   completeBadgeExam: (examId: string, scorePercent: number) => void;
+  addProjectCategory: (category: string) => void;
+  deleteProjectCategory: (category: string) => void;
+  updateProjectCategory: (oldCat: string, newCat: string) => void;
   submitBadgeProject: (submission: Omit<ProjectSubmission, "id" | "submittedAt" | "status">) => void;
   reviewProjectSubmission: (
     submissionId: string,
@@ -374,6 +416,15 @@ interface QuantersStoreState {
     comment: string,
     convertToWorkshop?: boolean
   ) => void;
+  voteOnProposal: (
+    proposalId: string,
+    decision: "Approved" | "Rejected",
+    comment?: string
+  ) => { ok: boolean; message: string };
+  submitDailyQuizAnswer: (
+    quizId: string,
+    optionId: string
+  ) => { ok: boolean; message: string; xpEarned?: number };
 
   // §M7 & §M9: Messages & Explore
   sendClubMessage: (payload: {
@@ -388,6 +439,8 @@ interface QuantersStoreState {
   unarchiveMessage: (messageId: string) => void;
   archiveAllReadMessages: () => void;
   createExplorePost: (post: Omit<ExplorePost, "id">) => void;
+  updateExplorePost: (postId: string, updates: Partial<ExplorePost>) => void;
+  deleteExplorePost: (postId: string) => void;
   updateExplorePostStatus: (postId: string, status: ExplorePost["status"]) => void;
 
   // Daily Quiz & 365-Day Quote Library Actions
@@ -433,6 +486,7 @@ const DELTA_ARRAY_KEYS = [
   "projectSubmissions",
   "proposals",
   "explorePosts",
+  "dailyQuizzes",
   "messages",
   "invitations",
   "accessGrants",
@@ -440,8 +494,105 @@ const DELTA_ARRAY_KEYS = [
   "grievances",
 ] as const;
 
+export function sanitizeSystemSettings(settings: SystemSettings): SystemSettings {
+  const sanitized = { ...settings };
+  const isSuperAdminId = (id?: string) =>
+    Boolean(
+      id &&
+      (id === "mem-super-quanta" ||
+       id === "mem-super-hr" ||
+       id.startsWith("mem-super") ||
+       id.startsWith("session-"))
+    );
+  if (isSuperAdminId(sanitized.vicePresidentId)) {
+    sanitized.vicePresidentId = "";
+  }
+  if (isSuperAdminId(sanitized.presidentId)) {
+    sanitized.presidentId = "";
+  }
+  if (isSuperAdminId(sanitized.secretaryGeneralId)) {
+    sanitized.secretaryGeneralId = "";
+  }
+  return sanitized;
+}
+
+interface TombstoneEntry {
+  id: string;
+  deletedAt: number;
+}
+
+const TOMBSTONES_STORAGE_KEY = "quanters-tombstones-v3";
+const TOMBSTONE_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
+export function getPersistentDeletedIds(): Record<string, string[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(TOMBSTONES_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, (string | TombstoneEntry)[]>;
+    const now = Date.now();
+    const result: Record<string, string[]> = {};
+    const cleaned: Record<string, TombstoneEntry[]> = {};
+    let pruned = false;
+
+    for (const [col, items] of Object.entries(parsed)) {
+      if (!Array.isArray(items)) continue;
+      const validEntries: TombstoneEntry[] = [];
+      const validIds: string[] = [];
+
+      for (const item of items) {
+        if (typeof item === "string") {
+          // Migration from v2 string items
+          validEntries.push({ id: item, deletedAt: now });
+          validIds.push(item);
+        } else if (item && typeof item === "object" && typeof item.id === "string") {
+          if (now - item.deletedAt < TOMBSTONE_TTL_MS) {
+            validEntries.push(item);
+            validIds.push(item.id);
+          } else {
+            pruned = true; // Pruned expired tombstone
+          }
+        }
+      }
+      result[col] = validIds;
+      cleaned[col] = validEntries;
+    }
+
+    if (pruned) {
+      try {
+        window.localStorage.setItem(TOMBSTONES_STORAGE_KEY, JSON.stringify(cleaned));
+      } catch {}
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+export function recordPersistentDeletedId(collection: string, id: string) {
+  if (typeof window === "undefined" || !id) return;
+  try {
+    const raw = window.localStorage.getItem(TOMBSTONES_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Record<string, TombstoneEntry[]>) : {};
+    const list = Array.isArray(parsed[collection]) ? parsed[collection] : [];
+    if (!list.some((item) => (typeof item === "string" ? item === id : item.id === id))) {
+      parsed[collection] = [...list, { id, deletedAt: Date.now() }];
+      window.localStorage.setItem(TOMBSTONES_STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function isPersistentDeletedId(collection: string, id: string): boolean {
+  if (typeof window === "undefined" || !id) return false;
+  const all = getPersistentDeletedIds();
+  return Boolean(all[collection]?.includes(id));
+}
+
 let lastSyncedBaselineMap: Record<string, Map<string, string>> | null = null;
 let lastSyncedSettingsJson: string | null = null;
+let debouncedSyncTimeout: NodeJS.Timeout | number | null = null;
 
 function captureBaselineFromState(s: QuantersStoreState) {
   const nextMap: Record<string, Map<string, string>> = {};
@@ -456,7 +607,13 @@ function captureBaselineFromState(s: QuantersStoreState) {
     nextMap[key] = itemMap;
   }
   lastSyncedBaselineMap = nextMap;
-  lastSyncedSettingsJson = JSON.stringify(s.settings);
+  lastSyncedSettingsJson = JSON.stringify({
+    settings: s.settings,
+    workshopCategories: s.workshopCategories,
+    badgeCategories: s.badgeCategories,
+    projectCategories: s.projectCategories,
+    customQuotes: s.dailyQuotes.filter((q) => q.isCustom),
+  });
 }
 
 function computeClientDeltas(s: QuantersStoreState): {
@@ -467,19 +624,14 @@ function computeClientDeltas(s: QuantersStoreState): {
   settingsPatch?: SystemSettings;
   hasChanges: boolean;
 } {
-  if (!lastSyncedBaselineMap) {
-    captureBaselineFromState(s);
-    return { itemDeltas: {}, hasChanges: false };
-  }
-
   const itemDeltas: Record<
     string,
     { upserted?: Record<string, unknown>[]; deletedIds?: string[] }
   > = {};
-  let hasChanges = false;
+  let hasChanges = !lastSyncedBaselineMap;
 
   for (const key of DELTA_ARRAY_KEYS) {
-    const prevMap = lastSyncedBaselineMap[key] || new Map<string, string>();
+    const prevMap = lastSyncedBaselineMap?.[key] || new Map<string, string>();
     const list =
       (s[key] as unknown as Array<Record<string, unknown> & { id?: string }>) || [];
     const currentIds = new Set<string>();
@@ -494,16 +646,18 @@ function computeClientDeltas(s: QuantersStoreState): {
       }
     }
 
-    const deletedIds: string[] = [];
-    if (key !== "auditLogs") {
+    const tombstoneSet = new Set(getPersistentDeletedIds()[key] || []);
+    const newlyDeletedIds: string[] = [];
+    if (key !== "auditLogs" && lastSyncedBaselineMap) {
       for (const oldId of prevMap.keys()) {
         if (!currentIds.has(oldId)) {
-          deletedIds.push(oldId);
+          newlyDeletedIds.push(oldId);
         }
       }
     }
 
-    if (upserted.length > 0 || deletedIds.length > 0) {
+    if (upserted.length > 0 || newlyDeletedIds.length > 0) {
+      const deletedIds = Array.from(new Set([...tombstoneSet, ...newlyDeletedIds]));
       itemDeltas[key] = {
         ...(upserted.length > 0 ? { upserted } : {}),
         ...(deletedIds.length > 0 ? { deletedIds } : {}),
@@ -513,7 +667,13 @@ function computeClientDeltas(s: QuantersStoreState): {
   }
 
   let settingsPatch: SystemSettings | undefined;
-  const currentSettingsJson = JSON.stringify(s.settings);
+  const currentSettingsJson = JSON.stringify({
+    settings: s.settings,
+    workshopCategories: s.workshopCategories,
+    badgeCategories: s.badgeCategories,
+    projectCategories: s.projectCategories,
+    customQuotes: s.dailyQuotes.filter((q) => q.isCustom),
+  });
   if (lastSyncedSettingsJson !== currentSettingsJson) {
     settingsPatch = s.settings;
     hasChanges = true;
@@ -522,10 +682,63 @@ function computeClientDeltas(s: QuantersStoreState): {
   return { itemDeltas, settingsPatch, hasChanges };
 }
 
+function mergeRemoteWithUnsyncedLocal(
+  key: (typeof DELTA_ARRAY_KEYS)[number],
+  remoteList: unknown[],
+  localState: QuantersStoreState
+): unknown[] {
+  const localList =
+    ((localState as unknown as Record<string, unknown>)[key] as
+      | Array<Record<string, unknown> & { id?: string }>
+      | undefined) || [];
+  const mergedById = new Map<string, Record<string, unknown>>();
+  const order: string[] = [];
+  const prevMap = lastSyncedBaselineMap?.[key];
+
+  // 1. Process remote items — strictly omitting any tombstoned (deleted) IDs
+  for (const raw of remoteList) {
+    if (raw && typeof raw === "object" && typeof (raw as { id?: unknown }).id === "string") {
+      const id = (raw as { id: string }).id;
+      if (isPersistentDeletedId(key, id)) continue;
+      mergedById.set(id, raw as Record<string, unknown>);
+      order.push(id);
+    }
+  }
+
+  // 2. Only override remote item if local item has pending un-synced modifications
+  for (const localItem of localList) {
+    if (!localItem || typeof localItem.id !== "string") continue;
+    const id = localItem.id;
+    if (isPersistentDeletedId(key, id)) continue;
+
+    const remoteItem = mergedById.get(id);
+    if (!remoteItem) {
+      // Local-only new item not yet on server
+      order.unshift(id);
+      mergedById.set(id, localItem);
+    } else if (prevMap) {
+      const baselineJson = prevMap.get(id);
+      const localJson = JSON.stringify(localItem);
+      // If local state diverged from baseline, keep local edit
+      if (baselineJson && baselineJson !== localJson) {
+        mergedById.set(id, localItem);
+      }
+      // If local state equals baseline (unmodified), remoteItem remains in mergedById!
+    }
+  }
+
+  // 3. Final deduplicated result, strictly filtering out any tombstoned items
+  const finalIds = Array.from(new Set(order)).filter((id) => !isPersistentDeletedId(key, id));
+  return finalIds.map((id) => mergedById.get(id)!).filter(Boolean);
+}
+
 const resolveRoleAndRedirect = (member: Member): {
   adminRole: RoleTemplateName;
   redirectPath: string;
 } => {
+  if (isSuperAdminEmail(member.email)) {
+    return { adminRole: "Super Admin", redirectPath: "/admin/overview" };
+  }
   if (member.roles.includes("Super Admin")) {
     return { adminRole: "Super Admin", redirectPath: "/home" };
   }
@@ -540,6 +753,12 @@ const resolveRoleAndRedirect = (member: Member): {
   }
   if (member.roles.includes("Co-Manager")) {
     return { adminRole: "Co-Manager", redirectPath: "/home" };
+  }
+  if (member.roles.includes("KPI Viewer")) {
+    return { adminRole: "KPI Viewer", redirectPath: "/admin/overview" };
+  }
+  if (member.roles.includes("Editor")) {
+    return { adminRole: "Editor", redirectPath: "/admin/overview" };
   }
   if (member.status === "Alumni") {
     return { adminRole: "Alumni", redirectPath: "/home" };
@@ -563,6 +782,17 @@ export const DEFAULT_WORKSHOP_CATEGORIES: string[] = [
   "General Science",
 ];
 
+export const DEFAULT_PROJECT_CATEGORIES: string[] = [
+  "General",
+  "Data Analysis",
+  "Python Explorer",
+  "Electronics",
+  "Innovation",
+  "Astrophysics",
+  "Artificial Intelligence",
+  "Robotics & IoT",
+];
+
 export const DEFAULT_BADGE_CATEGORIES: string[] = [
   "Science",
   "Technology",
@@ -579,9 +809,9 @@ export const DEFAULT_BADGE_CATEGORIES: string[] = [
 ];
 
 export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
-  isAuthenticated: true,
-  currentMemberId: "mem-ayoub",
-  activeAdminRole: "Super Admin",
+  isAuthenticated: false,
+  currentMemberId: "",
+  activeAdminRole: "Member",
   mobileFrameMode: "phone",
   celebration: null,
 
@@ -604,18 +834,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   badges: SEED_BADGES,
   badgeCategories: DEFAULT_BADGE_CATEGORIES,
   exams: SEED_EXAMS,
-  examCompletions: [
-    {
-      id: "comp-seed-1",
-      examId: "exam-astrophysics",
-      badgeId: "badge-astro",
-      memberId: "mem-ayoub",
-      scorePercent: 92,
-      passed: true,
-      completedAt: "2026-10-15",
-    },
-  ],
+  examCompletions: [],
   projectSubmissions: SEED_PROJECT_SUBMISSIONS,
+  projectCategories: DEFAULT_PROJECT_CATEGORIES,
   proposals: SEED_PROPOSALS,
   explorePosts: SEED_EXPLORE_POSTS,
   dailyQuizzes: SEED_DAILY_QUIZZES,
@@ -639,88 +860,116 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     });
     get().saveToLocalCache();
   },
-  setActiveAdminRole: (role) => set({ activeAdminRole: role }),
+  setActiveAdminRole: (role) => {
+    const state = get();
+    const curMember = state.members.find((m) => m.id === state.currentMemberId);
+    if (!curMember) return;
+    const isSuper = curMember.roles.includes("Super Admin") || isSuperAdminEmail(curMember.email);
+    if (!isSuper && !curMember.roles.includes(role)) {
+      return;
+    }
+    set({ activeAdminRole: role });
+  },
   setMobileFrameMode: (mode) => set({ mobileFrameMode: mode }),
   triggerCelebration: (payload) => set({ celebration: payload }),
 
   loginWithEmail: (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      return { ok: false, redirectPath: "/welcome", message: "Please enter your email or Quanter ID." };
+      return { ok: false, redirectPath: "/welcome", message: "Please enter your registered email address." };
     }
 
     const state = get();
+    // Strictly authenticate by registered email address (NO ID / NO handle)
     const existing = state.members.find(
-      (m) =>
-        m.email.toLowerCase() === cleanEmail ||
-        m.handle.toLowerCase() === cleanEmail ||
-        m.handle.replace("@", "").toLowerCase() === cleanEmail ||
-        m.quanterId.toLowerCase() === cleanEmail ||
-        m.fullName.toLowerCase() === cleanEmail
+      (m) => m.email.toLowerCase() === cleanEmail
     );
 
-    if (password !== undefined) {
-      const rawPass = password.trim();
-      const cleanPass = rawPass.toLowerCase();
-      const firstToken = existing
-        ? existing.fullName.replace(/^dr\.\s*/i, "").split(" ")[0].toLowerCase()
-        : "";
-      const matchesCustomPass = Boolean(
-        existing?.password &&
-          (rawPass === existing.password ||
-            cleanPass === existing.password.toLowerCase())
-      );
-      const validPass =
-        matchesCustomPass ||
-        cleanPass === "quanta2026" ||
-        cleanPass === "123456" ||
-        cleanPass === "password" ||
-        (firstToken && cleanPass === `${firstToken}123`);
-      if (!validPass) {
-        return {
-          ok: false,
-          redirectPath: "/welcome",
-          message:
-            "Invalid password. Forgot your password? Contact quantaclubdz@gmail.com or hr.quanta@univ-alger.dz.",
-        };
-      }
+    if (typeof password !== "string" || !password.trim()) {
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message: "Password is required for email authentication.",
+      };
+    }
+
+    const rawPass = password.trim();
+    const legacyOrHash = existing?.passwordHash || (existing as unknown as { password?: string })?.password;
+    const validPass = verifyCredentialDigest(
+      cleanEmail,
+      rawPass,
+      legacyOrHash,
+      isSuperAdminEmail(cleanEmail)
+    );
+    if (!validPass) {
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message:
+          "Invalid email or password. Please verify your credentials or use password recovery.",
+      };
     }
 
     if (existing) {
       const { adminRole, redirectPath } = resolveRoleAndRedirect(existing);
+      const { password: _legacy, ...cleanExisting } = existing as Member & { password?: string };
+      const upgradedExisting: Member =
+        password && !cleanExisting.passwordHash
+          ? { ...cleanExisting, passwordHash: hashCredentialDigest(cleanEmail, password.trim()) }
+          : cleanExisting;
       set({
+        members: state.members.map((m) => (m.id === existing.id ? upgradedExisting : m)),
         isAuthenticated: true,
-        currentMemberId: existing.id,
+        currentMemberId: upgradedExisting.id,
         activeAdminRole: adminRole,
       });
       get().saveToLocalCache();
-      return { ok: true, redirectPath, member: existing };
+      return { ok: true, redirectPath, member: upgradedExisting };
     }
 
-    if (cleanEmail === "admin@univ-alger.dz" || cleanEmail === "president@univ-alger.dz") {
-      const adminMember = state.members.find((m) => m.id === "mem-lotfi") || state.members[0];
+    if (isSuperAdminEmail(cleanEmail)) {
+      const isHr = cleanEmail.startsWith("hr");
+      const superMember: Member = {
+        ...FALLBACK_SESSION_MEMBER,
+        id: isHr ? "mem-super-hr" : "mem-super-quanta",
+        email: cleanEmail,
+        fullName: isHr ? "QUANTA HR Administration" : "QUANTA Super Admin",
+        handle: isHr ? "@quanta_hr" : "@quanta_admin",
+        roles: ["Super Admin", "Executive", "HR Head"],
+        isBureauMember: true,
+        status: "Active",
+        onboardingTicks: {
+          profileComplete: true,
+          buddyAssigned: true,
+          firstTaskBeforeDay30: true,
+          firstWorkshopAttended: true,
+        },
+      };
+      const existingAdmin = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
+      const activeMember = existingAdmin
+        ? {
+            ...existingAdmin,
+            roles: Array.from(new Set(["Super Admin", "Executive", "HR Head", ...existingAdmin.roles])) as RoleTemplateName[],
+            status: "Active" as const,
+            isBureauMember: true,
+          }
+        : superMember;
+      const nextMembers = existingAdmin
+        ? state.members.map((m) => (m.id === existingAdmin.id ? activeMember : m))
+        : [activeMember, ...state.members];
       set({
+        members: nextMembers,
         isAuthenticated: true,
-        currentMemberId: adminMember.id,
+        currentMemberId: activeMember.id,
         activeAdminRole: "Super Admin",
       });
       get().saveToLocalCache();
-      return { ok: true, redirectPath: "/admin/overview", member: adminMember };
-    }
-
-    if (cleanEmail === "hr@univ-alger.dz") {
-      const hrMember = state.members.find((m) => m.id === "mem-yasmine") || state.members[0];
-      set({
-        isAuthenticated: true,
-        currentMemberId: hrMember.id,
-        activeAdminRole: "HR Head",
-      });
-      get().saveToLocalCache();
-      return { ok: true, redirectPath: "/admin/overview", member: hrMember };
+      get().syncWithServer(true).catch(() => {});
+      return { ok: true, redirectPath: "/admin/overview", member: activeMember };
     }
 
     if (cleanEmail === "alumni@univ-alger.dz") {
-      const alumniMember = state.members.find((m) => m.id === "mem-alumni-1") || state.members[0];
+      const alumniMember = state.members.find((m) => m.id === "mem-alumni-1") || state.members[0] || { ...FALLBACK_SESSION_MEMBER, status: "Alumni" };
       set({
         isAuthenticated: true,
         currentMemberId: alumniMember.id,
@@ -733,7 +982,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     return {
       ok: false,
       redirectPath: "/welcome",
-      message: "No member account found for this email or Quanter ID.",
+      message: "No account found matching this email address. Please register or verify spelling.",
     };
   },
 
@@ -786,7 +1035,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       traineeDaysElapsed: 1,
       outsideActivitiesAndVolunteering: "",
       declaresOtherStudentOrg: false,
-      availability: state.members[0].availability,
+      availability: DEFAULT_AVAILABILITY,
       xpTotal: 50,
       xpSeason: 50,
       xpMonth: 50,
@@ -815,20 +1064,45 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       placementHistory: [],
     };
 
-    const redirectPath = state.settings.registrationOpen ? "/onboarding" : "/home";
+    const isSuper = isSuperAdminEmail(cleanEmail);
+    const finalizedMember: Member = isSuper
+      ? {
+          ...newMember,
+          fullName:
+            fullName?.trim() ||
+            (cleanEmail.startsWith("hr") ? "QUANTA HR Administration" : "QUANTA Super Admin"),
+          roles: ["Super Admin", "Executive", "HR Head"],
+          isBureauMember: true,
+          status: "Active",
+          onboardingTicks: {
+            profileComplete: true,
+            buddyAssigned: true,
+            firstTaskBeforeDay30: true,
+            firstWorkshopAttended: true,
+          },
+        }
+      : newMember;
+    const redirectPath = isSuper
+      ? "/admin/overview"
+      : state.settings.registrationOpen
+      ? "/onboarding"
+      : "/home";
     set({
-      members: [newMember, ...state.members],
-      currentMemberId: newMember.id,
-      activeAdminRole: "Member",
+      members: [finalizedMember, ...state.members],
+      currentMemberId: finalizedMember.id,
+      activeAdminRole: isSuper ? "Super Admin" : "Member",
       isAuthenticated: true,
     });
-    return { ok: true, redirectPath, member: newMember };
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+    return { ok: true, redirectPath, member: finalizedMember };
   },
 
   registerAccount: ({ fullName, email, password, isAlumni }) => {
     const cleanEmail = email.trim().toLowerCase();
     const state = get();
-    if (!isAlumni && !state.settings.registrationOpen) {
+    const isSuper = isSuperAdminEmail(cleanEmail);
+    if (!isAlumni && !isSuper && !state.settings.registrationOpen) {
       return {
         ok: false,
         redirectPath: "/welcome",
@@ -838,13 +1112,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
     const existing = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
     if (existing) {
-      const { adminRole, redirectPath } = resolveRoleAndRedirect(existing);
-      set({
-        isAuthenticated: true,
-        currentMemberId: existing.id,
-        activeAdminRole: adminRole,
-      });
-      return { ok: true, redirectPath, member: existing };
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message: "An account with this email address already exists. Please sign in instead.",
+      };
+    }
+
+    if (password && password.trim().length < 8) {
+      return {
+        ok: false,
+        redirectPath: "/welcome",
+        message: "Password must be at least 8 characters long.",
+      };
     }
 
     const num = Math.floor(400 + Math.random() * 500);
@@ -853,7 +1133,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       quanterId: isAlumni ? `QT-23-0${num}` : `QT-26-0${num}`,
       handle: `@quanter0${num}`,
       email: cleanEmail,
-      password: password?.trim() || "quanta2026",
+      passwordHash: password?.trim() ? hashCredentialDigest(cleanEmail, password.trim()) : undefined,
       fullName: fullName.trim() || "New Quanter",
       phone: "+213 550 00 00 00",
       avatarUrl:
@@ -874,7 +1154,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       traineeDaysElapsed: isAlumni ? 1000 : 1,
       outsideActivitiesAndVolunteering: "",
       declaresOtherStudentOrg: false,
-      availability: state.members[0].availability,
+      availability: DEFAULT_AVAILABILITY,
       xpTotal: isAlumni ? 1800 : 50,
       xpSeason: isAlumni ? 600 : 50,
       xpMonth: 50,
@@ -903,17 +1183,37 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       placementHistory: [],
     };
 
-    const redirectPath = isAlumni ? "/home" : "/onboarding";
+    const finalizedRegMember: Member = isSuper
+      ? {
+          ...newMember,
+          roles: ["Super Admin", "Executive", "HR Head"],
+          isBureauMember: true,
+          status: "Active",
+          onboardingTicks: {
+            profileComplete: true,
+            buddyAssigned: true,
+            firstTaskBeforeDay30: true,
+            firstWorkshopAttended: true,
+          },
+        }
+      : newMember;
+    const redirectPath = isSuper ? "/admin/overview" : isAlumni ? "/home" : "/onboarding";
     set({
-      members: [newMember, ...state.members],
-      currentMemberId: newMember.id,
-      activeAdminRole: isAlumni ? "Alumni" : "Member",
+      members: [finalizedRegMember, ...state.members],
+      currentMemberId: finalizedRegMember.id,
+      activeAdminRole: isSuper ? "Super Admin" : isAlumni ? "Alumni" : "Member",
       isAuthenticated: true,
     });
-    return { ok: true, redirectPath, member: newMember };
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+    return { ok: true, redirectPath, member: finalizedRegMember };
   },
 
   changeMemberPassword: ({ oldEmail, newEmail, newPassword }) => {
+    const state = get();
+    if (!state.isAuthenticated) {
+      return { ok: false, message: "Authentication required to change password." };
+    }
     const cleanOldEmail = oldEmail.trim().toLowerCase();
     const cleanNewEmail = newEmail?.trim().toLowerCase() || "";
     const cleanPass = newPassword.trim();
@@ -921,17 +1221,18 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (!cleanOldEmail) {
       return { ok: false, message: "Please enter your registered email address." };
     }
-    if (cleanPass.length < 4) {
-      return { ok: false, message: "New password must be at least 4 characters." };
+    if (cleanPass.length < 8) {
+      return { ok: false, message: "New password must be at least 8 characters long." };
     }
 
-    const state = get();
+    const currentMember = state.members.find((m) => m.id === state.currentMemberId);
+    if (!currentMember || (currentMember.email.toLowerCase() !== cleanOldEmail && state.activeAdminRole !== "Super Admin")) {
+      return { ok: false, message: "Unauthorized: You can only change your own password." };
+    }
+
+    // Strictly search by registered email address
     const target = state.members.find(
-      (m) =>
-        m.email.toLowerCase() === cleanOldEmail ||
-        m.quanterId.toLowerCase() === cleanOldEmail ||
-        m.handle.toLowerCase() === cleanOldEmail ||
-        m.handle.replace("@", "").toLowerCase() === cleanOldEmail
+      (m) => m.email.toLowerCase() === cleanOldEmail
     );
 
     if (!target) {
@@ -941,10 +1242,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }
 
+    const { password: _legacyPass, ...cleanTarget } = target as Member & { password?: string };
+    const effectiveEmail = cleanNewEmail || cleanTarget.email;
     const updatedMember: Member = {
-      ...target,
-      email: cleanNewEmail || target.email,
-      password: cleanPass,
+      ...cleanTarget,
+      email: effectiveEmail,
+      passwordHash: hashCredentialDigest(effectiveEmail, cleanPass),
     };
 
     set((s) => ({
@@ -966,6 +1269,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
 
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
     return {
       ok: true,
       message: "Password updated successfully. You can now sign in with your new password.",
@@ -973,10 +1277,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     };
   },
 
-  logout: () =>
+  logout: () => {
+    signOutFromFirebase().catch(() => {});
     set({
       isAuthenticated: false,
-    }),
+      currentMemberId: "",
+      activeAdminRole: "Member",
+    });
+    get().saveToLocalCache();
+  },
 
   setUserLowDataMode: (enabled) => {
     set({ userLowDataMode: enabled });
@@ -995,8 +1304,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (typeof window === "undefined") return;
     try {
       const s = get();
+      // Strictly strip any plaintext password and scrub other members' credential hashes before caching in localStorage
+      const sanitizedMembers = s.members.map((m) => {
+        const { password: _legacy, passwordHash, ...rest } = m as Member & { password?: string };
+        return m.id === s.currentMemberId && passwordHash
+          ? { ...rest, passwordHash }
+          : rest;
+      });
       const snapshot = {
         savedAt: new Date().toISOString(),
+        isAuthenticated: s.isAuthenticated,
         currentMemberId: s.currentMemberId,
         activeAdminRole: s.activeAdminRole,
         userLowDataMode: s.userLowDataMode,
@@ -1006,7 +1323,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         collectionVersions: s.collectionVersions,
         departments: s.departments,
         teams: s.teams,
-        members: s.members,
+        members: sanitizedMembers,
         workshops: s.workshops,
         workshopCategories: s.workshopCategories,
         tasks: s.tasks,
@@ -1016,19 +1333,50 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         badgeCategories: s.badgeCategories,
         exams: s.exams,
         projectSubmissions: s.projectSubmissions,
+        projectCategories: s.projectCategories,
         proposals: s.proposals,
         explorePosts: s.explorePosts,
         dailyQuizzes: s.dailyQuizzes,
         customDailyQuotes: s.dailyQuotes.filter((q) => q.isCustom),
         messages: s.messages,
-        accessGrants: s.accessGrants,
-        auditLogs: s.auditLogs,
-        grievances: s.grievances,
+        accessGrants: [], // Never persist sensitive RBAC grants to unencrypted client storage
+        auditLogs: [], // Never dump audit trail in cleartext client storage
+        grievances: [], // Strictly prevent cleartext leakage of member grievances on shared devices
         settings: s.settings,
       };
-      window.localStorage.setItem("quanters-offline-cache-v6", JSON.stringify(snapshot));
-    } catch {
-      // Ignore quota exceeded
+      window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(snapshot));
+    } catch (err) {
+      // Automatic quota compaction fallback
+      try {
+        get().compactAndPruneQuota();
+        const s2 = get();
+        const fallbackSnapshot = {
+          savedAt: new Date().toISOString(),
+          isAuthenticated: s2.isAuthenticated,
+          currentMemberId: s2.currentMemberId,
+          activeAdminRole: s2.activeAdminRole,
+          collectionVersions: s2.collectionVersions,
+          departments: s2.departments,
+          teams: s2.teams,
+          members: s2.members.map((m) => {
+            const { password: _p, passwordHash: _ph, phone: _phn, ...safe } = m as Member & { password?: string };
+            return safe;
+          }),
+          workshops: s2.workshops.slice(0, 50),
+          tasks: s2.tasks.slice(0, 50),
+          pointRules: s2.pointRules,
+          ledger: s2.ledger.slice(0, 100),
+          badges: s2.badges,
+          messages: s2.messages.filter((m) => m.unread).slice(0, 15),
+          accessGrants: [],
+          auditLogs: [],
+          grievances: [],
+          settings: s2.settings,
+        };
+        window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(fallbackSnapshot));
+      } catch {
+        // If still failing, silently ignore
+      }
     }
   },
 
@@ -1036,13 +1384,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (typeof window === "undefined") return;
     try {
       const lowDataRaw = window.localStorage.getItem("quanters-low-data-mode");
-      const raw = window.localStorage.getItem("quanters-offline-cache-v6");
+      const raw = window.localStorage.getItem("quanters-offline-cache-v10");
       if (!raw) {
         if (lowDataRaw) set({ userLowDataMode: lowDataRaw === "1" });
         return;
       }
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.members) && parsed.members.length > 0) {
+      if (parsed && Array.isArray(parsed.members)) {
+        const sanitizedHydratedMembers: Member[] = parsed.members.map(
+          (m: Member & { password?: string }) => {
+            const { password: legacyPassword, ...clean } = m;
+            if (legacyPassword && !clean.passwordHash) {
+              return {
+                ...clean,
+                passwordHash: hashCredentialDigest(clean.email, legacyPassword),
+              };
+            }
+            return clean;
+          }
+        );
         const customQuotes: DailyQuoteItem[] = Array.isArray(parsed.customDailyQuotes)
           ? parsed.customDailyQuotes
           : [];
@@ -1050,9 +1410,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           ...customQuotes,
           ...SEED_DAILY_QUOTES_365.filter((sq) => !customQuotes.some((cq) => cq.id === sq.id)),
         ];
+        const validAuth =
+          Boolean(parsed.isAuthenticated) &&
+          typeof parsed.currentMemberId === "string" &&
+          parsed.currentMemberId.length > 0 &&
+          sanitizedHydratedMembers.some((m: Member) => m.id === parsed.currentMemberId);
+
+        const activeMember = validAuth
+          ? sanitizedHydratedMembers.find((m: Member) => m.id === parsed.currentMemberId)
+          : null;
+        const verifiedRole = activeMember
+          ? (activeMember.roles.includes(parsed.activeAdminRole)
+              ? parsed.activeAdminRole
+              : activeMember.roles[0] || "Member")
+          : "Member";
+
         set({
-          currentMemberId: parsed.currentMemberId || get().currentMemberId,
-          activeAdminRole: parsed.activeAdminRole || get().activeAdminRole,
+          isAuthenticated: validAuth,
+          currentMemberId: validAuth ? parsed.currentMemberId : "",
+          activeAdminRole: validAuth ? verifiedRole : "Member",
           userLowDataMode: lowDataRaw ? lowDataRaw === "1" : Boolean(parsed.userLowDataMode),
           pendingSyncCount: parsed.pendingSyncCount || 0,
           lastSyncedAt: parsed.lastSyncedAt || null,
@@ -1060,7 +1436,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           collectionVersions: parsed.collectionVersions || {},
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
-          members: parsed.members,
+          members: sanitizedHydratedMembers,
           workshops: parsed.workshops || get().workshops,
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
@@ -1070,6 +1446,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           badgeCategories: parsed.badgeCategories || get().badgeCategories,
           exams: parsed.exams || get().exams,
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
+          projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,
           explorePosts: parsed.explorePosts || get().explorePosts,
           dailyQuizzes: parsed.dailyQuizzes || get().dailyQuizzes,
@@ -1078,7 +1455,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           accessGrants: parsed.accessGrants || get().accessGrants,
           auditLogs: parsed.auditLogs || get().auditLogs,
           grievances: parsed.grievances || get().grievances,
-          settings: { ...get().settings, ...(parsed.settings || {}) },
+          settings: sanitizeSystemSettings({ ...get().settings, ...(parsed.settings || {}) }),
         });
       }
     } catch {
@@ -1132,6 +1509,53 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     };
   },
 
+  applyIncomingCloudSnapshot: (cloudData: Record<string, unknown>) => {
+    if (!cloudData || typeof cloudData !== "object") return;
+    const current = get();
+    const patchState: Partial<QuantersStoreState> = {
+      isOnline: true,
+      lastSyncedAt: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    for (const key of DELTA_ARRAY_KEYS) {
+      if (Array.isArray(cloudData[key])) {
+        (patchState as Record<string, unknown>)[key] =
+          mergeRemoteWithUnsyncedLocal(
+            key,
+            cloudData[key] as unknown[],
+            current
+          );
+      }
+    }
+    if (Array.isArray(cloudData.workshopCategories)) {
+      patchState.workshopCategories = cloudData.workshopCategories as string[];
+    }
+    if (Array.isArray(cloudData.badgeCategories)) {
+      patchState.badgeCategories = cloudData.badgeCategories as string[];
+    }
+    if (Array.isArray(cloudData.projectCategories)) {
+      patchState.projectCategories = cloudData.projectCategories as string[];
+    }
+    if (Array.isArray(cloudData.customDailyQuotes)) {
+      const customQ = cloudData.customDailyQuotes as DailyQuoteItem[];
+      patchState.dailyQuotes = [
+        ...customQ,
+        ...SEED_DAILY_QUOTES_365.filter((sq) => !customQ.some((cq) => cq.id === sq.id)),
+      ];
+    }
+    if (cloudData.settings && typeof cloudData.settings === "object") {
+      patchState.settings = sanitizeSystemSettings({
+        ...current.settings,
+        ...(cloudData.settings as Partial<SystemSettings>),
+      });
+    }
+    set(patchState);
+    captureBaselineFromState(get());
+    get().saveToLocalCache();
+  },
+
   pullExactUpdatesFromServer: async () => {
     const s = get();
     if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -1157,34 +1581,64 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         set({ isOnline: true });
         return;
       }
-      if (!res.ok) return;
 
-      const json = await res.json().catch(() => null);
-      if (!json?.ok) return;
+      const contentType = res.headers.get("content-type") || "";
+      const json =
+        res.ok && contentType.includes("application/json")
+          ? await res.json().catch(() => null)
+          : null;
 
-      const payload = json.isDelta ? json.delta : json.data;
-      const patchState: Partial<QuantersStoreState> = {
-        isOnline: true,
-        lastServerEtag: json.etag || s.lastServerEtag,
-        collectionVersions: json.collectionVersions || s.collectionVersions,
-      };
+      if (json?.ok) {
+        const payload = json.isDelta ? json.delta : json.data;
+        const current = get();
+        const patchState: Partial<QuantersStoreState> = {
+          isOnline: true,
+          lastServerEtag: json.etag || s.lastServerEtag,
+          collectionVersions: json.collectionVersions || s.collectionVersions,
+        };
 
-      if (payload && typeof payload === "object") {
-        for (const key of DELTA_ARRAY_KEYS) {
-          if (Array.isArray(payload[key])) {
-            (patchState as Record<string, unknown>)[key] = payload[key];
+        if (payload && typeof payload === "object") {
+          for (const key of DELTA_ARRAY_KEYS) {
+            if (Array.isArray(payload[key])) {
+              (patchState as Record<string, unknown>)[key] =
+                mergeRemoteWithUnsyncedLocal(
+                  key,
+                  payload[key] as unknown[],
+                  current
+                );
+            }
+          }
+          if (payload.settings && typeof payload.settings === "object") {
+            patchState.settings = sanitizeSystemSettings({ ...current.settings, ...payload.settings });
           }
         }
-        if (payload.settings && typeof payload.settings === "object") {
-          patchState.settings = { ...s.settings, ...payload.settings };
+
+        set(patchState);
+        // Also pull & merge Cloud Firestore so local dev and Firebase Cloud stay unified
+        const cloudData = await pullErpStateFromFirestore().catch(() => null);
+        if (cloudData && typeof cloudData === "object") {
+          get().applyIncomingCloudSnapshot(cloudData);
+        } else {
+          captureBaselineFromState(get());
+          get().saveToLocalCache();
         }
+        return;
       }
 
-      set(patchState);
-      captureBaselineFromState(get());
-      get().saveToLocalCache();
+      // Static Firebase Hosting fallback: pull directly from Cloud Firestore (quanters-d0312)
+      const cloudData = await pullErpStateFromFirestore().catch(() => null);
+      if (cloudData && typeof cloudData === "object") {
+        get().applyIncomingCloudSnapshot(cloudData);
+      }
     } catch {
-      // Silent background fallback
+      try {
+        const cloudData = await pullErpStateFromFirestore().catch(() => null);
+        if (cloudData && typeof cloudData === "object") {
+          get().applyIncomingCloudSnapshot(cloudData);
+        }
+      } catch {
+        // Silent background fallback: a pull NEVER triggers a push!
+      }
     }
   },
 
@@ -1211,6 +1665,26 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return;
     }
 
+    // Clear any pending debounced timeout to prevent double-write race conditions
+    if (debouncedSyncTimeout) {
+      clearTimeout(debouncedSyncTimeout as any);
+      debouncedSyncTimeout = null;
+    }
+
+    // Debounce non-forced writes by 1.5s to coalesce rapid clicks and prevent quota thrashing
+    if (!force) {
+      debouncedSyncTimeout = setTimeout(() => {
+        get().syncWithServer(true).catch(() => {});
+      }, 1500);
+      return;
+    }
+
+    // If this tab has never pulled baseline from server/Firestore and isn't forcing a write, pull first
+    if (!lastSyncedBaselineMap && !force) {
+      await get().pullExactUpdatesFromServer();
+      return;
+    }
+
     const { itemDeltas, settingsPatch, hasChanges } = computeClientDeltas(s);
 
     // Quota-Saver: If nothing changed locally and not forced, only pull unseen server deltas
@@ -1218,6 +1692,108 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       await get().pullExactUpdatesFromServer();
       return;
     }
+
+    const persistentTombstones = getPersistentDeletedIds();
+    const deletedIdsByCollection: Record<string, string[]> = { ...persistentTombstones };
+    for (const [k, delta] of Object.entries(itemDeltas)) {
+      if (delta.deletedIds && delta.deletedIds.length > 0) {
+        deletedIdsByCollection[k] = Array.from(
+          new Set([...(deletedIdsByCollection[k] || []), ...delta.deletedIds])
+        );
+      }
+    }
+
+    const buildFirestoreSnapshot = () => {
+      const currentSnap = get();
+      const tombstones = getPersistentDeletedIds();
+      const sanitizeMemberList = (list: Member[]) =>
+        list
+          .filter((m) => !tombstones.members?.includes(m.id))
+          .map((m) => {
+            const { password: _legacy, ...clean } = m as Member & { password?: string };
+            return clean;
+          });
+
+      const fullMap: Record<string, unknown> = {
+        departments: currentSnap.departments,
+        teams: currentSnap.teams,
+        members: sanitizeMemberList(currentSnap.members),
+        invitations: currentSnap.invitations,
+        workshops: currentSnap.workshops.filter((w) => !tombstones.workshops?.includes(w.id)),
+        workshopCategories: currentSnap.workshopCategories,
+        tasks: currentSnap.tasks.filter((t) => !tombstones.tasks?.includes(t.id)),
+        pointRules: currentSnap.pointRules.filter((r) => !tombstones.pointRules?.includes(r.id)),
+        ledger: currentSnap.ledger,
+        badges: currentSnap.badges,
+        badgeCategories: currentSnap.badgeCategories,
+        exams: currentSnap.exams,
+        examCompletions: currentSnap.examCompletions,
+        projectSubmissions: currentSnap.projectSubmissions,
+        projectCategories: currentSnap.projectCategories,
+        proposals: currentSnap.proposals,
+        explorePosts: currentSnap.explorePosts,
+        dailyQuizzes: currentSnap.dailyQuizzes,
+        customDailyQuotes: currentSnap.dailyQuotes.filter((q) => q.isCustom),
+        messages: currentSnap.messages,
+        accessGrants: currentSnap.accessGrants,
+        auditLogs: currentSnap.auditLogs,
+        grievances: currentSnap.grievances,
+        settings: currentSnap.settings,
+      };
+
+      const changedCollectionKeys = Object.keys(itemDeltas);
+      if (lastSyncedBaselineMap && (changedCollectionKeys.length > 0 || settingsPatch)) {
+        const deltaPayload: Record<string, unknown> = {};
+        for (const k of changedCollectionKeys) {
+          if (k in fullMap) {
+            deltaPayload[k] = fullMap[k];
+          }
+        }
+        if (settingsPatch) {
+          deltaPayload.settings = currentSnap.settings;
+          deltaPayload.workshopCategories = currentSnap.workshopCategories;
+          deltaPayload.badgeCategories = currentSnap.badgeCategories;
+          deltaPayload.projectCategories = currentSnap.projectCategories;
+          deltaPayload.customDailyQuotes = currentSnap.dailyQuotes.filter((q) => q.isCustom);
+        }
+        if (Object.keys(deltaPayload).length > 0) {
+          return deltaPayload;
+        }
+      }
+
+      return fullMap;
+    };
+
+    const applyMergedCloudResult = (cloudSaved: Record<string, unknown>) => {
+      const current = get();
+      const cloudPatch: Partial<QuantersStoreState> = {
+        isOnline: true,
+        pendingSyncCount: 0,
+        lastSyncedAt: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      for (const key of DELTA_ARRAY_KEYS) {
+        if (Array.isArray(cloudSaved[key])) {
+          (cloudPatch as Record<string, unknown>)[key] =
+            mergeRemoteWithUnsyncedLocal(
+              key,
+              cloudSaved[key] as unknown[],
+              current
+            );
+        }
+      }
+      if (cloudSaved.settings && typeof cloudSaved.settings === "object") {
+        cloudPatch.settings = {
+          ...current.settings,
+          ...(cloudSaved.settings as Partial<SystemSettings>),
+        };
+      }
+      set(cloudPatch);
+      captureBaselineFromState(get());
+      get().saveToLocalCache();
+    };
 
     try {
       const resp = await fetch("/api/erp", {
@@ -1229,8 +1805,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           clientVersions: s.collectionVersions,
         }),
       });
-      if (resp.ok) {
-        const json = await resp.json().catch(() => null);
+      const contentType = resp.headers.get("content-type") || "";
+      const json =
+        resp.ok && contentType.includes("application/json")
+          ? await resp.json().catch(() => null)
+          : null;
+
+      if (resp.ok && json?.ok) {
+        const current = get();
         const patchState: Partial<QuantersStoreState> = {
           isOnline: true,
           pendingSyncCount: 0,
@@ -1242,31 +1824,67 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           collectionVersions: json?.collectionVersions || s.collectionVersions,
         };
 
-        // Apply any concurrent server delta for collections modified on the server
         if (json?.serverDelta && typeof json.serverDelta === "object") {
           for (const key of DELTA_ARRAY_KEYS) {
             if (Array.isArray(json.serverDelta[key])) {
               (patchState as Record<string, unknown>)[key] =
-                json.serverDelta[key];
+                mergeRemoteWithUnsyncedLocal(
+                  key,
+                  json.serverDelta[key] as unknown[],
+                  current
+                );
             }
           }
           if (
             json.serverDelta.settings &&
             typeof json.serverDelta.settings === "object"
           ) {
-            patchState.settings = {
-              ...s.settings,
+            patchState.settings = sanitizeSystemSettings({
+              ...current.settings,
               ...json.serverDelta.settings,
-            };
+            });
           }
         }
 
         set(patchState);
-        captureBaselineFromState(get());
-        get().saveToLocalCache();
+        // Mirror & merge with Cloud Firestore
+        const cloudSaved = await pushErpStateToFirestore(
+          buildFirestoreSnapshot(),
+          deletedIdsByCollection
+        ).catch(() => null);
+        if (cloudSaved) {
+          applyMergedCloudResult(cloudSaved);
+        } else {
+          captureBaselineFromState(get());
+          get().saveToLocalCache();
+        }
+        return;
       }
+
+      // Static Firebase Hosting path (/api/erp returns 404/405): persist directly to Cloud Firestore
+      const cloudSaved = await pushErpStateToFirestore(
+        buildFirestoreSnapshot(),
+        deletedIdsByCollection
+      );
+      if (cloudSaved) {
+        applyMergedCloudResult(cloudSaved);
+        return;
+      }
+
+      set({
+        isOnline: false,
+        pendingSyncCount: s.pendingSyncCount + 1,
+      });
+      get().saveToLocalCache();
     } catch {
-      // Offline resilient fallback: queue mutation locally for automatic replay when back online
+      const cloudSaved = await pushErpStateToFirestore(
+        buildFirestoreSnapshot(),
+        deletedIdsByCollection
+      );
+      if (cloudSaved) {
+        applyMergedCloudResult(cloudSaved);
+        return;
+      }
       set({
         isOnline: false,
         pendingSyncCount: s.pendingSyncCount + 1,
@@ -1312,7 +1930,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  moveMemberDepartment: (memberId, toDeptId, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  moveMemberDepartment: (memberId, toDeptId, reason, actorName = "HR Administration") =>
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       const fromDept = state.departments.find((d) => d.id === member?.departmentId);
@@ -1403,11 +2021,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  deleteOrArchiveTeam: (teamId, reason) =>
+  deleteOrArchiveTeam: (teamId, reason) => {
+    const currentTeam = get().teams.find((t) => t.id === teamId);
+    if (!currentTeam) return;
+    const canHardDelete = currentTeam.memberIds.length === 0;
+    if (canHardDelete) {
+      recordPersistentDeletedId("teams", teamId);
+    }
     set((state) => {
       const team = state.teams.find((t) => t.id === teamId);
       if (!team) return state;
-      const canHardDelete = team.memberIds.length === 0;
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
         actorName: "Admin",
@@ -1425,7 +2048,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           : state.teams.map((t) => (t.id === teamId ? { ...t, archived: true } : t)),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   addMemberToTeam: (memberId, teamId) =>
     set((state) => ({
@@ -1481,52 +2107,237 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  completeFirstTimeProfile: (payload) =>
-    set((state) => ({
-      members: state.members.map((m) =>
-        m.id === state.currentMemberId
-          ? {
-              ...m,
-              fullName: payload.fullName || m.fullName,
-              email: payload.email || m.email,
-              phone: payload.phone || m.phone,
-              avatarUrl: payload.avatarUrl || m.avatarUrl,
-              major: payload.major || m.major,
-              academicYear: payload.academicYear,
-              tenure: payload.tenure,
-              departmentId: payload.departmentId,
-              teamId: payload.teamId,
-              wilaya: payload.wilaya ?? m.wilaya,
-              commune: payload.commune ?? m.commune,
-              housingType: payload.housingType ?? m.housingType,
-              commuteTime: payload.commuteTime ?? m.commuteTime,
-              canStayLate: payload.canStayLate ?? m.canStayLate,
-              hasLaptop: payload.hasLaptop ?? m.hasLaptop,
-              pcCapability: payload.pcCapability ?? m.pcCapability,
-              equipmentTags: payload.equipmentTags ?? m.equipmentTags,
-              githubUrl: payload.githubUrl ?? m.githubUrl,
-              linkedinUrl: payload.linkedinUrl ?? m.linkedinUrl,
-              portfolioUrl: payload.portfolioUrl ?? m.portfolioUrl,
-              cvUrl: payload.cvUrl ?? m.cvUrl,
-              skills: payload.skills && payload.skills.length > 0 ? payload.skills : m.skills,
-              availability: payload.availability,
-              outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering,
-              declaresOtherStudentOrg: payload.declaresOtherStudentOrg,
-              onboardingTicks: {
-                ...m.onboardingTicks,
-                profileComplete: true,
-              },
-            }
-          : m
-      ),
-    })),
+  completeFirstTimeProfile: (payload) => {
+    set((state) => {
+      const cleanEmail = payload.email?.trim().toLowerCase() || "";
+      const existing =
+        (state.isAuthenticated && state.currentMemberId
+          ? state.members.find(
+              (m) =>
+                m.id === state.currentMemberId &&
+                (!cleanEmail || m.email.toLowerCase() === cleanEmail)
+            )
+          : undefined) ||
+        (cleanEmail
+          ? state.members.find((m) => m.email.toLowerCase() === cleanEmail)
+          : undefined);
+      if (existing) {
+        const nextTeams = payload.teamId
+          ? state.teams.map((t) =>
+              t.id === payload.teamId
+                ? { ...t, memberIds: Array.from(new Set([...t.memberIds, existing.id])) }
+                : { ...t, memberIds: t.memberIds.filter((id) => id !== existing.id) }
+            )
+          : state.teams;
+        return {
+          teams: nextTeams,
+          currentMemberId: existing.id,
+          isAuthenticated: true,
+          members: state.members.map((m) =>
+            m.id === existing.id
+              ? {
+                  ...m,
+                  fullName: payload.fullName || m.fullName,
+                  email: payload.email || m.email,
+                  phone: payload.phone || m.phone,
+                  avatarUrl: payload.avatarUrl || m.avatarUrl,
+                  university: payload.university || m.university,
+                  major: payload.major || m.major,
+                  academicYear: payload.academicYear,
+                  tenure: payload.tenure,
+                  departmentId: payload.departmentId,
+                  teamId: payload.teamId,
+                  wilaya: payload.wilaya ?? m.wilaya,
+                  commune: payload.commune ?? m.commune,
+                  housingType: payload.housingType ?? m.housingType,
+                  commuteTime: payload.commuteTime ?? m.commuteTime,
+                  canStayLate: payload.canStayLate ?? m.canStayLate,
+                  hasLaptop: payload.hasLaptop ?? m.hasLaptop,
+                  pcCapability: payload.pcCapability ?? m.pcCapability,
+                  equipmentTags: payload.equipmentTags ?? m.equipmentTags,
+                  githubUrl: payload.githubUrl ?? m.githubUrl,
+                  linkedinUrl: payload.linkedinUrl ?? m.linkedinUrl,
+                  portfolioUrl: payload.portfolioUrl ?? m.portfolioUrl,
+                  cvUrl: payload.cvUrl ?? m.cvUrl,
+                  skills: payload.skills && payload.skills.length > 0 ? payload.skills : m.skills,
+                  availability: payload.availability,
+                  outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering,
+                  declaresOtherStudentOrg: payload.declaresOtherStudentOrg,
+                  onboardingTicks: {
+                    ...m.onboardingTicks,
+                    profileComplete: true,
+                  },
+                }
+              : m
+          ),
+        };
+      }
+
+      const num = Math.floor(100 + Math.random() * 899);
+      const newId = `mem-${Date.now()}`;
+      const newMember: Member = {
+        id: newId,
+        quanterId: `QT-26-0${num}`,
+        handle: `@quanter0${num}`,
+        email: payload.email?.trim() || `member${num}@univ-alger.dz`,
+        fullName: payload.fullName?.trim() || "New Quanter",
+        phone: payload.phone || "+213 550 00 00 00",
+        avatarUrl:
+          payload.avatarUrl ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
+        bio: "Exploring today, a brighter tomorrow.",
+        major: payload.major || "Computer Science",
+        university: payload.university || "University of Algiers 1",
+        academicYear: payload.academicYear || "L2",
+        tenure: payload.tenure || "New Member",
+        departmentId: payload.departmentId || "dept-it",
+        teamId: payload.teamId,
+        wilaya: payload.wilaya,
+        commune: payload.commune,
+        housingType: payload.housingType,
+        commuteTime: payload.commuteTime,
+        canStayLate: payload.canStayLate,
+        hasLaptop: payload.hasLaptop,
+        pcCapability: payload.pcCapability,
+        equipmentTags: payload.equipmentTags,
+        githubUrl: payload.githubUrl,
+        linkedinUrl: payload.linkedinUrl,
+        portfolioUrl: payload.portfolioUrl,
+        cvUrl: payload.cvUrl,
+        roles: ["Member"],
+        isBureauMember: false,
+        status: "Trainee",
+        statusSince: new Date().toISOString().slice(0, 10),
+        traineeStartDate: new Date().toISOString().slice(0, 10),
+        traineeDaysElapsed: 1,
+        outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
+        declaresOtherStudentOrg: Boolean(payload.declaresOtherStudentOrg),
+        availability: payload.availability || DEFAULT_AVAILABILITY,
+        xpTotal: 50,
+        xpSeason: 50,
+        xpMonth: 50,
+        level: 1,
+        levelTitle: "Novice Quanter",
+        attendanceRate: 100,
+        onTimeTaskRate: 100,
+        recentActivityScore: 100,
+        healthScore: 95,
+        daysSinceLastActivity: 0,
+        lateTasksThisMonth: 0,
+        recognitionLabels: [],
+        onboardingTicks: {
+          profileComplete: true,
+          buddyAssigned: false,
+          firstTaskBeforeDay30: false,
+          firstWorkshopAttended: false,
+        },
+        traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
+        skills: payload.skills && payload.skills.length > 0 ? payload.skills : ["Scientific Research"],
+        badgeIds: [],
+        workshopsCompletedCount: 0,
+        projectsCompletedCount: 0,
+        eventsAttendedCount: 0,
+        statusHistory: [],
+        placementHistory: [],
+      };
+
+      const nextTeams = payload.teamId
+        ? state.teams.map((t) =>
+            t.id === payload.teamId
+              ? { ...t, memberIds: Array.from(new Set([...t.memberIds, newId])) }
+              : t
+          )
+        : state.teams;
+
+      const onboardingLedger: PointsLedgerEntry = {
+        id: `led-onb-${Date.now()}`,
+        memberId: newId,
+        memberName: newMember.fullName,
+        amount: 50,
+        ruleLabel: "Onboarding Registration Completed",
+        reason: `Completed QUANTA 6-Step Member Registration (${newMember.university} · ${newMember.major})`,
+        source: "Manual",
+        actorName: "QUANTERS Admission Gate",
+        date: new Date().toISOString().slice(0, 10),
+        appealStatus: "None",
+      };
+
+      const onboardingAudit: AuditLogEntry = {
+        id: `aud-onb-${Date.now()}`,
+        actorName: newMember.fullName,
+        actorRole: "Member",
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `${newMember.fullName} (${newMember.quanterId})`,
+        oldValue: "Applicant",
+        newValue: "Trainee",
+        reason: `Completed 6-step registration (${newMember.email})`,
+      };
+
+      return {
+        members: [newMember, ...state.members],
+        teams: nextTeams,
+        ledger: [onboardingLedger, ...state.ledger],
+        auditLogs: [onboardingAudit, ...state.auditLogs],
+        currentMemberId: newId,
+        isAuthenticated: true,
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   updateMemberProfileSelf: (memberId, updates) =>
-    set((state) => ({
-      members: state.members.map((m) => (m.id === memberId ? { ...m, ...updates } : m)),
-    })),
+    set((state) => {
+      if (
+        state.currentMemberId !== memberId &&
+        !["Super Admin", "HR Head"].includes(state.activeAdminRole)
+      ) {
+        return state;
+      }
+      const allowedKeys = new Set([
+        "fullName",
+        "avatarUrl",
+        "bio",
+        "quote",
+        "availability",
+        "skills",
+        "githubUrl",
+        "linkedinUrl",
+        "portfolioUrl",
+        "cvUrl",
+        "commune",
+        "wilaya",
+        "housingType",
+        "commuteTime",
+        "canStayLate",
+        "hasLaptop",
+        "pcCapability",
+        "equipmentTags",
+        "outsideActivitiesAndVolunteering",
+        "phone",
+        "major",
+        "university",
+        "academicYear",
+        "tenure",
+        "declaresOtherStudentOrg",
+        "onboardingTicks",
+        "birthDate",
+      ]);
+      const sanitizedUpdates: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(updates)) {
+        if (allowedKeys.has(k)) {
+          sanitizedUpdates[k] = v;
+        }
+      }
+      return {
+        members: state.members.map((m) =>
+          m.id === memberId ? { ...m, ...sanitizedUpdates } : m
+        ),
+      };
+    }),
 
-  confirmTraineeToActive: (memberId, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  confirmTraineeToActive: (memberId, reason, actorName = "HR Administration") =>
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -1594,7 +2405,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     decisionReference,
     graduationYear,
     suspensionEndDate,
-  }) =>
+  }) => {
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -1644,7 +2455,67 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  resumeMembershipSelf: ({ memberId, reason }) => {
+    const state = get();
+    const member = state.members.find((m) => m.id === memberId);
+    if (!member) return { ok: false, message: "Member account not found." };
+
+    const prior =
+      member.statusHistory.find(
+        (sh) => sh.toStatus === "Active" || sh.toStatus === "Trainee"
+      )?.toStatus || "Active";
+    const resumeReason =
+      reason?.trim() || "Resumed membership from paused/frozen status";
+
+    const audit: AuditLogEntry = {
+      id: `aud-${Date.now()}`,
+      actorName: member.fullName,
+      actorRole: member.roles[0] || "Member",
+      timestamp: nowStamp(),
+      actionCategory: "Status Change",
+      targetLabel: `${member.fullName} (${member.quanterId})`,
+      oldValue: member.status,
+      newValue: prior,
+      reason: resumeReason,
+    };
+
+    set((s) => ({
+      members: s.members.map((m) =>
+        m.id === memberId
+          ? {
+              ...m,
+              status: prior,
+              statusSince: new Date().toISOString().slice(0, 10),
+              suspensionEndDate: undefined,
+              statusHistory: [
+                {
+                  id: `sh-${Date.now()}`,
+                  fromStatus: m.status,
+                  toStatus: prior,
+                  reason: resumeReason,
+                  actorName: member.fullName,
+                  date: new Date().toISOString().slice(0, 10),
+                },
+                ...m.statusHistory,
+              ],
+            }
+          : m
+      ),
+      auditLogs: [audit, ...s.auditLogs],
+    }));
+
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+    return {
+      ok: true,
+      message: `Welcome back! Your membership is now active as ${prior}.`,
+    };
+  },
 
   pauseOrResignMembershipSelf: ({
     memberId,
@@ -1657,13 +2528,18 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     const member = state.members.find((m) => m.id === memberId);
     if (!member) return { ok: false, message: "Member account not found." };
 
-    const cleanPass = passwordConfirm.trim();
-    const isGoogleAuth = cleanPass === "GOOGLE_VERIFIED";
+    if (action === "resume") {
+      return get().resumeMembershipSelf({ memberId, reason: motif });
+    }
+
+    const cleanPass = passwordConfirm ? passwordConfirm.trim() : "";
+    const isGoogleAuth =
+      cleanPass === "GOOGLE_VERIFIED" && member.authProvider === "google";
+    const legacyOrHash =
+      member.passwordHash || (member as Member & { password?: string }).password;
     const validPass =
       isGoogleAuth ||
-      (member.password && cleanPass === member.password) ||
-      cleanPass === "quanta2026" ||
-      cleanPass === "123456";
+      (Boolean(legacyOrHash) && verifyCredentialDigest(member.email, cleanPass, legacyOrHash!));
 
     if (!validPass) {
       return {
@@ -1728,7 +2604,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
 
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
 
     return {
       ok: true,
@@ -1805,7 +2681,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     grievanceId,
     status,
     hrNotes,
-    actorName = "Yasmine Bouzid (HR Head)"
+    actorName = "HR Administration"
   ) => {
     set((s) => {
       const target = s.grievances.find((g) => g.id === grievanceId);
@@ -1845,7 +2721,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer().catch(() => {});
   },
 
-  reactivateFormerMember: (memberId, toStatus, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  reactivateFormerMember: (memberId, toStatus, reason, actorName = "HR Administration") =>
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -1885,6 +2761,211 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
+  createAdminMember: (payload) => {
+    const num = Math.floor(100 + Math.random() * 899);
+    const newId = `mem-${Date.now()}-${Math.floor(Math.random() * 100)}`;
+    const status: MemberStatus = payload.status || "Active";
+    const role: RoleTemplateName = payload.role || (status === "Alumni" ? "Alumni" : "Member");
+    const newMember: Member = {
+      id: newId,
+      quanterId: status === "Alumni" ? `QT-23-0${num}` : `QT-26-0${num}`,
+      handle: `@quanter0${num}`,
+      email: payload.email.trim().toLowerCase(),
+      fullName: payload.fullName.trim(),
+      phone: payload.phone?.trim() || "+213 550 00 00 00",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
+      bio: "QUANTA Scientific Club Member",
+      major: payload.major?.trim() || "Computer Science",
+      university: "University of Algiers 1",
+      academicYear: payload.academicYear || "L3",
+      tenure: status === "Active" ? "1 Year" : "New Member",
+      departmentId: payload.departmentId || "dept-it",
+      teamId: payload.teamId || undefined,
+      wilaya: "Algiers (16)",
+      commune: "Bab Ezzouar",
+      housingType: "Family Home",
+      commuteTime: "< 30 min",
+      canStayLate: true,
+      hasLaptop: true,
+      pcCapability: "Coding & Dev",
+      equipmentTags: ["Personal Laptop"],
+      roles: [role],
+      isBureauMember: ["Super Admin", "Executive", "HR Head", "Department Head"].includes(role),
+      status,
+      statusSince: new Date().toISOString().slice(0, 10),
+      traineeStartDate: new Date().toISOString().slice(0, 10),
+      traineeDaysElapsed: status === "Active" ? 95 : 1,
+      outsideActivitiesAndVolunteering: "",
+      declaresOtherStudentOrg: false,
+      availability: DEFAULT_AVAILABILITY,
+      xpTotal: status === "Active" ? 150 : 50,
+      xpSeason: status === "Active" ? 150 : 50,
+      xpMonth: status === "Active" ? 150 : 50,
+      level: status === "Active" ? 2 : 1,
+      levelTitle: status === "Active" ? "Scientific Explorer" : "Novice Quanter",
+      attendanceRate: 100,
+      onTimeTaskRate: 100,
+      recentActivityScore: 100,
+      healthScore: 95,
+      daysSinceLastActivity: 0,
+      lateTasksThisMonth: 0,
+      recognitionLabels: [],
+      onboardingTicks: {
+        profileComplete: true,
+        buddyAssigned: status === "Active",
+        firstTaskBeforeDay30: status === "Active",
+        firstWorkshopAttended: status === "Active",
+      },
+      traineeEvaluation: { headEndorsed: status === "Active", coManagerEndorsed: status === "Active", notes: "" },
+      skills: ["Scientific Research", "Python"],
+      badgeIds: [],
+      workshopsCompletedCount: 0,
+      projectsCompletedCount: 0,
+      eventsAttendedCount: 0,
+      statusHistory: [],
+      placementHistory: [],
+    };
+
+    set((state) => {
+      const nextTeams = payload.teamId
+        ? state.teams.map((t) =>
+            t.id === payload.teamId
+              ? { ...t, memberIds: Array.from(new Set([...t.memberIds, newId])) }
+              : t
+          )
+        : state.teams;
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `${newMember.fullName} (${newMember.quanterId})`,
+        oldValue: "None",
+        newValue: `${status} (${role})`,
+        reason: "Created via Admin Members Directory",
+      };
+      return {
+        members: [newMember, ...state.members],
+        teams: nextTeams,
+        currentMemberId: state.members.length === 0 ? newId : state.currentMemberId,
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+    return newMember;
+  },
+
+  deleteMember: (memberId, reason = "Deleted via Admin Directory", permanent = false) => {
+    set((state) => {
+      const target = state.members.find((m) => m.id === memberId);
+      if (!target) return state;
+
+      if (!permanent) {
+        // Option A: Move to Removed (Retains member in former members directory, reserves email)
+        const audit: AuditLogEntry = {
+          id: `aud-${Date.now()}`,
+          actorName: "Admin",
+          actorRole: state.activeAdminRole,
+          timestamp: nowStamp(),
+          actionCategory: "Status Change",
+          targetLabel: `${target.fullName} (${target.quanterId})`,
+          oldValue: target.status,
+          newValue: "Removed",
+          reason,
+        };
+        return {
+          members: state.members.map((m) =>
+            m.id === memberId
+              ? {
+                  ...m,
+                  status: "Removed",
+                  departmentId: "",
+                  teamId: undefined,
+                  statusHistory: [
+                    {
+                      id: `sh-${Date.now()}`,
+                      fromStatus: m.status,
+                      toStatus: "Removed",
+                      date: nowStamp(),
+                      actorName: "Admin",
+                      reason,
+                    },
+                    ...m.statusHistory,
+                  ],
+                }
+              : m
+          ),
+          departments: state.departments.map((d) => ({
+            ...d,
+            headMemberId: d.headMemberId === memberId ? "" : d.headMemberId,
+            coManagerMemberId: d.coManagerMemberId === memberId ? "" : d.coManagerMemberId,
+          })),
+          teams: state.teams.map((t) => ({
+            ...t,
+            leaderMemberId: t.leaderMemberId === memberId ? "" : t.leaderMemberId,
+            memberIds: t.memberIds.filter((id) => id !== memberId),
+          })),
+          auditLogs: [audit, ...state.auditLogs],
+        };
+      } else {
+        // Option B: Permanent Delete & Archive (Purges from active/former members, releases email)
+        recordPersistentDeletedId("members", memberId);
+        const remaining = state.members.filter((m) => m.id !== memberId);
+        const archivedRecord = {
+          id: target.id,
+          quanterId: target.quanterId,
+          fullName: target.fullName,
+          email: target.email,
+          phone: target.phone,
+          departmentId: target.departmentId,
+          roles: target.roles,
+          archivedAt: nowStamp(),
+          archivedBy: "Admin",
+          reason,
+          lastStateSnapshot: target,
+        };
+        const audit: AuditLogEntry = {
+          id: `aud-${Date.now()}`,
+          actorName: "Admin",
+          actorRole: state.activeAdminRole,
+          timestamp: nowStamp(),
+          actionCategory: "Status Change",
+          targetLabel: `${target.fullName} (${target.quanterId})`,
+          oldValue: target.status,
+          newValue: "Permanently Deleted & Released",
+          reason,
+        };
+        return {
+          members: remaining,
+          settings: {
+            ...state.settings,
+            archivedMembers: [archivedRecord, ...(state.settings.archivedMembers || [])],
+          },
+          departments: state.departments.map((d) => ({
+            ...d,
+            headMemberId: d.headMemberId === memberId ? "" : d.headMemberId,
+            coManagerMemberId: d.coManagerMemberId === memberId ? "" : d.coManagerMemberId,
+          })),
+          teams: state.teams.map((t) => ({
+            ...t,
+            leaderMemberId: t.leaderMemberId === memberId ? "" : t.leaderMemberId,
+            memberIds: t.memberIds.filter((id) => id !== memberId),
+          })),
+          currentMemberId:
+            state.currentMemberId === memberId
+              ? remaining[0]?.id || ""
+              : state.currentMemberId,
+          auditLogs: [audit, ...state.auditLogs],
+        };
+      }
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
   createInvitations: (emails, prefilledDepartmentId) =>
     set((state) => {
       const newInvites: Invitation[] = emails
@@ -1900,7 +2981,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           expiresAt: new Date(Date.now() + state.settings.invitationValidityDays * 86400000)
             .toISOString()
             .slice(0, 10),
-          invitedBy: "Yasmine Bouzid (HR Head)",
+          invitedBy: "HR Administration",
         }));
       return { invitations: [...newInvites, ...state.invitations] };
     }),
@@ -1930,16 +3011,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       workshops: state.workshops.map((w) => {
         if (w.id !== workshopId) return w;
         if (w.registeredMemberIds.includes(memberId)) return w;
-        if (w.seatsLeft <= 0) {
+        const effectiveSeats = Math.max(0, w.capacity - w.registeredMemberIds.length);
+        if (effectiveSeats <= 0) {
           return {
             ...w,
+            seatsLeft: 0,
             waitlistMemberIds: Array.from(new Set([...w.waitlistMemberIds, memberId])),
           };
         }
+        const nextRegistered = [...w.registeredMemberIds, memberId];
         return {
           ...w,
-          seatsLeft: Math.max(0, w.seatsLeft - 1),
-          registeredMemberIds: [...w.registeredMemberIds, memberId],
+          seatsLeft: Math.max(0, w.capacity - nextRegistered.length),
+          registeredMemberIds: nextRegistered,
         };
       }),
     }));
@@ -1950,11 +3034,36 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set((state) => ({
       workshops: state.workshops.map((w) => {
         if (w.id !== workshopId) return w;
+        // Allow removing from waitlist if user was waitlisted
+        if (w.waitlistMemberIds.includes(memberId)) {
+          return {
+            ...w,
+            waitlistMemberIds: w.waitlistMemberIds.filter((id) => id !== memberId),
+          };
+        }
         if (!w.registeredMemberIds.includes(memberId)) return w;
+
+        const nextRegistered = w.registeredMemberIds.filter((id) => id !== memberId);
+        const shouldPromote =
+          Boolean(state.settings.waitlistAutoPromote) &&
+          Array.isArray(w.waitlistMemberIds) &&
+          w.waitlistMemberIds.length > 0;
+
+        if (shouldPromote) {
+          const [promotedId, ...remainingWaitlist] = w.waitlistMemberIds;
+          const finalReg = [...nextRegistered, promotedId];
+          return {
+            ...w,
+            registeredMemberIds: finalReg,
+            waitlistMemberIds: remainingWaitlist,
+            seatsLeft: Math.max(0, w.capacity - finalReg.length),
+          };
+        }
+
         return {
           ...w,
-          seatsLeft: w.seatsLeft + 1,
-          registeredMemberIds: w.registeredMemberIds.filter((id) => id !== memberId),
+          seatsLeft: Math.max(0, w.capacity - nextRegistered.length),
+          registeredMemberIds: nextRegistered,
         };
       }),
     }));
@@ -1963,9 +3072,34 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
   verifyWorkshopCheckIn: (workshopId, memberId, codeOrToken, method) => {
     const state = get();
-    const ws = state.workshops.find((w) => w.id === workshopId) || state.workshops[0];
+    const ws = state.workshops.find((w) => w.id === workshopId);
     const member = state.members.find((m) => m.id === memberId);
     if (!ws || !member) return { ok: false, message: "Session or member not found." };
+
+    if (ws.status !== "Running" && ws.status !== "Published") {
+      return {
+        ok: false,
+        message: "This workshop session is not currently open for attendance check-in.",
+      };
+    }
+
+    if (ws.eventDate) {
+      const now = new Date();
+      const graceMs = (state.settings.checkinGraceMinutes ?? 30) * 60 * 1000;
+      const sessionEnd = ws.endTime
+        ? new Date(`${ws.eventDate}T${ws.endTime}:00`)
+        : new Date(`${ws.eventDate}T23:59:59`);
+      if (now.getTime() > sessionEnd.getTime() + graceMs) {
+        return { ok: false, message: "Check-in window has closed for this workshop session." };
+      }
+    }
+
+    if (!ws.registeredMemberIds.includes(memberId)) {
+      return {
+        ok: false,
+        message: "You are not registered for this workshop session. Please register first.",
+      };
+    }
 
     const alreadyCheckedIn = ws.attendanceRecords.some(
       (r) => r.memberId === memberId && r.status === "Present"
@@ -1975,14 +3109,18 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     const cleanInput = codeOrToken.trim().toUpperCase();
+    const expectedCode = (ws.liveSixDigitCode || "").trim().toUpperCase();
+    const expectedToken = (ws.liveQrToken || "").trim().toUpperCase();
+
     const valid =
-      cleanInput === "SCAN-OK" ||
-      cleanInput === ws.liveSixDigitCode ||
-      cleanInput === ws.liveQrToken.toUpperCase() ||
-      cleanInput.length === 6;
+      (expectedCode && cleanInput === expectedCode) ||
+      (expectedToken && cleanInput === expectedToken);
 
     if (!valid) {
-      return { ok: false, message: "Invalid or expired session code. Please verify with the organizer." };
+      return {
+        ok: false,
+        message: "Invalid or expired session code. Please verify the code displayed on the projector.",
+      };
     }
 
     const newRecord = {
@@ -2041,7 +3179,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     return { ok: true, message: `Checked in! +${ws.xpReward} XP added.` };
   },
 
-  correctAttendance: (workshopId, memberId, status, reason, actorName = "Ayoub Sarri (Check-in Operator)") =>
+  correctAttendance: (workshopId, memberId, status, reason, actorName = "Check-in Operator") =>
     set((state) => {
       const ws = state.workshops.find((w) => w.id === workshopId);
       const member = state.members.find((m) => m.id === memberId);
@@ -2122,6 +3260,73 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer().catch(() => {});
   },
 
+  updateWorkshop: (workshopId, updates, reason) => {
+    set((state) => {
+      const existing = state.workshops.find((w) => w.id === workshopId);
+      if (!existing) return state;
+
+      const updatedWs: Workshop = {
+        ...existing,
+        ...updates,
+      };
+
+      if (updates.capacity !== undefined) {
+        const regCount = updatedWs.registeredMemberIds?.length || 0;
+        updatedWs.seatsLeft = Math.max(0, updates.capacity - regCount);
+      }
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `Workshop: ${updatedWs.title}`,
+        oldValue: JSON.stringify({ title: existing.title, status: existing.status }),
+        newValue: JSON.stringify({ title: updatedWs.title, status: updatedWs.status }),
+        reason: reason || "Workshop details updated by organizer / admin",
+      };
+
+      return {
+        workshops: state.workshops.map((w) => (w.id === workshopId ? updatedWs : w)),
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  deleteWorkshop: (workshopId, isPermanent = false, reason) => {
+    if (isPermanent) {
+      recordPersistentDeletedId("workshops", workshopId);
+    }
+    set((state) => {
+      const existing = state.workshops.find((w) => w.id === workshopId);
+      if (!existing) return state;
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `Workshop: ${existing.title}`,
+        oldValue: existing.status,
+        newValue: isPermanent ? "Permanently Deleted" : "Archived",
+        reason: reason || (isPermanent ? "Workshop permanently removed" : "Workshop archived"),
+      };
+
+      return {
+        workshops: isPermanent
+          ? state.workshops.filter((w) => w.id !== workshopId)
+          : state.workshops.map((w) => (w.id === workshopId ? { ...w, status: "Archived" } : w)),
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
   updateWorkshopStatus: (workshopId, status) => {
     set((state) => ({
       workshops: state.workshops.map((w) => (w.id === workshopId ? { ...w, status } : w)),
@@ -2150,6 +3355,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { workshopCategories: [...state.workshopCategories, trimmed] };
     });
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  updateWorkshopCategory: (oldCat: string, newCat: string) => {
+    const trimmed = newCat.trim();
+    if (!trimmed || trimmed === oldCat) return;
+    set((state) => ({
+      workshopCategories: state.workshopCategories.map((c) => (c === oldCat ? trimmed : c)),
+      workshops: state.workshops.map((w) =>
+        w.category === oldCat ? { ...w, category: trimmed as any } : w
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   deleteWorkshopCategory: (category: string) => {
@@ -2157,6 +3376,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       workshopCategories: state.workshopCategories.filter((c) => c !== category),
     }));
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   addBadgeCategory: (category: string) => {
@@ -2167,6 +3387,23 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { badgeCategories: [...state.badgeCategories, trimmed] };
     });
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  updateBadgeCategory: (oldCat: string, newCat: string) => {
+    const trimmed = newCat.trim();
+    if (!trimmed || trimmed === oldCat) return;
+    set((state) => ({
+      badgeCategories: state.badgeCategories.map((c) => (c === oldCat ? trimmed : c)),
+      badges: state.badges.map((b) =>
+        b.category === oldCat ? { ...b, category: trimmed } : b
+      ),
+      exams: state.exams.map((e) =>
+        e.category === oldCat ? { ...e, category: trimmed } : e
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   deleteBadgeCategory: (category: string) => {
@@ -2174,6 +3411,38 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       badgeCategories: state.badgeCategories.filter((c) => c !== category),
     }));
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  addProjectCategory: (category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    set((state) => {
+      if (state.projectCategories.includes(trimmed)) return state;
+      return { projectCategories: [...state.projectCategories, trimmed] };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  deleteProjectCategory: (category: string) => {
+    set((state) => ({
+      projectCategories: state.projectCategories.filter((c) => c !== category),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  updateProjectCategory: (oldCat: string, newCat: string) => {
+    const trimmed = newCat.trim();
+    if (!trimmed) return;
+    set((state) => ({
+      projectCategories: state.projectCategories.map((c) =>
+        c === oldCat ? trimmed : c
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   createTask: (task) =>
@@ -2269,20 +3538,29 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     })),
 
   deliverTask: (taskId, memberId, proofUrlOrNote) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) =>
-        t.id === taskId
-          ? {
-              ...t,
-              assignees: t.assignees.map((a) =>
-                a.memberId === memberId
-                  ? { ...a, status: "Delivered", proofUrlOrNote, receiptConfirmed: true }
-                  : a
-              ),
-            }
-          : t
-      ),
-    })),
+    set((state) => {
+      const task = state.tasks.find((t) => t.id === taskId);
+      if (!task) return state;
+      const assignee = task.assignees.map((a) => (a.memberId === memberId ? a : null)).find(Boolean);
+      // Immutability Guard: Cannot re-deliver an already validated task without explicit manager revision request
+      if (assignee?.status === "Validated") {
+        return state;
+      }
+      return {
+        tasks: state.tasks.map((t) =>
+          t.id === taskId
+            ? {
+                ...t,
+                assignees: t.assignees.map((a) =>
+                  a.memberId === memberId
+                    ? { ...a, status: "Delivered", proofUrlOrNote, receiptConfirmed: true }
+                    : a
+                ),
+              }
+            : t
+        ),
+      };
+    }),
 
   validateAndScoreTask: ({
     taskId,
@@ -2290,18 +3568,44 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     scoreType,
     awardedScore,
     feedback,
-    validatorName = "Lotfi Benali (Dept Head)",
+    validatorName = "Department Head",
   }) =>
     set((state) => {
       const task = state.tasks.find((t) => t.id === taskId);
       const member = state.members.find((m) => m.id === memberId);
       if (!task || !member) return state;
 
+      // STRICT SELF-VALIDATION GUARD: No user can score their own task, regardless of role!
+      if (state.currentMemberId === memberId) {
+        return state;
+      }
+
+      // Check manager privilege
+      const allowedRoles: RoleTemplateName[] = [
+        "Super Admin",
+        "Executive",
+        "Department Head",
+        "Co-Manager",
+      ];
+      if (!allowedRoles.includes(state.activeAdminRole)) {
+        return state;
+      }
+
+      // Prevent double-dipping: cannot score an already validated assignee
+      const assignee = task.assignees.find((a) => a.memberId === memberId);
+      if (assignee?.status === "Validated" && assignee.awardedScore !== undefined) {
+        return state;
+      }
+
+      // Bound awarded score to task bounds + bonus cap
+      const maxScoreAllowed = (task.proposedScore || 30) + 20;
+      const safeScore = Math.max(0, Math.min(awardedScore, maxScoreAllowed));
+
       const newLedger: PointsLedgerEntry = {
         id: `led-${Date.now()}`,
         memberId,
         memberName: member.fullName,
-        amount: awardedScore,
+        amount: safeScore,
         ruleLabel: `Task Validated (${scoreType})`,
         reason: `${task.title} — Feedback: ${feedback}`,
         source: "Task",
@@ -2318,7 +3622,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         actionCategory: "Task Validation",
         targetLabel: `${member.fullName} · ${task.title}`,
         oldValue: "Delivered",
-        newValue: `Validated (+${awardedScore} XP · ${scoreType})`,
+        newValue: `Validated (+${safeScore} XP · ${scoreType})`,
         reason: feedback,
       };
 
@@ -2334,7 +3638,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                         ...a,
                         status: "Validated",
                         scoreType,
-                        awardedScore,
+                        awardedScore: safeScore,
                         managerFeedback: feedback,
                         validatedBy: validatorName,
                         validatedAt: new Date().toISOString().slice(0, 10),
@@ -2344,16 +3648,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               }
             : t
         ),
-        members: state.members.map((m) =>
-          m.id === memberId
-            ? {
-                ...m,
-                xpTotal: m.xpTotal + awardedScore,
-                xpSeason: m.xpSeason + awardedScore,
-                xpMonth: m.xpMonth + awardedScore,
-              }
-            : m
-        ),
+        members: state.members.map((m) => {
+          if (m.id !== memberId) return m;
+          const newSeasonXp = Math.max(0, m.xpSeason + safeScore);
+          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
+          return {
+            ...m,
+            xpTotal: Math.max(0, m.xpTotal + safeScore),
+            xpSeason: newSeasonXp,
+            xpMonth: Math.max(0, m.xpMonth + safeScore),
+            level: rank.level,
+            levelTitle: rank.title,
+          };
+        }),
         ledger: [newLedger, ...state.ledger],
         auditLogs: [audit, ...state.auditLogs],
       };
@@ -2385,7 +3692,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     })),
 
-  bulkScoreMembers: (memberIds, points, reason, actorName = "Lotfi Benali") =>
+  bulkScoreMembers: (memberIds, points, reason, actorName = "Department Head") =>
     set((state) => {
       const newEntries: PointsLedgerEntry[] = memberIds.map((id, idx) => {
         const m = state.members.find((mem) => mem.id === id);
@@ -2403,22 +3710,35 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         };
       });
       return {
-        members: state.members.map((m) =>
-          memberIds.includes(m.id)
-            ? {
-                ...m,
-                xpTotal: m.xpTotal + points,
-                xpSeason: m.xpSeason + points,
-                xpMonth: m.xpMonth + points,
-              }
-            : m
-        ),
+        members: state.members.map((m) => {
+          if (!memberIds.includes(m.id)) return m;
+          const newSeasonXp = Math.max(0, m.xpSeason + points);
+          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
+          return {
+            ...m,
+            xpTotal: Math.max(0, m.xpTotal + points),
+            xpSeason: newSeasonXp,
+            xpMonth: Math.max(0, m.xpMonth + points),
+            level: rank.level,
+            levelTitle: rank.title,
+          };
+        }),
         ledger: [...newEntries, ...state.ledger],
       };
     }),
 
-  addManualPointsEntry: (memberId, amount, ruleLabel, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  addManualPointsEntry: (memberId, amount, ruleLabel, reason, actorName = "HR Administration") =>
     set((state) => {
+      const allowedRoles: RoleTemplateName[] = [
+        "Super Admin",
+        "Executive",
+        "HR Head",
+        "Department Head",
+        "Co-Manager",
+      ];
+      if (!allowedRoles.includes(state.activeAdminRole)) {
+        return state;
+      }
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
       const entry: PointsLedgerEntry = {
@@ -2444,15 +3764,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: `${member.xpTotal + amount} XP (${amount > 0 ? `+${amount}` : amount})`,
         reason: `${ruleLabel}: ${reason}`,
       };
+      const newSeasonXp = Math.max(0, member.xpSeason + amount);
+      const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
       return {
         ledger: [entry, ...state.ledger],
         members: state.members.map((m) =>
           m.id === memberId
             ? {
                 ...m,
-                xpTotal: m.xpTotal + amount,
-                xpSeason: m.xpSeason + amount,
-                xpMonth: m.xpMonth + amount,
+                xpTotal: Math.max(0, m.xpTotal + amount),
+                xpSeason: newSeasonXp,
+                xpMonth: Math.max(0, m.xpMonth + amount),
+                level: rank.level,
+                levelTitle: rank.title,
               }
             : m
         ),
@@ -2460,10 +3784,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  reversePointsEntry: (entryId, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  reversePointsEntry: (entryId, reason, actorName = "HR Administration") =>
     set((state) => {
       const target = state.ledger.find((l) => l.id === entryId);
-      if (!target || target.reversedByEntryId) return state;
+      if (!target || target.reversedByEntryId || target.source === "Reversal") return state;
+      const member = state.members.find((m) => m.id === target.memberId);
+      if (!member) return state;
+
       const reversalId = `led-rev-${Date.now()}`;
       const reversalEntry: PointsLedgerEntry = {
         id: reversalId,
@@ -2488,6 +3815,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: `Reversed (${-target.amount} XP)`,
         reason,
       };
+
+      const newTotal = Math.max(0, member.xpTotal - target.amount);
+      const newSeason = Math.max(0, member.xpSeason - target.amount);
+      const newMonth = Math.max(0, member.xpMonth - target.amount);
+      const rank = getRankForXp(newSeason, state.settings.rankLevels);
+
       return {
         ledger: [
           reversalEntry,
@@ -2499,9 +3832,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           m.id === target.memberId
             ? {
                 ...m,
-                xpTotal: m.xpTotal - target.amount,
-                xpSeason: m.xpSeason - target.amount,
-                xpMonth: m.xpMonth - target.amount,
+                xpTotal: newTotal,
+                xpSeason: newSeason,
+                xpMonth: newMonth,
+                level: rank.level,
+                levelTitle: rank.title,
               }
             : m
         ),
@@ -2517,6 +3852,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     })),
 
   resolvePointsAppeal: (entryId, decision, reason) => {
+    const entry = get().ledger.find((l) => l.id === entryId);
+    if (!entry || entry.appealStatus !== "Pending") return;
     if (decision === "Accepted") {
       get().reversePointsEntry(entryId, `Appeal Accepted: ${reason}`);
     }
@@ -2554,14 +3891,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deletePointRule: (ruleId) => {
+    recordPersistentDeletedId("pointRules", ruleId);
     set((state) => ({
       pointRules: state.pointRules.filter((r) => r.id !== ruleId),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
-  publishMonthlyHonours: (motmMemberId, championMemberIds, actorName = "Yasmine Bouzid (HR Head)") =>
+  publishMonthlyHonours: (motmMemberId, championMemberIds, actorName = "HR Administration") =>
     set((state) => {
       const motm = state.members.find((m) => m.id === motmMemberId);
       if (!motm) return state;
@@ -2620,7 +3958,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ],
     })),
 
-  awardBadgeManually: (badgeId, memberIds, reasonOrNote, actorName = "Yasmine Bouzid (HR Head)") =>
+  awardBadgeManually: (badgeId, memberIds, reasonOrNote, actorName = "HR Administration") =>
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
       if (!badge) return state;
@@ -2672,7 +4010,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  revokeBadge: (badgeId, memberId, reason, actorName = "Yasmine Bouzid (HR Head)") =>
+  revokeBadge: (badgeId, memberId, reason, actorName = "HR Administration") =>
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
       const member = state.members.find((m) => m.id === memberId);
@@ -2705,11 +4043,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer().catch(() => {});
   },
 
-  deleteOrArchiveBadge: (badgeId, reason) =>
+  deleteOrArchiveBadge: (badgeId, reason) => {
+    const targetBadge = get().badges.find((b) => b.id === badgeId);
+    if (!targetBadge) return;
+    const canDelete = targetBadge.awardedCount === 0;
+    if (canDelete) {
+      recordPersistentDeletedId("badges", badgeId);
+    }
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
       if (!badge) return state;
-      const canDelete = badge.awardedCount === 0;
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
         actorName: "Admin",
@@ -2727,7 +4070,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           : state.badges.map((b) => (b.id === badgeId ? { ...b, archived: true } : b)),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   createBadgeExam: (examData) => {
     const newExam: BadgeExam = {
@@ -2758,13 +4104,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deleteBadgeExam: (id) => {
+    recordPersistentDeletedId("exams", id);
     set((state) => ({
       exams: state.exams.filter((e) => e.id !== id),
     }));
+    get().saveToLocalCache();
     get().syncWithServer().catch(() => {});
   },
 
-  completeBadgeExam: (examId, scorePercent) =>
+  completeBadgeExam: (examId, scorePercent) => {
     set((state) => {
       const exam = state.exams.find((e) => e.id === examId);
       if (!exam) return state;
@@ -2797,8 +4145,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         (s) => s.memberId === state.currentMemberId && s.badgeId === exam.badgeId && s.status === "Approved"
       );
 
+      const alreadyPassed = (state.examCompletions || []).some(
+        (c) => c.examId === examId && c.memberId === state.currentMemberId && c.passed
+      );
+      const curMember = state.members.find((m) => m.id === state.currentMemberId);
+      const alreadyHasBadge = (curMember?.badgeIds || []).includes(exam.badgeId);
+
       const fullyUnlocked = !isDual || projectApproved;
-      const xpToAward = fullyUnlocked ? exam.xpReward : Math.round(exam.xpReward / 2);
+      // Anti-Farming: Award XP only on the first passed attempt!
+      const xpToAward = (alreadyPassed || alreadyHasBadge)
+        ? 0
+        : (fullyUnlocked ? exam.xpReward : Math.round(exam.xpReward / 2));
 
       return {
         exams: state.exams.map((e) =>
@@ -2815,19 +4172,22 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               }
             : b
         ),
-        members: state.members.map((m) =>
-          m.id === state.currentMemberId
-            ? {
-                ...m,
-                xpTotal: m.xpTotal + xpToAward,
-                xpSeason: m.xpSeason + xpToAward,
-                xpMonth: m.xpMonth + xpToAward,
-                badgeIds: fullyUnlocked
-                  ? Array.from(new Set([...m.badgeIds, exam.badgeId]))
-                  : m.badgeIds,
-              }
-            : m
-        ),
+        members: state.members.map((m) => {
+          if (m.id !== state.currentMemberId) return m;
+          const newSeasonXp = Math.max(0, m.xpSeason + xpToAward);
+          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
+          return {
+            ...m,
+            xpTotal: Math.max(0, m.xpTotal + xpToAward),
+            xpSeason: newSeasonXp,
+            xpMonth: Math.max(0, m.xpMonth + xpToAward),
+            level: rank.level,
+            levelTitle: rank.title,
+            badgeIds: fullyUnlocked
+              ? Array.from(new Set([...m.badgeIds, exam.badgeId]))
+              : m.badgeIds,
+          };
+        }),
         celebration: {
           open: true,
           type: "badge",
@@ -2839,9 +4199,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           badgeName: exam.title,
         },
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
-  submitBadgeProject: (submission) =>
+  submitBadgeProject: (submission) => {
     set((state) => ({
       projectSubmissions: [
         {
@@ -2857,9 +4220,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           ? { ...m, projectsCompletedCount: m.projectsCompletedCount + 1 }
           : m
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
-  reviewProjectSubmission: (submissionId, status, comment) =>
+  reviewProjectSubmission: (submissionId, status, comment) => {
     set((state) => {
       const sub = state.projectSubmissions.find((s) => s.id === submissionId);
       if (!sub) return state;
@@ -2911,7 +4277,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               )
             : state.members,
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   submitProposal: (proposal) =>
     set((state) => {
@@ -2929,7 +4298,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         title: proposal.title,
         description: proposal.description,
         submitterId: state.currentMemberId,
-        submitterName: member?.fullName || "Ayoub Sarri",
+        submitterName: member?.fullName || "QUANTA Member",
         expectedDate: proposal.expectedDate,
         location: proposal.location,
         specificFields: proposal.specificFields,
@@ -3003,6 +4372,122 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
+  voteOnProposal: (proposalId, decision, comment) => {
+    const state = get();
+    const curMember = state.members.find((m) => m.id === state.currentMemberId);
+    const prop = state.proposals.find((p) => p.id === proposalId);
+    if (!curMember || !prop) return { ok: false, message: "Resource not found" };
+
+    if (prop.submitterId === curMember.id) {
+      return { ok: false, message: "Conflict of Interest: Submitters cannot vote on their own proposal." };
+    }
+
+    const isEligibleExec =
+      curMember.status === "Active" &&
+      (curMember.roles.includes("Executive") || curMember.roles.includes("Super Admin"));
+    if (!isEligibleExec) {
+      return { ok: false, message: "Unauthorized: Only active Executive Board members may vote." };
+    }
+
+    const existingVotes = prop.votes || {};
+    const updatedVotes: Record<string, ProposalVote> = {
+      ...existingVotes,
+      [curMember.id]: {
+        memberId: curMember.id,
+        memberName: curMember.fullName,
+        decision,
+        timestamp: new Date().toISOString(),
+        comment,
+      },
+    };
+
+    const totalEligibleExecs = state.members.filter(
+      (m) => m.status === "Active" && (m.roles.includes("Executive") || m.roles.includes("Super Admin"))
+    ).length;
+    const requiredTwoThirds = Math.max(1, Math.ceil((totalEligibleExecs * 2) / 3));
+    const approveCount = Object.values(updatedVotes).filter((v) => v.decision === "Approved").length;
+    const rejectCount = Object.values(updatedVotes).filter((v) => v.decision === "Rejected").length;
+
+    let nextState: ProposalState = prop.state;
+    if (prop.type === "Internal Law Amendment") {
+      if (approveCount >= requiredTwoThirds) {
+        nextState = "Approved";
+      } else if (rejectCount > totalEligibleExecs - requiredTwoThirds) {
+        nextState = "Rejected";
+      } else {
+        nextState = "Under Review";
+      }
+    }
+
+    set((s) => ({
+      proposals: s.proposals.map((p) =>
+        p.id === proposalId ? { ...p, state: nextState, votes: updatedVotes } : p
+      ),
+    }));
+
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+    return { ok: true, message: `Vote recorded (${approveCount}/${requiredTwoThirds} needed).` };
+  },
+
+  submitDailyQuizAnswer: (quizId, optionId) => {
+    const state = get();
+    const curMember = state.members.find((m) => m.id === state.currentMemberId);
+    if (!curMember) return { ok: false, message: "Member session not found" };
+
+    const quiz = (state.dailyQuizzes || []).find((q) => q.id === quizId && q.active !== false);
+    if (!quiz) return { ok: false, message: "Daily challenge not found or inactive" };
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const alreadyRewarded = (state.ledger || []).some(
+      (e) =>
+        e.memberId === curMember.id &&
+        (e.ruleLabel?.includes(quiz.id) ||
+          e.reason?.includes(quiz.id) ||
+          (quiz.verdictTitle && e.reason?.includes(quiz.verdictTitle)))
+    );
+    if (alreadyRewarded) {
+      return { ok: false, message: "Daily challenge already completed" };
+    }
+
+    const isCorrect = optionId === quiz.correctId;
+    if (!isCorrect) {
+      return { ok: false, message: "Incorrect answer" };
+    }
+
+    const safeXp = Math.min(50, Math.max(5, quiz.xpReward || 15));
+    const newEntry: PointsLedgerEntry = {
+      id: `led-${Date.now()}`,
+      memberId: curMember.id,
+      memberName: curMember.fullName,
+      amount: safeXp,
+      ruleLabel: `Daily Quiz: ${quiz.id}`,
+      reason: `Daily Quiz verified: ${quiz.verdictTitle || quiz.id}`,
+      source: "Badge",
+      actorName: "Science Exploration Engine",
+      date: todayIso,
+      appealStatus: "None",
+    };
+
+    set((s) => ({
+      members: s.members.map((m) =>
+        m.id === curMember.id
+          ? {
+              ...m,
+              xpTotal: m.xpTotal + safeXp,
+              xpSeason: m.xpSeason + safeXp,
+              xpMonth: m.xpMonth + safeXp,
+            }
+          : m
+      ),
+      ledger: [newEntry, ...s.ledger],
+    }));
+
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+    return { ok: true, message: `Correct! +${safeXp} XP awarded`, xpEarned: safeXp };
+  },
+
   sendClubMessage: ({ recipientScope, priority, title, body, inApp, email }) =>
     set((state) => {
       const newMsg: ClubMessage = {
@@ -3068,15 +4553,40 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     })),
 
-  createExplorePost: (post) =>
+  createExplorePost: (post) => {
     set((state) => ({
       explorePosts: [{ ...post, id: `exp-${Date.now()}` }, ...state.explorePosts],
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
-  updateExplorePostStatus: (postId, status) =>
+  updateExplorePost: (postId, updates) => {
+    set((state) => ({
+      explorePosts: state.explorePosts.map((p) =>
+        p.id === postId ? { ...p, ...updates } : p
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  deleteExplorePost: (postId) => {
+    recordPersistentDeletedId("explorePosts", postId);
+    set((state) => ({
+      explorePosts: state.explorePosts.filter((p) => p.id !== postId),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
+
+  updateExplorePostStatus: (postId, status) => {
     set((state) => ({
       explorePosts: state.explorePosts.map((p) => (p.id === postId ? { ...p, status } : p)),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   createDailyQuiz: (quiz) => {
     set((state) => {
@@ -3104,10 +4614,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deleteDailyQuiz: (id) => {
+    recordPersistentDeletedId("dailyQuizzes", id);
     set((state) => ({
       dailyQuizzes: state.dailyQuizzes.filter((q) => q.id !== id),
     }));
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   pinDailyQuiz: (id) => {
@@ -3145,6 +4657,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deleteDailyQuote: (id) => {
+    recordPersistentDeletedId("dailyQuotes", id);
     set((state) => ({
       dailyQuotes: state.dailyQuotes.filter((q) => q.id !== id),
       settings:
@@ -3153,6 +4666,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           : state.settings,
     }));
     get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
   },
 
   setPinnedDailyQuote: (quoteId) => {
@@ -3199,7 +4713,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  revokeAccess: (grantId, reason) =>
+  revokeAccess: (grantId, reason) => {
+    recordPersistentDeletedId("accessGrants", grantId);
     set((state) => {
       const target = state.accessGrants.find((g) => g.id === grantId);
       if (!target) return state;
@@ -3218,7 +4733,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         accessGrants: state.accessGrants.filter((g) => g.id !== grantId),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer().catch(() => {});
+  },
 
   updateSettings: (updates, reason) =>
     set((state) => {
@@ -3245,7 +4763,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason,
       };
       return {
-        settings: { ...state.settings, ...updates },
+        settings: sanitizeSystemSettings({ ...state.settings, ...updates }),
         auditLogs: [audit, ...state.auditLogs],
       };
     }),

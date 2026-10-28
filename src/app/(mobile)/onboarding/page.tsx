@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   Building2,
   Check,
   CheckCircle2,
@@ -16,28 +17,38 @@ import {
   GraduationCap,
   Home,
   Laptop,
+  Landmark,
   Linkedin,
   Lock,
   Mail,
   MapPin,
   Phone,
   Plus,
+  Scale,
   Search,
   ShieldCheck,
   Sparkles,
   UserCheck,
+  X,
 } from "lucide-react";
+import {
+  QUANTA_INTERNAL_LAW_CHAPTERS,
+  QUANTA_INTERNAL_LAW_HEADER,
+} from "@/lib/data/internalLaw";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { AvatarUploader } from "@/components/shared/AvatarUploader";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
+import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { validateEmail } from "@/lib/utils/authSecurity";
 import {
   AvailabilityGrid,
   CommuteDuration,
   DayOfWeek,
   HousingType,
+  isMemberAvailableInSlot,
   Member,
-  PcCapability,
+  STUDY_HOUR_SLOTS,
   TimeSlot,
   UNIVERSITY_SPECIALTIES,
 } from "@/lib/types/erp";
@@ -52,7 +63,7 @@ const DAYS: DayOfWeek[] = [
   "Friday",
 ];
 
-const SLOTS: TimeSlot[] = ["Morning", "Afternoon", "Evening"];
+const SLOTS: TimeSlot[] = STUDY_HOUR_SLOTS.map((s) => s.key);
 
 const WILAYA_OPTIONS = [
   "Algiers (16)",
@@ -74,6 +85,20 @@ const COMMUTE_OPTIONS: CommuteDuration[] = [
   "> 1 hour",
 ];
 
+const UNIVERSITY_OPTIONS = [
+  "University of Algiers 1 (Benyoucef Benkhedda)",
+  "USTHB (Houari Boumediene University of Science & Technology)",
+  "University of Algiers 2 (Abou El Kacem Saâdallah)",
+  "University of Algiers 3 (Brahim Soltani Chaibout)",
+  "ESI (Higher National School of Computer Science)",
+  "ENP (National Polytechnic School)",
+  "ENS (Higher Normal School — Kouba / Bouzaréah)",
+  "ENSA / ENSV / ENSSMAL / EPAU",
+  "University of Blida 1 (Saâd Dahlab)",
+  "University of Boumerdès (UMBB)",
+  "Other University / Higher School",
+] as const;
+
 const ACADEMIC_YEARS: Member["academicYear"][] = [
   "L1",
   "L2",
@@ -91,13 +116,6 @@ const TENURE_OPTIONS = [
   "2+ Years",
 ];
 
-const PC_CAPABILITY_OPTIONS: PcCapability[] = [
-  "Coding & Dev",
-  "Design & Video",
-  "Office & Web",
-  "No Personal PC",
-];
-
 const EXTRA_EQUIPMENT_OPTIONS = [
   "Personal Laptop",
   "Camera / DSLR",
@@ -112,27 +130,46 @@ export default function OnboardingWizardPage() {
   const departments = useQuantersStore((s) => s.departments);
   const teams = useQuantersStore((s) => s.teams);
   const members = useQuantersStore((s) => s.members);
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const completeFirstTimeProfile = useQuantersStore(
     (s) => s.completeFirstTimeProfile
   );
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
 
-  const currentMember =
-    members.find((m) => m.id === currentMemberId) || members[0];
+  const rawSessionMember =
+    isAuthenticated && currentMemberId
+      ? members.find((m) => m.id === currentMemberId)
+      : undefined;
+  // Only pre-fill if the user just registered a fresh incomplete Trainee account on /welcome
+  const existingMember =
+    rawSessionMember &&
+    !rawSessionMember.onboardingTicks?.profileComplete &&
+    !rawSessionMember.isBureauMember
+      ? rawSessionMember
+      : undefined;
+  const currentMember = existingMember || FALLBACK_SESSION_MEMBER;
 
   const [step, setStep] = useState<number>(1);
 
   // Step 1: Identity & Avatar
-  const [fullName, setFullName] = useState(currentMember.fullName);
-  const [email, setEmail] = useState(currentMember.email);
-  const [phone, setPhone] = useState(currentMember.phone);
+  const [fullName, setFullName] = useState(
+    existingMember ? existingMember.fullName : ""
+  );
+  const [email, setEmail] = useState(
+    existingMember ? existingMember.email : ""
+  );
+  const [phone, setPhone] = useState(
+    existingMember && existingMember.phone !== "+213 550 00 00 00"
+      ? existingMember.phone
+      : ""
+  );
   const [avatarUrl, setAvatarUrl] = useState(currentMember.avatarUrl);
 
   // Step 2: Where You Live & Commute (HR Logistics)
   const [wilaya, setWilaya] = useState(currentMember.wilaya || "Algiers (16)");
   const [commune, setCommune] = useState(
-    currentMember.commune || "Bab Ezzouar"
+    existingMember ? existingMember.commune || "" : ""
   );
   const [housingType, setHousingType] = useState<HousingType>(
     currentMember.housingType || "Family Home"
@@ -144,7 +181,13 @@ export default function OnboardingWizardPage() {
     currentMember.canStayLate ?? true
   );
 
-  // Step 3: University Specialty & Study Level
+  // Step 3: University, Specialty & Study Level
+  const [selectedUniversity, setSelectedUniversity] = useState<string>(
+    UNIVERSITY_OPTIONS.find((u) =>
+      u.toLowerCase().includes((currentMember.university || "").toLowerCase())
+    ) || UNIVERSITY_OPTIONS[0]
+  );
+  const [customUniversity, setCustomUniversity] = useState("");
   const [specialtySearch, setSpecialtySearch] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>(
     UNIVERSITY_SPECIALTIES.find((s) =>
@@ -159,31 +202,28 @@ export default function OnboardingWizardPage() {
     currentMember.tenure || "New Trainee (2026/2027)"
   );
 
-  // Step 4: Personal PC, Equipment & Links
+  // Step 4: Personal PC, Equipment & Links (PC Capability Profile deleted per request)
   const [hasLaptop, setHasLaptop] = useState<boolean>(
     currentMember.hasLaptop ?? true
   );
-  const [pcCapability, setPcCapability] = useState<PcCapability>(
-    currentMember.pcCapability || "Coding & Dev"
-  );
   const [equipmentTags, setEquipmentTags] = useState<string[]>(
-    currentMember.equipmentTags && currentMember.equipmentTags.length > 0
-      ? currentMember.equipmentTags
-      : ["Personal Laptop", "Arduino / Electronics Kit"]
+    existingMember?.equipmentTags && existingMember.equipmentTags.length > 0
+      ? existingMember.equipmentTags
+      : ["Personal Laptop"]
   );
-  const [githubUrl, setGithubUrl] = useState(currentMember.githubUrl || "");
+  const [githubUrl, setGithubUrl] = useState(existingMember?.githubUrl || "");
   const [linkedinUrl, setLinkedinUrl] = useState(
-    currentMember.linkedinUrl || ""
+    existingMember?.linkedinUrl || ""
   );
   const [portfolioUrl, setPortfolioUrl] = useState(
-    currentMember.portfolioUrl || ""
+    existingMember?.portfolioUrl || ""
   );
-  const [cvUrl, setCvUrl] = useState(currentMember.cvUrl || "");
+  const [cvUrl, setCvUrl] = useState(existingMember?.cvUrl || "");
 
   // Step 5: Placement & 7-Day Availability
   const [departmentId, setDepartmentId] = useState(currentMember.departmentId);
   const [teamId, setTeamId] = useState<string | undefined>(
-    currentMember.teamId
+    existingMember?.teamId
   );
   const [availability, setAvailability] = useState<AvailabilityGrid>(
     currentMember.availability
@@ -191,11 +231,13 @@ export default function OnboardingWizardPage() {
 
   // Step 6: Outside Activities & Charter
   const [outsideActivitiesAndVolunteering, setOutsideActivitiesAndVolunteering] =
-    useState(currentMember.outsideActivitiesAndVolunteering);
+    useState(existingMember?.outsideActivitiesAndVolunteering || "");
   const [declaresOtherStudentOrg, setDeclaresOtherStudentOrg] = useState(
-    currentMember.declaresOtherStudentOrg
+    Boolean(existingMember?.declaresOtherStudentOrg)
   );
   const [charterConfirmed, setCharterConfirmed] = useState(false);
+  const [showInternalLaw, setShowInternalLaw] = useState(false);
+  const [lawChapterFilter, setLawChapterFilter] = useState<string>("ALL");
 
   const filteredSpecialties = useMemo(() => {
     const q = specialtySearch.trim().toLowerCase();
@@ -203,9 +245,19 @@ export default function OnboardingWizardPage() {
     return UNIVERSITY_SPECIALTIES.filter((s) => s.toLowerCase().includes(q));
   }, [specialtySearch]);
 
+  const normalizeDayHourlySlots = (
+    daySlots: TimeSlot[] | undefined
+  ): TimeSlot[] => {
+    const raw = daySlots || [];
+    const expanded = SLOTS.filter((slotKey) =>
+      isMemberAvailableInSlot(raw, slotKey)
+    );
+    return Array.from(new Set(expanded));
+  };
+
   const toggleSlot = (day: DayOfWeek, slot: TimeSlot) => {
     setAvailability((prev) => {
-      const daySlots = prev[day] || [];
+      const daySlots = normalizeDayHourlySlots(prev[day]);
       const exists = daySlots.includes(slot);
       return {
         ...prev,
@@ -216,16 +268,33 @@ export default function OnboardingWizardPage() {
     });
   };
 
+  const toggleAllDaySlots = (day: DayOfWeek) => {
+    setAvailability((prev) => {
+      const daySlots = normalizeDayHourlySlots(prev[day]);
+      const allSelected = daySlots.length === SLOTS.length;
+      return {
+        ...prev,
+        [day]: allSelected ? [] : [...SLOTS],
+      };
+    });
+  };
+
   const toggleEquipmentTag = (tag: string) => {
     setEquipmentTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
-  const totalSelectedSlots = Object.values(availability).reduce(
-    (acc, list) => acc + list.length,
+  const totalSelectedSlots = DAYS.reduce(
+    (acc, d) => acc + normalizeDayHourlySlots(availability[d]).length,
     0
   );
+
+  const effectiveUniversity =
+    selectedUniversity === "Other University / Higher School" &&
+    customUniversity.trim()
+      ? customUniversity.trim()
+      : selectedUniversity.replace(/\s*\(.*?\)\s*$/, "");
 
   const effectiveMajor =
     selectedSpecialty === "Other Scientific / Technical Major" &&
@@ -235,11 +304,17 @@ export default function OnboardingWizardPage() {
 
   const handleFinish = async () => {
     if (!charterConfirmed) return;
+    const validEmail = validateEmail(email);
+    if (!fullName.trim() || !validEmail.isValid) {
+      setStep(1);
+      return;
+    }
     completeFirstTimeProfile({
-      fullName,
-      email,
-      phone,
+      fullName: fullName.trim(),
+      email: validEmail.normalized,
+      phone: phone.trim(),
       avatarUrl,
+      university: effectiveUniversity,
       major: effectiveMajor,
       academicYear,
       tenure,
@@ -251,7 +326,7 @@ export default function OnboardingWizardPage() {
       commuteTime,
       canStayLate,
       hasLaptop,
-      pcCapability: hasLaptop ? pcCapability : "No Personal PC",
+      pcCapability: hasLaptop ? "Coding & Dev" : "No Personal PC",
       equipmentTags,
       githubUrl: githubUrl.trim() || undefined,
       linkedinUrl: linkedinUrl.trim() || undefined,
@@ -261,7 +336,7 @@ export default function OnboardingWizardPage() {
       outsideActivitiesAndVolunteering,
       declaresOtherStudentOrg,
     });
-    await syncWithServer();
+    await syncWithServer(true);
     router.push("/home");
   };
 
@@ -269,10 +344,10 @@ export default function OnboardingWizardPage() {
     return (
       <MobileAppShell hideBottomNav>
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-rise">
-          <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-sm mb-4">
-            <Lock className="w-8 h-8" />
+          <div className="w-14 h-14 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] text-[#182C4E] flex items-center justify-center shadow-2xs mb-4">
+            <Lock className="w-7 h-7 text-[#0284C7]" />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900">
+          <h1 className="font-display text-xl font-black text-[#0F1E36]">
             Member Registration Paused
           </h1>
           <p className="mt-2 text-xs text-slate-600 leading-relaxed max-w-xs">
@@ -281,10 +356,10 @@ export default function OnboardingWizardPage() {
           </p>
           <Link
             href="/home"
-            className="mt-6 w-full max-w-xs h-11 rounded-xl bg-[#1D63EB] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:bg-blue-700 active:scale-[0.98] transition"
+            className="mt-6 w-full max-w-xs h-11 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/70 text-white font-display text-xs font-black flex items-center justify-center gap-2 shadow-sm hover:brightness-110 active:scale-[0.98] transition"
           >
             <span>Return to Member Home</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 text-[#7DD3FC]" />
           </Link>
         </div>
       </MobileAppShell>
@@ -294,8 +369,8 @@ export default function OnboardingWizardPage() {
   const STEP_META = [
     { num: 1, title: "Identity & Avatar", icon: UserCheck },
     { num: 2, title: "Residence & Commute", icon: Home },
-    { num: 3, title: "Specialty & Study Level", icon: GraduationCap },
-    { num: 4, title: "Personal PC & Links", icon: Laptop },
+    { num: 3, title: "University & Specialty", icon: GraduationCap },
+    { num: 4, title: "Equipment & Links", icon: Laptop },
     { num: 5, title: "Placement & Availability", icon: Building2 },
     { num: 6, title: "Activities & Charter", icon: ShieldCheck },
   ];
@@ -305,29 +380,29 @@ export default function OnboardingWizardPage() {
 
   return (
     <MobileAppShell hideBottomNav>
-      <div className="flex-1 flex flex-col px-4 pt-3 pb-6 sm:px-6">
-        {/* Top Navigation Bar */}
+      <div className="flex-1 flex flex-col px-4 pt-2.5 pb-6 sm:px-5 space-y-3">
+        {/* Top Editorial Bar matching Member App */}
         <div
-          className="flex items-center justify-between mb-3 animate-rise"
+          className="flex items-center justify-between animate-rise"
           style={{ animationDelay: "0ms" }}
         >
           <Link
             href="/welcome"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 active:scale-[0.98] transition"
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Welcome</span>
           </Link>
-          <QuantaLogo size={28} showWordmark variant="light" />
-          <span className="text-[11px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2.5 py-0.5 rounded-full tabular-nums">
-            Step {step} of 6
+          <QuantaLogo size={26} showWordmark variant="light" />
+          <span className="text-[11px] font-mono font-extrabold text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2.5 py-0.5 rounded-lg tabular-nums">
+            Step {step} / 6
           </span>
         </div>
 
         {/* 6-Segment Interactive Progress Bar */}
         <div
-          className="grid grid-cols-6 gap-1.5 mb-3.5 animate-rise"
-          style={{ animationDelay: "40ms" }}
+          className="grid grid-cols-6 gap-1.5 animate-rise"
+          style={{ animationDelay: "30ms" }}
         >
           {STEP_META.map((s) => (
             <button
@@ -335,41 +410,43 @@ export default function OnboardingWizardPage() {
               type="button"
               onClick={() => setStep(s.num)}
               className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                s.num <= step ? "bg-[#1D63EB]" : "bg-slate-200 hover:bg-slate-300"
+                s.num <= step
+                  ? "bg-gradient-to-r from-[#182C4E] to-[#0284C7]"
+                  : "bg-slate-200/90 hover:bg-slate-300"
               }`}
               title={s.title}
             />
           ))}
         </div>
 
-        {/* Step Title Banner */}
+        {/* Step Title Banner — Unified Cosmic Slate-Navy Member App Style */}
         <div
-          className="rounded-2xl bg-gradient-to-br from-[#062456] via-[#0A3882] to-[#1258C7] text-white p-5 shadow-[0_12px_36px_rgba(6,36,86,0.18)] border border-white/20 mb-4 flex items-center justify-between animate-rise"
-          style={{ animationDelay: "80ms" }}
+          className="rounded-xl bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white p-4 shadow-[0_10px_28px_rgba(15,30,54,0.16)] border border-[#2B4875]/75 flex items-center justify-between gap-3 animate-rise"
+          style={{ animationDelay: "60ms" }}
         >
-          <div>
-            <span className="text-[10px] font-mono font-extrabold uppercase tracking-wider text-[#38E4FF] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Member Registration · Academic Dossier</span>
+          <div className="min-w-0">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#7DD3FC] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
+              <span>MEMBER REGISTRATION · ACADEMIC DOSSIER</span>
             </span>
-            <h1 className="text-base sm:text-lg font-black mt-1">
+            <h1 className="font-display text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
               {step}. {currentMeta.title}
             </h1>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#38E4FF] shrink-0">
-            <StepIcon className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-white/10 border border-[#7DD3FC]/35 flex items-center justify-center text-[#7DD3FC] shrink-0">
+            <StepIcon className="w-4 h-4" />
           </div>
         </div>
 
-        {/* Step Body Card */}
+        {/* Step Body Card — Crisp Member App Surface */}
         <div
-          className="flex-1 bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-5 sm:p-6 shadow-[0_8px_32px_rgba(9,25,47,0.06)] flex flex-col justify-between animate-rise"
-          style={{ animationDelay: "120ms" }}
+          className="flex-1 bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_4px_18px_rgba(15,30,54,0.05)] flex flex-col justify-between animate-rise"
+          style={{ animationDelay: "90ms" }}
         >
           {/* STEP 1: Identity & Avatar */}
           {step === 1 && (
             <div className="space-y-3.5">
-              <div className="p-3 rounded-xl bg-[#EBF3FC] border border-[#E2EDF8]">
+              <div className="p-3 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5]">
                 <AvatarUploader
                   currentAvatarUrl={avatarUrl}
                   onAvatarCompressed={(url) => setAvatarUrl(url)}
@@ -377,43 +454,43 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1">
                   Full Name (Official University Record)
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1D63EB]"
-                  placeholder="e.g. Ayoub Sarri"
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
+                  placeholder="Full Name"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                  <Mail className="w-3.5 h-3.5 text-[#1D63EB]" />
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>University / Personal Email</span>
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1D63EB]"
-                  placeholder="ayoub.sarri@univ-alger.dz"
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
+                  placeholder="name@univ-alger.dz"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-[#1D63EB]" />
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Phone Number (WhatsApp / Emergency)</span>
                 </label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1D63EB]"
-                  placeholder="+213 558 42 19 04"
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
+                  placeholder="+213 5XX XX XX XX"
                 />
               </div>
             </div>
@@ -423,7 +500,7 @@ export default function OnboardingWizardPage() {
           {step === 2 && (
             <div className="space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
                   Wilaya of Residence
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -432,10 +509,10 @@ export default function OnboardingWizardPage() {
                       key={w}
                       type="button"
                       onClick={() => setWilaya(w)}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
                         wilaya === w
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB] shadow-sm"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                          ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875] shadow-2xs"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
                       }`}
                     >
                       {w}
@@ -445,21 +522,21 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#1D63EB]" />
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Commune / District</span>
                 </label>
                 <input
                   type="text"
                   value={commune}
                   onChange={(e) => setCommune(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1D63EB]"
-                  placeholder="e.g. Bab Ezzouar, Kouba, Alger Centre, Hydra..."
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
+                  placeholder="e.g. Bab Ezzouar, Alger Centre, Kouba..."
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
                   Housing Type
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
@@ -468,15 +545,15 @@ export default function OnboardingWizardPage() {
                       key={h}
                       type="button"
                       onClick={() => setHousingType(h)}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
+                      className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
                         housingType === h
-                          ? "bg-[#E0F0FF] text-[#094C9C] border-[#1D63EB]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                          ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
                       }`}
                     >
-                      <span className="truncate">{h}</span>
+                      <span>{h}</span>
                       {housingType === h && (
-                        <CheckCircle2 className="w-4 h-4 text-[#1D63EB] shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-[#0284C7] shrink-0" />
                       )}
                     </button>
                   ))}
@@ -484,7 +561,7 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
                   Campus Commute Time
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -493,10 +570,10 @@ export default function OnboardingWizardPage() {
                       key={c}
                       type="button"
                       onClick={() => setCommuteTime(c)}
-                      className={`h-9 rounded-xl text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
+                      className={`h-9 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
                         commuteTime === c
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                          ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875]"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
                       }`}
                     >
                       {c}
@@ -505,9 +582,9 @@ export default function OnboardingWizardPage() {
                 </div>
               </div>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-sky-50/80 border border-sky-200 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
                 <div className="pr-2">
-                  <span className="text-xs font-extrabold text-slate-900 block">
+                  <span className="text-xs font-extrabold text-[#0F1E36] block">
                     Can attend late afternoon or Saturday sessions?
                   </span>
                   <span className="text-[10.5px] text-slate-500">
@@ -518,19 +595,54 @@ export default function OnboardingWizardPage() {
                   type="checkbox"
                   checked={canStayLate}
                   onChange={(e) => setCanStayLate(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#1D63EB] focus:ring-[#1D63EB]"
+                  className="w-4 h-4 rounded text-[#182C4E] focus:ring-[#182C4E]"
                 />
               </label>
             </div>
           )}
 
-          {/* STEP 3: University Specialty & Study Level */}
+          {/* STEP 3: University, Specialty & Study Level */}
           {step === 3 && (
             <div className="space-y-3.5">
+              {/* University / Institution Selector */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Faculty of Sciences & Tech Specialty (26 Official Majors)
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1 flex items-center gap-1.5">
+                  <Landmark className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span>University / Higher Education Institution</span>
                 </label>
+                <select
+                  value={selectedUniversity}
+                  onChange={(e) => setSelectedUniversity(e.target.value)}
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-bold text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
+                >
+                  {UNIVERSITY_OPTIONS.map((univ) => (
+                    <option key={univ} value={univ}>
+                      {univ}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedUniversity === "Other University / Higher School" && (
+                  <input
+                    type="text"
+                    value={customUniversity}
+                    onChange={(e) => setCustomUniversity(e.target.value)}
+                    placeholder="Specify your university or higher school name..."
+                    className="mt-2 w-full h-9 px-3 rounded-lg bg-[#F8FAFC] border border-[#0284C7] text-xs font-semibold text-[#0F1E36] focus:bg-white focus:outline-none"
+                  />
+                )}
+              </div>
+
+              {/* Faculty of Sciences & Tech Specialty (26 Official Majors) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-[#0F1E36]">
+                    Faculty of Sciences &amp; Tech Specialty (26 Official Majors)
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-[#0284C7]">
+                    {filteredSpecialties.length} majors
+                  </span>
+                </div>
                 <div className="relative mb-1.5">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -538,10 +650,10 @@ export default function OnboardingWizardPage() {
                     value={specialtySearch}
                     onChange={(e) => setSpecialtySearch(e.target.value)}
                     placeholder="Filter majors (Physics, AI, Biology, Math, Chemistry...)"
-                    className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#1D63EB]"
+                    className="w-full h-9 pl-8 pr-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#182C4E] transition"
                   />
                 </div>
-                <div className="max-h-[160px] overflow-y-auto space-y-1 pr-1 rounded-xl border border-slate-200 p-1.5 bg-slate-50/60">
+                <div className="max-h-[145px] overflow-y-auto space-y-1 pr-1 rounded-xl border border-slate-200/90 p-1.5 bg-[#F8FAFC]">
                   {filteredSpecialties.map((spec) => {
                     const active = selectedSpecialty === spec;
                     return (
@@ -551,13 +663,13 @@ export default function OnboardingWizardPage() {
                         onClick={() => setSelectedSpecialty(spec)}
                         className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] active:scale-[0.99] transition flex items-center justify-between gap-2 cursor-pointer ${
                           active
-                            ? "bg-[#1D63EB] text-white font-bold shadow-sm"
-                            : "bg-white text-slate-700 hover:bg-sky-50 font-medium border border-slate-100"
+                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white font-extrabold shadow-2xs"
+                            : "bg-white text-slate-700 hover:bg-[#F0F6FF] font-semibold border border-slate-100"
                         }`}
                       >
-                        <span className="truncate">{spec}</span>
+                        <span className="leading-snug">{spec}</span>
                         {active && (
-                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#7DD3FC] shrink-0" />
                         )}
                       </button>
                     );
@@ -570,13 +682,13 @@ export default function OnboardingWizardPage() {
                     value={customMajor}
                     onChange={(e) => setCustomMajor(e.target.value)}
                     placeholder="Specify your exact specialty or faculty..."
-                    className="mt-2 w-full h-9 px-3 rounded-xl border border-[#1D63EB] text-xs font-semibold text-slate-900"
+                    className="mt-2 w-full h-9 px-3 rounded-lg bg-[#F8FAFC] border border-[#0284C7] text-xs font-semibold text-[#0F1E36] focus:bg-white focus:outline-none"
                   />
                 )}
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
                   Academic Study Level
                 </label>
                 <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
@@ -585,10 +697,10 @@ export default function OnboardingWizardPage() {
                       key={yr}
                       type="button"
                       onClick={() => setAcademicYear(yr)}
-                      className={`h-8 rounded-xl text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
+                      className={`h-8 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
                         academicYear === yr
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB] shadow-sm"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                          ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875] shadow-2xs"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
                       }`}
                     >
                       {yr}
@@ -598,7 +710,7 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
                   Club Tenure
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -607,10 +719,10 @@ export default function OnboardingWizardPage() {
                       key={t}
                       type="button"
                       onClick={() => setTenure(t)}
-                      className={`px-2.5 py-2 rounded-xl text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
+                      className={`px-2.5 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
                         tenure === t
-                          ? "bg-[#061E47] text-white border-[#061E47]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                          ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
                       }`}
                     >
                       {t}
@@ -621,12 +733,12 @@ export default function OnboardingWizardPage() {
             </div>
           )}
 
-          {/* STEP 4: Personal PC, Equipment & Links */}
+          {/* STEP 4: Equipment & Professional Links (PC Capability Profile Deleted) */}
           {step === 4 && (
             <div className="space-y-3.5">
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#EBF3FC] border border-[#E2EDF8] cursor-pointer">
+              <label className="flex items-center justify-between p-3.5 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
                 <div className="pr-2">
-                  <span className="text-xs font-extrabold text-[#094C9C] block">
+                  <span className="text-xs font-extrabold text-[#0F1E36] block">
                     Do you have a personal Laptop or PC you can bring to workshops?
                   </span>
                   <span className="text-[10.5px] text-slate-600">
@@ -636,45 +748,14 @@ export default function OnboardingWizardPage() {
                 <input
                   type="checkbox"
                   checked={hasLaptop}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setHasLaptop(checked);
-                    if (!checked) setPcCapability("No Personal PC");
-                    else if (pcCapability === "No Personal PC")
-                      setPcCapability("Coding & Dev");
-                  }}
-                  className="w-4 h-4 rounded text-[#1D63EB] focus:ring-[#1D63EB]"
+                  onChange={(e) => setHasLaptop(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#182C4E] focus:ring-[#182C4E]"
                 />
               </label>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
-                  PC Capability Profile
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {PC_CAPABILITY_OPTIONS.map((cap) => (
-                    <button
-                      key={cap}
-                      type="button"
-                      onClick={() => {
-                        setPcCapability(cap);
-                        setHasLaptop(cap !== "No Personal PC");
-                      }}
-                      className={`h-8 px-2.5 rounded-xl text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
-                        pcCapability === cap
-                          ? "bg-[#1D63EB] text-white border-[#1D63EB]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      {cap}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
-                  Extra Equipment & Hardware
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
+                  Extra Equipment &amp; Hardware
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {EXTRA_EQUIPMENT_OPTIONS.map((eq) => {
@@ -684,16 +765,16 @@ export default function OnboardingWizardPage() {
                         key={eq}
                         type="button"
                         onClick={() => toggleEquipmentTag(eq)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold border active:scale-[0.98] transition cursor-pointer ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
                           active
-                            ? "bg-emerald-600 text-white border-emerald-600"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875]"
+                            : "bg-[#F8FAFC] text-slate-600 border-slate-200/90 hover:border-[#182C4E]/40"
                         }`}
                       >
                         {active ? (
-                          <Check className="w-3 h-3 shrink-0" />
+                          <Check className="w-3 h-3 text-[#7DD3FC] shrink-0" />
                         ) : (
-                          <Plus className="w-3 h-3 shrink-0" />
+                          <Plus className="w-3 h-3 text-slate-400 shrink-0" />
                         )}
                         <span>{eq}</span>
                       </button>
@@ -702,49 +783,49 @@ export default function OnboardingWizardPage() {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-1 border-t border-slate-100">
-                <label className="block text-[11px] font-bold text-slate-700">
-                  Digital Portfolio & Professional Links (Optional)
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="block text-[11px] font-bold text-[#0F1E36]">
+                  Digital Portfolio &amp; Professional Links (Optional)
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="relative">
-                    <FolderGit2 className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <FolderGit2 className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="url"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="GitHub / GitLab (https://github.com/...)"
-                      className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[11px] text-slate-900"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div className="relative">
-                    <Linkedin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Linkedin className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="url"
                       value={linkedinUrl}
                       onChange={(e) => setLinkedinUrl(e.target.value)}
                       placeholder="LinkedIn Profile Link"
-                      className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[11px] text-slate-900"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div className="relative">
-                    <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Globe className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="url"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
                       placeholder="Portfolio / Behance / Drive Link"
-                      className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[11px] text-slate-900"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                   <div className="relative">
-                    <FileText className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <FileText className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="url"
                       value={cvUrl}
                       onChange={(e) => setCvUrl(e.target.value)}
                       placeholder="CV / Academic Resume Link"
-                      className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[11px] text-slate-900"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                     />
                   </div>
                 </div>
@@ -756,7 +837,7 @@ export default function OnboardingWizardPage() {
           {step === 5 && (
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1">
                   Operational Department (Select 1 of 6)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -767,15 +848,15 @@ export default function OnboardingWizardPage() {
                         key={dept.id}
                         type="button"
                         onClick={() => setDepartmentId(dept.id)}
-                        className={`text-left px-2.5 py-2 rounded-xl border text-[11px] active:scale-[0.98] transition flex items-center justify-between gap-1 cursor-pointer ${
+                        className={`text-left px-2.5 py-2 rounded-lg border text-[11px] active:scale-[0.98] transition flex items-center justify-between gap-1 cursor-pointer ${
                           active
-                            ? "bg-[#E0F0FF] border-[#1D63EB] text-[#094C9C] font-extrabold"
-                            : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold"
+                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] border-[#2B4875] text-white font-extrabold shadow-2xs"
+                            : "bg-[#F8FAFC] border-slate-200/90 text-slate-700 hover:border-[#182C4E]/40 font-semibold"
                         }`}
                       >
-                        <span className="truncate">{dept.shortName}</span>
+                        <span className="leading-snug">{dept.shortName}</span>
                         {active && (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#1D63EB] shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#7DD3FC] shrink-0" />
                         )}
                       </button>
                     );
@@ -784,7 +865,7 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1">
                   Scientific Research Team (Optional)
                 </label>
                 <select
@@ -792,9 +873,11 @@ export default function OnboardingWizardPage() {
                   onChange={(e) =>
                     setTeamId(e.target.value ? e.target.value : undefined)
                   }
-                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:border-[#1D63EB]"
+                  className="w-full h-9 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                 >
-                  <option value="">No Scientific Team yet (Department only)</option>
+                  <option value="">
+                    No Scientific Team yet (Department only)
+                  </option>
                   {teams
                     .filter((t) => !t.archived)
                     .map((t) => (
@@ -805,42 +888,67 @@ export default function OnboardingWizardPage() {
                 </select>
               </div>
 
-              <div className="pt-1 border-t border-slate-100">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[11px] font-bold text-slate-700">
-                    7-Day Availability Matrix (Tap free slots)
-                  </span>
-                  <span className="text-[10.5px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2 py-0.5 rounded-full tabular-nums">
-                    {totalSelectedSlots} slots free
+              <div className="pt-1.5 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                  <div>
+                    <span className="text-[11px] font-bold text-[#0F1E36] block">
+                      7-Day Study &amp; Free Hours Matrix (08:00 – 20:00 Hour-by-Hour)
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Tap your free hours between classes (08–09 through 19–20)
+                    </span>
+                  </div>
+                  <span className="text-[10.5px] font-mono font-extrabold text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2.5 py-0.5 rounded-lg tabular-nums">
+                    {totalSelectedSlots} hrs free
                   </span>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-0.5">
                   {DAYS.map((day) => {
-                    const activeSlots = availability[day] || [];
+                    const activeSlots = normalizeDayHourlySlots(
+                      availability[day]
+                    );
+                    const allSelected = activeSlots.length === SLOTS.length;
                     return (
                       <div
                         key={day}
-                        className="flex items-center justify-between gap-2 py-1 px-2 rounded-lg bg-slate-50 border border-slate-200/80"
+                        className="p-2 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5"
                       >
-                        <span className="text-[11px] font-bold text-slate-800 w-16">
-                          {day.slice(0, 3)}
-                        </span>
-                        <div className="flex-1 grid grid-cols-3 gap-1">
-                          {SLOTS.map((slot) => {
-                            const isSelected = activeSlots.includes(slot);
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-extrabold text-[#0F1E36]">
+                            {day}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold text-slate-500 tabular-nums">
+                              {activeSlots.length}/{SLOTS.length} hrs free
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => toggleAllDaySlots(day)}
+                              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-[#0284C7] hover:bg-[#F0F6FF] cursor-pointer transition"
+                            >
+                              {allSelected ? "Clear" : "All Day"}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
+                          {STUDY_HOUR_SLOTS.map((slotMeta) => {
+                            const isSelected = activeSlots.includes(
+                              slotMeta.key
+                            );
                             return (
                               <button
-                                key={slot}
+                                key={slotMeta.key}
                                 type="button"
-                                onClick={() => toggleSlot(day, slot)}
-                                className={`h-6.5 py-1 rounded-md text-[10px] font-extrabold active:scale-[0.98] transition cursor-pointer ${
+                                onClick={() => toggleSlot(day, slotMeta.key)}
+                                className={`py-1.5 px-1 rounded-lg text-[10px] font-mono font-extrabold active:scale-[0.97] transition cursor-pointer text-center ${
                                   isSelected
-                                    ? "bg-[#1D63EB] text-white shadow-sm"
+                                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border border-[#2B4875] shadow-2xs"
                                     : "bg-white text-slate-500 border border-slate-200 hover:border-slate-300"
                                 }`}
                               >
-                                {slot}
+                                {slotMeta.label}
                               </button>
                             );
                           })}
@@ -857,8 +965,8 @@ export default function OnboardingWizardPage() {
           {step === 6 && (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-extrabold text-slate-900 mb-1">
-                  Other Clubs, Associations & Volunteering Experience
+                <label className="block text-xs font-extrabold text-[#0F1E36] mb-1">
+                  Other Clubs, Associations &amp; Volunteering Experience
                 </label>
                 <textarea
                   rows={3}
@@ -866,20 +974,22 @@ export default function OnboardingWizardPage() {
                   onChange={(e) =>
                     setOutsideActivitiesAndVolunteering(e.target.value)
                   }
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#1D63EB]"
+                  className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#182C4E]"
                   placeholder="Share any other student clubs, associations, or volunteering initiatives..."
                 />
               </div>
 
-              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={declaresOtherStudentOrg}
                   onChange={(e) => setDeclaresOtherStudentOrg(e.target.checked)}
-                  className="mt-0.5 rounded text-[#1D63EB] focus:ring-[#1D63EB]"
+                  className="mt-0.5 rounded text-[#182C4E] focus:ring-[#182C4E]"
                 />
                 <span className="text-[11px] text-slate-700 leading-snug">
-                  <strong>I belong to another university student organization</strong>{" "}
+                  <strong>
+                    I belong to another university student organization
+                  </strong>{" "}
                   (Tracked for Executive Board non-duality policy).
                 </span>
               </label>
@@ -895,54 +1005,218 @@ export default function OnboardingWizardPage() {
                 </div>
               )}
 
-              <div className="p-3 rounded-xl bg-[#EBF3FC] border border-[#E2EDF8] text-[11px] space-y-1">
-                <div className="font-extrabold text-[#094C9C] flex items-center gap-1.5 mb-1">
-                  <ShieldCheck className="w-4 h-4 text-[#1D63EB]" />
-                  <span>QUANTA Charter & Registration Summary</span>
+              <div className="p-3 rounded-xl bg-[#F0F6FF]/85 border border-[#D5E3F5] text-[11px] space-y-1">
+                <div className="font-extrabold text-[#182C4E] flex items-center gap-1.5 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
+                  <span>QUANTA Charter &amp; Registration Summary</span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-slate-500">Member & Residence:</span>
-                  <span className="font-bold text-slate-900 text-right">
-                    {fullName} · {commune} ({wilaya})
+                  <span className="text-slate-500">Member &amp; Residence:</span>
+                  <span className="font-bold text-[#0F1E36] text-right">
+                    {fullName || "New Member"} · {commune} ({wilaya})
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-500">University:</span>
+                  <span className="font-bold text-[#0F1E36] text-right">
+                    {effectiveUniversity}
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500">Specialty:</span>
-                  <span className="font-bold text-slate-900 truncate max-w-[220px] text-right">
+                  <span className="font-bold text-[#0F1E36] text-right">
                     {effectiveMajor} ({academicYear})
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-slate-500">PC & Placement:</span>
-                  <span className="font-bold text-[#1D63EB] text-right">
-                    {hasLaptop ? pcCapability : "No PC"} ·{" "}
+                  <span className="text-slate-500">Hardware &amp; Placement:</span>
+                  <span className="font-bold text-[#0284C7] text-right">
+                    {hasLaptop ? "Personal Laptop" : "No Personal PC"} ·{" "}
                     {departments.find((d) => d.id === departmentId)?.shortName}
                   </span>
                 </div>
               </div>
 
-              <label className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={charterConfirmed}
-                  onChange={(e) => setCharterConfirmed(e.target.checked)}
-                  className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-600"
-                />
-                <span className="text-xs font-bold text-emerald-950 leading-snug">
-                  I accept the QUANTA Internal Charter and confirm my academic
-                  and technical registration profile is accurate.
-                </span>
-              </label>
+              <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+                <div className="flex items-start justify-between gap-2.5">
+                  <label className="flex items-start gap-2.5 cursor-pointer flex-1">
+                    <input
+                      type="checkbox"
+                      checked={charterConfirmed}
+                      onChange={(e) => setCharterConfirmed(e.target.checked)}
+                      className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-600"
+                    />
+                    <span className="text-xs font-bold text-emerald-950 leading-snug">
+                      I accept the QUANTA Internal Charter and confirm my
+                      academic and technical registration profile is accurate.
+                    </span>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowInternalLaw((v) => !v)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-[10.5px] font-display font-bold shrink-0 shadow-2xs transition cursor-pointer"
+                  >
+                    <BookOpen className="w-3 h-3 text-[#7DD3FC]" />
+                    <span>
+                      {showInternalLaw
+                        ? "Hide Internal Law"
+                        : "Read Internal Law"}
+                    </span>
+                  </button>
+                </div>
+
+                {showInternalLaw && (
+                  <div className="mt-2 rounded-xl bg-white border border-slate-200/90 shadow-md overflow-hidden animate-rise">
+                    {/* Official Header */}
+                    <div className="bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white p-3.5 border-b border-[#2B4875]/70">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <span className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-[#7DD3FC] flex items-center gap-1">
+                            <Scale className="w-3 h-3" />
+                            <span>OFFICIAL CLUB CHARTER · DECISION N° 44</span>
+                          </span>
+                          <h4 className="font-display text-xs sm:text-sm font-black text-white">
+                            {QUANTA_INTERNAL_LAW_HEADER.titleAr}
+                          </h4>
+                          <p className="text-[10.5px] text-slate-300">
+                            {QUANTA_INTERNAL_LAW_HEADER.facultyAr} ·{" "}
+                            {QUANTA_INTERNAL_LAW_HEADER.cycleAr}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowInternalLaw(false)}
+                          className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white shrink-0 cursor-pointer"
+                          aria-label="Close Internal Law"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Chapter Filter Pills */}
+                      <div className="flex items-center gap-1 overflow-x-auto pt-2.5 pb-0.5 no-scrollbar">
+                        <button
+                          type="button"
+                          onClick={() => setLawChapterFilter("ALL")}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold shrink-0 cursor-pointer transition ${
+                            lawChapterFilter === "ALL"
+                              ? "bg-[#38BDF8] text-[#091526]"
+                              : "bg-white/10 text-slate-200 hover:bg-white/20"
+                          }`}
+                        >
+                          All Chapters (12)
+                        </button>
+                        {QUANTA_INTERNAL_LAW_CHAPTERS.map((ch) => (
+                          <button
+                            key={ch.id}
+                            type="button"
+                            onClick={() => setLawChapterFilter(ch.id)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold shrink-0 cursor-pointer transition ${
+                              lawChapterFilter === ch.id
+                                ? "bg-[#38BDF8] text-[#091526]"
+                                : "bg-white/10 text-slate-200 hover:bg-white/20"
+                            }`}
+                          >
+                            {ch.id === "ch-8-12"
+                              ? "Ch. 8–12"
+                              : `Ch. ${ch.chapterNumber}`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Legal Reference Strip */}
+                    <div
+                      dir="rtl"
+                      className="px-3.5 py-2 bg-[#F8FAFC] border-b border-slate-200/80 text-[10.5px] text-slate-600 leading-relaxed font-medium"
+                    >
+                      {QUANTA_INTERNAL_LAW_HEADER.legalRefAr}
+                    </div>
+
+                    {/* Scrollable Organized Chapters & Articles */}
+                    <div className="max-h-[300px] overflow-y-auto p-3 space-y-3 bg-white">
+                      {QUANTA_INTERNAL_LAW_CHAPTERS.filter(
+                        (ch) =>
+                          lawChapterFilter === "ALL" ||
+                          ch.id === lawChapterFilter
+                      ).map((ch) => (
+                        <div
+                          key={ch.id}
+                          className="rounded-xl border border-slate-200/90 bg-[#F8FAFD] overflow-hidden"
+                        >
+                          <div className="px-3 py-2 bg-[#F0F6FF] border-b border-[#D5E3F5] flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <span
+                              dir="rtl"
+                              className="text-xs font-extrabold text-[#0F1E36]"
+                            >
+                              {ch.chapterTitleAr}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold text-[#0284C7]">
+                              {ch.chapterTitleEn}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 space-y-2">
+                            {ch.articles.map((art) => (
+                              <div
+                                key={art.id}
+                                dir="rtl"
+                                className="p-2.5 rounded-lg bg-white border border-slate-200/80 space-y-1.5 text-right"
+                              >
+                                <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-100 pb-1">
+                                  <span className="text-[11px] font-extrabold text-[#182C4E]">
+                                    {art.articleAr}: {art.titleAr}
+                                  </span>
+                                  <span
+                                    dir="ltr"
+                                    className="text-[9.5px] font-mono font-semibold text-slate-400"
+                                  >
+                                    {art.titleEn}
+                                  </span>
+                                </div>
+                                <ul className="space-y-1 text-[11px] text-slate-700 leading-relaxed list-disc pr-4">
+                                  {art.clausesAr.map((clause, idx) => (
+                                    <li key={idx}>{clause}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Reader Footer */}
+                    <div className="px-3.5 py-2.5 bg-[#F8FAFC] border-t border-slate-200/80 flex items-center justify-between gap-2">
+                      <span className="text-[10.5px] font-mono text-slate-500">
+                        University of Algiers 1 · Faculty of Sciences
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCharterConfirmed(true);
+                          setShowInternalLaw(false);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-display font-bold flex items-center gap-1 cursor-pointer transition"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Accept Charter &amp; Close</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Wizard Navigation Footer */}
-          <div className="pt-4 mt-4 border-t border-slate-200/60 flex items-center justify-between gap-2">
+          {/* Wizard Navigation Footer — Member App Crisp Slate-Navy Style */}
+          <div className="pt-4 mt-4 border-t border-slate-200/70 flex items-center justify-between gap-2">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={() => setStep((s) => s - 1)}
-                className="h-11 px-5 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/80 text-xs font-bold text-slate-700 hover:bg-white active:scale-[0.98] transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                className="h-10 px-4 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-bold text-[#0F1E36] hover:bg-[#F0F6FF] hover:border-[#D5E3F5] active:scale-[0.98] transition flex items-center gap-1.5 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back</span>
@@ -955,23 +1229,23 @@ export default function OnboardingWizardPage() {
               <button
                 type="button"
                 onClick={() => setStep((s) => s + 1)}
-                className="h-11 px-6 rounded-full bg-gradient-to-r from-[#1D63EB] to-[#0A4CC7] hover:opacity-95 text-white text-xs font-black active:scale-[0.98] transition flex items-center gap-1.5 shadow-[0_4px_16px_rgba(29,99,235,0.25)] cursor-pointer"
+                className="h-10 px-5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-1.5 shadow-[0_6px_18px_rgba(16,31,56,0.18)] cursor-pointer"
               >
                 <span>Continue</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC]" />
               </button>
             ) : (
               <button
                 type="button"
                 disabled={!charterConfirmed}
                 onClick={handleFinish}
-                className={`h-11 px-6 rounded-full text-xs font-black active:scale-[0.98] transition flex items-center gap-1.5 shadow-md ${
+                className={`h-10 px-5 rounded-lg font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-1.5 ${
                   charterConfirmed
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-700 hover:opacity-95 text-white cursor-pointer shadow-[0_4px_16px_rgba(16,185,129,0.25)]"
+                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer shadow-[0_6px_18px_rgba(16,31,56,0.2)]"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-[#7DD3FC]" />
                 <span>Complete Registration</span>
               </button>
             )}

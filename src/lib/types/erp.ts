@@ -28,7 +28,50 @@ export type DayOfWeek =
   | "Thursday"
   | "Friday";
 
-export type TimeSlot = "Morning" | "Afternoon" | "Evening";
+export type TimeSlot =
+  | "08-09"
+  | "09-10"
+  | "10-11"
+  | "11-12"
+  | "12-13"
+  | "13-14"
+  | "14-15"
+  | "15-16"
+  | "16-17"
+  | "17-18"
+  | "Morning"
+  | "Afternoon"
+  | "Evening"
+  | (string & {});
+
+export const STUDY_HOUR_SLOTS: {
+  key: TimeSlot;
+  label: string;
+  hours: string;
+  period: "Morning" | "Afternoon" | "Evening";
+}[] = [
+  { key: "08-09", label: "08–09", hours: "08:00–09:00", period: "Morning" },
+  { key: "09-10", label: "09–10", hours: "09:00–10:00", period: "Morning" },
+  { key: "10-11", label: "10–11", hours: "10:00–11:00", period: "Morning" },
+  { key: "11-12", label: "11–12", hours: "11:00–12:00", period: "Morning" },
+  { key: "12-13", label: "12–13", hours: "12:00–13:00", period: "Afternoon" },
+  { key: "13-14", label: "13–14", hours: "13:00–14:00", period: "Afternoon" },
+  { key: "14-15", label: "14–15", hours: "14:00–15:00", period: "Afternoon" },
+  { key: "15-16", label: "15–16", hours: "15:00–16:00", period: "Afternoon" },
+  { key: "16-17", label: "16–17", hours: "16:00–17:00", period: "Evening" },
+  { key: "17-18", label: "17–18", hours: "17:00–18:00", period: "Evening" },
+];
+
+export function isMemberAvailableInSlot(
+  daySlots: TimeSlot[] | undefined,
+  slotKey: TimeSlot
+): boolean {
+  if (!Array.isArray(daySlots) || daySlots.length === 0) return false;
+  if (daySlots.includes(slotKey)) return true;
+  const meta = STUDY_HOUR_SLOTS.find((s) => s.key === slotKey);
+  if (meta && daySlots.includes(meta.period)) return true;
+  return false;
+}
 
 export type AvailabilityGrid = Record<DayOfWeek, TimeSlot[]>;
 
@@ -58,37 +101,88 @@ export type SimplifiedAdminRole =
   | "KPI Viewer";
 
 export type FieldIconKey =
+  // Software, Coding & Computing (Hard Tech)
   | "python"
-  | "arduino"
-  | "astronomy"
-  | "printing"
+  | "web-dev"
   | "data"
   | "ai-ml"
   | "cybersecurity"
-  | "web-dev"
-  | "robotics"
+  | "cloud-devops"
+  | "competitive-programming"
+  | "deep-learning"
+  | "computer-vision"
+  | "mobile-dev"
+  | "database-sql"
+  | "git-open-source"
+
+  // Science & Research (Pure STEM)
+  | "astronomy"
+  | "astrophysics"
   | "quantum"
   | "chemistry"
   | "biotech"
+  | "genetics"
   | "mathematics"
-  | "ui-ux"
-  | "media-photo"
-  | "scientific-writing"
-  | "public-speaking"
-  | "leadership"
-  | "logistics"
-  | "entrepreneurship"
-  | "electronics"
   | "optics"
   | "materials"
+  | "spectroscopy"
+  | "neuroscience"
+  | "microbiology"
+  | "renewable-energy"
+  | "environmental-science"
+  | "scientific-writing"
   | "health"
-  | "energy"
+
+  // Engineering & Hardware (Hard Skills)
+  | "arduino"
+  | "robotics"
+  | "electronics"
+  | "circuit-design"
+  | "printing"
+  | "cad-modeling"
   | "mechanics"
+  | "iot-embedded"
+  | "sensors-telemetry"
+  | "energy"
+
+  // Club Activities & Workshops
+  | "hackathon"
+  | "stargazing"
+  | "science-fair"
+  | "seminar-hosting"
+  | "journal-club"
+  | "science-olympiad"
+  | "field-trip"
+
+  // Leadership & Governance
+  | "club-presidency"
+  | "leadership"
+  | "legal-charter"
+  | "treasury-finance"
+  | "project-management"
+  | "partnership-sponsorship"
   | "sponsorship"
+  | "entrepreneurship"
+  | "logistics"
   | "documentation"
   | "event-ops"
+  | "crisis-management"
+
+  // Soft Skills & Community
+  | "public-speaking"
+  | "debate-speech"
+  | "peer-mentorship"
+  | "science-communication"
+  | "team-collaboration"
+  | "negotiation-diplomacy"
+
+  // Creative, Staging & Media
+  | "ui-ux"
+  | "media-photo"
   | "video"
-  | "audiovisual";
+  | "audiovisual"
+  | "stage-sound-lighting"
+  | "scientific-illustration";
 
 export const UNIVERSITY_SPECIALTIES = [
   "Computer Science (Informatique Générale)",
@@ -219,7 +313,7 @@ export interface Member {
   quanterId: string; // e.g. QT-26-0248
   handle: string; // e.g. @quanter0248
   email: string;
-  password?: string;
+  passwordHash?: string; // One-way salted SHA-256 digest (never plaintext)
   authProvider?: "google" | "credentials";
   fullName: string;
   phone: string;
@@ -457,7 +551,8 @@ export type BadgeCategory =
   | "Hardware & IoT"
   | "Scientific Writing"
   | "Public Speaking"
-  | "Logistics & Ops";
+  | "Logistics & Ops"
+  | (string & {});
 
 export type BadgeEarningMethod = "exam" | "manual" | "project" | "automatic";
 
@@ -477,7 +572,7 @@ export interface ExamQuestion {
   id: string;
   question: string;
   options: string[];
-  correctIndex: number;
+  correctIndex?: number;
 }
 
 export interface BadgeExam {
@@ -507,6 +602,7 @@ export interface ProjectSubmission {
   category: string;
   description: string;
   repoUrl?: string;
+  driveUrl?: string;
   teamMembers: string[];
   fileNames: string[];
   submittedAt: string;
@@ -550,6 +646,14 @@ export type ProposalState =
   | "Changes Requested"
   | "Rejected";
 
+export interface ProposalVote {
+  memberId: string;
+  memberName: string;
+  decision: "Approved" | "Rejected";
+  timestamp: string;
+  comment?: string;
+}
+
 export interface Proposal {
   id: string;
   type: ProposalTypeKey;
@@ -564,6 +668,7 @@ export interface Proposal {
   reviewerScope: "Department Head" | "Executive Board (2/3 Quorum)" | "Executive Board";
   reviewerComment?: string;
   convertedToId?: string;
+  votes?: Record<string, ProposalVote>;
   createdAt: string;
 }
 
@@ -603,9 +708,9 @@ export interface DailyQuizItem {
   scenario?: string;
   question: string;
   options: DailyQuizOption[];
-  correctId: string;
+  correctId?: string;
   verdictTitle: string;
-  explanation: string;
+  explanation?: string;
   xpReward: number;
   dateLabel?: string;
   isPinnedToday?: boolean;
@@ -742,7 +847,6 @@ export interface SystemSettings {
   restrictUniversityEmail?: boolean;
   qrRotationSeconds?: number;
   checkinGraceMinutes?: number;
-  geofenceVerification?: boolean;
   waitlistAutoPromote?: boolean;
   examFreezeMode?: boolean;
   quietHoursEnabled?: boolean;
@@ -758,4 +862,64 @@ export interface SystemSettings {
   deltaSyncOnly?: boolean;
   disableVideoOnCellular?: boolean;
   autoCompactHistoryLimit?: number;
+  // Dynamic Rank & Level Progression Thresholds (Admin Editable CRUD)
+  rankLevels?: RankLevelThreshold[];
+  archivedMembers?: ArchivedMemberRecord[];
+}
+
+export interface RankLevelThreshold {
+  level: number;
+  minXp: number;
+  maxXp?: number;
+  title: string;
+  badgeName?: string;
+  colorHex?: string;
+}
+
+export interface ArchivedMemberRecord {
+  id: string;
+  quanterId: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  departmentId?: string;
+  roles: string[];
+  archivedAt: string;
+  archivedBy: string;
+  reason: string;
+  lastStateSnapshot?: any;
+}
+
+export const DEFAULT_RANK_LEVELS: RankLevelThreshold[] = [
+  { level: 1, minXp: 0, maxXp: 999, title: "Novice Quanter", badgeName: "Novice", colorHex: "#94A3B8" },
+  { level: 2, minXp: 1000, maxXp: 1999, title: "Junior Observer", badgeName: "Observer", colorHex: "#38BDF8" },
+  { level: 3, minXp: 2000, maxXp: 2999, title: "Research Apprentice", badgeName: "Apprentice", colorHex: "#60A5FA" },
+  { level: 4, minXp: 3000, maxXp: 3999, title: "Lab Specialist", badgeName: "Specialist", colorHex: "#34D399" },
+  { level: 5, minXp: 4000, maxXp: 4999, title: "Scientific Pioneer", badgeName: "Pioneer", colorHex: "#2DD4BF" },
+  { level: 6, minXp: 5000, maxXp: 5999, title: "Quantum Scholar", badgeName: "Scholar", colorHex: "#818CF8" },
+  { level: 7, minXp: 6000, maxXp: 6999, title: "Quantum Explorer", badgeName: "Explorer", colorHex: "#A78BFA" },
+  { level: 8, minXp: 7000, maxXp: 7999, title: "Distinguished Fellow", badgeName: "Fellow", colorHex: "#F59E0B" },
+  { level: 9, minXp: 8000, maxXp: 8999, title: "Senior Specialist", badgeName: "Senior Specialist", colorHex: "#FB923C" },
+  { level: 10, minXp: 10000, title: "Quanta Luminary", badgeName: "Luminary", colorHex: "#38E4FF" },
+];
+
+export function getRankForXp(
+  xp: number,
+  customLevels?: RankLevelThreshold[]
+): { level: number; title: string; minXp: number; nextLevelXp: number } {
+  const levels = customLevels && customLevels.length > 0 ? customLevels : DEFAULT_RANK_LEVELS;
+  const sorted = [...levels].sort((a, b) => a.level - b.level);
+  let matched = sorted[0];
+  for (const l of sorted) {
+    if (xp >= l.minXp) {
+      matched = l;
+    }
+  }
+  const next = sorted.find((l) => l.level === matched.level + 1);
+  return {
+    level: matched.level,
+    title: matched.title,
+    minXp: matched.minXp,
+    nextLevelXp: next ? next.minXp : matched.maxXp ? matched.maxXp + 1 : matched.minXp + 2000,
+  };
 }

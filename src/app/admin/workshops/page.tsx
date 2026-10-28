@@ -4,15 +4,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
   Calendar,
+  Check,
   CheckCircle2,
   Clock,
   MapPin,
   Maximize2,
   Minimize2,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
   Sparkles,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -24,7 +27,7 @@ import {
   WorkshopLevel,
   WorkshopStatus,
 } from "@/lib/types/erp";
-import { ALL_FIELD_ICONS, FieldIcon } from "@/components/shared/FieldIcon";
+import { ALL_FIELD_ICONS, FieldIcon, FIELD_CATEGORIES } from "@/components/shared/FieldIcon";
 import {
   handleMemberSelectKeyDown,
   sortMembersByName,
@@ -64,8 +67,11 @@ export default function AdminWorkshopsPage() {
     badges,
     workshopCategories,
     addWorkshopCategory,
+    updateWorkshopCategory,
     deleteWorkshopCategory,
     createWorkshop,
+    updateWorkshop,
+    deleteWorkshop,
     updateWorkshopStatus,
     rotateWorkshopQrCode,
     correctAttendance,
@@ -85,6 +91,8 @@ export default function AdminWorkshopsPage() {
   // Category management state
   const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [editingWorkshopCat, setEditingWorkshopCat] = useState<string | null>(null);
+  const [editingWorkshopCatVal, setEditingWorkshopCatVal] = useState("");
 
   // Create form state
   const [title, setTitle] = useState("");
@@ -92,7 +100,7 @@ export default function AdminWorkshopsPage() {
   const [category, setCategory] = useState<string>("Computer Science & Programming");
   const [iconType, setIconType] = useState<FieldIconKey>("python");
   const [level, setLevel] = useState<WorkshopLevel>("Beginner");
-  const [instructor, setInstructor] = useState("Lotfi Benali & Ayoub Sarri");
+  const [instructor, setInstructor] = useState("");
   const [eventDate, setEventDate] = useState("2026-11-18");
   const [planningOpenDate, setPlanningOpenDate] = useState("2026-11-10");
   const [startTime, setStartTime] = useState("14:00");
@@ -108,6 +116,31 @@ export default function AdminWorkshopsPage() {
   // Activity Icon Picker filter & search
   const [iconCategoryFilter, setIconCategoryFilter] = useState<string>("All");
   const [iconSearch, setIconSearch] = useState<string>("");
+
+  // Edit Workshop state
+  const [editingWorkshop, setEditingWorkshop] = useState<Workshop | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editActivityType, setEditActivityType] = useState<ActivityTypeKey>("Workshop");
+  const [editCategory, setEditCategory] = useState<string>("Computer Science & Programming");
+  const [editIconType, setEditIconType] = useState<FieldIconKey>("python");
+  const [editLevel, setEditLevel] = useState<WorkshopLevel>("Beginner");
+  const [editInstructor, setEditInstructor] = useState("");
+  const [editEventDate, setEditEventDate] = useState("2026-11-18");
+  const [editPlanningOpenDate, setEditPlanningOpenDate] = useState("2026-11-10");
+  const [editStartTime, setEditStartTime] = useState("14:00");
+  const [editEndTime, setEditEndTime] = useState("17:00");
+  const [editLocation, setEditLocation] = useState("Faculty of Sciences · Lab A1");
+  const [editCapacity, setEditCapacity] = useState(30);
+  const [editXpReward, setEditXpReward] = useState(150);
+  const [editDescription, setEditDescription] = useState("");
+  const [editLinkedBadgeId, setEditLinkedBadgeId] = useState<string>("");
+  const [editStatus, setEditStatus] = useState<WorkshopStatus>("Published");
+  const [editIconCategoryFilter, setEditIconCategoryFilter] = useState<string>("All");
+  const [editIconSearch, setEditIconSearch] = useState<string>("");
+
+  // Delete Workshop state
+  const [deletingWorkshop, setDeletingWorkshop] = useState<Workshop | null>(null);
+  const [deleteIsPermanent, setDeleteIsPermanent] = useState(false);
 
   // Projector State
   const [secondsLeft, setSecondsLeft] = useState(30);
@@ -148,8 +181,9 @@ export default function AdminWorkshopsPage() {
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
 
-  // Live amphi digital clock
+  // Live amphi digital clock (Runs ONLY when Projector Display modal is active to prevent page re-renders)
   useEffect(() => {
+    if (!projectorWorkshop) return;
     const updateTime = () => {
       const now = new Date();
       setCurrentTime(
@@ -163,7 +197,7 @@ export default function AdminWorkshopsPage() {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [projectorWorkshop]);
 
   // Lock body scroll when Projector Display is open
   useEffect(() => {
@@ -211,13 +245,17 @@ export default function AdminWorkshopsPage() {
     if (!projectorWorkshopId) return;
     setSecondsLeft(30);
     const interval = setInterval(() => {
+      let shouldRotate = false;
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          rotateWorkshopQrCode(projectorWorkshopId);
+          shouldRotate = true;
           return 30;
         }
         return prev - 1;
       });
+      if (shouldRotate) {
+        rotateWorkshopQrCode(projectorWorkshopId);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [projectorWorkshopId, rotateWorkshopQrCode]);
@@ -269,6 +307,21 @@ export default function AdminWorkshopsPage() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    let computedDateLabel = dateLabel.trim() || "Upcoming";
+    if (eventDate) {
+      try {
+        const parts = eventDate.split("-");
+        if (parts.length === 3) {
+          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        }
+      } catch {
+        computedDateLabel = eventDate;
+      }
+    }
+    const computedTimeRange = startTime && endTime ? `${startTime} - ${endTime}` : (timeRange.trim() || "14:00 - 17:00");
+
     createWorkshop({
       title: title.trim(),
       activityType,
@@ -276,8 +329,8 @@ export default function AdminWorkshopsPage() {
       iconType,
       level,
       instructor: instructor.trim() || "QUANTA Instructor",
-      dateLabel: dateLabel.trim() || "Upcoming",
-      timeRange: timeRange.trim() || "14:00 - 17:00",
+      dateLabel: computedDateLabel,
+      timeRange: computedTimeRange,
       location: location.trim() || "Faculty of Sciences",
       capacity: Number(capacity) || 25,
       xpReward: Number(xpReward) || 120,
@@ -291,6 +344,99 @@ export default function AdminWorkshopsPage() {
     setStatusToast(`Created '${title.trim()}' — Live in Members App!`);
     setTitle("");
     setDescription("");
+  };
+
+  const filteredEditIcons = useMemo(() => {
+    return ALL_FIELD_ICONS.filter((f) => {
+      const matchesCategory =
+        editIconCategoryFilter === "All" || f.category === editIconCategoryFilter;
+      const matchesSearch =
+        !editIconSearch ||
+        f.label.toLowerCase().includes(editIconSearch.toLowerCase()) ||
+        f.code.toLowerCase().includes(editIconSearch.toLowerCase()) ||
+        f.key.toLowerCase().includes(editIconSearch.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [editIconCategoryFilter, editIconSearch]);
+
+  const selectedEditMeta = useMemo(() => {
+    return ALL_FIELD_ICONS.find((f) => f.key === editIconType) || ALL_FIELD_ICONS[0];
+  }, [editIconType]);
+
+  const openEditModal = (ws: Workshop) => {
+    setEditingWorkshop(ws);
+    setEditTitle(ws.title);
+    setEditActivityType((ws.activityType as ActivityTypeKey) || "Workshop");
+    setEditCategory(ws.category || "Computer Science & Programming");
+    setEditIconType(ws.iconType || "python");
+    setEditLevel(ws.level || "Beginner");
+    setEditInstructor(ws.instructor || "");
+    setEditEventDate(ws.eventDate || "2026-11-18");
+    setEditPlanningOpenDate(ws.planningOpenDate || "2026-11-10");
+    setEditStartTime(ws.startTime || "14:00");
+    setEditEndTime(ws.endTime || "17:00");
+    setEditLocation(ws.location || "Faculty of Sciences · Lab A1");
+    setEditCapacity(ws.capacity || 30);
+    setEditXpReward(ws.xpReward || 150);
+    setEditDescription(ws.description || "");
+    setEditLinkedBadgeId(ws.linkedBadgeId || "");
+    setEditStatus(ws.status || "Published");
+    setEditIconCategoryFilter("All");
+    setEditIconSearch("");
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWorkshop || !editTitle.trim()) return;
+
+    let computedDateLabel = editingWorkshop.dateLabel;
+    if (editEventDate) {
+      try {
+        const parts = editEventDate.split("-");
+        if (parts.length === 3) {
+          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        }
+      } catch {
+        computedDateLabel = editEventDate;
+      }
+    }
+    const computedTimeRange = `${editStartTime} - ${editEndTime}`;
+
+    updateWorkshop(editingWorkshop.id, {
+      title: editTitle.trim(),
+      activityType: editActivityType,
+      category: editCategory,
+      iconType: editIconType,
+      level: editLevel,
+      instructor: editInstructor.trim() || "QUANTA Instructor",
+      eventDate: editEventDate,
+      planningOpenDate: editPlanningOpenDate,
+      startTime: editStartTime,
+      endTime: editEndTime,
+      dateLabel: computedDateLabel,
+      timeRange: computedTimeRange,
+      location: editLocation.trim() || "Faculty of Sciences",
+      capacity: Number(editCapacity) || 25,
+      xpReward: Number(editXpReward) || 120,
+      description: editDescription.trim() || "Scientific session with verified check-in.",
+      linkedBadgeId: editLinkedBadgeId || undefined,
+      status: editStatus,
+    });
+
+    setStatusToast(`Updated '${editTitle.trim()}' successfully!`);
+    setEditingWorkshop(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingWorkshop) return;
+    deleteWorkshop(deletingWorkshop.id, deleteIsPermanent);
+    setStatusToast(
+      deleteIsPermanent
+        ? `Permanently deleted '${deletingWorkshop.title}' from database`
+        : `Archived '${deletingWorkshop.title}'`
+    );
+    setDeletingWorkshop(null);
   };
 
   const getStatusBadgeStyle = (status: WorkshopStatus) => {
@@ -413,10 +559,11 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setProjectorWorkshopId(ws.id)}
+                title="Open Projector Display"
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 <Maximize2 className="w-3 h-3 text-[#38E4FF]" />
-                <span>Projector Display</span>
+                <span className="hidden xl:inline">Projector</span>
               </button>
 
               <button
@@ -425,10 +572,34 @@ export default function AdminWorkshopsPage() {
                   setRosterWorkshopId(ws.id);
                   setCorrectionMemberId(sortedMembers[0]?.id || "");
                 }}
+                title="View & manage attendance roster"
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
               >
                 <Users className="w-3 h-3 text-[#0284C7]" />
                 <span>Roster ({ws.attendanceRecords.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openEditModal(ws)}
+                title="Edit Workshop details"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/90 text-xs font-bold transition cursor-pointer"
+              >
+                <Pencil className="w-3 h-3 text-amber-600" />
+                <span>Edit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDeletingWorkshop(ws);
+                  setDeleteIsPermanent(false);
+                }}
+                title="Delete or Archive Workshop"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold transition cursor-pointer"
+              >
+                <Trash2 className="w-3 h-3 text-rose-600" />
+                <span>Delete</span>
               </button>
             </div>
           </td>
@@ -1118,16 +1289,7 @@ export default function AdminWorkshopsPage() {
                 {/* Category Filter Pills & Search */}
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
-                    {(
-                      [
-                        "All",
-                        "Software & Tech",
-                        "Engineering & Hardware",
-                        "Science & Research",
-                        "Creative & Media",
-                        "Leadership & Operations",
-                      ] as const
-                    ).map((cat) => (
+                    {([ "All", ...FIELD_CATEGORIES ] as const).map((cat) => (
                       <button
                         key={cat}
                         type="button"
@@ -1242,7 +1404,7 @@ export default function AdminWorkshopsPage() {
                   type="text"
                   value={instructor}
                   onChange={(e) => setInstructor(e.target.value)}
-                  placeholder="e.g. Lotfi Benali & Ayoub Sarri"
+                  placeholder="Instructor or speaker name"
                   className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
                 />
               </div>
@@ -1404,15 +1566,64 @@ export default function AdminWorkshopsPage() {
                   key={cat}
                   className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
                 >
-                  <span className="font-bold text-slate-800">{cat}</span>
-                  {workshopCategories.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => deleteWorkshopCategory(cat)}
-                      className="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition cursor-pointer"
-                    >
-                      Delete
-                    </button>
+                  {editingWorkshopCat === cat ? (
+                    <div className="flex items-center gap-1.5 flex-1 mr-2">
+                      <input
+                        type="text"
+                        value={editingWorkshopCatVal}
+                        onChange={(e) => setEditingWorkshopCatVal(e.target.value)}
+                        className="px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-semibold w-full"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editingWorkshopCatVal.trim() && editingWorkshopCatVal.trim() !== cat) {
+                            updateWorkshopCategory(cat, editingWorkshopCatVal.trim());
+                          }
+                          setEditingWorkshopCat(null);
+                        }}
+                        className="p-1 hover:text-emerald-700 text-emerald-600 cursor-pointer"
+                        title="Save rename"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingWorkshopCat(null)}
+                        className="p-1 hover:text-slate-700 text-slate-400 cursor-pointer"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-bold text-slate-800">{cat}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingWorkshopCat(cat);
+                            setEditingWorkshopCatVal(cat);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                          title="Rename category"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        {workshopCategories.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => deleteWorkshopCategory(cat)}
+                            className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                            title="Delete category"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               ))}
@@ -1453,6 +1664,476 @@ export default function AdminWorkshopsPage() {
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Workshop Modal */}
+      {editingWorkshop && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-[540px] bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 space-y-4 max-h-[88vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                  <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-[#0F1E36]">
+                    Edit Workshop / Activity
+                  </h3>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    ID: {editingWorkshop.id}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingWorkshop(null)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="Workshop or activity title"
+                  className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl focus:outline-none focus:border-[#182C4E]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Activity Type
+                  </label>
+                  <select
+                    value={editActivityType}
+                    onChange={(e) =>
+                      setEditActivityType(e.target.value as ActivityTypeKey)
+                    }
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  >
+                    <option value="Workshop">Workshop</option>
+                    <option value="Scientific Activity">Scientific Activity</option>
+                    <option value="Lab Session">Lab Session</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Hackathon Prep">Hackathon Prep</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Status Case
+                  </label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) =>
+                      setEditStatus(e.target.value as WorkshopStatus)
+                    }
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-bold"
+                  >
+                    {WORKSHOP_STATUSES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  >
+                    {workshopCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Level
+                  </label>
+                  <select
+                    value={editLevel}
+                    onChange={(e) => setEditLevel(e.target.value as WorkshopLevel)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  >
+                    {LEVELS.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Icon Picker */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Activity Icon &amp; Domain
+                  </label>
+                  {selectedEditMeta && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 border border-sky-200/90 text-xs font-bold text-[#0284C7] shadow-2xs">
+                      <div className={`w-4 h-4 rounded-md ${selectedEditMeta.bgTint} ${selectedEditMeta.textColor} flex items-center justify-center shrink-0`}>
+                        <FieldIcon field={selectedEditMeta.key} size={12} colored />
+                      </div>
+                      <span className="font-semibold text-slate-800">{selectedEditMeta.label}</span>
+                      <span className="text-[10px] font-mono text-sky-500">({selectedEditMeta.code})</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                    {(["All", ...FIELD_CATEGORIES] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setEditIconCategoryFilter(cat)}
+                        className={`px-2 py-0.5 rounded-lg font-medium whitespace-nowrap transition cursor-pointer ${
+                          editIconCategoryFilter === cat
+                            ? "bg-[#182C4E] text-white shadow-2xs"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {cat === "All" ? `All (${ALL_FIELD_ICONS.length})` : cat.split(" & ")[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={editIconSearch}
+                    onChange={(e) => setEditIconSearch(e.target.value)}
+                    placeholder="Search icon..."
+                    className="w-28 sm:w-32 px-2 py-0.5 text-[11px] bg-white border border-slate-200/90 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0284C7]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-6 sm:grid-cols-7 gap-1.5 max-h-36 overflow-y-auto p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                  {filteredEditIcons.map((f) => {
+                    const isSelected = editIconType === f.key;
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => setEditIconType(f.key)}
+                        title={`${f.label} (${f.code}) · ${f.category}`}
+                        className={`group relative flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-white border-[#0284C7] ring-2 ring-[#0284C7]/20 shadow-sm"
+                            : "bg-white/60 hover:bg-white border-slate-200/70 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg ${f.bgTint} ${f.textColor} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <FieldIcon field={f.key} size={16} colored />
+                        </div>
+                        <span className="text-[9px] font-mono font-bold text-slate-600 truncate w-full mt-1">
+                          {f.code}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Instructor & Linked Badge */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Instructor(s)
+                  </label>
+                  <input
+                    type="text"
+                    value={editInstructor}
+                    onChange={(e) => setEditInstructor(e.target.value)}
+                    placeholder="Instructor or speaker name"
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Linked Badge
+                  </label>
+                  <select
+                    value={editLinkedBadgeId}
+                    onChange={(e) => setEditLinkedBadgeId(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  >
+                    <option value="">None</option>
+                    {badges.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Dates & Times */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Event Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={editEventDate}
+                    onChange={(e) => setEditEventDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Planning Open Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editPlanningOpenDate}
+                    onChange={(e) => setEditPlanningOpenDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    required
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    required
+                    value={editEndTime}
+                    onChange={(e) => setEditEndTime(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Capacity
+                  </label>
+                  <input
+                    type="number"
+                    min={5}
+                    max={300}
+                    value={editCapacity}
+                    onChange={(e) => setEditCapacity(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    XP Reward
+                  </label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={500}
+                    value={editXpReward}
+                    onChange={(e) => setEditXpReward(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingWorkshop(null)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold cursor-pointer hover:brightness-110 shadow-xs"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Workshop Confirmation Modal */}
+      {deletingWorkshop && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4 animate-rise">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center">
+                  <Trash2 className="w-4 h-4 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-[#0F1E36]">
+                    Delete Workshop
+                  </h3>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    ID: {deletingWorkshop.id}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingWorkshop(null)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <div className="text-xs font-black text-[#0F1E36]">
+                {deletingWorkshop.title}
+              </div>
+              <div className="text-[11px] text-slate-500 font-mono">
+                {deletingWorkshop.dateLabel} · {deletingWorkshop.timeRange} · {deletingWorkshop.location}
+              </div>
+              <div className="flex items-center gap-2 pt-1 text-[10px] text-slate-600">
+                <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200 font-bold">
+                  {deletingWorkshop.attendanceRecords.length} Attendance Records
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200 font-bold">
+                  {deletingWorkshop.registeredMemberIds?.length || 0} Registered Members
+                </span>
+              </div>
+            </div>
+
+            {/* Deletion Mode Selector */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Select Action:
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setDeleteIsPermanent(false)}
+                className={`w-full p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                  !deleteIsPermanent
+                    ? "bg-amber-50/70 border-amber-300 ring-2 ring-amber-300/30"
+                    : "bg-white border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0 ${
+                  !deleteIsPermanent ? "border-amber-600 bg-amber-600" : "border-slate-300"
+                }`}>
+                  {!deleteIsPermanent && <Check className="w-2.5 h-2.5 text-white" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-amber-950">
+                    Archive Workshop (Recommended)
+                  </div>
+                  <div className="text-[11px] text-amber-800/80 leading-relaxed mt-0.5">
+                    Hides the workshop from active mobile lists while preserving all attendance logs and member XP earned.
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeleteIsPermanent(true)}
+                className={`w-full p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                  deleteIsPermanent
+                    ? "bg-rose-50/70 border-rose-300 ring-2 ring-rose-300/30"
+                    : "bg-white border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0 ${
+                  deleteIsPermanent ? "border-rose-600 bg-rose-600" : "border-slate-300"
+                }`}>
+                  {deleteIsPermanent && <Check className="w-2.5 h-2.5 text-white" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-rose-950">
+                    Permanently Delete from Database
+                  </div>
+                  <div className="text-[11px] text-rose-800/80 leading-relaxed mt-0.5">
+                    Completely purges this workshop from cloud storage and state snapshots. This action cannot be undone.
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeletingWorkshop(null)}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className={`px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer transition shadow-xs ${
+                  deleteIsPermanent
+                    ? "bg-rose-600 hover:bg-rose-700"
+                    : "bg-amber-600 hover:bg-amber-700"
+                }`}
+              >
+                {deleteIsPermanent ? "Permanently Delete" : "Archive Workshop"}
               </button>
             </div>
           </div>

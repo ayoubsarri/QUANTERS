@@ -55,7 +55,7 @@ export function AvatarUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#1D63EB] text-white flex items-center justify-center shadow-md hover:bg-blue-700 transition"
+          className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-[#7DD3FC] border border-[#2B4875] flex items-center justify-center shadow-md hover:brightness-110 transition cursor-pointer"
           title="Upload & auto-compress avatar"
         >
           <Camera className="w-3.5 h-3.5" />
@@ -73,9 +73,9 @@ export function AvatarUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D63EB] bg-[#E0F0FF] px-3 py-1 rounded-full hover:bg-blue-100 transition"
+          className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-3 py-1.5 rounded-lg hover:bg-[#E2EEFC] transition cursor-pointer"
         >
-          <UploadCloud className="w-3.5 h-3.5" />
+          <UploadCloud className="w-3.5 h-3.5 text-[#0284C7]" />
           {compressing ? "Uploading..." : "Change Photo"}
         </button>
       )}

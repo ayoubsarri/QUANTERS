@@ -6,23 +6,18 @@ import {
   GraduationCap,
   Search,
   ExternalLink,
-  ClipboardCopy,
   CheckCircle2,
   Award,
   Sparkles,
   Mail,
-  Calendar,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { Member } from "@/lib/types/erp";
-import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
 
 export default function AdminAlumniPage() {
   const { members, departments, teams } = useQuantersStore();
 
   const [search, setSearch] = useState("");
-  const [copiedLinkMemberId, setCopiedLinkMemberId] = useState<string | null>(null);
-  const [reunionToast, setReunionToast] = useState<string | null>(null);
 
   const alumniList = useMemo(() => {
     return members.filter((m) => m.status === "Alumni");
@@ -43,18 +38,7 @@ export default function AdminAlumniPage() {
     });
   }, [alumniList, search]);
 
-  const handleCopyAlumniLink = (m: Member) => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/welcome`;
-    copyToClipboardReliable(url);
-    setCopiedLinkMemberId(m.id);
-    setTimeout(() => setCopiedLinkMemberId(null), 2500);
-  };
 
-  const handleSendReunionRsvp = (m: Member) => {
-    setReunionToast(`Annual Alumni Gathering RSVP request queued for ${m.fullName}!`);
-    setTimeout(() => setReunionToast(null), 3500);
-  };
 
   return (
     <div className="space-y-6">
@@ -82,12 +66,7 @@ export default function AdminAlumniPage() {
         </Link>
       </div>
 
-      {reunionToast && (
-        <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold flex items-center gap-2 animate-rise">
-          <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
-          <span>{reunionToast}</span>
-        </div>
-      )}
+
 
       {/* KPI Stats Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -235,31 +214,14 @@ export default function AdminAlumniPage() {
                       </td>
 
                       <td className="py-3 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyAlumniLink(m)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-                            title="Copy Direct App Access Link"
-                          >
-                            <ClipboardCopy className="w-3 h-3" />
-                            <span>{copiedLinkMemberId === m.id ? "Copied!" : "Copy Link"}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleSendReunionRsvp(m)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition cursor-pointer"
-                            title="Send Annual Gathering RSVP"
-                          >
-                            <Calendar className="w-3 h-3" />
-                            <span>Gathering RSVP</span>
-                          </button>
+                        <div className="flex items-center justify-end">
                           <Link
                             href={`/admin/members/${m.id}`}
-                            className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
                             title="Open Member Profile Card"
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>View Profile</span>
+                            <ExternalLink className="w-3 h-3 text-slate-400" />
                           </Link>
                         </div>
                       </td>

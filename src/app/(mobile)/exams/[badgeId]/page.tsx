@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
@@ -22,8 +22,14 @@ type ExamPhase = "lobby" | "running" | "result";
 
 export default function BadgeExamPage() {
   const params = useParams<{ badgeId: string }>();
+  const pathname = usePathname();
   const router = useRouter();
-  const badgeId = params?.badgeId || "exam-astrophysics";
+  const rawBadgeId = params?.badgeId || "";
+  const pathLastSegment = (pathname || "").split("/").filter(Boolean).pop() || "";
+  const badgeId =
+    rawBadgeId && rawBadgeId !== "exam"
+      ? rawBadgeId
+      : pathLastSegment || rawBadgeId;
 
   const exams = useQuantersStore((s) => s.exams);
   const badges = useQuantersStore((s) => s.badges);
@@ -48,13 +54,7 @@ export default function BadgeExamPage() {
   useEffect(() => {
     if (phase !== "running") return;
     const interval = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
   }, [phase]);
@@ -90,7 +90,7 @@ export default function BadgeExamPage() {
     const totalQuestions = exam.questions.length;
     let correctCount = 0;
     exam.questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctIndex) {
+      if (q.correctIndex !== undefined && selectedAnswers[q.id] === q.correctIndex) {
         correctCount += 1;
       }
     });
@@ -486,9 +486,11 @@ export default function BadgeExamPage() {
                           {isCorrect ? "Correct" : "Incorrect"}
                         </span>
                       </div>
-                      <p className="text-[11px] text-emerald-700 font-semibold">
-                        Correct Answer: {q.options[q.correctIndex]}
-                      </p>
+                      {q.correctIndex !== undefined && (
+                        <p className="text-[11px] text-emerald-700 font-semibold">
+                          Correct Answer: {q.options[q.correctIndex]}
+                        </p>
+                      )}
                     </div>
                   );
                 })}

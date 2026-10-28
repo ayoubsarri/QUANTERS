@@ -61,6 +61,8 @@ const QUOTE_CATEGORIES: QuoteCategory[] = [
 export default function AdminExplorePage() {
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const createExplorePost = useQuantersStore((s) => s.createExplorePost);
+  const updateExplorePost = useQuantersStore((s) => s.updateExplorePost);
+  const deleteExplorePost = useQuantersStore((s) => s.deleteExplorePost);
   const updateExplorePostStatus = useQuantersStore(
     (s) => s.updateExplorePostStatus
   );
@@ -99,19 +101,50 @@ export default function AdminExplorePage() {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [createOpen, setCreateOpen] = useState<boolean>(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [category, setCategory] = useState<ExploreCategory>("Scientific News");
   const [tagLabel, setTagLabel] = useState("ASTRONOMY");
-  const [tagTone] = useState<ExplorePost["tagTone"]>("sky");
+  const [tagTone, setTagTone] = useState<ExplorePost["tagTone"]>("sky");
   const [source, setSource] = useState("QUANTA Editorial");
   const [readTime, setReadTime] = useState("3 min read");
   const [imageUrl, setImageUrl] = useState(
     "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80"
   );
   const [featuredInCarousel, setFeaturedInCarousel] = useState(true);
-  const [externalUrl] = useState("");
+  const [externalUrl, setExternalUrl] = useState("");
+
+  const openCreateArticleModal = () => {
+    setEditingPostId(null);
+    setTitle("");
+    setSummary("");
+    setCategory("Scientific News");
+    setTagLabel("SCIENCE");
+    setTagTone("sky");
+    setSource("QUANTA Editorial");
+    setReadTime("4 min read");
+    setImageUrl("https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80");
+    setFeaturedInCarousel(true);
+    setExternalUrl("");
+    setCreateOpen(true);
+  };
+
+  const openEditArticleModal = (post: ExplorePost) => {
+    setEditingPostId(post.id);
+    setTitle(post.title);
+    setSummary(post.summary);
+    setCategory(post.category);
+    setTagLabel(post.tagLabel);
+    setTagTone(post.tagTone || "sky");
+    setSource(post.source);
+    setReadTime(post.readTime);
+    setImageUrl(post.imageUrl);
+    setFeaturedInCarousel(Boolean(post.featuredInCarousel));
+    setExternalUrl(post.externalUrl || "");
+    setCreateOpen(true);
+  };
 
   // --- TAB 2: DAILY QUIZ STATE ---
   const [editingQuiz, setEditingQuiz] = useState<DailyQuizItem | null>(null);
@@ -210,26 +243,45 @@ export default function AdminExplorePage() {
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !summary.trim()) return;
-    createExplorePost({
-      title: title.trim(),
-      summary: summary.trim(),
-      category,
-      tagLabel: tagLabel.trim().toUpperCase() || "SCIENCE",
-      tagTone,
-      source: source.trim() || "QUANTA",
-      readTime: readTime.trim() || "3 min read",
-      date: "Oct 26, 2026",
-      imageUrl:
-        imageUrl.trim() ||
-        "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
-      featuredInCarousel,
-      status: "Published",
-      externalUrl: externalUrl.trim() || undefined,
-    });
+    if (editingPostId) {
+      updateExplorePost(editingPostId, {
+        title: title.trim(),
+        summary: summary.trim(),
+        category,
+        tagLabel: tagLabel.trim().toUpperCase() || "SCIENCE",
+        tagTone,
+        source: source.trim() || "QUANTA",
+        readTime: readTime.trim() || "3 min read",
+        imageUrl:
+          imageUrl.trim() ||
+          "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
+        featuredInCarousel,
+        externalUrl: externalUrl.trim() || undefined,
+      });
+      setBanner(`Updated article '${title.trim()}'!`);
+    } else {
+      createExplorePost({
+        title: title.trim(),
+        summary: summary.trim(),
+        category,
+        tagLabel: tagLabel.trim().toUpperCase() || "SCIENCE",
+        tagTone,
+        source: source.trim() || "QUANTA",
+        readTime: readTime.trim() || "3 min read",
+        date: "Oct 26, 2026",
+        imageUrl:
+          imageUrl.trim() ||
+          "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
+        featuredInCarousel,
+        status: "Published",
+        externalUrl: externalUrl.trim() || undefined,
+      });
+      setBanner("New Explore article published to the club feed!");
+    }
+    setEditingPostId(null);
     setTitle("");
     setSummary("");
     setCreateOpen(false);
-    setBanner("New Explore article published to the club feed!");
   };
 
   const handleCreateDailyQuiz = (e: React.FormEvent) => {
@@ -347,7 +399,7 @@ export default function AdminExplorePage() {
               {activeTab === "articles" && (
                 <button
                   type="button"
-                  onClick={() => setCreateOpen(true)}
+                  onClick={openCreateArticleModal}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
@@ -536,39 +588,82 @@ export default function AdminExplorePage() {
                     </div>
                   </div>
 
-                  <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200/70 flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-500">
-                      Lifecycle State:
-                    </span>
-                    <select
-                      value={post.status}
-                      onChange={(e) => {
-                        const next = e.target.value as ExplorePost["status"];
-                        updateExplorePostStatus(post.id, next);
-                        setBanner(
-                          `Updated '${post.title}' lifecycle status to ${next}.`
-                        );
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border cursor-pointer ${
-                        post.status === "Published"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : post.status === "Review"
-                          ? "bg-amber-50 text-amber-800 border-amber-200"
-                          : post.status === "Draft"
-                          ? "bg-slate-100 text-slate-700 border-slate-200"
-                          : "bg-slate-200 text-slate-500 border-slate-300"
-                      }`}
-                    >
-                      {POST_STATUSES.map((st) => (
-                        <option
-                          key={st}
-                          value={st}
-                          className="bg-white text-slate-800"
-                        >
-                          {st}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200/70 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={post.status}
+                        onChange={(e) => {
+                          const next = e.target.value as ExplorePost["status"];
+                          updateExplorePostStatus(post.id, next);
+                          setBanner(
+                            `Updated '${post.title}' lifecycle status to ${next}.`
+                          );
+                        }}
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold border cursor-pointer ${
+                          post.status === "Published"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : post.status === "Review"
+                            ? "bg-amber-50 text-amber-800 border-amber-200"
+                            : post.status === "Draft"
+                            ? "bg-slate-100 text-slate-700 border-slate-200"
+                            : "bg-slate-200 text-slate-500 border-slate-300"
+                        }`}
+                      >
+                        {POST_STATUSES.map((st) => (
+                          <option
+                            key={st}
+                            value={st}
+                            className="bg-white text-slate-800"
+                          >
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateExplorePost(post.id, {
+                            featuredInCarousel: !post.featuredInCarousel,
+                          });
+                          setBanner(
+                            post.featuredInCarousel
+                              ? `Removed '${post.title}' from Hero Carousel.`
+                              : `Featured '${post.title}' in Top Hero Carousel!`
+                          );
+                        }}
+                        title="Toggle Hero Carousel"
+                        className={`p-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${
+                          post.featuredInCarousel
+                            ? "bg-amber-50 border-amber-200 text-amber-700"
+                            : "bg-white border-slate-200 text-slate-400 hover:text-slate-700"
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openEditArticleModal(post)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-[#0284C7]" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteExplorePost(post.id);
+                          setBanner(`Deleted article '${post.title}'.`);
+                        }}
+                        title="Delete Article"
+                        className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -632,6 +727,34 @@ export default function AdminExplorePage() {
               </div>
             </div>
 
+            {filteredQuizzes.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-10 text-center space-y-2.5">
+                <HelpCircle className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-sm font-extrabold text-[#0F1E36]">
+                  No Daily Quizzes Created Yet
+                </p>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Create interactive daily scientific quizzes that appear inside the Member Explore feed.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingQuiz(null);
+                    setQuizDomain("");
+                    setQuizQuestion("");
+                    setOptALabel("");
+                    setOptBLabel("");
+                    setOptCLabel("");
+                    setQuizVerdictTitle("");
+                    setQuizModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:bg-[#101F38] transition cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Create First Daily Quiz</span>
+                </button>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredQuizzes.map((quiz, idx) => (
                 <div
@@ -713,19 +836,17 @@ export default function AdminExplorePage() {
                         >
                           {quiz.active ? "Active" : "Hidden"}
                         </button>
-                        {dailyQuizzes.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              deleteDailyQuiz(quiz.id);
-                              setBanner("Deleted daily quiz item.");
-                            }}
-                            aria-label="Delete quiz"
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            deleteDailyQuiz(quiz.id);
+                            setBanner("Deleted daily quiz item.");
+                          }}
+                          aria-label="Delete quiz"
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
 
@@ -773,6 +894,7 @@ export default function AdminExplorePage() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
@@ -1077,7 +1199,9 @@ export default function AdminExplorePage() {
             <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-extrabold">
-                  Create Explore Article / Opportunity
+                  {editingPostId
+                    ? "Edit Explore Article / Dispatch"
+                    : "Create Explore Article / Opportunity"}
                 </h2>
                 <p className="text-xs text-sky-200">
                   Publishes directly to the 4-category Explore Feed on the member app
@@ -1213,9 +1337,9 @@ export default function AdminExplorePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
                 >
-                  Publish Article
+                  {editingPostId ? "Save Article Changes" : "Publish Article"}
                 </button>
               </div>
             </form>
