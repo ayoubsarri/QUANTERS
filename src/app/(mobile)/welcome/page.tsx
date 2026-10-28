@@ -266,7 +266,6 @@ export default function WelcomeSplashPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
   const [savedLogins, setSavedLogins] = useState<SavedLoginEntry[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -621,7 +620,7 @@ export default function WelcomeSplashPage() {
       fullName: fullName.trim(),
       email: validEmail.normalized,
       password,
-      isAlumni: registerAsAlumni,
+      isAlumni: false,
     });
 
     setRegisterLoading(false);
@@ -731,7 +730,7 @@ export default function WelcomeSplashPage() {
             popupRes.email,
             popupRes.fullName,
             popupRes.avatarUrl,
-            registerAsAlumni
+            false
           );
           if (!res.ok) {
             setErrorMsg(res.message || "Unable to register account with Google.");
@@ -1716,32 +1715,6 @@ export default function WelcomeSplashPage() {
                   ) : (
                     <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-1.5 sm:space-y-2">
                       <form onSubmit={handleRegister} noValidate className="space-y-1.5 sm:space-y-2">
-                        {/* Clean Text Selector for Student Member vs Alumni (NO BOX) */}
-                        <div className="flex items-center gap-4 pb-0.5">
-                          <button
-                            type="button"
-                            onClick={() => setRegisterAsAlumni(false)}
-                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
-                              !registerAsAlumni
-                                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                                : "text-slate-400 hover:text-slate-200"
-                            }`}
-                          >
-                            Student Member
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setRegisterAsAlumni(true)}
-                            className={`text-xs font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
-                              registerAsAlumni
-                                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
-                                : "text-slate-400 hover:text-slate-200"
-                            }`}
-                          >
-                            QUANTA Alumni
-                          </button>
-                        </div>
-
                         <div>
                           <label
                             htmlFor="register-fullname"

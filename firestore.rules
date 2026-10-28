@@ -574,7 +574,10 @@ service cloud.firestore {
         'tenure',
         'declaresOtherStudentOrg',
         'onboardingTicks',
-        'birthDate'
+        'birthDate',
+        'graduationYear',
+        'alumniPosition',
+        'alumniAccessEnabled'
       ];
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(safeSelfEditableFields) &&
         areImmutableFieldsUnchanged([

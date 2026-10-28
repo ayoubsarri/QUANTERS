@@ -183,6 +183,10 @@ interface QuantersStoreState {
     major: string;
     academicYear: Member["academicYear"];
     tenure: string;
+    graduationYear?: string;
+    alumniPosition?: string;
+    alumniAccessEnabled?: boolean;
+    isAlumni?: boolean;
     departmentId: string;
     teamId?: string;
     wilaya?: string;
@@ -2154,6 +2158,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         (cleanEmail
           ? state.members.find((m) => m.email.toLowerCase() === cleanEmail)
           : undefined);
+
+      const isAlumniTarget = Boolean(
+        payload.isAlumni ||
+        payload.tenure === "QUANTA Alumni" ||
+        payload.tenure?.toLowerCase().includes("alumni") ||
+        existing?.status === "Alumni"
+      );
+
       if (existing) {
         const nextTeams = payload.teamId
           ? state.teams.map((t) =>
@@ -2165,6 +2177,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         return {
           teams: nextTeams,
           currentMemberId: existing.id,
+          activeAdminRole: isAlumniTarget ? "Alumni" : state.activeAdminRole,
           isAuthenticated: true,
           members: state.members.map((m) =>
             m.id === existing.id
@@ -2176,8 +2189,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   avatarUrl: payload.avatarUrl || m.avatarUrl,
                   university: payload.university || m.university,
                   major: payload.major || m.major,
-                  academicYear: payload.academicYear,
+                  academicYear: isAlumniTarget ? "Graduated" : payload.academicYear,
                   tenure: payload.tenure,
+                  graduationYear: payload.graduationYear || m.graduationYear || (isAlumniTarget ? "2026" : undefined),
+                  alumniPosition: payload.alumniPosition || m.alumniPosition,
+                  alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
+                  status: isAlumniTarget ? "Alumni" : m.status,
+                  roles: isAlumniTarget ? ["Alumni"] : m.roles,
+                  levelTitle: isAlumniTarget ? (m.levelTitle === "Novice Quanter" ? "Quanta Laureate" : m.levelTitle) : m.levelTitle,
+                  level: isAlumniTarget ? Math.max(m.level, 8) : m.level,
+                  xpTotal: isAlumniTarget ? Math.max(m.xpTotal, 1800) : m.xpTotal,
+                  xpSeason: isAlumniTarget ? Math.max(m.xpSeason, 600) : m.xpSeason,
                   departmentId: payload.departmentId,
                   teamId: payload.teamId,
                   wilaya: payload.wilaya ?? m.wilaya,
@@ -2210,7 +2232,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const newId = `mem-${Date.now()}`;
       const newMember: Member = {
         id: newId,
-        quanterId: `QT-26-0${num}`,
+        quanterId: isAlumniTarget ? `QT-23-0${num}` : `QT-26-0${num}`,
         handle: `@quanter0${num}`,
         email: payload.email?.trim() || `member${num}@univ-alger.dz`,
         fullName: payload.fullName?.trim() || "New Quanter",
@@ -2218,11 +2240,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         avatarUrl:
           payload.avatarUrl ||
           "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
-        bio: "Exploring today, a brighter tomorrow.",
+        bio: isAlumniTarget ? "QUANTA Club Alumni" : "Exploring today, a brighter tomorrow.",
         major: payload.major || "Computer Science",
         university: payload.university || "University of Algiers 1",
-        academicYear: payload.academicYear || "L2",
-        tenure: payload.tenure || "New Member",
+        academicYear: isAlumniTarget ? "Graduated" : (payload.academicYear || "L2"),
+        tenure: payload.tenure || (isAlumniTarget ? "Alumni" : "New Member"),
+        graduationYear: payload.graduationYear || (isAlumniTarget ? "2026" : undefined),
+        alumniPosition: payload.alumniPosition || "",
+        alumniAccessEnabled: isAlumniTarget ? (payload.alumniAccessEnabled ?? true) : undefined,
         departmentId: payload.departmentId || "dept-it",
         teamId: payload.teamId,
         wilaya: payload.wilaya,
@@ -2237,20 +2262,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         linkedinUrl: payload.linkedinUrl,
         portfolioUrl: payload.portfolioUrl,
         cvUrl: payload.cvUrl,
-        roles: ["Member"],
+        roles: isAlumniTarget ? ["Alumni"] : ["Member"],
         isBureauMember: false,
-        status: "Trainee",
+        status: isAlumniTarget ? "Alumni" : "Trainee",
         statusSince: new Date().toISOString().slice(0, 10),
         traineeStartDate: new Date().toISOString().slice(0, 10),
-        traineeDaysElapsed: 1,
+        traineeDaysElapsed: isAlumniTarget ? 1000 : 1,
         outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
         declaresOtherStudentOrg: Boolean(payload.declaresOtherStudentOrg),
         availability: payload.availability || DEFAULT_AVAILABILITY,
-        xpTotal: 50,
-        xpSeason: 50,
+        xpTotal: isAlumniTarget ? 1800 : 50,
+        xpSeason: isAlumniTarget ? 600 : 50,
         xpMonth: 50,
-        level: 1,
-        levelTitle: "Novice Quanter",
+        level: isAlumniTarget ? 8 : 1,
+        levelTitle: isAlumniTarget ? "Quanta Laureate" : "Novice Quanter",
         attendanceRate: 100,
         onTimeTaskRate: 100,
         recentActivityScore: 100,

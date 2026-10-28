@@ -7,7 +7,9 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Award,
   BookOpen,
+  Briefcase,
   Building2,
   Check,
   CheckCircle2,
@@ -38,7 +40,7 @@ import {
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { AvatarUploader } from "@/components/shared/AvatarUploader";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
-import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
+import { DEFAULT_AVAILABILITY, FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { validateEmail } from "@/lib/utils/authSecurity";
 import {
@@ -114,6 +116,29 @@ const TENURE_OPTIONS = [
   "1 Semester",
   "1 Year",
   "2+ Years",
+  "QUANTA Alumni",
+];
+
+const ALUMNI_GRADUATION_YEARS = [
+  "2026",
+  "2025",
+  "2024",
+  "2023",
+  "2022",
+  "2021",
+  "2020",
+  "Before 2020",
+];
+
+const ALUMNI_INDUSTRIES = [
+  "Software Engineering & AI",
+  "Academic Research & Higher Ed",
+  "Data Science & Quant Finance",
+  "Robotics & Embedded Systems",
+  "Biotechnology & Health Tech",
+  "Physics & Energy Systems",
+  "Product Design & Tech Media",
+  "Other Scientific / Tech Domain",
 ];
 
 const EXTRA_EQUIPMENT_OPTIONS = [
@@ -201,6 +226,19 @@ export default function OnboardingWizardPage() {
   const [tenure, setTenure] = useState(
     currentMember.tenure || "New Trainee (2026/2027)"
   );
+
+  // Alumni Branch State
+  const isAlumni = tenure === "QUANTA Alumni";
+  const [graduationYear, setGraduationYear] = useState(
+    existingMember?.graduationYear || "2026"
+  );
+  const [alumniPosition, setAlumniPosition] = useState(
+    existingMember?.alumniPosition || ""
+  );
+  const [alumniIndustry, setAlumniIndustry] = useState(
+    "Software Engineering & AI"
+  );
+  const [alumniMentorshipWilling, setAlumniMentorshipWilling] = useState(true);
 
   // Step 4: Personal PC, Equipment & Links (PC Capability Profile deleted per request)
   const [hasLaptop, setHasLaptop] = useState<boolean>(
@@ -316,15 +354,19 @@ export default function OnboardingWizardPage() {
       avatarUrl,
       university: effectiveUniversity,
       major: effectiveMajor,
-      academicYear,
+      academicYear: isAlumni ? "Graduated" : academicYear,
       tenure,
-      departmentId,
-      teamId,
+      isAlumni,
+      graduationYear: isAlumni ? graduationYear : undefined,
+      alumniPosition: isAlumni ? alumniPosition.trim() : undefined,
+      alumniAccessEnabled: isAlumni ? alumniMentorshipWilling : undefined,
+      departmentId: isAlumni ? "dept-scientific" : departmentId,
+      teamId: isAlumni ? undefined : teamId,
       wilaya,
       commune,
-      housingType,
-      commuteTime,
-      canStayLate,
+      housingType: isAlumni ? "Family Home" : housingType,
+      commuteTime: isAlumni ? "< 30 min" : commuteTime,
+      canStayLate: isAlumni ? false : canStayLate,
       hasLaptop,
       pcCapability: hasLaptop ? "Coding & Dev" : "No Personal PC",
       equipmentTags,
@@ -332,9 +374,11 @@ export default function OnboardingWizardPage() {
       linkedinUrl: linkedinUrl.trim() || undefined,
       portfolioUrl: portfolioUrl.trim() || undefined,
       cvUrl: cvUrl.trim() || undefined,
-      availability,
-      outsideActivitiesAndVolunteering,
-      declaresOtherStudentOrg,
+      availability: isAlumni ? DEFAULT_AVAILABILITY : availability,
+      outsideActivitiesAndVolunteering: isAlumni
+        ? (alumniIndustry ? `Industry: ${alumniIndustry}` : "")
+        : outsideActivitiesAndVolunteering,
+      declaresOtherStudentOrg: isAlumni ? false : declaresOtherStudentOrg,
     });
     await syncWithServer(true);
     router.push("/home");
@@ -366,16 +410,26 @@ export default function OnboardingWizardPage() {
     );
   }
 
-  const STEP_META = [
+  const STUDENT_STEP_META = [
     { num: 1, title: "Identity & Avatar", icon: UserCheck },
     { num: 2, title: "Residence & Commute", icon: Home },
-    { num: 3, title: "University & Specialty", icon: GraduationCap },
+    { num: 3, title: "University & Club Tenure", icon: GraduationCap },
     { num: 4, title: "Equipment & Links", icon: Laptop },
     { num: 5, title: "Placement & Availability", icon: Building2 },
     { num: 6, title: "Activities & Charter", icon: ShieldCheck },
   ];
 
-  const currentMeta = STEP_META[step - 1];
+  const ALUMNI_STEP_META = [
+    { num: 1, title: "Identity & Avatar", icon: UserCheck },
+    { num: 2, title: "Residence Location", icon: Home },
+    { num: 3, title: "Alma Mater & Club Tenure", icon: GraduationCap },
+    { num: 4, title: "Career & Mentorship", icon: Award },
+    { num: 5, title: "Alumni Charter & Review", icon: ShieldCheck },
+  ];
+
+  const activeSteps = isAlumni ? ALUMNI_STEP_META : STUDENT_STEP_META;
+  const maxStep = activeSteps.length;
+  const currentMeta = activeSteps[Math.min(step - 1, maxStep - 1)];
   const StepIcon = currentMeta.icon;
 
   return (
@@ -395,16 +449,16 @@ export default function OnboardingWizardPage() {
           </Link>
           <QuantaLogo size={26} showWordmark variant="light" />
           <span className="text-[11px] font-mono font-extrabold text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2.5 py-0.5 rounded-lg tabular-nums">
-            Step {step} / 6
+            Step {step} / {maxStep}
           </span>
         </div>
 
-        {/* 6-Segment Interactive Progress Bar */}
+        {/* Dynamic Segment Interactive Progress Bar */}
         <div
-          className="grid grid-cols-6 gap-1.5 animate-rise"
+          className={`grid gap-1.5 animate-rise ${isAlumni ? "grid-cols-5" : "grid-cols-6"}`}
           style={{ animationDelay: "30ms" }}
         >
-          {STEP_META.map((s) => (
+          {activeSteps.map((s) => (
             <button
               key={s.num}
               type="button"
@@ -427,7 +481,11 @@ export default function OnboardingWizardPage() {
           <div className="min-w-0">
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.14em] text-[#7DD3FC] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#38BDF8] shrink-0" />
-              <span>MEMBER REGISTRATION · ACADEMIC DOSSIER</span>
+              <span>
+                {isAlumni
+                  ? "QUANTA ALUMNI NETWORK · PROFESSIONAL DOSSIER"
+                  : "MEMBER REGISTRATION · ACADEMIC DOSSIER"}
+              </span>
             </span>
             <h1 className="font-display text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
               {step}. {currentMeta.title}
@@ -535,69 +593,87 @@ export default function OnboardingWizardPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
-                  Housing Type
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                  {HOUSING_OPTIONS.map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      onClick={() => setHousingType(h)}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
-                        housingType === h
-                          ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
-                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                      }`}
-                    >
-                      <span>{h}</span>
-                      {housingType === h && (
-                        <CheckCircle2 className="w-4 h-4 text-[#0284C7] shrink-0" />
-                      )}
-                    </button>
-                  ))}
+              {isAlumni ? (
+                <div className="p-3.5 rounded-xl bg-indigo-50/80 border border-indigo-200/80 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                    <GraduationCap className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-indigo-950">
+                      Alumni Regional Network
+                    </h4>
+                    <p className="text-[11px] text-indigo-800 leading-relaxed mt-0.5">
+                      Your residence location helps QUANTA connect local and diaspora alumni chapters for regional symposiums, scientific conferences, and network dinners.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
+                      Housing Type
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                      {HOUSING_OPTIONS.map((h) => (
+                        <button
+                          key={h}
+                          type="button"
+                          onClick={() => setHousingType(h)}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
+                            housingType === h
+                              ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
+                              : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
+                          }`}
+                        >
+                          <span>{h}</span>
+                          {housingType === h && (
+                            <CheckCircle2 className="w-4 h-4 text-[#0284C7] shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
-                  Campus Commute Time
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {COMMUTE_OPTIONS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setCommuteTime(c)}
-                      className={`h-9 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
-                        commuteTime === c
-                          ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875]"
-                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
+                      Campus Commute Time
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {COMMUTE_OPTIONS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setCommuteTime(c)}
+                          className={`h-9 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
+                            commuteTime === c
+                              ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875]"
+                              : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
-                <div className="pr-2">
-                  <span className="text-xs font-extrabold text-[#0F1E36] block">
-                    Can attend late afternoon or Saturday sessions?
-                  </span>
-                  <span className="text-[10.5px] text-slate-500">
-                    Helps HR schedule observatory nights and weekend workshops
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={canStayLate}
-                  onChange={(e) => setCanStayLate(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#182C4E] focus:ring-[#182C4E]"
-                />
-              </label>
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
+                    <div className="pr-2">
+                      <span className="text-xs font-extrabold text-[#0F1E36] block">
+                        Can attend late afternoon or Saturday sessions?
+                      </span>
+                      <span className="text-[10.5px] text-slate-500">
+                        Helps HR schedule observatory nights and weekend workshops
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={canStayLate}
+                      onChange={(e) => setCanStayLate(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#182C4E] focus:ring-[#182C4E]"
+                    />
+                  </label>
+                </>
+              )}
             </div>
           )}
 
@@ -710,31 +786,73 @@ export default function OnboardingWizardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
-                  Club Tenure
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5 flex items-center justify-between">
+                  <span>Club Tenure &amp; Affiliation</span>
+                  <span className="text-[10px] font-mono text-slate-500 font-semibold">Select your background</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {TENURE_OPTIONS.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTenure(t)}
-                      className={`px-2.5 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer ${
-                        tenure === t
-                          ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
-                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                  {TENURE_OPTIONS.map((t) => {
+                    const isAlumniOpt = t === "QUANTA Alumni";
+                    const isSelected = tenure === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setTenure(t);
+                          if (isAlumniOpt) {
+                            setAcademicYear("Graduated");
+                          }
+                        }}
+                        className={`px-2.5 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] transition cursor-pointer flex items-center justify-between gap-1.5 ${
+                          isSelected
+                            ? isAlumniOpt
+                              ? "bg-gradient-to-r from-[#1E1B4B] to-[#312E81] text-amber-300 border-indigo-500 shadow-sm"
+                              : "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
+                            : isAlumniOpt
+                            ? "bg-indigo-50/70 text-indigo-900 border-indigo-200/90 hover:bg-indigo-100/70"
+                            : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
+                        } ${isAlumniOpt ? "col-span-2" : ""}`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {isAlumniOpt && (
+                            <GraduationCap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          )}
+                          <span>{t}</span>
+                        </span>
+                        {isSelected && (
+                          <CheckCircle2
+                            className={`w-3.5 h-3.5 shrink-0 ${
+                              isAlumniOpt ? "text-amber-300" : "text-[#0284C7]"
+                            }`}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              {isAlumni && (
+                <div className="p-3 rounded-xl bg-gradient-to-r from-indigo-50 to-sky-50 border border-indigo-200/80 flex items-center gap-2.5 text-indigo-950 animate-rise">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-amber-300 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold block">
+                      QUANTA Alumni Path Activated
+                    </span>
+                    <span className="text-[10.5px] text-indigo-700 block">
+                      The wizard adapts to your graduation year, current workplace, and alumni mentorship interest.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* STEP 4: Equipment & Professional Links (PC Capability Profile Deleted) */}
-          {step === 4 && (
+          {/* STEP 4: Equipment & Professional Links (For Students) */}
+          {step === 4 && !isAlumni && (
             <div className="space-y-3.5">
               <label className="flex items-center justify-between p-3.5 rounded-xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
                 <div className="pr-2">
@@ -833,8 +951,151 @@ export default function OnboardingWizardPage() {
             </div>
           )}
 
-          {/* STEP 5: Placement & 7-Day Availability */}
-          {step === 5 && (
+          {/* STEP 4: Career, Workplace & Mentorship (For Alumni) */}
+          {step === 4 && isAlumni && (
+            <div className="space-y-3.5 animate-rise">
+              {/* Graduation Year */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5 flex items-center justify-between">
+                  <span>Graduation Year</span>
+                  <span className="text-[10px] font-mono text-indigo-700 font-bold">University of Algiers 1</span>
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {ALUMNI_GRADUATION_YEARS.map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setGraduationYear(yr)}
+                      className={`h-8 rounded-lg text-[11px] font-extrabold border active:scale-[0.98] transition cursor-pointer ${
+                        graduationYear === yr
+                          ? "bg-indigo-900 text-amber-300 border-indigo-700 shadow-2xs"
+                          : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-indigo-400"
+                      }`}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Current Role & Workplace */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Current Position &amp; Organization / Research Lab</span>
+                </label>
+                <input
+                  type="text"
+                  value={alumniPosition}
+                  onChange={(e) => setAlumniPosition(e.target.value)}
+                  placeholder="e.g. AI Research Engineer at Tech Corp, PhD Researcher, Software Dev..."
+                  className="w-full h-10 px-3 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-xs font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-indigo-600 transition"
+                />
+              </div>
+
+              {/* Industry / Expertise Domain */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#0F1E36] mb-1.5">
+                  Scientific &amp; Professional Domain
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {ALUMNI_INDUSTRIES.map((ind) => {
+                    const isSelected = alumniIndustry === ind;
+                    return (
+                      <button
+                        key={ind}
+                        type="button"
+                        onClick={() => setAlumniIndustry(ind)}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
+                          isSelected
+                            ? "bg-indigo-50 text-indigo-950 border-indigo-500 shadow-2xs"
+                            : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-indigo-300"
+                        }`}
+                      >
+                        <span className="truncate">{ind}</span>
+                        {isSelected && (
+                          <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Mentorship Interest Toggle Card */}
+              <label className="flex items-start justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-50/70 to-indigo-50/70 border border-amber-200/80 cursor-pointer">
+                <div className="pr-2 space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span className="text-xs font-extrabold text-[#0F1E36]">
+                      Open to Mentoring QUANTA Student Members
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-slate-600 leading-snug">
+                    Be featured in the Alumni Mentors roster for masterclasses, career advice, and research proposal feedback.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={alumniMentorshipWilling}
+                  onChange={(e) => setAlumniMentorshipWilling(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-600"
+                />
+              </label>
+
+              {/* Professional Links */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="block text-[11px] font-bold text-[#0F1E36]">
+                  Professional Profiles &amp; Publications (Optional)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="relative">
+                    <Linkedin className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      placeholder="LinkedIn Profile URL"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-indigo-600"
+                    />
+                  </div>
+                  <div className="relative">
+                    <FolderGit2 className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="GitHub / GitLab URL"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-indigo-600"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Globe className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={portfolioUrl}
+                      onChange={(e) => setPortfolioUrl(e.target.value)}
+                      placeholder="Personal Site / ResearchGate"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-indigo-600"
+                    />
+                  </div>
+                  <div className="relative">
+                    <FileText className="w-3.5 h-3.5 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="url"
+                      value={cvUrl}
+                      onChange={(e) => setCvUrl(e.target.value)}
+                      placeholder="Academic CV / Resume URL"
+                      className="w-full h-9 pl-8 pr-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[11px] font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-indigo-600"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: Placement & 7-Day Availability (For Students) */}
+          {step === 5 && !isAlumni && (
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-[#0F1E36] mb-1">
@@ -961,8 +1222,96 @@ export default function OnboardingWizardPage() {
             </div>
           )}
 
-          {/* STEP 6: Outside Activities & Charter */}
-          {step === 6 && (
+          {/* STEP 5: Alumni Laureate Dossier Verification & Charter (For Alumni) */}
+          {step === 5 && isAlumni && (
+            <div className="space-y-3.5 animate-rise">
+              {/* Prestigious Alumni Laureate Card */}
+              <div className="rounded-xl bg-gradient-to-br from-[#071328] via-[#0E2042] to-[#1E1B4B] text-white p-4 border border-indigo-500/40 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={avatarUrl || "/brand/logo_quanta_opt.webp"}
+                    alt={fullName}
+                    className="w-12 h-12 rounded-xl object-cover border-2 border-amber-400/80 shadow-xs shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-display font-black text-sm text-white truncate">
+                        {fullName || "QUANTA Alumnus"}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/40 text-[9px] font-mono font-black uppercase tracking-wider shrink-0">
+                        Fellow '{graduationYear ? graduationYear.slice(-2) : "26"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-mono text-[#38BDF8] truncate mt-0.5">
+                      {alumniPosition || "Distinguished Club Alumnus"}
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-indigo-300 font-semibold mt-0.5">
+                      <GraduationCap className="w-3 h-3 text-amber-400" />
+                      <span>{effectiveUniversity} · {effectiveMajor}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[11px]">
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block font-bold">
+                      Network Rank
+                    </span>
+                    <span className="font-extrabold text-amber-300">
+                      Quanta Laureate (Rank 08)
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block font-bold">
+                      Mentorship Status
+                    </span>
+                    <span className="font-extrabold text-emerald-300">
+                      {alumniMentorshipWilling ? "Active Mentor" : "Network Member"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Alumni Charter & Honor Code */}
+              <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/90 space-y-2.5">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={charterConfirmed}
+                    onChange={(e) => setCharterConfirmed(e.target.checked)}
+                    className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-600"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-emerald-950 leading-snug block">
+                      I accept the QUANTA Alumni Network Charter &amp; Scientific Honor Code.
+                    </span>
+                    <p className="text-[10.5px] text-emerald-800 leading-relaxed">
+                      I pledge to uphold academic integrity, foster scientific innovation, and support current student researchers of University of Algiers 1.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Dossier Summary Notice */}
+              <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1.5 text-xs text-slate-600">
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-500">Residence / Region:</span>
+                  <span className="font-bold text-[#0F1E36]">{commune ? `${commune} (${wilaya})` : wilaya}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-500">Domain of Expertise:</span>
+                  <span className="font-bold text-indigo-700">{alumniIndustry}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-slate-500">Alumni Privileges:</span>
+                  <span className="font-bold text-emerald-700">Lifetime Access &amp; Laureate Honor</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6: Outside Activities & Charter (Only For Students) */}
+          {step === 6 && !isAlumni && (
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-extrabold text-[#0F1E36] mb-1">
@@ -1225,7 +1574,7 @@ export default function OnboardingWizardPage() {
               <div />
             )}
 
-            {step < 6 ? (
+            {step < maxStep ? (
               <button
                 type="button"
                 onClick={() => setStep((s) => s + 1)}
@@ -1246,7 +1595,11 @@ export default function OnboardingWizardPage() {
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4 text-[#7DD3FC]" />
-                <span>Complete Registration</span>
+                <span>
+                  {isAlumni
+                    ? "Complete Alumni Registration"
+                    : "Complete Registration"}
+                </span>
               </button>
             )}
           </div>
