@@ -271,7 +271,7 @@ export const translations = {
       explore: "استكشف",
       home: "الرئيسية",
       badges: "الشارات",
-      profile: "الملف الشخصي",
+      profile: "حسابي",
       checkin: "تسجيل الحضور",
       exams: "الاختبارات",
       manager: "الإدارة",

@@ -150,17 +150,17 @@ export function BottomNavBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 active:scale-95 ${
+              className={`flex-1 min-w-0 flex flex-col items-center justify-center py-1.5 sm:py-2 px-1 rounded-xl transition-all duration-200 active:scale-95 ${
                 item.active
                   ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-[0_4px_14px_rgba(16,31,56,0.24)] border border-[#2B4875]/60"
                   : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/70"
               }`}
             >
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center shrink-0">
                 {item.icon(item.active)}
               </div>
               <span
-                className={`text-xs leading-none mt-1 tracking-tight font-display ${
+                className={`text-[11px] leading-tight mt-1 tracking-tight font-display whitespace-nowrap truncate max-w-full px-0.5 ${
                   item.active ? "font-extrabold text-white" : "font-semibold text-slate-600"
                 }`}
               >

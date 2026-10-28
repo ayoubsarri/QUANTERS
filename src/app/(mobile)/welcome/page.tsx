@@ -21,7 +21,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useQuantersStore, resolveRoleAndRedirect } from "@/lib/store/useQuantersStore";
 import { QuantersVectorWordmark } from "@/components/shared/QuantaLogo";
 import { Member } from "@/lib/types/erp";
 import {
@@ -254,6 +254,7 @@ export default function WelcomeSplashPage() {
     logout,
     isAuthenticated,
     currentMemberId,
+    setCurrentMemberId,
   } = useQuantersStore();
 
   // In-page Login Drawer state
@@ -396,8 +397,11 @@ export default function WelcomeSplashPage() {
     }
   };
 
-  const removeSavedLogin = (targetEmail: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const removeSavedLogin = (targetEmail: string, e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     try {
       const updated = savedLogins.filter(
         (item) => item.email.toLowerCase() !== targetEmail.toLowerCase()
@@ -774,19 +778,41 @@ export default function WelcomeSplashPage() {
   const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
     setErrorMsg(null);
     setSuccessMsg(null);
-    const activeFbUser = getFirebaseAuth()?.currentUser;
-    if (
-      activeFbUser &&
-      !activeFbUser.isAnonymous &&
-      activeFbUser.email?.toLowerCase() === saved.email.toLowerCase()
-    ) {
-      const res = loginWithEmail(saved.email);
-      if (res.ok) {
-        await syncWithServer();
-        router.push(res.redirectPath);
+    setSignInLoading(true);
+
+    try {
+      // 1. Look up the member in the current store state
+      let member = members.find(
+        (m) => m.email.toLowerCase() === saved.email.toLowerCase()
+      );
+
+      // 2. If not found in memory, try pulling from server
+      if (!member) {
+        await pullExactUpdatesFromServer().catch(() => {});
+        member = useQuantersStore.getState().members.find(
+          (m) => m.email.toLowerCase() === saved.email.toLowerCase()
+        );
+      }
+
+      if (member) {
+        // Direct 1-tap authenticated session restoration
+        const { adminRole, redirectPath } = resolveRoleAndRedirect(member);
+        useQuantersStore.setState({
+          isAuthenticated: true,
+          currentMemberId: member.id,
+          activeAdminRole: adminRole,
+        });
+        useQuantersStore.getState().saveToLocalCache();
+        persistSavedLogin(member);
+        setSignInLoading(false);
+        router.push(redirectPath);
         return;
       }
+    } catch (err) {
+      console.warn("Direct saved login fallback:", err);
     }
+
+    setSignInLoading(false);
     setEmail(saved.email);
   };
 
@@ -1231,18 +1257,7 @@ export default function WelcomeSplashPage() {
                       <span>Create Account</span>
                     </button>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between px-1 shrink-0 text-xs">
-                    <span className="text-[#38E4FF] font-display font-black">Reset Password</span>
-                    <button
-                      type="button"
-                      onClick={() => setAuthMode("signin")}
-                      className="text-slate-400 hover:text-white font-mono text-xs flex items-center gap-1 cursor-pointer"
-                    >
-                      <ArrowRight className="w-3 h-3 rotate-180" /> Back to Sign In
-                    </button>
-                  </div>
-                )}
+                ) : null}
 
                 {/* Saved Login: simple, clean, no nested boxes, only member name */}
                 {savedLogins.length > 0 && authMode === "signin" && (
@@ -1263,7 +1278,7 @@ export default function WelcomeSplashPage() {
                               handleSavedAccountLogin(saved);
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[#101F38] hover:bg-[#182C4E] border border-[#2B4875]/70 text-white text-xs font-bold transition cursor-pointer group shadow-xs select-none"
                         >
                           <img
                             src={saved.avatarUrl}
@@ -1273,9 +1288,22 @@ export default function WelcomeSplashPage() {
                           <span className="truncate max-w-[130px]">{saved.fullName}</span>
                           <button
                             type="button"
-                            onClick={(e) => removeSavedLogin(saved.email, e)}
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              removeSavedLogin(saved.email, e);
+                            }}
                             aria-label={`Remove saved login for ${saved.fullName}`}
-                            className="text-slate-400 hover:text-white p-0.5 -mr-0.5 cursor-pointer"
+                            className="text-slate-400 hover:text-rose-400 p-0.5 -mr-0.5 cursor-pointer transition-colors"
                             title="Remove saved login"
                           >
                             <X className="w-3 h-3" />
@@ -1300,284 +1328,270 @@ export default function WelcomeSplashPage() {
                 )}
 
                 {authMode === "recovery" ? (
-                  <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar space-y-2.5 pr-0.5 pt-1 animate-rise">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-[#0284C7]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38E4FF] shrink-0">
-                          <KeyRound className="w-3.5 h-3.5" />
-                        </span>
+                  <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar space-y-3 pr-0.5 pt-1 animate-rise">
+                    {/* STEP 1: Search Account & Dispatch Official Reset Email */}
+                    {forgotStep === "search" && (
+                      <form onSubmit={handleFindAccount} noValidate className="space-y-3.5">
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          Enter your registered university or personal email to receive a secure password recovery link.
+                        </p>
                         <div>
-                          <h3 className="font-display font-black text-sm text-white leading-tight">
-                            Account Security &amp; Password Reset
-                          </h3>
-                          <p className="text-[11px] text-slate-400">
-                            {forgotStep === "search"
-                              ? "Enter your registered university or personal email"
-                              : forgotStep === "sent"
-                              ? "Secure recovery link dispatched"
-                              : "Google Sign-In recovery"}
+                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                            Registered Email Address
+                          </label>
+                          <div className="relative">
+                            <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                              type="email"
+                              required
+                              value={forgotPasswordEmail}
+                              onChange={(e) => {
+                                setForgotPasswordEmail(e.target.value);
+                                if (forgotPasswordStatus) setForgotPasswordStatus(null);
+                              }}
+                              placeholder="name@univ-alger.dz"
+                              className="w-full h-11 pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-white text-sm font-medium placeholder:text-slate-400 focus:outline-none transition shadow-inner"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={forgotPasswordLoading}
+                          className="w-full h-11 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
+                        >
+                          {forgotPasswordLoading ? (
+                            <span>Dispatching recovery link...</span>
+                          ) : (
+                            <>
+                              <KeyRound className="w-4 h-4 text-[#7DD3FC]" />
+                              <span>Send Password Reset Link</span>
+                            </>
+                          )}
+                        </button>
+
+                        <div className="pt-1 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("signin");
+                              setForgotStep("search");
+                              setMatchedMember(null);
+                              setForgotPasswordStatus(null);
+                            }}
+                            className="text-xs font-mono font-bold text-slate-400 hover:text-[#38E4FF] transition cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                            <span>Back to Sign In</span>
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* STEP 2: Recovery Link Dispatched Confirmation Card */}
+                    {forgotStep === "sent" && (
+                      <div className="space-y-3.5 animate-rise">
+                        <div className="p-4 rounded-xl bg-[#08162C] border border-emerald-500/40 text-center space-y-2">
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 mx-auto">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                          </div>
+                          <h4 className="font-display font-black text-sm text-white">
+                            Recovery Link Dispatched
+                          </h4>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            An official password reset link has been dispatched to:
+                          </p>
+                          <div className="font-mono text-xs font-bold text-[#38BDF8] bg-[#030914] py-1.5 px-3 rounded-lg border border-white/10 inline-block">
+                            {forgotPasswordEmail.trim().toLowerCase()}
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                            Please check your inbox (and spam folder) within the next hour. Follow the secure link to set your new password.
                           </p>
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode("signin");
-                          setForgotStep("search");
-                          setMatchedMember(null);
-                          setForgotPasswordStatus(null);
-                        }}
-                        className="text-xs font-mono font-bold text-[#38E4FF] hover:underline cursor-pointer"
-                      >
-                        Back to Sign In
-                      </button>
-                    </div>
 
-                      {/* STEP 1: Search Account & Dispatch Official Reset Email */}
-                      {forgotStep === "search" && (
-                        <form onSubmit={handleFindAccount} noValidate className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                              Registered Email Address
-                            </label>
-                            <div className="relative">
-                              <Mail className="w-5 h-5 text-[#38BDF8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                              <input
-                                type="email"
-                                required
-                                value={forgotPasswordEmail}
-                                onChange={(e) => {
-                                  setForgotPasswordEmail(e.target.value);
-                                  if (forgotPasswordStatus) setForgotPasswordStatus(null);
-                                }}
-                                placeholder="name@univ-alger.dz"
-                                className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-white text-sm sm:text-base font-medium placeholder:text-slate-400 focus:outline-none transition shadow-inner"
+                        {matchedMember && (
+                          <div className="p-3 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <img
+                                src={matchedMember.avatarUrl || "/brand/logo_quanta_opt.webp"}
+                                alt={matchedMember.fullName}
+                                className="w-8 h-8 rounded-lg object-cover border border-[#38BDF8]/40 shrink-0"
                               />
-                            </div>
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={forgotPasswordLoading}
-                            className="w-full h-12 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(2,132,199,0.3)] transition cursor-pointer disabled:opacity-50"
-                          >
-                            {forgotPasswordLoading ? (
-                              <span>Dispatching recovery link...</span>
-                            ) : (
-                              <>
-                                <KeyRound className="w-4 h-4 text-[#7DD3FC]" />
-                                <span>Send Password Reset Link</span>
-                              </>
-                            )}
-                          </button>
-                        </form>
-                      )}
-
-                      {/* STEP 2: Recovery Link Dispatched Confirmation Card */}
-                      {forgotStep === "sent" && (
-                        <div className="space-y-3.5 animate-rise">
-                          <div className="p-4 rounded-xl bg-[#08162C] border border-emerald-500/40 text-center space-y-2">
-                            <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 mx-auto">
-                              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                            </div>
-                            <h4 className="font-display font-black text-sm text-white">
-                              Recovery Link Dispatched
-                            </h4>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                              An official password reset link has been dispatched to:
-                            </p>
-                            <div className="font-mono text-xs font-bold text-[#38BDF8] bg-[#030914] py-1.5 px-3 rounded-lg border border-white/10 inline-block">
-                              {forgotPasswordEmail.trim().toLowerCase()}
-                            </div>
-                            <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
-                              Please check your inbox (and spam folder) within the next hour. Follow the secure link to set your new password.
-                            </p>
-                          </div>
-
-                          {matchedMember && (
-                            <div className="p-3 rounded-xl bg-[#081223] border border-white/10 flex items-center justify-between gap-2.5">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <img
-                                  src={matchedMember.avatarUrl || "/brand/logo_quanta_opt.webp"}
-                                  alt={matchedMember.fullName}
-                                  className="w-8 h-8 rounded-lg object-cover border border-[#38BDF8]/40 shrink-0"
-                                />
-                                <div className="min-w-0">
-                                  <div className="text-xs font-extrabold text-white truncate">
-                                    {matchedMember.fullName}
-                                  </div>
-                                  <div className="text-[10px] font-mono text-emerald-400">
-                                    Verified Club Member
-                                  </div>
+                              <div className="min-w-0">
+                                <div className="text-xs font-extrabold text-white truncate">
+                                  {matchedMember.fullName}
+                                </div>
+                                <div className="text-[10px] font-mono text-emerald-400">
+                                  Verified Club Member
                                 </div>
                               </div>
                             </div>
-                          )}
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              disabled={resendCooldown > 0 || forgotPasswordLoading}
-                              onClick={() => handleFindAccount()}
-                              className="flex-1 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
-                            >
-                              <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
-                              <span>
-                                {resendCooldown > 0
-                                  ? `Resend in ${resendCooldown}s`
-                                  : "Resend Link"}
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowForgotPassword(false);
-                                setForgotStep("search");
-                              }}
-                              className="px-4 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-mono text-xs font-semibold transition cursor-pointer"
-                            >
-                              Done
-                            </button>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* STEP 2B: Google-Registered Account */}
-                      {forgotStep === "google" && matchedMember && (
-                        <div className="space-y-3">
-                          <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs space-y-1">
-                            <div className="font-extrabold flex items-center gap-1.5 text-amber-300">
-                              <Sparkles className="w-4 h-4 text-amber-400" />
-                              <span>Google Account Identified</span>
-                            </div>
-                            <p className="text-[11px] leading-relaxed">
-                              <strong>{matchedMember.fullName}</strong> ({matchedMember.email}) signs in securely via Google. You do not need a password.
-                            </p>
-                          </div>
-
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            disabled={googleLoading}
-                            onClick={handleNativeFirebaseGooglePopup}
-                            className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
+                            disabled={resendCooldown > 0 || forgotPasswordLoading}
+                            onClick={() => handleFindAccount()}
+                            className="flex-1 h-9 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-mono text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
                           >
-                            <GoogleLogoSvg className="w-4 h-4" />
+                            <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
                             <span>
-                              {googleLoading ? "Connecting to Google..." : `Sign in as ${matchedMember.fullName}`}
+                              {resendCooldown > 0
+                                ? `Resend in ${resendCooldown}s`
+                                : "Resend Link"}
                             </span>
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("signin");
+                              setForgotStep("search");
+                              setMatchedMember(null);
+                              setForgotPasswordStatus(null);
+                            }}
+                            className="px-4 h-9 rounded-xl bg-[#182C4E] hover:bg-[#203966] text-white font-mono text-xs font-semibold transition cursor-pointer"
+                          >
+                            Back to Sign In
+                          </button>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Status Feedback Banner */}
-                      {forgotPasswordStatus && (
-                        <div
-                          className={`p-3 rounded-xl text-xs leading-relaxed border ${
-                            forgotPasswordStatus.type === "success"
-                              ? "bg-emerald-500/15 border-emerald-400/40 text-emerald-200"
-                              : forgotPasswordStatus.type === "google_account"
-                              ? "bg-amber-500/15 border-amber-400/40 text-amber-200"
-                              : "bg-rose-500/15 border-rose-400/40 text-rose-200"
-                          }`}
-                        >
-                          <div className="font-bold flex items-center gap-1.5 mb-1">
-                            {forgotPasswordStatus.type === "success" ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                            ) : forgotPasswordStatus.type === "google_account" ? (
-                              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                            ) : (
-                              <X className="w-4 h-4 text-rose-400 shrink-0" />
-                            )}
-                            <span>
-                              {forgotPasswordStatus.type === "success"
-                                ? "Success"
-                                : forgotPasswordStatus.type === "google_account"
-                                ? "Google Account"
-                                : "Notice"}
-                            </span>
+                    {/* STEP 2B: Google-Registered Account */}
+                    {forgotStep === "google" && matchedMember && (
+                      <div className="space-y-3">
+                        <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs space-y-1">
+                          <div className="font-extrabold flex items-center gap-1.5 text-amber-300">
+                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            <span>Google Account Identified</span>
                           </div>
-                          <p>{forgotPasswordStatus.message}</p>
+                          <p className="text-[11px] leading-relaxed">
+                            <strong>{matchedMember.fullName}</strong> ({matchedMember.email}) signs in securely via Google. You do not need a password.
+                          </p>
                         </div>
-                      )}
 
-                      {/* Compact Professional Support Section */}
-                      <div className="pt-2.5 border-t border-white/10">
                         <button
                           type="button"
-                          onClick={() => setShowContactSupport((prev) => !prev)}
-                          className="w-full flex items-center justify-between py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer"
+                          disabled={googleLoading}
+                          onClick={handleNativeFirebaseGooglePopup}
+                          className="w-full h-11 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm overflow-hidden"
                         >
-                          <span className="flex items-center gap-2">
-                            <Mail className="w-3.5 h-3.5 text-[#38BDF8]" />
-                            <span>Contact Club Administration</span>
-                          </span>
-                          <span className="text-[11px] font-mono text-[#38BDF8]">
-                            {showContactSupport ? "Hide" : "View Channels"}
+                          <GoogleLogoSvg className="w-4 h-4" />
+                          <span>
+                            {googleLoading ? "Connecting to Google..." : `Sign in as ${matchedMember.fullName}`}
                           </span>
                         </button>
 
-                        {showContactSupport && (
-                          <div className="mt-2 p-3 rounded-xl bg-[#081223] border border-white/10 space-y-2.5 animate-rise">
-                            <div className="flex items-center justify-between text-xs gap-2">
-                              <div>
-                                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Club Governance Desk</div>
-                                <a href="mailto:quantaclubdz@gmail.com" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
-                                  quantaclubdz@gmail.com
-                                </a>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  try {
-                                    navigator.clipboard.writeText("quantaclubdz@gmail.com");
-                                    setCopiedRecoveryEmail("quantaclubdz@gmail.com");
-                                    setTimeout(() => setCopiedRecoveryEmail(null), 2000);
-                                  } catch {}
-                                }}
-                                className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
-                              >
-                                {copiedRecoveryEmail === "quantaclubdz@gmail.com" ? "Copied" : "Copy"}
-                              </button>
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs gap-2 pt-2 border-t border-white/5">
-                              <div>
-                                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">HR Bureau Desk</div>
-                                <a href="mailto:hr.quanta@univ-alger.dz" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
-                                  hr.quanta@univ-alger.dz
-                                </a>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  try {
-                                    navigator.clipboard.writeText("hr.quanta@univ-alger.dz");
-                                    setCopiedRecoveryEmail("hr.quanta@univ-alger.dz");
-                                    setTimeout(() => setCopiedRecoveryEmail(null), 2000);
-                                  } catch {}
-                                }}
-                                className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
-                              >
-                                {copiedRecoveryEmail === "hr.quanta@univ-alger.dz" ? "Copied" : "Copy"}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        <div className="pt-1 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuthMode("signin");
+                              setForgotStep("search");
+                              setMatchedMember(null);
+                              setForgotPasswordStatus(null);
+                            }}
+                            className="text-xs font-mono font-bold text-slate-400 hover:text-[#38E4FF] transition cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                            <span>Back to Sign In</span>
+                          </button>
+                        </div>
                       </div>
+                    )}
 
+                    {/* Status Feedback Banner */}
+                    {forgotPasswordStatus && (
+                      <div
+                        className={`p-3 rounded-xl text-xs leading-relaxed border ${
+                          forgotPasswordStatus.type === "success"
+                            ? "bg-emerald-500/15 border-emerald-400/40 text-emerald-200"
+                            : forgotPasswordStatus.type === "google_account"
+                            ? "bg-amber-500/15 border-amber-400/40 text-amber-200"
+                            : "bg-rose-500/15 border-rose-400/40 text-rose-200"
+                        }`}
+                      >
+                        <div className="font-bold flex items-center gap-1.5 mb-1">
+                          {forgotPasswordStatus.type === "success" ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          ) : forgotPasswordStatus.type === "google_account" ? (
+                            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                          ) : (
+                            <X className="w-4 h-4 text-rose-400 shrink-0" />
+                          )}
+                          <span>
+                            {forgotPasswordStatus.type === "success"
+                              ? "Success"
+                              : forgotPasswordStatus.type === "google_account"
+                              ? "Google Account"
+                              : "Notice"}
+                          </span>
+                        </div>
+                        <p>{forgotPasswordStatus.message}</p>
+                      </div>
+                    )}
+
+                    {/* Discreet Support Section */}
+                    <div className="pt-2 text-center">
                       <button
                         type="button"
-                        onClick={() => {
-                          setAuthMode("signin");
-                          setForgotStep("search");
-                          setMatchedMember(null);
-                          setForgotPasswordStatus(null);
-                        }}
-                        className="w-full h-9 rounded-xl bg-[#182C4E] hover:brightness-110 border border-[#38BDF8]/35 text-white font-display font-bold text-xs transition cursor-pointer"
+                        onClick={() => setShowContactSupport((prev) => !prev)}
+                        className="text-[11px] font-mono text-slate-400 hover:text-[#38BDF8] transition cursor-pointer"
                       >
-                        Back to Sign In
+                        {showContactSupport ? "Hide club contact channels" : "Need assistance? Contact club administration"}
                       </button>
+
+                      {showContactSupport && (
+                        <div className="mt-2 p-3 rounded-xl bg-[#081223] border border-white/10 space-y-2 text-left animate-rise">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <div>
+                              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Club Governance Desk</div>
+                              <a href="mailto:quantaclubdz@gmail.com" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
+                                quantaclubdz@gmail.com
+                              </a>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  navigator.clipboard.writeText("quantaclubdz@gmail.com");
+                                  setCopiedRecoveryEmail("quantaclubdz@gmail.com");
+                                  setTimeout(() => setCopiedRecoveryEmail(null), 2000);
+                                } catch {}
+                              }}
+                              className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
+                            >
+                              {copiedRecoveryEmail === "quantaclubdz@gmail.com" ? "Copied" : "Copy"}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs gap-2 pt-2 border-t border-white/5">
+                            <div>
+                              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">HR Bureau Desk</div>
+                              <a href="mailto:hr.quanta@univ-alger.dz" className="font-mono text-xs text-[#38BDF8] hover:underline font-bold">
+                                hr.quanta@univ-alger.dz
+                              </a>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  navigator.clipboard.writeText("hr.quanta@univ-alger.dz");
+                                  setCopiedRecoveryEmail("hr.quanta@univ-alger.dz");
+                                  setTimeout(() => setCopiedRecoveryEmail(null), 2000);
+                                } catch {}
+                              }}
+                              className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-white transition cursor-pointer"
+                            >
+                              {copiedRecoveryEmail === "hr.quanta@univ-alger.dz" ? "Copied" : "Copy"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
+                  </div>
                   ) : authMode === "signin" ? (
                     <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2">
                       <form onSubmit={handleEmailSignIn} noValidate className="space-y-2">

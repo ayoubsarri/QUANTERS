@@ -745,7 +745,7 @@ function mergeRemoteWithUnsyncedLocal(
   return finalIds.map((id) => mergedById.get(id)!).filter(Boolean);
 }
 
-const resolveRoleAndRedirect = (member: Member): {
+export const resolveRoleAndRedirect = (member: Member): {
   adminRole: RoleTemplateName;
   redirectPath: string;
 } => {
