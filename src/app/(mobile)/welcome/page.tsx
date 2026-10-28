@@ -828,7 +828,7 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-4 sm:px-6 lg:px-10 pt-2 sm:pt-3 lg:pt-5 pb-3 sm:pb-5 lg:pb-6 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-3.5 sm:px-6 lg:px-10 pt-1.5 sm:pt-3 lg:pt-5 pb-1.5 sm:pb-4 lg:pb-6 flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden">
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[9/16] max-h-[min(540px,76dvh)] xl:max-h-[min(620px,80dvh)] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
@@ -842,11 +842,11 @@ export default function WelcomeSplashPage() {
         {/* RIGHT / MAIN COLUMN (Phone Full Screen & PC Right 7 Columns) */}
         <div className={`w-full flex-1 lg:col-span-7 flex flex-col h-full max-h-full overflow-hidden ${
           authOpen
-            ? "justify-center space-y-2 sm:space-y-3 my-auto"
+            ? "justify-center space-y-1.5 sm:space-y-2.5 my-auto"
             : "justify-between lg:justify-center lg:space-y-3 xl:space-y-5"
         }`}>
           {/* A. TOP BRAND LOCKUP: STRICT FLUSH-LEFT ALIGNMENT ON DESKTOP & CENTER-LOWER ON MOBILE PORTAL */}
-          <header className={`w-full transition-all duration-500 ease-out shrink-0 ${authOpen ? "space-y-1 sm:space-y-1.5 pt-0.5 sm:pt-1" : "space-y-1.5 sm:space-y-2"}`}>
+          <header className={`w-full transition-all duration-500 ease-out shrink-0 ${authOpen ? "space-y-0.5 sm:space-y-1 pt-0 sm:pt-0.5" : "space-y-1.5 sm:space-y-2"}`}>
             <div className={`w-full flex transition-all duration-500 ease-out ${
               authOpen
                 ? "justify-center text-center lg:justify-start lg:text-left translate-y-0.5 lg:translate-y-0"
@@ -860,7 +860,7 @@ export default function WelcomeSplashPage() {
                 <QuantersVectorWordmark
                   className={`w-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.92)] transition-all duration-500 ease-out ${
                     authOpen
-                      ? "h-6 sm:h-7 md:h-8 lg:h-10 max-w-[160px] sm:max-w-[200px] md:max-w-[260px] lg:max-w-[320px]"
+                      ? "h-5 sm:h-6 md:h-7 lg:h-9 max-w-[140px] sm:max-w-[180px] md:max-w-[240px] lg:max-w-[300px]"
                       : "h-7 xs:h-8 sm:h-9 md:h-11 lg:h-13 max-w-[190px] xs:max-w-[220px] sm:max-w-[260px] md:max-w-[320px] lg:max-w-[380px]"
                   }`}
                 />
@@ -871,11 +871,11 @@ export default function WelcomeSplashPage() {
                       : "mt-1 sm:mt-1.5 justify-start text-left"
                   }`}
                 >
-                  <span className="font-display text-[10px] xs:text-[10.5px] sm:text-xs md:text-[13px] font-black tracking-[0.18em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
+                  <span className="font-display text-xs sm:text-sm font-black tracking-[0.16em] text-[#38E4FF] uppercase leading-none whitespace-nowrap">
                     BY QUANTA
                   </span>
-                  <span className="text-white/25 font-mono text-[9px] sm:text-xs leading-none">·</span>
-                  <span className="font-mono text-[8.5px] xs:text-[9px] sm:text-[10.5px] md:text-xs font-bold tracking-[0.12em] text-slate-300 uppercase leading-none whitespace-nowrap">
+                  <span className="text-slate-400 font-mono text-xs leading-none">·</span>
+                  <span className="font-mono text-[11px] sm:text-xs font-bold tracking-[0.12em] text-slate-200 uppercase leading-none whitespace-nowrap">
                     UNIVERSITY OF ALGIERS 1
                   </span>
                 </div>
@@ -884,7 +884,7 @@ export default function WelcomeSplashPage() {
 
             {!authOpen && (
               <div className="space-y-0 pt-0.5">
-                <div className="flex items-center justify-between border-y border-white/15 py-1 px-0.5 text-[10px] sm:text-xs font-display font-extrabold tracking-[0.12em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                <div className="flex items-center justify-between border-y border-white/15 py-1.5 px-0.5 text-xs sm:text-sm font-display font-extrabold tracking-[0.14em] uppercase whitespace-nowrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                   <span className="text-slate-200">DISCOVER</span>
                   <span className="text-white/25">/</span>
                   <span className="text-[#38E4FF]">LEARN</span>
@@ -897,16 +897,16 @@ export default function WelcomeSplashPage() {
                 <button
                   type="button"
                   onClick={handleDownloadAppClick}
-                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-1 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-1.5 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
                 >
-                  <span className="font-editorial italic text-xs sm:text-base text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
+                  <span className="font-editorial italic text-sm sm:text-base text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
                     Available for phone &amp; desktop
                   </span>
 
-                  <span className="inline-flex items-center gap-1 font-mono text-[10.5px] sm:text-xs font-bold tracking-[0.1em] uppercase text-[#38E4FF] group-hover:text-white transition-colors whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-extrabold tracking-[0.12em] uppercase text-[#38E4FF] group-hover:text-white transition-colors whitespace-nowrap">
                     <svg
-                      width="12"
-                      height="12"
+                      width="14"
+                      height="14"
                       viewBox="0 0 16 16"
                       fill="none"
                       className="animate-download-bob text-[#38E4FF] group-hover:text-[#FFE500] transition-colors shrink-0"
@@ -926,9 +926,7 @@ export default function WelcomeSplashPage() {
                         strokeLinecap="round"
                       />
                     </svg>
-                    <span className="border-b border-[#38E4FF]/55 group-hover:border-white pb-0.5">
-                      Download App
-                    </span>
+                    <span>Download App</span>
                   </span>
                 </button>
               </div>
@@ -958,12 +956,12 @@ export default function WelcomeSplashPage() {
           {/* C. BOTTOM INTERACTIVE DOCK (OR CENTERED AUTH MODAL WHEN OPEN) */}
           <footer className="w-full shrink-0">
             {!authOpen ? (
-              <div className="w-full space-y-2 sm:space-y-2.5 animate-rise">
+              <div className="w-full space-y-1.5 sm:space-y-2 animate-rise">
                 {/* Phone Editorial Statement right above Start button */}
                 <div className="lg:hidden px-0.5 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                  <p className="font-display font-black text-base xs:text-lg sm:text-xl tracking-[-0.02em] text-white leading-snug">
+                  <p className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-[-0.02em] text-white leading-snug">
                     More than a club,{" "}
-                    <span className="font-editorial italic font-normal text-[#38E4FF] text-lg xs:text-xl sm:text-2xl">
+                    <span className="font-editorial italic font-normal text-[#38E4FF] text-xl xs:text-2xl sm:text-3xl">
                       a scientific journey.
                     </span>
                   </p>
@@ -986,7 +984,7 @@ export default function WelcomeSplashPage() {
                           <p className="text-xs font-display font-black text-white truncate">
                             {activeMember.fullName}
                           </p>
-                          <p className="text-[10px] font-mono text-[#38BDF8] truncate">
+                          <p className="text-xs font-mono text-[#38BDF8] truncate">
                             {isSuper ? "Super Admin" : activeMember.roles[0] || "Member"} · Active Session
                           </p>
                         </div>
@@ -995,7 +993,7 @@ export default function WelcomeSplashPage() {
                         <button
                           type="button"
                           onClick={() => router.push(isSuper ? "/admin/overview" : "/home")}
-                          className="px-2.5 py-1 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#030812] font-display font-black text-[11px] transition cursor-pointer shadow-xs"
+                          className="px-2.5 py-1 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#030812] font-display font-black text-xs transition cursor-pointer shadow-xs"
                         >
                           Resume
                         </button>
@@ -1005,7 +1003,7 @@ export default function WelcomeSplashPage() {
                             logout();
                             signOutFromFirebase().catch(() => {});
                           }}
-                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-mono text-[10px] transition cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-mono text-xs transition cursor-pointer"
                           title="Sign out to switch to another account"
                         >
                           Switch
@@ -1022,14 +1020,14 @@ export default function WelcomeSplashPage() {
                     setAuthOpen(true);
                     setPendingPostLogin(null);
                   }}
-                  className="w-full h-11 sm:h-13 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
+                  className="w-full h-11 sm:h-12 px-4 sm:px-5 rounded-xl bg-white hover:bg-slate-100 text-[#061326] shadow-[0_16px_40px_rgba(0,0,0,0.75)] active:scale-[0.99] transition flex items-center justify-between cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     <span className="font-display font-black text-base sm:text-lg tracking-tight text-[#061326]">
                       Start
                     </span>
                     <span className="h-4 w-px bg-slate-300" />
-                    <span className="font-mono text-[11px] sm:text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+                    <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-[0.1em] text-slate-600">
                       Member Portal
                     </span>
                   </div>
@@ -1040,19 +1038,19 @@ export default function WelcomeSplashPage() {
                 </button>
 
                 {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
-                <div className="pt-0.5">
+                <div className="pt-0.5 pb-0.5">
                   <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1" />
                   <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
                       alt="Quanta Scientific Club"
-                      className="h-4 sm:h-5.5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                      className="h-4 sm:h-5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
                     />
-                    <span className="h-4 sm:h-5.5 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
+                    <span className="h-3.5 sm:h-4 w-px bg-white/20 shrink-0 mx-2 sm:mx-3" />
                     <img
                       src="/brand/QUANTERS_white_logo.svg"
                       alt="Faculty of Sciences - University of Algiers 1"
-                      className="h-6 sm:h-8 lg:h-9 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+                      className="h-5.5 sm:h-7.5 lg:h-8.5 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>
@@ -1146,10 +1144,10 @@ export default function WelcomeSplashPage() {
                 data-modal="true"
                 role="dialog"
                 aria-label="Member Sign In"
-                className="w-full max-h-[min(90dvh,640px)] bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/40 hover:border-[#38BDF8]/55 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-5 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col text-left animate-rise transition-all overflow-hidden"
+                className="w-full max-h-[calc(100dvh-3.5rem)] sm:max-h-[calc(100dvh-4.5rem)] lg:max-h-[min(640px,84dvh)] bg-gradient-to-b from-[#091527]/98 via-[#060F1E]/98 to-[#040A14]/99 backdrop-blur-3xl border border-[#38BDF8]/40 hover:border-[#38BDF8]/55 rounded-2xl sm:rounded-3xl p-3 sm:p-4.5 lg:p-5 shadow-[0_28px_80px_rgba(2,6,18,0.96),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col text-left animate-rise transition-all overflow-hidden"
               >
                 {/* Header (Clean, Standard Mobile Typography) */}
-                <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/10 shrink-0">
+                <div className="flex items-center justify-between gap-3 pb-1.5 border-b border-white/10 shrink-0">
                   <div>
                     <h2 className="font-display text-base sm:text-lg font-black text-white tracking-tight leading-tight">
                       {authMode === "signin"
@@ -1158,7 +1156,7 @@ export default function WelcomeSplashPage() {
                         ? "Reset Password"
                         : "Create New Account"}
                     </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-300 mt-0.5">
                       {authMode === "signin"
                         ? "Sign in to access your QUANTA club portal"
                         : authMode === "recovery"
@@ -1181,7 +1179,7 @@ export default function WelcomeSplashPage() {
                 </div>
 
                 {/* Modern Clean Tabs with Standard Touch Targets */}
-                <div className="flex items-center gap-6 border-b border-white/10 pt-1.5 pb-2 shrink-0">
+                <div className="flex items-center gap-6 border-b border-white/10 pt-1 pb-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -1189,9 +1187,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
+                    className={`text-sm sm:text-base font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "signin"
-                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -1204,9 +1202,9 @@ export default function WelcomeSplashPage() {
                       setErrorMsg(null);
                       setSuccessMsg(null);
                     }}
-                    className={`text-sm font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
+                    className={`text-sm sm:text-base font-display font-black tracking-wide transition-colors cursor-pointer relative pb-1 ${
                       authMode === "register"
-                        ? "text-white after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                        ? "text-white after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -1215,7 +1213,7 @@ export default function WelcomeSplashPage() {
                   {authMode === "recovery" && (
                     <button
                       type="button"
-                      className="text-sm font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-9px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                      className="text-sm sm:text-base font-display font-black tracking-wide text-white relative pb-1 after:absolute after:bottom-[-7px] after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
                     >
                       Reset Password
                     </button>
@@ -1557,12 +1555,12 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : authMode === "signin" ? (
-                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 py-1 space-y-3">
-                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-3">
+                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2.5 sm:space-y-3">
+                      <form onSubmit={handleEmailSignIn} noValidate className="space-y-2.5 sm:space-y-3">
                         <div>
                           <label
                             htmlFor="signin-email"
-                            className="block text-xs font-semibold text-slate-200 mb-1.5"
+                            className="block text-xs font-bold text-slate-200 mb-1"
                           >
                             Email Address
                           </label>
@@ -1578,16 +1576,16 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center justify-between mb-1">
                             <label
                               htmlFor="signin-password"
-                              className="block text-xs font-semibold text-slate-200"
+                              className="block text-xs font-bold text-slate-200"
                             >
                               Password
                             </label>
@@ -1615,7 +1613,7 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
@@ -1691,17 +1689,17 @@ export default function WelcomeSplashPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 py-1 space-y-3">
-                      <form onSubmit={handleRegister} noValidate className="space-y-3">
-                        {/* Segmented Control for Student Member vs Alumni */}
-                        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#030914]/80 border border-white/10 mb-1">
+                    <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5 py-0.5 space-y-2 sm:space-y-2.5">
+                      <form onSubmit={handleRegister} noValidate className="space-y-2 sm:space-y-2.5">
+                        {/* Clean Text Selector for Student Member vs Alumni (NO BOX) */}
+                        <div className="flex items-center gap-5 pb-0.5">
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(false)}
-                            className={`h-9 rounded-lg font-display text-xs font-bold transition-all cursor-pointer ${
+                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                               !registerAsAlumni
-                                ? "bg-[#0284C7] text-white shadow-sm"
-                                : "text-slate-400 hover:text-white"
+                                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                                : "text-slate-400 hover:text-slate-200"
                             }`}
                           >
                             Student Member
@@ -1709,10 +1707,10 @@ export default function WelcomeSplashPage() {
                           <button
                             type="button"
                             onClick={() => setRegisterAsAlumni(true)}
-                            className={`h-9 rounded-lg font-display text-xs font-bold transition-all cursor-pointer ${
+                            className={`text-xs sm:text-sm font-display font-bold transition-colors cursor-pointer relative pb-0.5 ${
                               registerAsAlumni
-                                ? "bg-[#0284C7] text-white shadow-sm"
-                                : "text-slate-400 hover:text-white"
+                                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#38E4FF]"
+                                : "text-slate-400 hover:text-slate-200"
                             }`}
                           >
                             QUANTA Alumni
@@ -1722,7 +1720,7 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-fullname"
-                            className="block text-xs font-semibold text-slate-200 mb-1.5"
+                            className="block text-xs font-bold text-slate-200 mb-1"
                           >
                             Full Legal Name
                           </label>
@@ -1737,7 +1735,7 @@ export default function WelcomeSplashPage() {
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
                               placeholder="Full Legal Name"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1745,7 +1743,7 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-email"
-                            className="block text-xs font-semibold text-slate-200 mb-1.5"
+                            className="block text-xs font-bold text-slate-200 mb-1"
                           >
                             Email Address
                           </label>
@@ -1760,7 +1758,7 @@ export default function WelcomeSplashPage() {
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               placeholder="name@univ-alger.dz"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-4 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                           </div>
                         </div>
@@ -1768,7 +1766,7 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-password"
-                            className="block text-xs font-semibold text-slate-200 mb-1.5"
+                            className="block text-xs font-bold text-slate-200 mb-1"
                           >
                             Password (min. 8 characters)
                           </label>
@@ -1783,7 +1781,7 @@ export default function WelcomeSplashPage() {
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               placeholder="At least 8 characters (letters & numbers)"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
@@ -1846,7 +1844,7 @@ export default function WelcomeSplashPage() {
                         <div>
                           <label
                             htmlFor="register-confirm-password"
-                            className="block text-xs font-semibold text-slate-200 mb-1.5"
+                            className="block text-xs font-bold text-slate-200 mb-1"
                           >
                             Confirm Password
                           </label>
@@ -1861,7 +1859,7 @@ export default function WelcomeSplashPage() {
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
                               placeholder="Confirm your password"
-                              className="w-full h-12 min-h-[48px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
+                              className="w-full h-11 sm:h-12 min-h-[44px] pl-11 pr-12 rounded-xl bg-[#071325]/90 border border-slate-700/80 hover:border-slate-500 focus:border-[#38BDF8] focus:bg-[#07152B] focus:ring-2 focus:ring-[#38BDF8]/25 text-sm sm:text-base font-medium text-white placeholder:text-slate-400 transition shadow-inner"
                             />
                             <button
                               type="button"
@@ -1892,19 +1890,19 @@ export default function WelcomeSplashPage() {
                         </div>
 
                         {/* Terms of Service & Privacy Policy Consent */}
-                        <label className="flex items-start gap-2.5 pt-1 text-xs text-slate-300 cursor-pointer select-none">
+                        <label className="flex items-start gap-2 pt-0.5 text-xs text-slate-300 cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={agreedToTerms}
                             onChange={(e) => setAgreedToTerms(e.target.checked)}
                             className="mt-0.5 w-4 h-4 rounded border-white/20 bg-slate-900 text-[#0284C7] focus:ring-[#38BDF8] shrink-0"
                           />
-                          <span className="leading-tight text-slate-400 text-xs">
+                          <span className="leading-tight text-slate-300 text-xs">
                             I agree to the{" "}
                             <button
                               type="button"
                               onClick={() => setTermsModalOpen("terms")}
-                              className="text-[#38BDF8] hover:underline font-semibold"
+                              className="text-[#38BDF8] hover:underline font-bold"
                             >
                               Terms of Service
                             </button>{" "}
@@ -1912,7 +1910,7 @@ export default function WelcomeSplashPage() {
                             <button
                               type="button"
                               onClick={() => setTermsModalOpen("privacy")}
-                              className="text-[#38BDF8] hover:underline font-semibold"
+                              className="text-[#38BDF8] hover:underline font-bold"
                             >
                               Privacy Policy
                             </button>
@@ -1932,7 +1930,7 @@ export default function WelcomeSplashPage() {
                       </form>
 
                       {/* Divider + Sign up with Google */}
-                      <div className="flex items-center gap-3 py-1">
+                      <div className="flex items-center gap-3 py-0.5">
                         <span className="h-px flex-1 bg-white/10" />
                         <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
                           OR
@@ -1944,7 +1942,7 @@ export default function WelcomeSplashPage() {
                         type="button"
                         disabled={googleLoading}
                         onClick={handleNativeFirebaseGooglePopup}
-                        className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
+                        className="w-full h-10.5 sm:h-12 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-60 font-display font-extrabold text-xs sm:text-sm text-[#071731] active:scale-[0.99] transition flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
                       >
                         <GoogleLogoSvg className="w-4.5 h-4.5" />
                         <span>
