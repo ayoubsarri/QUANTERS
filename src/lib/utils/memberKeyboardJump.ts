@@ -1,5 +1,29 @@
 import React from "react";
 import { Member } from "@/lib/types/erp";
+import { isSuperAdminEmail } from "@/lib/firebase/config";
+
+/**
+ * Checks if a member profile belongs to the Super Admin or system account.
+ */
+export function isSuperAdminMember(m?: (Partial<Member> & { id?: string; email?: string; roles?: string[] }) | null): boolean {
+  if (!m) return false;
+  if (m.id === "mem-super-quanta") return true;
+  if (Array.isArray(m.roles) && m.roles.includes("Super Admin")) return true;
+  if (m.email && isSuperAdminEmail(m.email)) return true;
+  return false;
+}
+
+/**
+ * Checks if a member profile is an active student / regular club member eligible
+ * for task assignments, badge awards, merit points, and monthly honours.
+ * Excludes Super Admin / Executive governance accounts and deactivated accounts.
+ */
+export function isAssignableMember(m?: Member | null): boolean {
+  if (!m) return false;
+  if (isSuperAdminMember(m)) return false;
+  if (m.status === "Removed") return false;
+  return true;
+}
 
 /**
  * Sorts members alphabetically A -> Z by fullName so keyboard letter navigation is natural.

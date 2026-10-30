@@ -3,6 +3,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  verifyEmailWithFailover,
+  checkDomainTypo,
+  isDisposableEmail,
+  VerificationProviderKey,
+} from "@/lib/utils/emailVerification";
+import {
   ArrowRight,
   BookmarkCheck,
   Check,
@@ -20,19 +26,23 @@ import {
   Sparkles,
   User,
   X,
+  Zap,
 } from "lucide-react";
 import { useQuantersStore, resolveRoleAndRedirect } from "@/lib/store/useQuantersStore";
 import { QuantersVectorWordmark } from "@/components/shared/QuantaLogo";
 import { Member } from "@/lib/types/erp";
+import { isSuperAdminEmail } from "@/lib/firebase/config";
 import {
   checkFirebaseGoogleRedirectResult,
   createFirebaseEmailPasswordUser,
   getFirebaseAuth,
   isFirestoreQuotaExhausted,
+  sendFirebaseEmailVerification,
   sendFirebasePasswordReset,
   signInWithFirebaseEmailPassword,
   signInWithFirebaseGooglePopup,
   signOutFromFirebase,
+  verifyEmailActionCode,
 } from "@/lib/firebase/auth";
 import {
   checkLoginLockout,
@@ -244,6 +254,7 @@ export default function WelcomeSplashPage() {
     departments,
     teams,
     members,
+    settings,
     loginWithEmail,
     loginWithGoogle,
     registerWithGoogle,
@@ -261,6 +272,8 @@ export default function WelcomeSplashPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "register" | "recovery">("signin");
   const [showContactSupport, setShowContactSupport] = useState(false);
+  const [accountDeletedModalOpen, setAccountDeletedModalOpen] = useState(false);
+  const lang = useQuantersStore((s) => s.settings?.defaultLanguage) || "en";
 
   // Auth form fields
   const [email, setEmail] = useState("");
@@ -300,6 +313,7 @@ export default function WelcomeSplashPage() {
     redirectPath: string;
   } | null>(null);
 
+
   // Download App state & native install prompt capture
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -312,9 +326,14 @@ export default function WelcomeSplashPage() {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
+          const archivedEmails = new Set(
+            (useQuantersStore.getState().settings?.archivedMembers || [])
+              .map((a) => (a.email || "").toLowerCase())
+              .filter(Boolean)
+          );
           setSavedLogins(
             parsed.filter(
-              (item) => item && typeof item.email === "string" && item.fullName
+              (item) => item && typeof item.email === "string" && item.fullName && !archivedEmails.has(item.email.toLowerCase())
             )
           );
         }
@@ -347,6 +366,7 @@ export default function WelcomeSplashPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [resendCooldown]);
+
 
   const deriveMemberRoleBadge = (m?: {
     id: string;
@@ -417,6 +437,41 @@ export default function WelcomeSplashPage() {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const emailVerified = params.get("emailVerified");
+      const mode = params.get("mode");
+      const oobCode = params.get("oobCode");
+      const deactivated = params.get("deactivated");
+      const loggedOut = params.get("logged_out");
+
+      if (loggedOut === "admin") {
+        setErrorMsg("Your session was terminated remotely by an administrator security directive. Please sign in again.");
+        setAuthOpen(true);
+        setAuthMode("signin");
+      } else if (deactivated === "true") {
+        setAccountDeletedModalOpen(true);
+      } else if (emailVerified === "true") {
+        setSuccessMsg("Your official email address is verified! You can sign in now.");
+        setAuthOpen(true);
+        setAuthMode("signin");
+      } else if (mode === "verifyEmail" && oobCode) {
+        verifyEmailActionCode(oobCode).then((res) => {
+          if (res.ok) {
+            setSuccessMsg("Your email has been verified successfully! You can sign in now.");
+            setAuthOpen(true);
+            setAuthMode("signin");
+          } else {
+            setErrorMsg(res.message || "Email verification link has expired or is invalid.");
+            setAuthOpen(true);
+          }
+        });
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredInstallPrompt(e);
@@ -448,26 +503,63 @@ export default function WelcomeSplashPage() {
     setShowDownloadModal(true);
   };
 
+  const finalizeLoginAndNavigate = (
+    member: Member | undefined,
+    redirectPath: string
+  ) => {
+    setAuthOpen(false);
+    setPendingPostLogin(null);
+    if (member) {
+      const { adminRole } = resolveRoleAndRedirect(member);
+      useQuantersStore.setState({
+        isAuthenticated: true,
+        currentMemberId: member.id,
+        activeAdminRole: adminRole,
+        sessionStartedAt: Date.now(),
+      });
+      persistSavedLogin(member);
+      useQuantersStore.getState().saveToLocalCache();
+      useQuantersStore.getState().syncWithServer(true).catch(() => {});
+    }
+    router.push(redirectPath);
+  };
+
   const completeAuthenticatedTransition = async (
     member: Member | undefined,
     redirectPath: string
   ) => {
-    // Non-blocking sync with a strict 2s deadline so Firestore quota exhaustion / network latency
-    // never traps the user on the login screen or causes prolonged spinning
-    Promise.race([
-      syncWithServer(true),
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-    ]).catch(() => {});
-
     if (!member) {
       router.push(redirectPath);
       return;
     }
+
+    // Automatically persist in Quick Access for seamless resumption
+    persistSavedLogin(member);
+
+    // If new registration heading to onboarding, navigate IMMEDIATELY with zero delay or intercept
+    if (redirectPath === "/onboarding") {
+      setAuthOpen(false);
+      setPendingPostLogin(null);
+      useQuantersStore.getState().saveToLocalCache();
+      syncWithServer(true).catch(() => {});
+      router.push(redirectPath);
+      return;
+    }
+
+    // Await server sync with a 2s deadline for existing members
+    try {
+      await Promise.race([
+        syncWithServer(true),
+        new Promise((resolve) => setTimeout(resolve, 2000)),
+      ]);
+    } catch {}
+
     const alreadySaved = savedLogins.some(
       (item) => item.email.toLowerCase() === member.email.toLowerCase()
     );
     if (alreadySaved) {
-      persistSavedLogin(member);
+      setAuthOpen(false);
+      setPendingPostLogin(null);
       router.push(redirectPath);
       return;
     }
@@ -516,11 +608,33 @@ export default function WelcomeSplashPage() {
     const fbRes = await signInWithFirebaseEmailPassword(validEmail.normalized, password);
     if (fbRes.ok) {
       clearFailedLoginAttempts();
-      // Firebase Auth cryptographically verified the password on Google servers
-      let res = loginWithEmail(validEmail.normalized);
+      // Firebase Auth cryptographically verified the credentials on Google servers
+      let res = loginWithEmail(validEmail.normalized, password, true);
       if (!res.ok) {
+        if ((res as any).isDeleted) {
+          setSignInLoading(false);
+          setAccountDeletedModalOpen(true);
+          return;
+        }
         await pullExactUpdatesFromServer().catch(() => {});
-        res = loginWithEmail(validEmail.normalized);
+        res = loginWithEmail(validEmail.normalized, password, true);
+      }
+      if (!res.ok && (res as any).isDeleted) {
+        setSignInLoading(false);
+        setAccountDeletedModalOpen(true);
+        return;
+      }
+      if (!res.ok) {
+        // Authenticated in Firebase Auth -> auto-provision member profile in ERP state
+        res = registerAccount({
+          fullName: validEmail.normalized
+            .split("@")[0]
+            .replace(/[._]/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase()),
+          email: validEmail.normalized,
+          password,
+          isAlumni: false,
+        });
       }
       setSignInLoading(false);
       if (res.ok) {
@@ -532,15 +646,28 @@ export default function WelcomeSplashPage() {
     // 4. Fallback: Authenticate against club ERP credential digest
     let res = loginWithEmail(validEmail.normalized, password);
     if (!res.ok) {
+      if ((res as any).isDeleted) {
+        setSignInLoading(false);
+        setAccountDeletedModalOpen(true);
+        return;
+      }
       await pullExactUpdatesFromServer().catch(() => {});
       res = loginWithEmail(validEmail.normalized, password);
+    }
+    if (!res.ok && (res as any).isDeleted) {
+      setSignInLoading(false);
+      setAccountDeletedModalOpen(true);
+      return;
     }
 
     if (res.ok) {
       clearFailedLoginAttempts();
       // Provision non-anonymous Firebase Auth account before syncing state
       if (password.length >= 8) {
-        await createFirebaseEmailPasswordUser(validEmail.normalized, password).catch(() => {});
+        const createRes = await createFirebaseEmailPasswordUser(validEmail.normalized, password).catch(() => ({ ok: false, errorCode: "" }));
+        if (!createRes.ok && createRes.errorCode === "auth/email-already-in-use") {
+          await signInWithFirebaseEmailPassword(validEmail.normalized, password).catch(() => {});
+        }
       }
       setSignInLoading(false);
       await completeAuthenticatedTransition(res.member, res.redirectPath);
@@ -584,6 +711,41 @@ export default function WelcomeSplashPage() {
       return;
     }
 
+    // Real-Time Multi-Provider Email Verification & Failover Pool
+    if (settings.emailVerificationEnabled !== false) {
+      const typo = checkDomainTypo(validEmail.normalized);
+      if (typo) {
+        const suggested = validEmail.normalized.split("@")[0] + "@" + typo;
+        setErrorMsg(`Did you mean ${suggested}? Please verify your email spelling.`);
+        return;
+      }
+
+      if (isDisposableEmail(validEmail.normalized)) {
+        setErrorMsg("Temporary or disposable email addresses are not permitted. Please use your real university or personal email.");
+        return;
+      }
+
+      const keys: VerificationProviderKey[] = [];
+      if (settings.zerobounceApiKey1) keys.push({ provider: "zerobounce", key: settings.zerobounceApiKey1, label: "ZeroBounce #1" });
+      if (settings.zerobounceApiKey2) keys.push({ provider: "zerobounce", key: settings.zerobounceApiKey2, label: "ZeroBounce #2" });
+      if (settings.abstractApiKey1) keys.push({ provider: "abstract", key: settings.abstractApiKey1, label: "AbstractAPI #1" });
+      if (settings.abstractApiKey2) keys.push({ provider: "abstract", key: settings.abstractApiKey2, label: "AbstractAPI #2" });
+
+      try {
+        const verifyRes = await verifyEmailWithFailover(validEmail.normalized, keys);
+        if (!verifyRes.deliverable) {
+          setErrorMsg(
+            verifyRes.reason ||
+            "This email address does not appear to exist in real life or cannot receive mail. Please use a valid personal email."
+          );
+          return;
+        }
+      } catch (err) {
+        // Fallback: don't block user on network error
+        console.warn("[Email Verification] Fallback due to error:", err);
+      }
+    }
+
     const pwdEval = evaluatePasswordStrength(password);
     if (!pwdEval.isValid) {
       setErrorMsg(`Password requirements: ${pwdEval.feedback}`);
@@ -606,17 +768,30 @@ export default function WelcomeSplashPage() {
     const fbCreateRes = await createFirebaseEmailPasswordUser(validEmail.normalized, password);
     if (!fbCreateRes.ok && fbCreateRes.errorCode === "auth/email-already-in-use") {
       const existingInErp = members.find((m) => m.email.toLowerCase() === validEmail.normalized);
-      if (existingInErp) {
+      if (existingInErp && existingInErp.status === "Removed") {
         setRegisterLoading(false);
-        if (existingInErp.status === "Removed") {
-          setErrorMsg("This account was previously removed from active membership. Please contact hr.quanta@univ-alger.dz for reinstatement.");
-        } else {
-          setErrorMsg("An account with this email address already exists. Please sign in instead.");
-        }
+        setAccountDeletedModalOpen(true);
         return;
       }
-      // If the account was permanently deleted/released from the ERP, reuse or verify Firebase Auth session:
-      await signInWithFirebaseEmailPassword(validEmail.normalized, password).catch(() => {});
+      if (existingInErp && existingInErp.status !== "Removed") {
+        setRegisterLoading(false);
+        setErrorMsg("An active account with this email address already exists. Please sign in instead.");
+        return;
+      }
+      // If the account was registered in Firebase Auth previously, sign in to link the active non-anonymous session
+      const signInRes = await signInWithFirebaseEmailPassword(validEmail.normalized, password);
+      if (!signInRes.ok) {
+        // Dispatches 1-click password recovery so user can seamlessly set their new password without being blocked
+        await sendFirebasePasswordReset(validEmail.normalized).catch(() => {});
+        setRegisterLoading(false);
+        setSuccessMsg(`An authentication record exists for this email. We've sent a 1-click activation link to ${validEmail.normalized} so you can verify and set your new password!`);
+        setAuthMode("signin");
+        return;
+      }
+    } else if (!fbCreateRes.ok) {
+      setRegisterLoading(false);
+      setErrorMsg(fbCreateRes.message || "Failed to initialize member account credentials. Please verify your connection.");
+      return;
     }
 
     // 2. Create in ERP state
@@ -629,10 +804,15 @@ export default function WelcomeSplashPage() {
 
     setRegisterLoading(false);
     if (!res.ok) {
+      if ((res as any).isDeleted) {
+        setAccountDeletedModalOpen(true);
+        return;
+      }
       setErrorMsg(res.message || "Could not complete account creation.");
       return;
     }
 
+    setSuccessMsg("Account created successfully! Welcome to QUANTERS.");
     await completeAuthenticatedTransition(res.member, res.redirectPath);
   };
 
@@ -705,26 +885,51 @@ export default function WelcomeSplashPage() {
     setSuccessMsg(null);
     setGoogleLoading(true);
 
-    // Pre-flight session clearance: strictly wipe any existing session or credentials
-    // so that if this Google Sign-In is aborted, fails, or times out, the client remains
-    // 100% unauthenticated and never resurrects or leaks an old session
-    logout();
-    await signOutFromFirebase().catch(() => {});
+    // Synchronous local state clearance without async signOut interference
+    useQuantersStore.setState({
+      isAuthenticated: false,
+      currentMemberId: "",
+      activeAdminRole: "Member",
+    });
 
     try {
       const popupRes = await signInWithFirebaseGooglePopup();
       if (popupRes.ok && popupRes.email) {
         if (authMode === "signin") {
-          const res = loginWithGoogle(
+          let res = loginWithGoogle(
             popupRes.email,
             popupRes.fullName,
             popupRes.avatarUrl
           );
           if (!res.ok) {
-            setErrorMsg(
-              res.message ||
-                "No registered account found matching this Google email. Please click 'Create New Account' to register."
+            if ((res as any).isDeleted) {
+              setGoogleLoading(false);
+              setAccountDeletedModalOpen(true);
+              return;
+            }
+            await pullExactUpdatesFromServer().catch(() => {});
+            res = loginWithGoogle(
+              popupRes.email,
+              popupRes.fullName,
+              popupRes.avatarUrl
             );
+          }
+          if (!res.ok && (res as any).isDeleted) {
+            setGoogleLoading(false);
+            setAccountDeletedModalOpen(true);
+            return;
+          }
+          if (!res.ok) {
+            // First time signing in with Google -> seamlessly initialize member profile
+            res = registerWithGoogle(
+              popupRes.email,
+              popupRes.fullName,
+              popupRes.avatarUrl,
+              false
+            );
+          }
+          if (!res.ok) {
+            setErrorMsg(res.message || "Unable to complete Google authentication.");
             return;
           }
           await completeAuthenticatedTransition(res.member, res.redirectPath);
@@ -756,16 +961,29 @@ export default function WelcomeSplashPage() {
     checkFirebaseGoogleRedirectResult().then(async (redirectRes) => {
       if (!active || !redirectRes.ok || !redirectRes.email) return;
       setAuthOpen(true);
-      const res = loginWithGoogle(
+      let res = loginWithGoogle(
         redirectRes.email,
         redirectRes.fullName,
         redirectRes.avatarUrl
       );
       if (!res.ok) {
-        setErrorMsg(
-          res.message ||
-            "No registered account found matching this Google email. Please click 'Create New Account' to register."
+        await pullExactUpdatesFromServer().catch(() => {});
+        res = loginWithGoogle(
+          redirectRes.email,
+          redirectRes.fullName,
+          redirectRes.avatarUrl
         );
+      }
+      if (!res.ok) {
+        res = registerWithGoogle(
+          redirectRes.email,
+          redirectRes.fullName,
+          redirectRes.avatarUrl,
+          false
+        );
+      }
+      if (!res.ok) {
+        setErrorMsg(res.message || "Unable to complete Google redirect authentication.");
         return;
       }
       await completeAuthenticatedTransition(res.member, res.redirectPath);
@@ -776,6 +994,11 @@ export default function WelcomeSplashPage() {
   }, []);
 
   const handleSavedAccountLogin = async (saved: SavedLoginEntry) => {
+    const mem = members.find((m) => m.email.toLowerCase() === saved.email.toLowerCase());
+    if (mem && mem.status === "Removed") {
+      setAccountDeletedModalOpen(true);
+      return;
+    }
     setErrorMsg(null);
     setSuccessMsg(null);
     setSignInLoading(true);
@@ -795,17 +1018,18 @@ export default function WelcomeSplashPage() {
       }
 
       if (member) {
-        // Direct 1-tap authenticated session restoration
-        const { adminRole, redirectPath } = resolveRoleAndRedirect(member);
+        // Authenticated session restoration
+        const isSuper = isSuperAdminEmail(member.email);
         useQuantersStore.setState({
           isAuthenticated: true,
           currentMemberId: member.id,
-          activeAdminRole: adminRole,
+          activeAdminRole: isSuper ? "Super Admin" : (member.roles?.[0] as any) || "Member",
+          sessionStartedAt: Date.now(),
         });
         useQuantersStore.getState().saveToLocalCache();
-        persistSavedLogin(member);
+        const { redirectPath } = resolveRoleAndRedirect(member);
         setSignInLoading(false);
-        router.push(redirectPath);
+        await completeAuthenticatedTransition(member, redirectPath);
         return;
       }
     } catch (err) {
@@ -852,7 +1076,7 @@ export default function WelcomeSplashPage() {
           className={`lg:hidden absolute inset-x-0 bottom-0 transition-all duration-500 ${
             authOpen
               ? "h-full bg-[#030812]/65"
-              : "h-64 bg-gradient-to-t from-[#030812] via-[#030812]/80 to-transparent"
+              : "h-72 bg-gradient-to-t from-[#030812] via-[#030812]/85 to-transparent"
           }`}
         />
       </div>
@@ -860,11 +1084,18 @@ export default function WelcomeSplashPage() {
       {/* =====================================================================
           2. RESPONSIVE STAGE CONTAINER
          ===================================================================== */}
-      <div className={`relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-3.5 sm:px-6 lg:px-10 ${
-        authOpen
-          ? "pt-1.5 sm:pt-3 lg:pt-5 pb-1.5 sm:pb-4 lg:pb-6"
-          : "pt-4 sm:pt-6 lg:pt-8 pb-3.5 sm:pb-5 lg:pb-7"
-      } flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden`}>
+      <div
+        className={`relative z-10 w-full max-w-[440px] lg:max-w-[1140px] mx-auto h-dvh max-h-dvh px-3.5 sm:px-6 lg:px-10 ${
+          authOpen
+            ? "pt-1.5 sm:pt-3 lg:pt-5 pb-2 sm:pb-4 lg:pb-6"
+            : "pt-3.5 xs:pt-4 sm:pt-6 lg:pt-8 pb-8 xs:pb-10 sm:pb-12 lg:pb-14"
+        } flex flex-col lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:items-center justify-between lg:justify-center overflow-hidden`}
+        style={{
+          paddingBottom: !authOpen
+            ? "max(clamp(2.5rem, 5.5vh, 4rem), calc(env(safe-area-inset-bottom, 0px) + 2rem))"
+            : "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+        }}
+      >
         {/* LEFT COLUMN (PC ONLY): Uncropped 9:16 Cinema Portal (Clean, unoccluded video with zero bottom headers or dark overlay fades) */}
         <div className="hidden lg:flex lg:col-span-5 items-center justify-center">
           <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[9/16] max-h-[min(540px,76dvh)] xl:max-h-[min(620px,80dvh)] rounded-2xl overflow-hidden border border-white/15 bg-[#040B18] shadow-[0_28px_90px_rgba(0,0,0,0.85)]">
@@ -1074,8 +1305,8 @@ export default function WelcomeSplashPage() {
                 </button>
 
                 {/* Institutional Partner Emblems (Clean, Spacious & White Logo) */}
-                <div className="pt-1 pb-0.5">
-                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-1.5" />
+                <div className="pt-2 pb-2.5 sm:pb-3">
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2.5 sm:mb-3" />
                   <div className="flex items-center justify-between px-2 sm:px-3">
                     <img
                       src="/brand/univ_quanta_asset2.png"
@@ -1156,7 +1387,11 @@ export default function WelcomeSplashPage() {
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <button
                     type="button"
-                    onClick={() => router.push(pendingPostLogin.redirectPath)}
+                    onClick={() => {
+                      setAuthOpen(false);
+                      setPendingPostLogin(null);
+                      router.push(pendingPostLogin.redirectPath);
+                    }}
                     className="h-10 rounded-xl bg-[#081223] hover:bg-[#11203A] border border-[#2B4875] text-slate-300 hover:text-white font-display font-bold text-xs transition cursor-pointer"
                   >
                     Not Now
@@ -1165,6 +1400,8 @@ export default function WelcomeSplashPage() {
                     type="button"
                     onClick={() => {
                       persistSavedLogin(pendingPostLogin.member);
+                      setAuthOpen(false);
+                      setPendingPostLogin(null);
                       router.push(pendingPostLogin.redirectPath);
                     }}
                     className="h-10 rounded-xl bg-gradient-to-r from-[#0284C7] via-[#0369A1] to-[#182C4E] hover:brightness-110 border border-[#38BDF8]/45 text-white font-display font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-[0_8px_24px_rgba(2,132,199,0.3)] transition cursor-pointer"
@@ -2131,6 +2368,63 @@ export default function WelcomeSplashPage() {
           <span>QUANTERS App ready on your device</span>
         </div>
       )}
+          {/* ACCOUNT DEACTIVATED & DELETED MODAL (WITH NANO BANANA MASCOT) */}
+      {accountDeletedModalOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl bg-[#08101E] border border-rose-500/30 shadow-[0_24px_60px_rgba(0,0,0,0.85)] p-6 text-center text-white space-y-4 animate-rise relative overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-16 -left-16 w-36 h-36 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-16 -right-16 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Mascot Container */}
+            <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-rose-500/40 shadow-[0_12px_28px_rgba(244,63,94,0.2)] bg-[#040A14]">
+              <img
+                src="/brand/mascot_account_deleted.png"
+                alt="Account Retired Mascot"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#08101E]/80 via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            {/* Title & Badge */}
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                {lang === "ar" ? "حساب مستبعد ومحذوف" : "Account Deactivated & Deleted"}
+              </span>
+              <h3 className="font-display text-lg font-black tracking-tight text-white mt-1">
+                {lang === "ar" ? "تم إيقاف هذا الحساب نهائياً" : "Your Account is Deleted"}
+              </h3>
+            </div>
+
+            {/* Explanatory Notice */}
+            <p className="text-xs text-slate-300 leading-relaxed font-sans px-2">
+              {lang === "ar"
+                ? "تم نقل حساب عضويتك إلى سجل الأعضاء السابقين (مستبعد) من قبل المكتب التنفيذي. وفقاً للقوانين الداخلية للنادي، تم تعطيل الحساب نهائياً ولا يمكن تسجيل الدخول أو إعادة التسجيل بهذا البريد الإلكتروني."
+                : "Your QUANTA membership account was moved to Former Members (Removed) by the Executive Bureau. In accordance with internal bylaws, this account is permanently deactivated and this email address cannot be used to register again."}
+            </p>
+
+            {/* Actions */}
+            <div className="pt-2 space-y-2">
+              <a
+                href="mailto:quantaclubdz@gmail.com?subject=QUANTA%20Account%20Removal%20Inquiry"
+                className="w-full h-10 rounded-xl bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:brightness-110 text-white font-display font-black text-xs flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98]"
+              >
+                <span>{lang === "ar" ? "مراسلة الإدارة التنفيذية" : "Contact HR / Executive Bureau"}</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setAccountDeletedModalOpen(false)}
+                className="w-full h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-display font-bold text-xs transition cursor-pointer"
+              >
+                {lang === "ar" ? "إغلاق" : "Dismiss"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

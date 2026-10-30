@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   BookOpen,
   Calendar,
@@ -8,6 +8,9 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Edit3,
+  Eye,
   Code2,
   Copy,
   FileCode2,
@@ -22,7 +25,22 @@ import {
   Sparkles,
   Trash2,
   X,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Link2,
+  Minus,
+  RemoveFormatting,
+  Columns2,
+  Table,
 } from "lucide-react";
+import { MarkdownArticleRenderer } from "@/components/shared/MarkdownArticleRenderer";
 import { FieldIcon, ALL_FIELD_ICONS } from "@/components/shared/FieldIcon";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { getActiveDailyQuote, getCurrentDayOfYear } from "@/lib/data/seed";
@@ -115,6 +133,188 @@ export default function AdminExplorePage() {
   );
   const [featuredInCarousel, setFeaturedInCarousel] = useState(true);
   const [externalUrl, setExternalUrl] = useState("");
+  const [content, setContent] = useState("");
+  const [articleEditorTab, setArticleEditorTab] = useState<"write" | "split" | "preview">("write");
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const PRESET_READ_TIMES = ["2 min read", "3 min read", "5 min read", "8 min read", "12 min read"];
+
+  const handleAutoCalcReadTime = () => {
+    const fullText = `${title} ${summary} ${content}`.trim();
+    const words = fullText ? fullText.split(/\s+/).filter(Boolean).length : 0;
+    const mins = Math.max(1, Math.round(words / 180));
+    setReadTime(`${mins} min read`);
+  };
+
+  const applyMarkdownFormat = (
+    type:
+      | "bold"
+      | "italic"
+      | "underline"
+      | "strike"
+      | "h1"
+      | "h2"
+      | "h3"
+      | "quote"
+      | "bullet"
+      | "number"
+      | "code"
+      | "link"
+      | "table"
+      | "line"
+      | "clear"
+  ) => {
+    const textarea = contentTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const selected = content.substring(start, end);
+
+    let prefix = "";
+    let suffix = "";
+    let defaultText = "";
+
+    switch (type) {
+      case "bold":
+        prefix = "**";
+        suffix = "**";
+        defaultText = "bold text";
+        break;
+      case "italic":
+        prefix = "*";
+        suffix = "*";
+        defaultText = "italic text";
+        break;
+      case "underline":
+        prefix = "<u>";
+        suffix = "</u>";
+        defaultText = "underlined text";
+        break;
+      case "strike":
+        prefix = "~~";
+        suffix = "~~";
+        defaultText = "strikethrough text";
+        break;
+      case "h1":
+        prefix = "\n\n# ";
+        suffix = "\n";
+        defaultText = "Article Main Title";
+        break;
+      case "h2":
+        prefix = "\n\n## ";
+        suffix = "\n";
+        defaultText = "Section Heading";
+        break;
+      case "h3":
+        prefix = "\n\n### ";
+        suffix = "\n";
+        defaultText = "Subheading";
+        break;
+      case "quote":
+        prefix = "\n> ";
+        suffix = "\n";
+        defaultText = "Scientific insight or pull-quote";
+        break;
+      case "bullet":
+        if (selected.includes("\n")) {
+          const listified = selected
+            .split("\n")
+            .map((line) => (line.trim().startsWith("- ") ? line : `- ${line}`))
+            .join("\n");
+          const newContent = content.substring(0, start) + listified + content.substring(end);
+          setContent(newContent);
+          requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start, start + listified.length);
+          });
+          return;
+        }
+        prefix = "\n- ";
+        suffix = "\n";
+        defaultText = "Point item";
+        break;
+      case "number":
+        if (selected.includes("\n")) {
+          const numbered = selected
+            .split("\n")
+            .map((line, idx) => `${idx + 1}. ${line.replace(/^\d+\.\s*/, "")}`)
+            .join("\n");
+          const newContent = content.substring(0, start) + numbered + content.substring(end);
+          setContent(newContent);
+          requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start, start + numbered.length);
+          });
+          return;
+        }
+        prefix = "\n1. ";
+        suffix = "\n";
+        defaultText = "Numbered item";
+        break;
+      case "code":
+        if (selected.includes("\n")) {
+          prefix = "\n```typescript\n";
+          suffix = "\n```\n";
+          defaultText = "// code snippet or formula";
+        } else {
+          prefix = "`";
+          suffix = "`";
+          defaultText = "code";
+        }
+        break;
+      case "link":
+        prefix = "[";
+        suffix = "](https://example.com)";
+        defaultText = "Link text";
+        break;
+      case "table":
+        prefix = "\n\n| Parameter | Value | Reference |\n|---|---|---|\n| Metric A | 98.4% | Verified |\n| Metric B | 1.2 ms | Real-time |\n\n";
+        suffix = "";
+        defaultText = "";
+        break;
+      case "line":
+        prefix = "\n\n---\n\n";
+        suffix = "";
+        defaultText = "";
+        break;
+      case "clear":
+        if (selected) {
+          const cleaned = selected
+            .replace(/\*\*/g, "")
+            .replace(/\*/g, "")
+            .replace(/<u>/g, "")
+            .replace(/<\/u>/g, "")
+            .replace(/~~/g, "")
+            .replace(/`/g, "")
+            .replace(/^#+\s+/gm, "")
+            .replace(/^>\s+/gm, "")
+            .replace(/^[-*]\s+/gm, "")
+            .replace(/^\d+\.\s+/gm, "");
+          const newContent = content.substring(0, start) + cleaned + content.substring(end);
+          setContent(newContent);
+          requestAnimationFrame(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start, start + cleaned.length);
+          });
+          return;
+        }
+        break;
+    }
+
+    const insertedText = selected || defaultText;
+    const replacement = prefix + insertedText + suffix;
+    const newContent = content.substring(0, start) + replacement + content.substring(end);
+    setContent(newContent);
+
+    // Keep focus and smoothly place cursor inside or after format
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const selectionStart = start + prefix.length;
+      const selectionEnd = selectionStart + insertedText.length;
+      textarea.setSelectionRange(selectionStart, selectionEnd);
+    });
+  };
 
   const openCreateArticleModal = () => {
     setEditingPostId(null);
@@ -128,6 +328,8 @@ export default function AdminExplorePage() {
     setImageUrl("https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80");
     setFeaturedInCarousel(true);
     setExternalUrl("");
+    setContent("");
+    setArticleEditorTab("write");
     setCreateOpen(true);
   };
 
@@ -143,6 +345,8 @@ export default function AdminExplorePage() {
     setImageUrl(post.imageUrl);
     setFeaturedInCarousel(Boolean(post.featuredInCarousel));
     setExternalUrl(post.externalUrl || "");
+    setContent(post.content || "");
+    setArticleEditorTab("write");
     setCreateOpen(true);
   };
 
@@ -249,6 +453,7 @@ export default function AdminExplorePage() {
       updateExplorePost(editingPostId, {
         title: title.trim(),
         summary: summary.trim(),
+        content: content.trim() || undefined,
         category,
         tagLabel: tagLabel.trim().toUpperCase() || "SCIENCE",
         tagTone,
@@ -265,6 +470,7 @@ export default function AdminExplorePage() {
       createExplorePost({
         title: title.trim(),
         summary: summary.trim(),
+        content: content.trim() || undefined,
         category,
         tagLabel: tagLabel.trim().toUpperCase() || "SCIENCE",
         tagTone,
@@ -1207,26 +1413,34 @@ export default function AdminExplorePage() {
       </div>
 
       {/* =========================================================
-          MODAL 1: CREATE EXPLORE POST
+          MODAL 1: CREATE / EDIT EXPLORE ARTICLE (NEWSPAPER & MAGAZINE GRADE)
          ========================================================= */}
       {createOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-extrabold">
-                  {editingPostId
-                    ? "Edit Explore Article / Dispatch"
-                    : "Create Explore Article / Opportunity"}
-                </h2>
-                <p className="text-xs text-sky-200">
-                  Publishes directly to the 4-category Explore Feed on the member app
-                </p>
+        <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[92vh] animate-rise">
+            {/* Header */}
+            <div className="px-5 py-3.5 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-300">
+                  <Newspaper className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-extrabold tracking-tight">
+                      {editingPostId
+                        ? "Edit Article"
+                        : "Publish Article"}
+                    </h2>
+                  </div>
+                  <p className="text-[11px] text-sky-200/80">
+                    Newspaper-grade article authoring with rich typography and instant live reader preview
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1234,33 +1448,33 @@ export default function AdminExplorePage() {
 
             <form
               onSubmit={handleCreatePost}
-              className="p-6 space-y-4 max-h-[82vh] overflow-y-auto"
+              className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs"
             >
+              {/* Row 1: Headline */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Headline / Title *
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  Article Headline / Title *
                 </label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. CERN Summer Student Programme 2027 Applications Open"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                  placeholder="e.g. Breakthrough in Quantum Error Correction Discovered by QUANTA Labs"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Row 2: Metadata Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                     Category
                   </label>
                   <select
                     value={category}
-                    onChange={(e) =>
-                      setCategory(e.target.value as ExploreCategory)
-                    }
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                    onChange={(e) => setCategory(e.target.value as ExploreCategory)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#0284C7]"
                   >
                     {EXPLORE_CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -1271,99 +1485,464 @@ export default function AdminExplorePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                     Badge Tag Label
                   </label>
                   <input
                     type="text"
                     value={tagLabel}
                     onChange={(e) => setTagLabel(e.target.value)}
-                    placeholder="ASTRONOMY / OPPORTUNITY"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm uppercase"
+                    placeholder="QUANTUM / DISCOVERY"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 uppercase font-mono font-bold focus:outline-none focus:border-[#0284C7]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                     Source / Publisher
                   </label>
                   <input
                     type="text"
                     value={source}
                     onChange={(e) => setSource(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                    placeholder="QUANTA Editorial"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:border-[#0284C7]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Read Time
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    Tone Accent
+                  </label>
+                  <select
+                    value={tagTone}
+                    onChange={(e) => setTagTone(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#0284C7]"
+                  >
+                    <option value="sky">Cyan Blue</option>
+                    <option value="purple">Cosmic Purple</option>
+                    <option value="emerald">Emerald Green</option>
+                    <option value="amber">Warm Amber</option>
+                    <option value="rose">Rose Red</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 3: Read Time Selection (Compact & Reduced) */}
+              <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/90">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 shrink-0">
+                    <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <span>Reading Time:</span>
+                  </div>
+                  <div className="flex items-center gap-1 overflow-x-auto">
+                    {["3 min", "5 min", "8 min", "12 min"].map((p) => {
+                      const val = `${p} read`;
+                      const active = readTime.includes(p);
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setReadTime(val)}
+                          className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold transition cursor-pointer ${
+                            active
+                              ? "bg-[#182C4E] text-white shadow-2xs"
+                              : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAutoCalcReadTime}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold text-[#0284C7] bg-[#E0F2FE] hover:bg-sky-100 border border-[#BAE6FD] shrink-0 transition cursor-pointer"
+                  title="Auto-calculate read time from word count"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Auto</span>
+                </button>
+              </div>
+
+              {/* Row 4: Cover Image & External URL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    Cover Image URL
                   </label>
                   <input
                     type="text"
-                    value={readTime}
-                    onChange={(e) => setReadTime(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    External Source Link (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={externalUrl}
+                    onChange={(e) => setExternalUrl(e.target.value)}
+                    placeholder="https://nature.com/articles/... or https://cern.ch"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono"
                   />
                 </div>
               </div>
 
+              {/* Row 5: Summary */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Cover Image URL
-                </label>
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Summary / Digest *
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  Lead Summary <span className="text-[10px] text-slate-400 font-normal lowercase font-sans">(2–3 sentences)</span> *
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   required
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
-                  placeholder="Write a concise scientific summary or opportunity details..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                  placeholder="A concise summary displayed on feed cards and preview listings..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs leading-relaxed focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+              {/* Row 6: Office / Gmail Style Editorial Workspace (Compacted Ribbon + Full Body + Split / Preview) */}
+              <div className="rounded-2xl border border-slate-200/90 overflow-hidden bg-white shadow-2xs">
+                {/* Editor Top Bar with View Mode Switcher */}
+                <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex rounded-lg bg-slate-200/80 p-0.5 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setArticleEditorTab("write")}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        articleEditorTab === "write"
+                          ? "bg-white text-[#182C4E] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-[#0284C7]" />
+                      <span>Write</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setArticleEditorTab("split")}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        articleEditorTab === "split"
+                          ? "bg-white text-[#182C4E] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Columns2 className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Split View</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setArticleEditorTab("preview")}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        articleEditorTab === "preview"
+                          ? "bg-white text-[#0284C7] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Newspaper Preview</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[10.5px] font-mono text-slate-500">
+                    <span>
+                      Words: <strong className="text-slate-800">{`${title} ${summary} ${content}`.trim().split(/\s+/).filter(Boolean).length}</strong>
+                    </span>
+                    <span>·</span>
+                    <span>
+                      Est: <strong className="text-[#0284C7]">{Math.max(1, Math.round(`${title} ${summary} ${content}`.trim().split(/\s+/).filter(Boolean).length / 180))} min</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Compacted Gmail / MS Word Ribbon Toolbar (Always available in Write & Split views) */}
+                {articleEditorTab !== "preview" && (
+                  <div className="flex flex-wrap items-center gap-0.5 px-2.5 py-1.5 bg-[#F8FAFC] border-b border-slate-200/80 text-xs">
+                    {/* Group 1: Typography (B, I, U, S) */}
+                    <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("bold")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-800 font-extrabold text-xs cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Bold (Ctrl+B)"
+                      >
+                        <Bold className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("italic")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-800 italic font-bold text-xs cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Italic (Ctrl+I)"
+                      >
+                        <Italic className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("underline")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Underline (Ctrl+U)"
+                      >
+                        <Underline className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("strike")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Strikethrough"
+                      >
+                        <Strikethrough className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Group 2: Headings (H1, H2, H3) */}
+                    <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("h1")}
+                        className="px-1.5 h-6 rounded hover:bg-slate-200 text-slate-800 font-mono font-bold text-[10.5px] cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Heading 1 (Main Title)"
+                      >
+                        <Heading1 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("h2")}
+                        className="px-1.5 h-6 rounded hover:bg-slate-200 text-slate-800 font-mono font-bold text-[10.5px] cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Heading 2 (Section)"
+                      >
+                        <Heading2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("h3")}
+                        className="px-1.5 h-6 rounded hover:bg-slate-200 text-slate-800 font-mono font-bold text-[10.5px] cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Heading 3 (Subheading)"
+                      >
+                        <Heading3 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Group 3: Lists & Quotes */}
+                    <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("bullet")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Bulleted List"
+                      >
+                        <List className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("number")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Numbered List"
+                      >
+                        <ListOrdered className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("quote")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Callout Blockquote"
+                      >
+                        <Quote className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Group 4: Inserts (Link, Code, Table, Divider) */}
+                    <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("link")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Insert Hyperlink"
+                      >
+                        <Link2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("code")}
+                        className="px-1.5 h-6 rounded hover:bg-slate-200 text-slate-700 font-mono font-bold text-[10.5px] cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Code Snippet / Block"
+                      >
+                        &lt;/&gt;
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("table")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Insert Scientific Data Table"
+                      >
+                        <Table className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyMarkdownFormat("line")}
+                        className="w-7 h-6 rounded hover:bg-slate-200 text-slate-700 cursor-pointer flex items-center justify-center transition active:scale-95"
+                        title="Horizontal Divider"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Group 5: Clear Format */}
+                    <button
+                      type="button"
+                      onClick={() => applyMarkdownFormat("clear")}
+                      className="w-7 h-6 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 cursor-pointer flex items-center justify-center transition active:scale-95 ml-auto"
+                      title="Clear Formatting on Selection"
+                    >
+                      <RemoveFormatting className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Editor Content Body */}
+                {articleEditorTab === "write" && (
+                  <div className="p-3">
+                    <textarea
+                      ref={contentTextareaRef}
+                      rows={16}
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder={"Write the full in-depth article or news dispatch here using standard Markdown...\n\n## The Breakthrough\nScientists at the research facility have recorded remarkable quantum coherence intervals...\n\n> Key observation statement\n\n- Observation A: High-fidelity entanglement\n- Observation B: Zero phase deviation"}
+                      className="w-full p-3.5 rounded-xl border border-slate-200 text-xs font-mono leading-relaxed bg-[#FCFDFE] focus:outline-none focus:border-[#0284C7]"
+                    />
+                  </div>
+                )}
+
+                {articleEditorTab === "split" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                    {/* Left: Textarea Writer */}
+                    <div className="p-3">
+                      <textarea
+                        ref={contentTextareaRef}
+                        rows={16}
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Write markdown here, watch live preview on the right..."
+                        className="w-full h-full min-h-[380px] p-3 rounded-xl border border-slate-200 text-xs font-mono leading-relaxed bg-[#FCFDFE] focus:outline-none focus:border-[#0284C7]"
+                      />
+                    </div>
+
+                    {/* Right: Live Rendered Preview */}
+                    <div className="p-4 bg-slate-50/50 max-h-[440px] overflow-y-auto space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200/80 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                        <span>Live Reader Preview</span>
+                        <span className="text-emerald-600 font-bold">Synchronized</span>
+                      </div>
+                      {summary && (
+                        <p className="text-xs font-semibold text-slate-800 leading-relaxed italic bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+                          {summary}
+                        </p>
+                      )}
+                      {content ? (
+                        <MarkdownArticleRenderer content={content} />
+                      ) : (
+                        <p className="text-xs text-slate-400 italic py-6 text-center">
+                          (Type in the editor on the left to see your formatted article appear here live.)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {articleEditorTab === "preview" && (
+                  /* Full Live Newspaper Preview Mode */
+                  <div className="p-5 bg-white space-y-4 max-h-[480px] overflow-y-auto">
+                    <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200">
+                      <img
+                        src={imageUrl || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80"}
+                        alt={title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider bg-[#182C4E] text-[#7DD3FC] border border-[#38BDF8]/40">
+                          {tagLabel || "SCIENCE"} · {category}
+                        </span>
+                        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-black/60 text-white backdrop-blur-xs">
+                          {readTime}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h1 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-snug">
+                        {title || "Untitled Article Headline"}
+                      </h1>
+                      <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 border-b border-slate-100 pb-2">
+                        <span className="font-bold text-[#182C4E]">{source || "QUANTA Editorial"}</span>
+                        <span>·</span>
+                        <span>{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        <span>·</span>
+                        <span className="font-mono text-[#0284C7]">{readTime}</span>
+                      </div>
+
+                      {summary && (
+                        <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed italic bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                          {summary}
+                        </p>
+                      )}
+
+                      {content ? (
+                        <div className="pt-2">
+                          <MarkdownArticleRenderer content={content} />
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 italic py-4 text-center">
+                          (No full article body provided yet. Switch to "Write" or "Split View" tab to compose content.)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 7: Options */}
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   checked={featuredInCarousel}
                   onChange={(e) => setFeaturedInCarousel(e.target.checked)}
+                  className="rounded border-slate-300 text-[#0284C7] focus:ring-0"
                 />
                 <span>Feature in Top Hero Carousel on Mobile Explore Screen</span>
               </label>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white shadow-xs cursor-pointer"
                 >
-                  {editingPostId ? "Save Article Changes" : "Publish Article"}
+                  <Newspaper className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{editingPostId ? "Save Article Changes" : "Publish Article to Feed"}</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* =========================================================
+{/* =========================================================
           MODAL 2: ADD DAILY QUIZ
          ========================================================= */}
       {quizModalOpen && (

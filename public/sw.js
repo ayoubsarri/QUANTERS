@@ -4,39 +4,24 @@
  * API snapshot fallback, and native Push / System notifications.
  */
 
-const CACHE_VERSION = "quanters-pwa-v8.6";
+const CACHE_VERSION = "quanters-pwa-v10.0";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 
+// Minimal essential shell precache (<250 KB) to strictly protect Firebase Hosting bandwidth quota (QUOTA-01)
+// Dynamic pages are cached on-demand when visited via stale-while-revalidate navigation cache
 const CORE_PRECACHE_URLS = [
   "/",
-  "/welcome",
-  "/home",
-  "/workshops",
-  "/explore",
-  "/badges",
-  "/profile",
-  "/checkin",
-  "/exams",
-  "/exams/exam",
-  "/admin/members/member",
-  "/projects/submit",
-  "/proposals",
-  "/notifications",
-  "/manager",
-  "/onboarding",
   "/manifest.json",
   "/apple-touch-icon.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/brand/logo_quanta_opt.webp",
   "/brand/quanters_vector_v2.svg",
-  "/brand/univ_logo_d.svg",
-  "/brand/univ_logo_darkmode.svg",
   "/brand/univ_logo.svg",
+  "/brand/univ_logo_d.svg",
   "/brand/welcome_keyframe_1.webp",
-  "/brand/admin_overview_banner_bg.webp",
 ];
 
 self.addEventListener("install", (event) => {
@@ -115,6 +100,14 @@ self.addEventListener("message", (event) => {
           vibrate: [100, 50, 100],
           requireInteraction: priority === "Action needed",
           data: { url: url || "/notifications" },
+        })
+      );
+    }
+  if (event.data.type === "CLEAR_NOTIFICATIONS") {
+    if (self.registration && self.registration.getNotifications) {
+      event.waitUntil(
+        self.registration.getNotifications().then((notifications) => {
+          notifications.forEach((n) => n.close());
         })
       );
     }

@@ -280,103 +280,97 @@ export default function AdminOverviewPage() {
         </div>
       </section>
 
-      {/* 3. 4 Executive KPI Cards in Member-App Card Style */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Card 1: Current Roster */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              {isRtl ? "قائمة الأعضاء" : "Current Roster"}
+      {/* 3. Executive Telemetry Deck — Compact 4-Cell Cockpit */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+        {/* Cell 1: Active Directory */}
+        <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs hover:border-[#0284C7]/40 transition flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              {isRtl ? "سجل الأعضاء النشط" : "ACTIVE DIRECTORY"}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#182C4E]">
-              <Users className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-[#F0F6FF] text-[#0284C7] flex items-center justify-center">
+              <Users className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-3">
-            <div className="font-display text-3xl font-black text-[#0F1E36] tabular-nums">
+          <div className="my-2 flex items-baseline justify-between gap-2">
+            <div className="font-display text-2xl sm:text-3xl font-black text-[#0F1E36] tabular-nums">
               {currentMembers.length}
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
-              {isRtl
-                ? `${activeCount} نشط · ${traineeCount} متدرب`
-                : `${activeCount} Active · ${traineeCount} Trainees`}
-            </div>
+            <span className="text-[11px] font-mono font-bold text-slate-500">
+              {activeCount} Active · {traineeCount} Trainees
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-slate-400 font-mono text-[10px]">
-              {isRtl
-                ? `${inactiveCount} غير نشط · ${suspendedCount} معلق`
-                : `${inactiveCount} Inactive · ${suspendedCount} Susp.`}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10.5px]">
+            <span className="text-slate-400 font-mono">
+              {inactiveCount} Inactive · {suspendedCount} Susp.
             </span>
             <Link
               href="/admin/members"
-              className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0 transition"
+              className="text-[#0284C7] hover:text-[#182C4E] font-display font-bold inline-flex items-center gap-1 transition"
             >
-              <span>{isRtl ? "عرض القائمة" : "View Roster"}</span>
+              <span>{isRtl ? "الدليل" : "Directory"}</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
 
-        {/* Card 2: Trainees Ready to Confirm */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              {isRtl ? "جاهزون للترقية" : "Ready to Confirm"}
+        {/* Cell 2: Probation Clearance */}
+        <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs hover:border-emerald-400 transition flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700">
+              {isRtl ? "تأهيل العضوية الكاملة" : "PROBATION CLEARANCE"}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700">
-              <UserCheck className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <UserCheck className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-3">
-            <div className="font-display text-3xl font-black text-emerald-700 tabular-nums">
+          <div className="my-2 flex items-baseline justify-between gap-2">
+            <div className="font-display text-2xl sm:text-3xl font-black text-emerald-700 tabular-nums">
               {traineesReadyToConfirm.length}
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-1">
-              {isRtl ? "≥90 يوماً و ≥75% نسبة حضور" : "≥90 days & ≥75% attendance"}
-            </div>
+            <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              ≥90d & ≥75% Pres.
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
-              {isRtl ? "مسار 3 أشهر" : "3-Month Track"}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10.5px]">
+            <span className="text-slate-500 font-sans">
+              Eligible for confirmation
             </span>
             <Link
               href="/admin/members?status=Trainee"
-              className="text-emerald-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
+              className="text-emerald-700 hover:text-emerald-900 font-display font-bold inline-flex items-center gap-1 transition"
             >
-              <span>{isRtl ? "مراجعة" : "Review"}</span>
+              <span>{isRtl ? "مراجعة" : "Triage"}</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>
         </div>
 
-        {/* Card 3: Attention Needed / At Risk */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              {isRtl ? "تنبيهات المتابعة" : "Attention Needed"}
+        {/* Cell 3: Operational Anomalies */}
+        <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs hover:border-rose-400 transition flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-600">
+              {isRtl ? "مخاطر المتابعة والالتزام" : "COMPLIANCE & RISKS"}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600">
-              <AlertTriangle className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <AlertTriangle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-3">
-            <div className="font-display text-3xl font-black text-rose-600 tabular-nums">
+          <div className="my-2 flex items-baseline justify-between gap-2">
+            <div className="font-display text-2xl sm:text-3xl font-black text-rose-600 tabular-nums">
               {membersAtRisk.length + traineesWithoutFirstTask.length}
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-1">
-              {isRtl
-                ? `${membersAtRisk.length} نشاط منخفض · ${traineesWithoutFirstTask.length} بدون مهمة أولى`
-                : `${membersAtRisk.length} low health · ${traineesWithoutFirstTask.length} missing 1st task`}
-            </div>
+            <span className="text-[11px] font-mono font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded">
+              {membersAtRisk.length} Low · {traineesWithoutFirstTask.length} Overdue
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md font-mono text-[10px]">
-              {isRtl ? "متابعة الموارد البشرية" : "HR Follow-up"}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10.5px]">
+            <span className="text-slate-500 font-sans">
+              Action required by HR
             </span>
             <Link
               href="/admin/members?status=Inactive"
-              className="text-rose-700 hover:underline font-display font-extrabold inline-flex items-center gap-1 shrink-0"
+              className="text-rose-600 hover:text-rose-800 font-display font-bold inline-flex items-center gap-1 transition"
             >
               <span>{isRtl ? "فحص" : "Inspect"}</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -384,35 +378,33 @@ export default function AdminOverviewPage() {
           </div>
         </div>
 
-        {/* Card 4: Pending Reviews */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)] flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-              {isRtl ? "المراجعات المعلقة" : "Pending Reviews"}
+        {/* Cell 4: Executive Triage */}
+        <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs hover:border-[#182C4E]/50 transition flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#182C4E]">
+              {isRtl ? "طابور المراجعة التنفيذية" : "EXECUTIVE TRIAGE"}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-center text-[#0284C7]">
-              <Clock className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-[#F0F6FF] text-[#182C4E] flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-3">
-            <div className="font-display text-3xl font-black text-[#182C4E] tabular-nums">
+          <div className="my-2 flex items-baseline justify-between gap-2">
+            <div className="font-display text-2xl sm:text-3xl font-black text-[#182C4E] tabular-nums">
               {totalPendingReviews}
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-1 tabular-nums">
-              {isRtl
-                ? `${pendingTaskDeliveries} مهام · ${pendingBadgeProjects} شارات · ${pendingProposals} مقترحات`
-                : `${pendingTaskDeliveries} Tasks · ${pendingBadgeProjects} Badges · ${pendingProposals} Proposals`}
-            </div>
+            <span className="text-[11px] font-mono font-bold text-[#182C4E] bg-[#F0F6FF] px-2 py-0.5 rounded">
+              {pendingTaskDeliveries}T · {pendingBadgeProjects}B · {pendingProposals}P
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] font-bold whitespace-nowrap">
-            <span className="text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-md font-mono text-[10px]">
-              {isRtl ? "طابور المراجعة" : "Review Queue"}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10.5px]">
+            <span className="text-slate-500 font-sans">
+              Pending deliveries &amp; votes
             </span>
             <Link
               href="/admin/proposals"
-              className="text-[#0284C7] hover:text-[#182C4E] font-display font-extrabold inline-flex items-center gap-1 shrink-0"
+              className="text-[#0284C7] hover:text-[#182C4E] font-display font-bold inline-flex items-center gap-1 transition"
             >
-              <span>{isRtl ? "فتح الطابور" : "Open Queue"}</span>
+              <span>{isRtl ? "الفتح" : "Queue"}</span>
               <ArrowRight className="w-3 h-3 rtl:rotate-180" />
             </Link>
           </div>

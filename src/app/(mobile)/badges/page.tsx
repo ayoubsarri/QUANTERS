@@ -87,7 +87,7 @@ export default function MobileBadgesPage() {
         {/* Top Cosmic Summary Hero Banner */}
         <div className="relative overflow-hidden rounded-2xl p-5 bg-[#0B1528] border border-[#2B4875]/60 shadow-[0_16px_38px_rgba(11,21,40,0.26)] text-white animate-rise">
           <img
-            src="/brand/hero_rank_banner.webp"
+            src="/brand/mascot_badges.png"
             alt="QUANTERS Cosmic Badges Banner"
             className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none"
           />

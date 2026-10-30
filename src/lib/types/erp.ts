@@ -4,6 +4,7 @@
  */
 
 export type MemberStatus =
+  | "Pending"
   | "Trainee"
   | "Active"
   | "Inactive"
@@ -295,6 +296,9 @@ export interface OnboardingChecklist {
   buddyAssigned: boolean;
   firstTaskBeforeDay30: boolean;
   firstWorkshopAttended: boolean;
+  hrApproved?: boolean;
+  hrApprovedAt?: string;
+  hrApprovedBy?: string;
 }
 
 export interface TraineeEvaluation {
@@ -305,7 +309,7 @@ export interface TraineeEvaluation {
 }
 
 export type HousingType = "Family Home" | "University Residence (Cité)" | "Shared Apartment";
-export type CommuteDuration = "< 30 min" | "30–60 min" | "> 1 hour";
+export type CommuteDuration = "< 30 min" | "30–60 min" | "> 1 hour" | "> 1h30";
 export type PcCapability = "Coding & Dev" | "Design & Video" | "Office & Web" | "No Personal PC";
 
 export interface Member {
@@ -666,7 +670,7 @@ export interface Proposal {
   location?: string;
   specificFields: Record<string, string>;
   state: ProposalState;
-  reviewerScope: "Department Head" | "Executive Board (2/3 Quorum)" | "Executive Board";
+  reviewerScope: "Department Head" | "Executive Board" | "Executive Board (2/3 Quorum)";
   reviewerComment?: string;
   convertedToId?: string;
   votes?: Record<string, ProposalVote>;
@@ -683,6 +687,7 @@ export interface ExplorePost {
   id: string;
   title: string;
   summary: string;
+  content?: string;
   category: ExploreCategory;
   tagLabel: string;
   tagTone: "sky" | "amber" | "cyan" | "indigo";
@@ -766,6 +771,10 @@ export interface ClubMessage {
     emailFailedCount: number;
   };
   actionLink?: string;
+  targetMemberId?: string;
+  targetDepartmentId?: string;
+  targetTeamId?: string;
+  readMemberIds?: string[];
 }
 
 export type GrievanceCategory =
@@ -873,6 +882,24 @@ export interface SystemSettings {
   // Dynamic Rank & Level Progression Thresholds (Admin Editable CRUD)
   rankLevels?: RankLevelThreshold[];
   archivedMembers?: ArchivedMemberRecord[];
+  // Active Sessions & Remote Security Revocation Controls (Super Admin)
+  forceLogoutAllAt?: number;
+  revokedSessionMemberIds?: Record<string, number>;
+  // Post-Admission Automated Welcome Message Controls (Admin Editable)
+  welcomeMessageEnabled?: boolean;
+  welcomeMessageTitle?: string;
+  welcomeMessageBody?: string;
+  welcomeMessageSenderRole?: "Executive" | "HR" | "System";
+  welcomeMessageSenderLabel?: string;
+  // Real-Time Email Verification Multi-Key Pool (Admin Configurable)
+  emailVerificationEnabled?: boolean;
+  zerobounceApiKey1?: string;
+  zerobounceApiKey2?: string;
+  abstractApiKey1?: string;
+  abstractApiKey2?: string;
+  // Extended Club Governance Controls
+  examRetakeCooldownHours?: number;
+  dailyQuizResetHour?: number;
 }
 
 export interface RankLevelThreshold {
@@ -882,6 +909,7 @@ export interface RankLevelThreshold {
   title: string;
   badgeName?: string;
   colorHex?: string;
+  emblemEmoji?: string;
 }
 
 export interface ArchivedMemberRecord {
@@ -899,16 +927,16 @@ export interface ArchivedMemberRecord {
 }
 
 export const DEFAULT_RANK_LEVELS: RankLevelThreshold[] = [
-  { level: 1, minXp: 0, maxXp: 999, title: "Novice Quanter", badgeName: "Novice", colorHex: "#94A3B8" },
-  { level: 2, minXp: 1000, maxXp: 1999, title: "Junior Observer", badgeName: "Observer", colorHex: "#38BDF8" },
-  { level: 3, minXp: 2000, maxXp: 2999, title: "Research Apprentice", badgeName: "Apprentice", colorHex: "#60A5FA" },
-  { level: 4, minXp: 3000, maxXp: 3999, title: "Lab Specialist", badgeName: "Specialist", colorHex: "#34D399" },
-  { level: 5, minXp: 4000, maxXp: 4999, title: "Scientific Pioneer", badgeName: "Pioneer", colorHex: "#2DD4BF" },
-  { level: 6, minXp: 5000, maxXp: 5999, title: "Quantum Scholar", badgeName: "Scholar", colorHex: "#818CF8" },
-  { level: 7, minXp: 6000, maxXp: 6999, title: "Quantum Explorer", badgeName: "Explorer", colorHex: "#A78BFA" },
-  { level: 8, minXp: 7000, maxXp: 7999, title: "Distinguished Fellow", badgeName: "Fellow", colorHex: "#F59E0B" },
-  { level: 9, minXp: 8000, maxXp: 8999, title: "Senior Specialist", badgeName: "Senior Specialist", colorHex: "#FB923C" },
-  { level: 10, minXp: 10000, title: "Quanta Luminary", badgeName: "Luminary", colorHex: "#38E4FF" },
+  { level: 1, minXp: 0, maxXp: 999, title: "🪵 Wooden Quanter", badgeName: "Wooden", colorHex: "#A16207" },
+  { level: 2, minXp: 1000, maxXp: 1999, title: "🪨 Stone Observer", badgeName: "Stone", colorHex: "#78716C" },
+  { level: 3, minXp: 2000, maxXp: 2999, title: "🟤 Copper Researcher", badgeName: "Copper", colorHex: "#B45309" },
+  { level: 4, minXp: 3000, maxXp: 3999, title: "⚙️ Iron Expert", badgeName: "Iron", colorHex: "#64748B" },
+  { level: 5, minXp: 4000, maxXp: 4999, title: "🥇 Gold Pioneer", badgeName: "Gold", colorHex: "#EAB308" },
+  { level: 6, minXp: 5000, maxXp: 5999, title: "💎 Emerald Scholar", badgeName: "Emerald", colorHex: "#10B981" },
+  { level: 7, minXp: 6000, maxXp: 6999, title: "💠 Sapphire Explorer", badgeName: "Sapphire", colorHex: "#0284C7" },
+  { level: 8, minXp: 7000, maxXp: 7999, title: "🔮 Amethyst Inventor", badgeName: "Amethyst", colorHex: "#8B5CF6" },
+  { level: 9, minXp: 8000, maxXp: 9999, title: "💎 Diamond Legend", badgeName: "Diamond", colorHex: "#38BDF8" },
+  { level: 10, minXp: 10000, title: "👑 Quantum Master", badgeName: "Quantum Master", colorHex: "#F59E0B" },
 ];
 
 export function getRankForXp(

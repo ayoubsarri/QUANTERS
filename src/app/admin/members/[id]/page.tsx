@@ -66,6 +66,7 @@ export default function AdminMemberDetailCardPage() {
     ledger,
     badges,
     confirmTraineeToActive,
+    approveMemberAdmission,
     awardBadgeManually,
     changeMemberStatus,
     pullExactUpdatesFromServer,
@@ -85,6 +86,14 @@ export default function AdminMemberDetailCardPage() {
     (memberId.startsWith("mem-")
       ? members.find((m) => m.id.startsWith(memberId) || m.id.includes(memberId))
       : undefined);
+
+  const isPendingAdmission = Boolean(
+    member &&
+      (member.status === "Pending" ||
+        (!member.onboardingTicks?.hrApproved &&
+          member.status !== "Active" &&
+          member.status !== "Alumni"))
+  );
 
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [showDigitalIdModal, setShowDigitalIdModal] = useState(false);
@@ -213,7 +222,7 @@ export default function AdminMemberDetailCardPage() {
 
   return (
     <>
-      <div className="space-y-6 max-w-[1500px] mx-auto animate-rise">
+      <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
         {/* Top Breadcrumb */}
         <div className="flex items-center justify-between">
           <Link
@@ -284,18 +293,18 @@ export default function AdminMemberDetailCardPage() {
       )}
 
       {/* Member Master Header + Trainee 3-Ring Confirmation Tracker */}
-      <section className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <section className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:p-5">
           {/* Avatar & Identity */}
           <div className="flex items-start sm:items-center gap-4">
             <img
               src={member.avatarUrl}
               alt={member.fullName}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-[#182C4E]/20 shadow-sm shrink-0"
+              className="w-14 h-14 rounded-2xl object-cover border-2 border-[#182C4E]/20 shadow-sm shrink-0"
             />
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-extrabold text-[#0F1E36]">{member.fullName}</h1>
+                <h1 className="text-xl font-black text-[#0F1E36]">{member.fullName}</h1>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F4F7FB] text-slate-700 border border-slate-200/90 tabular-nums">
                   {member.quanterId}
                 </span>
@@ -391,270 +400,138 @@ export default function AdminMemberDetailCardPage() {
           </div>
         </div>
 
-        {/* Trainee 3-Ring Qualification Tracker (Structured 4-Column Executive Grid) */}
-        <div className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0]/60 rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs space-y-4">
-          {/* Top Header Row: Title, Internal Law Rule & Verification Verdict */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#182C4E] text-[#38BDF8] flex items-center justify-center shrink-0 shadow-xs">
-                <Sparkles className="w-4 h-4" />
+        {/* Admission Review Banner (Shown prominently when candidate is Pending HR Accreditation) */}
+        {isPendingAdmission && (
+          <div className="bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 rounded-2xl p-4 sm:p-5 border-2 border-amber-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-rise">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Clock className="w-5 h-5" />
               </div>
-              <div>
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#0F1E36]">
-                    Trainee 3-Ring Qualification Tracker
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-950 font-display">
+                    Admission Dossier Awaiting HR Accreditation
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]">
-                    3-Month Milestone
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                    Pending Admission
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Internal Law Art. 12: Qualification requires 90 days tenure, ≥75% attendance, on-time task delivery, and leadership endorsement.
+                <p className="text-[11.5px] text-amber-800 leading-relaxed">
+                  Candidate onboarding dossier has been submitted. Granting admission activates their workspace access, assigns Trainee status, and dispatches their official welcome notice.
                 </p>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] text-amber-950/80 font-mono pt-0.5">
+                  <span>Major: <strong>{member.major}</strong></span>
+                  <span>·</span>
+                  <span>Year: <strong>{member.academicYear}</strong></span>
+                  <span>·</span>
+                  <span>Wilaya: <strong>{member.wilaya}</strong></span>
+                  <span>·</span>
+                  <span>Phone: <strong>{member.phone || "—"}</strong></span>
+                </div>
               </div>
             </div>
 
-            {/* Verdict Action CTA / Verified Status Badge */}
-            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-              {member.status === "Trainee" ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    confirmTraineeToActive(
-                      member.id,
-                      "Confirmed as Official Active Member from 6-Tab Member Card."
-                    )
-                  }
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Confirm as Active Member</span>
-                </button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold shadow-2xs">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Official {member.status} Member</span>
-                </span>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                approveMemberAdmission({
+                  memberId: member.id,
+                  actorName: "HR Directorate",
+                  notes: "Approved via Member Command Dossier",
+                });
+              }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-sm transition cursor-pointer shrink-0 active:scale-95"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Approve Admission &amp; Grant Access</span>
+            </button>
           </div>
+        )}
 
-          {/* 4 Clean Metric Cards: Ring 1, Ring 2, Ring 3, and Endorsement */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {/* Card 1: Ring 1 · Tenure (90 Days) */}
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Ring 1 · Tenure Time
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    timeRingPct >= 100
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-sky-50 text-sky-700 border border-sky-200"
-                  }`}
-                >
-                  {timeRingPct >= 100 ? "Completed" : "In Progress"}
-                </span>
+        {!isPendingAdmission && member.status === "Trainee" && (
+          <div className="bg-slate-50/80 rounded-xl px-3 py-2.5 border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#0F1E36]">
+                Trainee Qualification
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-sky-100 text-sky-800">
+                90d Window
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 max-w-3xl">
+              {/* Tenure */}
+              <div className="bg-white px-2.5 py-1.5 rounded-md border border-slate-200/70">
+                <div className="flex items-center justify-between text-[10.5px]">
+                  <span className="text-slate-500">Tenure</span>
+                  <span className="font-mono font-bold text-slate-700">{member.traineeDaysElapsed}/90d</span>
+                </div>
+                <div className="h-1 w-full bg-slate-100 rounded-full mt-1 overflow-hidden">
+                  <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min(timeRingPct, 100)}%` }} />
+                </div>
               </div>
-              <div className="flex items-center gap-3 mt-3">
-                <div className="relative w-11 h-11 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className="text-[#0284C7]"
-                      strokeDasharray={`${timeRingPct}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold text-[#0284C7] tabular-nums">
-                    {timeRingPct}%
-                  </div>
+
+              {/* Attendance */}
+              <div className="bg-white px-2.5 py-1.5 rounded-md border border-slate-200/70">
+                <div className="flex items-center justify-between text-[10.5px]">
+                  <span className="text-slate-500">Attendance</span>
+                  <span className={`font-mono font-bold ${attRingOk ? "text-emerald-600" : "text-amber-600"}`}>{member.attendanceRate}%</span>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0F1E36]">3-Month Window</div>
-                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
-                    {member.traineeDaysElapsed} / 90 days
-                  </div>
+                <div className="h-1 w-full bg-slate-100 rounded-full mt-1 overflow-hidden">
+                  <div className={`h-full rounded-full ${attRingOk ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${Math.min(member.attendanceRate, 100)}%` }} />
                 </div>
+              </div>
+
+              {/* Tasks */}
+              <div className="bg-white px-2.5 py-1.5 rounded-md border border-slate-200/70">
+                <div className="flex items-center justify-between text-[10.5px]">
+                  <span className="text-slate-500">Tasks</span>
+                  <span className={`font-mono font-bold ${taskRingOk ? "text-emerald-600" : "text-amber-600"}`}>{member.onTimeTaskRate}%</span>
+                </div>
+                <div className="h-1 w-full bg-slate-100 rounded-full mt-1 overflow-hidden">
+                  <div className={`h-full rounded-full ${taskRingOk ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${Math.min(member.onTimeTaskRate, 100)}%` }} />
+                </div>
+              </div>
+
+              {/* Review */}
+              <div className="bg-white px-2.5 py-1.5 rounded-md border border-slate-200/70 flex items-center justify-between">
+                <span className="text-[10.5px] text-slate-500">Review</span>
+                <span className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
+                  member.traineeEvaluation.headEndorsed && member.traineeEvaluation.coManagerEndorsed
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
+                }`}>
+                  {member.traineeEvaluation.headEndorsed && member.traineeEvaluation.coManagerEndorsed ? "2/2 Done" : "In Review"}
+                </span>
               </div>
             </div>
 
-            {/* Card 2: Ring 2 · Attendance Rate (Target >= 75%) */}
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Ring 2 · Attendance
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    attRingOk
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
-                  }`}
-                >
-                  {attRingOk ? "Qualified" : "Below Target"}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 mt-3">
-                <div className="relative w-11 h-11 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className={attRingOk ? "text-emerald-500" : "text-amber-500"}
-                      strokeDasharray={`${member.attendanceRate}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold tabular-nums ${
-                      attRingOk ? "text-emerald-600" : "text-amber-600"
-                    }`}
-                  >
-                    {member.attendanceRate}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0F1E36]">Workshop Presence</div>
-                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
-                    Target: ≥ 75% rate
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Ring 3 · Tasks On-Time */}
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Ring 3 · Task Punctuality
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    taskRingOk
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
-                  }`}
-                >
-                  {taskRingOk ? "0 Late" : `${member.lateTasksThisMonth} Late`}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 mt-3">
-                <div className="relative w-11 h-11 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className={taskRingOk ? "text-emerald-500" : "text-amber-500"}
-                      strokeDasharray={`${member.onTimeTaskRate}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center font-mono text-[10.5px] font-extrabold tabular-nums ${
-                      taskRingOk ? "text-emerald-600" : "text-amber-600"
-                    }`}
-                  >
-                    {member.onTimeTaskRate}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#0F1E36]">On-Time Delivery</div>
-                  <div className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
-                    {member.lateTasksThisMonth} late this month
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 4: Leadership Endorsement */}
-            <div className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Leadership Review
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    member.traineeEvaluation.headEndorsed &&
-                    member.traineeEvaluation.coManagerEndorsed
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
-                  }`}
-                >
-                  {member.traineeEvaluation.headEndorsed &&
-                  member.traineeEvaluation.coManagerEndorsed
-                    ? "2/2 Endorsed"
-                    : "Pending"}
-                </span>
-              </div>
-              <div className="mt-2.5 space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Head:</span>
-                  {member.traineeEvaluation.headEndorsed ? (
-                    <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold">
-                      <Check className="w-3 h-3" /> Endorsed
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 font-medium">Pending</span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Co-Manager:</span>
-                  {member.traineeEvaluation.coManagerEndorsed ? (
-                    <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold">
-                      <Check className="w-3 h-3" /> Endorsed
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 font-medium">Pending</span>
-                  )}
-                </div>
-                <div className="text-[10px] text-slate-500 line-clamp-1 italic pt-1 border-t border-slate-100">
-                  &ldquo;{member.traineeEvaluation.notes || "Awaiting evaluation note"}&rdquo;
-                </div>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() =>
+                confirmTraineeToActive(
+                  member.id,
+                  "Confirmed as Official Active Member."
+                )
+              }
+              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer shrink-0"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Confirm Active</span>
+            </button>
           </div>
-        </div>
+        )}
       </section>
 
       {/* 6-Tab Navigation Bar */}
       <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/90 shadow-sm">
         {[
-          { id: "profile", label: "1. Profile", icon: User },
-          { id: "activity", label: "2. Activity", icon: Activity },
-          { id: "badges", label: "3. Badges", icon: Award },
-          { id: "availability", label: "4. Availability", icon: Calendar },
-          { id: "history", label: "5. History", icon: History },
-          { id: "hr", label: "6. HR Governance", icon: Lock },
+          { id: "profile", label: "Profile", icon: User },
+          { id: "activity", label: "Activity", icon: Activity },
+          { id: "badges", label: "Badges", icon: Award },
+          { id: "availability", label: "Availability", icon: Calendar },
+          { id: "history", label: "History", icon: History },
+          { id: "hr", label: "Governance", icon: Lock },
         ].map((t) => {
           const Icon = t.icon;
           const isCurrent = activeTab === t.id;
@@ -678,29 +555,37 @@ export default function AdminMemberDetailCardPage() {
 
       {/* TAB 1: PROFILE */}
       {activeTab === "profile" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
-              <h2 className="text-sm font-extrabold text-[#0F1E36] uppercase tracking-wider">
-                Academic, Contact &amp; Onboarding Wizard Answers
+        <div className="space-y-3.5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+            <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                Academic &amp; Contact Details
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Email Address</div>
-                  <div className="font-bold text-[#0F1E36] mt-1 flex items-center gap-1.5">
+                  <a
+                    href={`mailto:${member.email}`}
+                    className="font-bold text-[#0F1E36] hover:text-[#0284C7] hover:underline transition mt-1 flex items-center gap-1.5"
+                    title="Send Email"
+                  >
                     <Mail className="w-3.5 h-3.5 text-[#0284C7]" />
-                    {member.email}
-                  </div>
+                    <span>{member.email}</span>
+                  </a>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Phone Number</div>
-                  <div className="font-bold text-[#0F1E36] mt-1 flex items-center gap-1.5">
+                  <a
+                    href={`tel:${(member.phone || '').replace(/[^0-9+]/g, '')}`}
+                    className="font-bold text-[#0F1E36] hover:text-[#0284C7] hover:underline transition mt-1 flex items-center gap-1.5"
+                    title="Call Phone"
+                  >
                     <Phone className="w-3.5 h-3.5 text-[#0284C7]" />
-                    {member.phone}
-                  </div>
+                    <span>{member.phone || '—'}</span>
+                  </a>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     University &amp; Major
                   </div>
@@ -708,7 +593,7 @@ export default function AdminMemberDetailCardPage() {
                     {member.major} · {member.university}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     Academic Year &amp; Club Tenure
                   </div>
@@ -716,13 +601,13 @@ export default function AdminMemberDetailCardPage() {
                     Year: {member.academicYear} · Tenure: {member.tenure}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Assigned Buddy</div>
                   <div className="font-bold text-[#0F1E36] mt-1">
                     {buddy ? `${buddy.fullName} (${buddy.quanterId})` : "No Buddy Assigned"}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Skills &amp; Tags</div>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {member.skills.map((sk) => (
@@ -739,7 +624,7 @@ export default function AdminMemberDetailCardPage() {
             </div>
 
             {/* Outside Activities & Volunteering + Law Art. 7 Warning */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+            <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-extrabold text-[#0F1E36] uppercase tracking-wider">
                   Outside Activities &amp; Volunteering
@@ -788,24 +673,24 @@ export default function AdminMemberDetailCardPage() {
           </div>
 
           {/* Extended HR KYC Cards: Residence/Commute & Hardware/PC/Professional Links */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
             {/* Card 1: Residence, Housing & Commute Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-extrabold text-[#0F1E36] uppercase tracking-wider flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#0284C7]" />
-                  Residence, Housing &amp; Commute Card
+                  Residence &amp; Commute
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Wilaya</div>
                   <div className="font-extrabold text-[#0F1E36] mt-1">
                     {member.wilaya || "Algiers (16)"}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     Commune / District
                   </div>
@@ -813,13 +698,13 @@ export default function AdminMemberDetailCardPage() {
                     {member.commune || "Bab Ezzouar"}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">Housing Type</div>
                   <div className="font-extrabold text-[#0F1E36] mt-1">
                     {member.housingType || "Family Home"}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     Campus Commute Duration
                   </div>
@@ -831,11 +716,11 @@ export default function AdminMemberDetailCardPage() {
             </div>
 
             {/* Card 2: Hardware, PC & Professional Links Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-extrabold text-[#0F1E36] uppercase tracking-wider flex items-center gap-2">
                   <Laptop className="w-4 h-4 text-[#0284C7]" />
-                  Hardware, PC &amp; Professional Links Card
+                  Hardware &amp; Workspace
                 </h2>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${
@@ -859,7 +744,7 @@ export default function AdminMemberDetailCardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     Has Personal Laptop
                   </div>
@@ -869,7 +754,7 @@ export default function AdminMemberDetailCardPage() {
                       : "No (Requires Lab Station)"}
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400">
                     PC Capability Profile
                   </div>
@@ -877,7 +762,7 @@ export default function AdminMemberDetailCardPage() {
                     {member.pcCapability || "Coding & Dev"}
                   </div>
                 </div>
-                <div className="sm:col-span-2 p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+                <div className="sm:col-span-2 p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
                   <div className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">
                     Personal Equipment &amp; Lab Tags
                   </div>
@@ -949,7 +834,7 @@ export default function AdminMemberDetailCardPage() {
 
       {/* TAB 2: ACTIVITY */}
       {activeTab === "activity" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:p-5">
           {/* Attendance Log */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-3">
             <h3 className="text-sm font-extrabold text-[#0F1E36]">
@@ -1049,7 +934,7 @@ export default function AdminMemberDetailCardPage() {
 
       {/* TAB 3: BADGES */}
       {activeTab === "badges" && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-extrabold text-[#0F1E36]">
@@ -1092,73 +977,111 @@ export default function AdminMemberDetailCardPage() {
       )}
 
       {/* TAB 4: AVAILABILITY */}
-      {activeTab === "availability" && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
-          <div>
-            <h3 className="text-sm font-extrabold text-[#0F1E36]">
-              Visual Weekly Study & Free Hours Grid (Saturday – Friday × 08:00–18:00 Hour-by-Hour)
-            </h3>
-            <p className="text-xs text-slate-500">
-              Used by the Free Slot Finder to match {member.fullName} with workshop &amp; logistics
-              shifts
-            </p>
-          </div>
+      {activeTab === "availability" && (() => {
+        let totalFree = 0;
+        DAYS.forEach((d) => {
+          STUDY_HOUR_SLOTS.forEach((s) => {
+            if (isMemberAvailableInSlot(member.availability?.[d], s.key)) totalFree++;
+          });
+        });
+        const totalSlots = DAYS.length * STUDY_HOUR_SLOTS.length;
+        const freePct = Math.round((totalFree / totalSlots) * 100);
 
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200/90 text-[10px] font-extrabold uppercase text-slate-400">
-                  <th className="py-2.5 px-3">Day</th>
+        return (
+          <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-3.5">
+            {/* Header with stats and legend */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/80">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#0F1E36]">
+                    Weekly Availability Heat Map
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Hour-by-hour schedule density used for meeting & shift scheduling
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold font-mono">
+                  {totalFree} / {totalSlots} hrs Free ({freePct}%)
+                </span>
+                <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                  <span className="flex items-center gap-1 font-medium">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block" /> Free
+                  </span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-slate-200 inline-block" /> Study / Class
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Heat Map Grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[620px] space-y-1.5">
+                {/* Time slot headers */}
+                <div className="grid grid-cols-12 gap-1.5 items-center text-center font-mono text-[10px] font-bold text-slate-400 pb-1">
+                  <div className="col-span-2 text-left font-sans text-[11px] text-slate-600 font-bold uppercase">
+                    Day
+                  </div>
                   {STUDY_HOUR_SLOTS.map((s) => (
-                    <th key={s.key} className="py-2.5 px-2 text-center font-mono">
-                      {s.label}
-                    </th>
+                    <div key={s.key} className="truncate" title={s.label}>
+                      {s.label.split("–")[0]}
+                    </div>
                   ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {DAYS.map((day) => (
-                  <tr key={day}>
-                    <td className="py-2.5 px-3 font-bold text-slate-800">{day}</td>
-                    {STUDY_HOUR_SLOTS.map((slotMeta) => {
-                      const isFree = isMemberAvailableInSlot(
-                        member.availability?.[day],
-                        slotMeta.key
-                      );
-                      return (
-                        <td key={slotMeta.key} className="py-2 px-1.5 text-center">
+                </div>
+
+                {/* Day Rows */}
+                {DAYS.map((day) => {
+                  let dayFree = 0;
+                  STUDY_HOUR_SLOTS.forEach((s) => {
+                    if (isMemberAvailableInSlot(member.availability?.[day], s.key)) dayFree++;
+                  });
+
+                  return (
+                    <div
+                      key={day}
+                      className="grid grid-cols-12 gap-1.5 items-center p-1 rounded-lg hover:bg-slate-50/70 transition"
+                    >
+                      <div className="col-span-2 flex items-center justify-between pr-2">
+                        <span className="text-xs font-bold text-slate-800">{day}</span>
+                        <span className="text-[10px] font-mono text-slate-400 font-semibold">{dayFree}h</span>
+                      </div>
+
+                      {STUDY_HOUR_SLOTS.map((s) => {
+                        const isFree = isMemberAvailableInSlot(member.availability?.[day], s.key);
+                        return (
                           <div
-                            className={`inline-flex items-center justify-center gap-1 w-full py-1.5 px-2 rounded-lg font-mono font-bold text-[11px] ${
+                            key={s.key}
+                            title={`${day} ${s.label}: ${isFree ? "Free / Available" : "Class / Study"}`}
+                            className={`h-7 rounded-md transition cursor-pointer flex items-center justify-center text-[9.5px] font-mono font-bold ${
                               isFree
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-slate-50 text-slate-400"
+                                ? "bg-emerald-500 text-white shadow-2xs hover:bg-emerald-600 scale-[1.02]"
+                                : "bg-slate-100 hover:bg-slate-200 text-slate-400"
                             }`}
                           >
-                            {isFree ? (
-                              <>
-                                <Check className="w-3 h-3 shrink-0" />
-                                <span>Free</span>
-                              </>
-                            ) : (
-                              "Study"
-                            )}
+                            {isFree ? "✓" : "·"}
                           </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 5: HISTORY */}
       {activeTab === "history" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-5">
           {/* Status History */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-3">
             <h3 className="text-sm font-extrabold text-[#0F1E36]">
               Status Transition History (From → To, Who, Date, Reason)
             </h3>
@@ -1166,7 +1089,7 @@ export default function AdminMemberDetailCardPage() {
               {member.statusHistory.map((sh) => (
                 <div
                   key={sh.id}
-                  className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90 text-xs space-y-1"
+                  className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80 text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-extrabold text-[#0F1E36]">
@@ -1188,7 +1111,7 @@ export default function AdminMemberDetailCardPage() {
           </div>
 
           {/* Placement History */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-3">
             <h3 className="text-sm font-extrabold text-[#0F1E36]">
               Department &amp; Team Placement History (From → To, Who, Date, Reason)
             </h3>
@@ -1196,7 +1119,7 @@ export default function AdminMemberDetailCardPage() {
               {member.placementHistory.map((ph) => (
                 <div
                   key={ph.id}
-                  className="p-3.5 rounded-xl bg-[#F4F7FB] border border-slate-200/90 text-xs space-y-1"
+                  className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80 text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-extrabold text-[#0284C7]">
@@ -1222,9 +1145,9 @@ export default function AdminMemberDetailCardPage() {
 
       {/* TAB 6: HR GOVERNANCE */}
       {activeTab === "hr" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:p-5">
           {/* Health Score Breakdown Formula */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-extrabold text-[#0F1E36]">
                 HR Health Score Formula Breakdown
@@ -1242,19 +1165,19 @@ export default function AdminMemberDetailCardPage() {
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
                 <div className="flex justify-between font-bold text-slate-800">
-                  <span>1. Workshop Attendance (50% weight)</span>
+                  <span>Workshop Attendance (50% weight)</span>
                   <span className="tabular-nums">{member.attendanceRate}%</span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
                 <div className="flex justify-between font-bold text-slate-800">
-                  <span>2. On-Time Task Delivery (35% weight)</span>
+                  <span>On-Time Task Delivery (35% weight)</span>
                   <span className="tabular-nums">{member.onTimeTaskRate}%</span>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
                 <div className="flex justify-between font-bold text-slate-800">
-                  <span>3. Recent 30-Day Activity (15% weight)</span>
+                  <span>Recent 30-Day Activity (15% weight)</span>
                   <span className="tabular-nums">{member.recentActivityScore}%</span>
                 </div>
               </div>
@@ -1262,113 +1185,130 @@ export default function AdminMemberDetailCardPage() {
           </div>
 
           {/* Governance Status Transition Actions */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-extrabold text-[#0F1E36]">
-              Governance Status Transition Actions (Logged to Audit Log)
-            </h3>
-            <p className="text-xs text-slate-500">
-              Every status transition requires an official reason and mandatory governance metadata.
-            </p>
+          <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                Status Transition
+              </h3>
+              <span className="text-[11px] text-slate-400">Current: <strong className="text-slate-800">{member.status}</strong></span>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Reactivate / Return to Active */}
               <button
                 type="button"
+                disabled={member.status === "Active"}
                 onClick={() => {
                   setHrReason(isPaused ? `Resumed active membership from pause (${pauseReasonLabel})` : "Reactivated to Active Member: Returned from inactive status");
                   setHrModalType("Active");
                 }}
-                className={`p-3.5 rounded-xl border transition text-left cursor-pointer ${
-                  member.status === "Inactive" || member.status === "Suspended"
-                    ? "border-emerald-400 bg-emerald-100/80 hover:bg-emerald-200/90 shadow-sm ring-2 ring-emerald-500/20"
-                    : "border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100"
+                className={`p-3 rounded-xl border transition text-left ${
+                  member.status === "Active"
+                    ? "border-slate-200 bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
+                    : "border-emerald-300 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-950 cursor-pointer shadow-2xs"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    Reactivate to Active Member
+                    Reactivate to Active
                   </span>
-                  {(member.status === "Inactive" || member.status === "Suspended") && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white">
-                      Recommended
-                    </span>
-                  )}
+                  {member.status === "Active" ? (
+                    <span className="px-2 py-0.5 rounded text-[9.5px] font-bold bg-slate-200 text-slate-600">Current</span>
+                  ) : (member.status === "Inactive" || member.status === "Suspended") ? (
+                    <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-emerald-600 text-white">Recommended</span>
+                  ) : null}
                 </div>
-                <div className="text-[11px] text-emerald-800 mt-1">
-                  Lift pause, inactivity or suspension and restore full active membership privileges
-                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Restore full active membership privileges</div>
               </button>
 
-              {/* Reactivate / Return to Trainee */}
+              {/* Set as Trainee */}
               <button
                 type="button"
+                disabled={member.status === "Trainee"}
                 onClick={() => {
                   setHrReason("Reinstated to Trainee status: Continuing onboarding qualification");
                   setHrModalType("Trainee");
                 }}
-                className="p-3.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-left transition cursor-pointer"
+                className={`p-3 rounded-xl border transition text-left ${
+                  member.status === "Trainee"
+                    ? "border-slate-200 bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
+                    : "border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-950 cursor-pointer shadow-2xs"
+                }`}
               >
-                <div className="text-xs font-extrabold text-sky-900 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-sky-600" />
-                  Reinstate as Trainee Member
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-sky-600" />
+                    Set as Trainee
+                  </span>
+                  {member.status === "Trainee" && (
+                    <span className="px-2 py-0.5 rounded text-[9.5px] font-bold bg-slate-200 text-slate-600">Current</span>
+                  )}
                 </div>
-                <div className="text-[11px] text-sky-800 mt-1">
-                  Return to probationary trainee status and resume 3-month qualification tracking
-                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Resume onboarding qualification tracking</div>
               </button>
 
+              {/* Pause (Inactive) */}
               <button
                 type="button"
+                disabled={member.status === "Inactive"}
                 onClick={() => {
                   setHrReason("Marked Inactive: Exam leave or prolonged silence");
                   setHrModalType("Inactive");
                 }}
-                className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100 text-left transition cursor-pointer"
+                className={`p-3 rounded-xl border transition text-left ${
+                  member.status === "Inactive"
+                    ? "border-slate-200 bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
+                    : "border-amber-300 bg-amber-50/80 hover:bg-amber-100 text-amber-950 cursor-pointer shadow-2xs"
+                }`}
               >
-                <div className="text-xs font-extrabold text-amber-900">Set Inactive (Pause / Freeze)</div>
-                <div className="text-[11px] text-amber-700 mt-0.5">
-                  Flag member for ≥30 days silence or member-requested pause
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold">Pause Membership (Inactive)</span>
+                  {member.status === "Inactive" && (
+                    <span className="px-2 py-0.5 rounded text-[9.5px] font-bold bg-slate-200 text-slate-600">Current</span>
+                  )}
                 </div>
+                <div className="text-[11px] text-slate-500 mt-1">Flag member for exam leave or temporary pause</div>
               </button>
 
+              {/* Suspend */}
               <button
                 type="button"
+                disabled={member.status === "Suspended"}
                 onClick={() => setHrModalType("Suspended")}
-                className="p-3.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-left transition cursor-pointer"
+                className={`p-3 rounded-xl border transition text-left ${
+                  member.status === "Suspended"
+                    ? "border-slate-200 bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
+                    : "border-rose-300 bg-rose-50/80 hover:bg-rose-100 text-rose-950 cursor-pointer shadow-2xs"
+                }`}
               >
-                <div className="text-xs font-extrabold text-rose-900">
-                  Suspend [Requires End Date]
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold">Suspend Member</span>
+                  {member.status === "Suspended" && (
+                    <span className="px-2 py-0.5 rounded text-[9.5px] font-bold bg-slate-200 text-slate-600">Current</span>
+                  )}
                 </div>
-                <div className="text-[11px] text-rose-700 mt-0.5">
-                  Temporary disciplinary freeze with mandatory end date
-                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Temporary freeze with scheduled end date</div>
               </button>
 
+              {/* Mark as Resigned */}
               <button
                 type="button"
                 onClick={() => setHrModalType("Resigned")}
-                className="p-3.5 rounded-xl border border-slate-200 bg-[#F4F7FB] hover:bg-slate-200/70 text-left transition cursor-pointer"
+                className="p-3 rounded-xl border border-slate-200 bg-[#F4F7FB] hover:bg-slate-200/70 text-left transition cursor-pointer shadow-2xs"
               >
-                <div className="text-xs font-extrabold text-[#0F1E36]">
-                  Set Resigned [Reason + Manager Name]
-                </div>
-                <div className="text-[11px] text-slate-600 mt-0.5">
-                  Voluntary departure moved to Former Members archive
-                </div>
+                <div className="text-xs font-bold text-slate-800">Mark as Resigned</div>
+                <div className="text-[11px] text-slate-500 mt-1">Move to Former Members archive</div>
               </button>
 
+              {/* Remove Member */}
               <button
                 type="button"
                 onClick={() => setHrModalType("Removed")}
-                className="p-3.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-left transition cursor-pointer"
+                className="p-3 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-left transition cursor-pointer shadow-2xs"
               >
-                <div className="text-xs font-extrabold text-rose-900">
-                  Set Removed [Reason + Decision Ref]
-                </div>
-                <div className="text-[11px] text-rose-700 mt-0.5">
-                  Bureau removal decision moved to Former Members archive
-                </div>
+                <div className="text-xs font-bold text-rose-900">Remove Member</div>
+                <div className="text-[11px] text-rose-700/80 mt-1">Bureau dismissal moved to Former archive</div>
               </button>
 
               <button
@@ -1392,7 +1332,7 @@ export default function AdminMemberDetailCardPage() {
       {/* Award Badge Manually Modal */}
       {awardModalOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-md w-full p-4 sm:p-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-extrabold text-[#0F1E36]">Award Badge Manually</h3>
               <button
@@ -1454,7 +1394,7 @@ export default function AdminMemberDetailCardPage() {
       {/* HR Status Transition Modal */}
       {hrModalType && (
         <div className="fixed inset-0 z-[100] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xl max-w-md w-full p-4 sm:p-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-extrabold text-[#0F1E36]">
                 Transition Member to: {hrModalType}

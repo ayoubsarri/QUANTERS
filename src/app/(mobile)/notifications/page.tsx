@@ -61,6 +61,71 @@ export default function NotificationsPage() {
   const archiveAllReadMessages = useQuantersStore(
     (s) => s.archiveAllReadMessages
   );
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const members = useQuantersStore((s) => s.members);
+  const teams = useQuantersStore((s) => s.teams);
+  const departments = useQuantersStore((s) => s.departments);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+
+  const currentMember = members.find((m) => m.id === currentMemberId);
+  const isSuperOrExecutive =
+    activeAdminRole === "Super Admin" ||
+    activeAdminRole === "HR Head" ||
+    activeAdminRole === "Executive" ||
+    Boolean(currentMember?.roles?.some((r) => ["Super Admin", "Executive", "HR Head"].includes(r)));
+
+  const isEligibleRecipient = (msg: ClubMessage) => {
+    if (isSuperOrExecutive) return true;
+    if (!currentMember) return true;
+
+    const scope = (msg.recipientScope || "").toLowerCase();
+    if (
+      scope.includes("everyone") ||
+      scope.includes("all members") ||
+      scope.includes("all active") ||
+      scope.includes("whole club")
+    ) {
+      return true;
+    }
+
+    if (msg.targetMemberId) {
+      return msg.targetMemberId === currentMember.id;
+    }
+    if (scope === currentMember.fullName.toLowerCase()) {
+      return true;
+    }
+
+    if (msg.targetDepartmentId) {
+      return msg.targetDepartmentId === currentMember.departmentId;
+    }
+    const memberDept = departments.find((d) => d.id === currentMember.departmentId);
+    if (memberDept && scope === memberDept.name.toLowerCase()) {
+      return true;
+    }
+
+    if (msg.targetTeamId) {
+      const team = teams.find((t) => t.id === msg.targetTeamId);
+      return Boolean(team?.memberIds?.includes(currentMember.id));
+    }
+    const matchingTeam = teams.find((t) => t.name.toLowerCase() === scope);
+    if (matchingTeam) {
+      return Boolean(matchingTeam.memberIds?.includes(currentMember.id));
+    }
+
+    if (scope.includes("trainee")) {
+      return currentMember.status === "Trainee" || (currentMember.roles as string[]).includes("Trainee");
+    }
+
+    return false;
+  };
+
+  const isMessageReadByMe = (msg: ClubMessage) => {
+    if (Boolean(msg.archived)) return true;
+    if (currentMemberId && Array.isArray(msg.readMemberIds)) {
+      return msg.readMemberIds.includes(currentMemberId);
+    }
+    return Boolean(!msg.unread);
+  };
 
   const [activeTab, setActiveTab] = useState<FilterTab>("Inbox");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -129,19 +194,21 @@ export default function NotificationsPage() {
     setJustArchivedBanner("Test notification dispatched!");
   };
 
-  const unreadCount = messages.filter((m) => !m.archived && m.unread).length;
-  const archivedCount = messages.filter((m) => m.archived || !m.unread).length;
+  const eligibleMessages = messages.filter(isEligibleRecipient);
+  const unreadCount = eligibleMessages.filter((m) => !isMessageReadByMe(m) && !m.archived).length;
+  const archivedCount = eligibleMessages.filter((m) => isMessageReadByMe(m) || m.archived).length;
 
   const selectedMessage =
     messages.find((m) => m.id === selectedMessageId) || null;
 
-  const filteredMessages = messages.filter((msg) => {
+  const filteredMessages = eligibleMessages.filter((msg) => {
+    const isRead = isMessageReadByMe(msg) || Boolean(msg.archived);
     const matchesTab =
       activeTab === "Inbox"
-        ? !msg.archived && msg.unread
+        ? !isRead
         : activeTab === "HR Notices"
-        ? msg.senderRole === "HR" || msg.senderLabel.includes("HR")
-        : Boolean(msg.archived || !msg.unread);
+        ? (msg.senderRole === "HR" || msg.senderLabel.includes("HR") || msg.senderRole === "Executive") && !isRead
+        : isRead;
 
     const q = searchQuery.trim().toLowerCase();
     const matchesSearch =
@@ -154,8 +221,8 @@ export default function NotificationsPage() {
   });
 
   const handleOpenMessage = (msg: ClubMessage) => {
-    const wasUnread = msg.unread || !msg.archived;
-    markMessageRead(msg.id);
+    const wasUnread = !isMessageReadByMe(msg);
+    markMessageRead(msg.id, currentMemberId);
     setSelectedMessageId(msg.id);
     if (wasUnread) {
       setJustArchivedBanner(`"${msg.title}" — Read & Moved to Archive`);
@@ -532,6 +599,27 @@ export default function NotificationsPage() {
                 </div>
               );
             })
+          )}
+
+          {/* Bottom discreet push alert prompt when ungranted */}
+          {browserPerm !== "granted" && (
+            <div className="pt-2">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Bell className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+                  <span className="text-slate-600 font-medium truncate">
+                    Instant alerts for workshops &amp; announcements
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRequestPushPermission}
+                  className="px-2.5 py-1 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[10.5px] font-bold shrink-0 transition cursor-pointer"
+                >
+                  Enable Push
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

@@ -43,6 +43,7 @@ import {
   ScientificTeam,
   TaskCategory,
 } from "@/lib/types/erp";
+import { isAssignableMember } from "@/lib/utils/memberKeyboardJump";
 import {
   handleMemberListContainerKeyDown,
   handleMemberSelectKeyDown,
@@ -207,14 +208,6 @@ export default function MobileManagerWorkspacePage() {
     }
   }, [hydrated, isAuthenticated, currentMemberId, activeMember, isManager, router]);
 
-  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember || !isManager) {
-    return (
-      <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
-        <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
   // Derive Organigramme Roles directly from Admin Dashboard state (departments, teams, settings)
   const managedDepts = departments.filter(
     (d) => d.headMemberId === currentMember.id
@@ -376,9 +369,28 @@ export default function MobileManagerWorkspacePage() {
 
   // Current selected entities
   const currentDept =
-    departments.find((d) => d.id === selectedDeptId) || departments[0];
+    departments.find((d) => d.id === selectedDeptId) ||
+    departments[0] || {
+      id: "dept-it",
+      name: "IT & Artificial Intelligence",
+      shortName: "IT",
+      headMemberId: "",
+      coManagerMemberId: "",
+      description: "",
+      leadRoles: [],
+      subRoles: [],
+    };
   const currentTeam =
-    teams.find((t) => t.id === selectedTeamId) || teams[0];
+    teams.find((t) => t.id === selectedTeamId) ||
+    teams[0] || {
+      id: "team-web",
+      name: "Core Web Systems",
+      field: "Full Stack & Distributed Systems",
+      leaderMemberId: "",
+      memberIds: [],
+      description: "",
+      archived: false,
+    };
 
   // Active members in selected department
   const deptMembers = members.filter(
@@ -467,7 +479,7 @@ export default function MobileManagerWorkspacePage() {
   const [taskLocation, setTaskLocation] = useState("Lab A1");
   const [taskScore, setTaskScore] = useState(25);
   const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>(
-    members[0]?.id ? [members[0].id] : []
+    []
   );
 
   // Task Validation & Scoring Modal State
@@ -891,11 +903,21 @@ export default function MobileManagerWorkspacePage() {
     setScanFeedback(res.message);
   };
 
-  const deptHead = members.find((m) => m.id === currentDept.headMemberId);
+  const deptHead = members.find((m) => m.id === currentDept?.headMemberId);
   const deptSubManager = members.find(
-    (m) => m.id === currentDept.coManagerMemberId
+    (m) => m.id === currentDept?.coManagerMemberId
   );
-  const teamLeader = members.find((m) => m.id === currentTeam.leaderMemberId);
+  const teamLeader = members.find((m) => m.id === currentTeam?.leaderMemberId);
+
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember || !isManager) {
+    return (
+      <MobileAppShell>
+        <div className="min-h-[60vh] w-full flex items-center justify-center p-6 text-white">
+          <div className="w-8 h-8 rounded-full border-2 border-[#38BDF8] border-t-transparent animate-spin" />
+        </div>
+      </MobileAppShell>
+    );
+  }
 
   return (
     <MobileAppShell>
@@ -1570,13 +1592,13 @@ export default function MobileManagerWorkspacePage() {
               {scopeMembers.map((mem) => {
                 const isDeptHead =
                   browseMode === "department" &&
-                  currentDept.headMemberId === mem.id;
+                  currentDept?.headMemberId === mem.id;
                 const isDeptSub =
                   browseMode === "department" &&
-                  currentDept.coManagerMemberId === mem.id;
+                  currentDept?.coManagerMemberId === mem.id;
                 const isTeamLead =
                   browseMode === "team" &&
-                  currentTeam.leaderMemberId === mem.id;
+                  currentTeam?.leaderMemberId === mem.id;
 
                 const roleBadge = isDeptHead
                   ? "Manager"

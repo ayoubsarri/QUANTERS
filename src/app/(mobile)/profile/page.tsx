@@ -32,6 +32,7 @@ import {
   Play,
   Plus,
   QrCode,
+  Quote,
   RotateCcw,
   Scale,
   ShieldAlert,
@@ -57,6 +58,7 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { signInWithFirebaseGooglePopup } from "@/lib/firebase/auth";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { DEFAULT_AVAILABILITY, FALLBACK_SESSION_MEMBER, getActiveDailyQuote } from "@/lib/data/seed";
+import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
 import {
   AvailabilityGrid,
   CommuteDuration,
@@ -207,6 +209,7 @@ export default function MobileProfilePage() {
   const [appealEntryId, setAppealEntryId] = useState<string | null>(null);
   const [appealReason, setAppealReason] = useState("");
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState(false);
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleToast, setScheduleToast] = useState<string | null>(null);
@@ -579,19 +582,26 @@ export default function MobileProfilePage() {
             </button>
           </div>
 
-          <p className="mt-3 pt-3 border-t border-slate-100 text-xs sm:text-sm text-slate-600 font-editorial leading-relaxed">
-            &ldquo;{lang === "ar" && activeQuote.textAr ? activeQuote.textAr : activeQuote.text}&rdquo;{" "}
-            <span className="not-italic font-sans font-semibold text-slate-400 text-xs">
-              — {lang === "ar" && activeQuote.authorAr ? activeQuote.authorAr : activeQuote.author}
-            </span>
-          </p>
+          <div className="mt-3.5 pt-3.5 border-t border-slate-100/90 flex items-start gap-3">
+            <Quote className="w-5 h-5 text-[#0284C7] shrink-0 mt-0.5 opacity-90" />
+            <div className="space-y-1 min-w-0 flex-1">
+              <p className="text-sm sm:text-base font-editorial font-medium italic text-slate-800 leading-relaxed tracking-wide">
+                &ldquo;{lang === "ar" && activeQuote.textAr ? activeQuote.textAr : activeQuote.text}&rdquo;
+              </p>
+              <div className="text-xs font-sans font-bold text-[#0284C7] flex items-center gap-1.5 flex-wrap">
+                <span>—</span>
+                <span>{lang === "ar" && activeQuote.authorAr ? activeQuote.authorAr : activeQuote.author}</span>
+                <span className="text-[10.5px] font-mono font-normal text-slate-400">· {activeQuote.category}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card (Zero Obstruction on Right) */}
         <div className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#0B1528] border border-[#2B4875]/60 shadow-[0_16px_38px_rgba(11,21,40,0.26)] group">
           {/* Static Nano Banana Artwork with Subtle Zero-G Drift */}
           <img
-            src="/brand/hero_rank_banner.webp"
+            src="/brand/mascot_profile.png"
             alt="QUANTERS Crocheted Astronaut & Cyan Spiral Galaxy"
             className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none animate-zero-g"
           />
@@ -936,7 +946,7 @@ export default function MobileProfilePage() {
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {member.skills.map((skill) => (
+            {(member.skills || []).map((skill) => (
               <span
                 key={skill}
                 className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[#0F1E36] text-xs font-bold"
@@ -1096,11 +1106,25 @@ export default function MobileProfilePage() {
             </div>
           </div>
 
-          {/* Quick Push Notification Toggle Button */}
+
+
+          {member.roles.some((r) =>
+            ["Super Admin", "Executive", "HR Head"].includes(r)
+          ) && (
+            <Link
+              href="/admin/overview"
+              className="w-full h-10 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition border border-[#2B4875]/60"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#7DD3FC]" />
+              <span>{t.profile.openAdmin}</span>
+            </Link>
+          )}
+
+          {/* Push Notification Preferences Toggle (Under Preferences / Security) */}
           <button
             type="button"
             onClick={handleToggleNotifications}
-            className="w-full h-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-between px-3.5 transition active:scale-[0.99] cursor-pointer shadow-sm"
+            className="w-full h-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold flex items-center justify-between px-3.5 transition active:scale-[0.99] cursor-pointer shadow-2xs"
           >
             <div className="flex items-center gap-2">
               <Bell
@@ -1108,7 +1132,7 @@ export default function MobileProfilePage() {
                   notifsActive ? "text-[#0284C7]" : "text-slate-400"
                 }`}
               />
-              <span>System Notifications</span>
+              <span>System Push Notifications</span>
             </div>
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 ${
@@ -1126,24 +1150,9 @@ export default function MobileProfilePage() {
             </span>
           </button>
 
-          {member.roles.some((r) =>
-            ["Super Admin", "Executive", "HR Head"].includes(r)
-          ) && (
-            <Link
-              href="/admin/overview"
-              className="w-full h-10 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition border border-[#2B4875]/60"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 text-[#7DD3FC]" />
-              <span>{t.profile.openAdmin}</span>
-            </Link>
-          )}
-
           <button
             type="button"
-            onClick={() => {
-              logout();
-              router.push("/welcome");
-            }}
+            onClick={() => setSignOutModalOpen(true)}
             className="w-full h-10 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -1151,6 +1160,17 @@ export default function MobileProfilePage() {
           </button>
         </div>
       </div>
+
+      {/* Universal Sign Out Confirmation Modal */}
+      <SignOutConfirmModal
+        isOpen={signOutModalOpen}
+        onClose={() => setSignOutModalOpen(false)}
+        onConfirm={() => {
+          setSignOutModalOpen(false);
+          logout();
+          router.push("/welcome");
+        }}
+      />
 
       {/* Change Password by Old Email Modal */}
       {passwordModalOpen && (
@@ -2155,155 +2175,124 @@ export default function MobileProfilePage() {
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="flex items-center gap-1.5 mb-0.5">
+              <div className="flex items-center gap-1.5 mb-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#7DD3FC]">
-                  STANDING &amp; QUALIFICATION
+                  PROBATIONARY CYCLE · 90 DAYS
                 </span>
               </div>
               <h3 className="text-base font-black font-display tracking-tight">
-                3-Month Trainee Qualification
+                Trainee Roadmap &amp; Qualification
               </h3>
-              <p className="text-xs text-slate-300 font-sans mt-0.5">
-                Progression &amp; confirmation toward Full Active Membership
-              </p>
             </div>
 
-            {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs overscroll-contain">
-              {/* Status Header Badge */}
+            {/* Compact Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs overscroll-contain">
+              {/* Status & Tenure Strip */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-display font-black text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center font-display font-black text-xs">
                     {member.status === "Active" ? "✓" : "T"}
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block font-display">
-                      Current Standing
+                    <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block leading-tight">
+                      Standing
                     </span>
-                    <p className="text-xs font-black font-display text-slate-900">
-                      {member.status === "Active"
-                        ? "Active Member (Confirmed)"
-                        : "Trainee Member in Onboarding"}
-                    </p>
+                    <span className="text-xs font-black font-display text-slate-900">
+                      {member.status === "Active" ? "Confirmed Active Member" : "Trainee in Probation"}
+                    </span>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[10.5px] font-bold text-slate-600 font-display">
-                  Since {member.statusSince}
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10.5px] font-bold text-slate-600">
+                  Day {member.traineeDaysElapsed} / {targetDays}
                 </span>
               </div>
 
-              {/* Core Confirmation Metrics: Unified Segmented Strip */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
-                    Core Confirmation Targets
-                  </h4>
-                  <span className="text-[10px] font-bold text-slate-400">
-                    3/3 Criteria
+              {/* 3 Core Targets KPI Strip */}
+              <div className="p-3 rounded-xl bg-slate-50/90 border border-slate-200/80 grid grid-cols-3 divide-x divide-slate-200">
+                <div className="px-2 text-center">
+                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+                    Tenure
+                  </span>
+                  <div className="text-base font-black font-display text-[#0284C7] tabular-nums mt-0.5">
+                    {member.traineeDaysElapsed}d
+                  </div>
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    M{Math.min(3, Math.floor(member.traineeDaysElapsed / 30) + 1)} of 3
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50/90 border border-slate-200/80 grid grid-cols-3 divide-x divide-slate-200/80">
-                  {/* Metric 1: Tenure */}
-                  <div className="px-2 text-center space-y-0.5">
-                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
-                      Tenure
-                    </span>
-                    <div className="text-base sm:text-lg font-black font-display text-blue-600 tabular-nums">
-                      {member.traineeDaysElapsed}
-                      <span className="text-[10px] text-slate-400 font-medium">/</span>
-                      <span className="text-[11px] text-slate-600 font-medium">{targetDays}d</span>
-                    </div>
-                    <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Month {Math.min(3, Math.floor(member.traineeDaysElapsed / 30) + 1)}/3
-                    </span>
-                  </div>
 
-                  {/* Metric 2: Attendance */}
-                  <div className="px-2 text-center space-y-0.5">
-                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
-                      Presence
-                    </span>
-                    <div className="text-base sm:text-lg font-black font-display text-emerald-600 tabular-nums">
-                      {attPct}%
-                    </div>
-                    <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Target ≥{settings.confirmationAttendanceThreshold}%
-                    </span>
+                <div className="px-2 text-center">
+                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+                    Presence
+                  </span>
+                  <div className="text-base font-black font-display text-emerald-600 tabular-nums mt-0.5">
+                    {attPct}%
                   </div>
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    Goal ≥{settings.confirmationAttendanceThreshold}%
+                  </span>
+                </div>
 
-                  {/* Metric 3: XP Target */}
-                  <div className="px-2 text-center space-y-0.5">
-                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block font-display">
-                      Total XP
-                    </span>
-                    <div className="text-base sm:text-lg font-black font-display text-amber-600 tabular-nums">
-                      {member.xpTotal}
-                    </div>
-                    <span className="text-[9.5px] font-bold text-slate-500 block">
-                      Target {settings.confirmationXpThreshold} XP
-                    </span>
+                <div className="px-2 text-center">
+                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">
+                    Season XP
+                  </span>
+                  <div className="text-base font-black font-display text-amber-600 tabular-nums mt-0.5">
+                    {member.xpTotal}
                   </div>
+                  <span className="text-[9.5px] font-bold text-slate-500 block">
+                    Goal {settings.confirmationXpThreshold} XP
+                  </span>
                 </div>
               </div>
 
-              {/* 4 Onboarding Milestones Roadmap: Clean Unified Card */}
+              {/* 4 Essential Milestones Checklist */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
-                    Onboarding Milestones
-                  </h4>
-                  <span className="text-[10.5px] font-extrabold text-[#1D63EB] bg-[#E0F0FF] px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-display">
+                    Core Milestones
+                  </span>
+                  <span className="text-[10.5px] font-mono font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-0.5 rounded-md">
                     {Object.values(member.onboardingTicks).filter(Boolean).length}/4 Complete
                   </span>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200/80 bg-white divide-y divide-slate-100 overflow-hidden shadow-2xs">
+                <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
                   {[
                     {
-                      num: "1",
-                      title: "Profile & Availability Complete",
-                      desc: "Identity KYC, academic major & 7-day schedule verified",
+                      label: "Profile & Availability Grid Complete",
                       done: member.onboardingTicks.profileComplete,
                     },
                     {
-                      num: "2",
-                      title: "Dedicated Mentor Pairing",
-                      desc: `Paired with ${buddy?.fullName || "Senior Mentor"} for guidance`,
+                      label: `Senior Mentor Assigned (${buddy?.fullName || "In matching"})`,
                       done: member.onboardingTicks.buddyAssigned,
                     },
                     {
-                      num: "3",
-                      title: "First Task Delivered Before Day 30",
-                      desc: "Completed on schedule and validated by Department Head",
+                      label: "First Department Task Delivered & Graded",
                       done: member.onboardingTicks.firstTaskBeforeDay30,
                     },
                     {
-                      num: "4",
-                      title: "Hands-on Workshop Attended",
-                      desc: "Attended laboratory or club session via live QR scan",
+                      label: "Hands-on Workshop Attended (QR Check-in)",
                       done: member.onboardingTicks.firstWorkshopAttended,
                     },
-                  ].map((item) => (
-                    <div key={item.num} className="p-2.5 sm:p-3 flex items-start gap-2.5 hover:bg-slate-50/50 transition">
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black ${
-                          item.done ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
-                        }`}
-                      >
-                        {item.done ? "✓" : item.num}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-xs font-bold font-display ${item.done ? "text-slate-900" : "text-slate-600"}`}>
-                          {item.title}
-                        </p>
-                        <p className="text-[10.5px] text-slate-500 font-sans mt-0.5 leading-snug">
-                          {item.desc}
-                        </p>
+                  ].map((item, idx) => (
+                    <div key={idx} className="p-2.5 flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-black ${
+                            item.done ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-500"
+                          }`}
+                        >
+                          {item.done ? "✓" : String(idx + 1)}
+                        </div>
+                        <span className={`text-xs font-bold truncate ${item.done ? "text-slate-900" : "text-slate-600"}`}>
+                          {item.label}
+                        </span>
                       </div>
                       <span
-                        className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide ${
-                          item.done ? "text-emerald-700 bg-emerald-50" : "text-slate-400 bg-slate-100"
+                        className={`text-[9.5px] font-mono font-bold px-2 py-0.5 rounded shrink-0 uppercase tracking-wide ${
+                          item.done ? "text-emerald-700 bg-emerald-50 border border-emerald-200" : "text-slate-400 bg-slate-100"
                         }`}
                       >
                         {item.done ? "Verified" : "Pending"}
@@ -2313,114 +2302,51 @@ export default function MobileProfilePage() {
                 </div>
               </div>
 
-              {/* Department Leadership Endorsements (Spacious, No Truncation) */}
-              <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 font-display">
-                    Department Leadership Endorsement
-                  </span>
-                  <span className="text-[9.5px] font-bold text-slate-400">
-                    Dual Approval
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/70 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
-                          member.traineeEvaluation.headEndorsed
-                            ? "bg-emerald-600 text-white"
-                            : "bg-amber-500 text-white"
-                        }`}
-                      >
-                        {member.traineeEvaluation.headEndorsed ? "✓" : "•"}
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-xs font-extrabold text-slate-900 block">
-                          Department Head Endorsement
-                        </span>
-                        <span className="text-[10px] text-slate-500 block font-sans">
-                          {member.traineeEvaluation.headEndorsed
-                            ? "Verified & approved for confirmation"
-                            : "Evaluation review pending"}
-                        </span>
-                      </div>
-                    </div>
+              {/* Dual Leadership Endorsement */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
+                  Department Leadership Endorsement
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Department Head</span>
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
+                      className={`px-1.5 py-0.2 rounded font-mono text-[9.5px] font-bold ${
                         member.traineeEvaluation.headEndorsed
                           ? "bg-emerald-100 text-emerald-800"
                           : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {member.traineeEvaluation.headEndorsed ? "Approved" : "In Review"}
+                      {member.traineeEvaluation.headEndorsed ? "Approved" : "Pending"}
                     </span>
                   </div>
-
-                  <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/70 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black ${
-                          member.traineeEvaluation.coManagerEndorsed
-                            ? "bg-emerald-600 text-white"
-                            : "bg-amber-500 text-white"
-                        }`}
-                      >
-                        {member.traineeEvaluation.coManagerEndorsed ? "✓" : "•"}
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-xs font-extrabold text-slate-900 block">
-                          Co-Manager Endorsement
-                        </span>
-                        <span className="text-[10px] text-slate-500 block font-sans">
-                          {member.traineeEvaluation.coManagerEndorsed
-                            ? "Verified & approved for confirmation"
-                            : "Co-management review pending"}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Co-Manager</span>
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
+                      className={`px-1.5 py-0.2 rounded font-mono text-[9.5px] font-bold ${
                         member.traineeEvaluation.coManagerEndorsed
                           ? "bg-emerald-100 text-emerald-800"
                           : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {member.traineeEvaluation.coManagerEndorsed ? "Approved" : "In Review"}
+                      {member.traineeEvaluation.coManagerEndorsed ? "Approved" : "Pending"}
                     </span>
                   </div>
                 </div>
-
-                {member.traineeEvaluation.notes && (
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[10.5px] text-slate-600 italic leading-relaxed">
-                    &ldquo;{member.traineeEvaluation.notes}&rdquo;
-                  </div>
-                )}
-              </div>
-
-              {/* Final Ratification Callout */}
-              <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 text-[11px] text-blue-950 flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-[#1D63EB] shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  Full confirmation to Active Member status is ratified by the
-                  Executive Bureau upon completing the 90-day cycle, meeting the
-                  75% attendance threshold, and receiving dual department endorsement.
-                </p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="p-3.5 sm:p-4 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
-              <span className="text-[10.5px] font-bold text-slate-400 font-display">
-                QUANTA Club ERP
+            <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-between shrink-0">
+              <span className="text-[10px] font-mono font-bold text-slate-400">
+                QUANTA EXECUTIVE RATIFICATION
               </span>
               <button
                 type="button"
                 onClick={() => setTraineeTrackerOpen(false)}
-                className="h-8.5 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-black font-display active:scale-95 transition cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-[#182C4E] hover:bg-[#2B4875] text-white text-xs font-bold font-display cursor-pointer transition"
               >
-                Close Roadmap
+                Close
               </button>
             </div>
           </div>

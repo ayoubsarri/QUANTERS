@@ -12,6 +12,7 @@ import {
   ChevronUp,
   Clock,
   ExternalLink,
+  Library,
   RotateCcw,
   Search,
   Sparkles,
@@ -24,6 +25,7 @@ import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { getCurrentDayOfYear, SEED_DAILY_QUIZZES } from "@/lib/data/seed";
 import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { MarkdownArticleRenderer } from "@/components/shared/MarkdownArticleRenderer";
 
 const FILTER_TABS: ("All" | ExploreCategory)[] = [
   "All",
@@ -66,7 +68,56 @@ export default function MobileExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [activeArticle, setActiveArticle] = useState<ExplorePost | null>(null);
-  const [savedIds, setSavedIds] = useState<string[]>(["exp-1"]);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [readArticleIds, setReadArticleIds] = useState<string[]>([]);
+  const [feedTab, setFeedTab] = useState<"latest" | "saved" | "library">("latest");
+
+  // Load saved bookmarks & read articles from localStorage
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const savedKey = currentMemberId ? `quanters_saved_explore_${currentMemberId}` : "quanters_saved_explore";
+      const rawSaved = localStorage.getItem(savedKey);
+      if (rawSaved) {
+        const parsed = JSON.parse(rawSaved);
+        if (Array.isArray(parsed)) setSavedIds(parsed);
+      }
+
+      const readKey = currentMemberId ? `quanters_read_articles_${currentMemberId}` : "quanters_read_articles";
+      const rawRead = localStorage.getItem(readKey);
+      if (rawRead) {
+        const parsed = JSON.parse(rawRead);
+        if (Array.isArray(parsed)) setReadArticleIds(parsed);
+      }
+    } catch {}
+  }, [currentMemberId]);
+
+  // Open and auto-archive article for user
+  const handleOpenArticle = (post: ExplorePost) => {
+    setActiveArticle(post);
+    if (post && post.id) {
+      setReadArticleIds((prev) => {
+        if (prev.includes(post.id)) return prev;
+        const next = [...prev, post.id];
+        try {
+          const key = currentMemberId ? `quanters_read_articles_${currentMemberId}` : "quanters_read_articles";
+          localStorage.setItem(key, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }
+  };
+
+  const toggleSave = (id: string) => {
+    setSavedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        const key = currentMemberId ? `quanters_saved_explore_${currentMemberId}` : "quanters_saved_explore";
+        localStorage.setItem(key, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Interactive Daily Quiz State (Single Quiz of the Exact Day)
   const [isQuizExpanded, setIsQuizExpanded] = useState(false);
@@ -171,11 +222,7 @@ export default function MobileExplorePage() {
     }
   };
 
-  const toggleSave = (id: string) => {
-    setSavedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+// toggleSave defined above with localStorage persistence
 
   const getTagBadgeStyle = (post: ExplorePost) => {
     if (post.tagLabel === "OPPORTUNITY" || post.tagTone === "amber") {
@@ -271,7 +318,7 @@ export default function MobileExplorePage() {
           >
             <button
               type="button"
-              onClick={() => setActiveArticle(heroPost)}
+              onClick={() => handleOpenArticle(heroPost)}
               className="relative w-full h-[215px] sm:h-[250px] rounded-2xl overflow-hidden shadow-[0_14px_34px_rgba(15,30,54,0.16)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-[#2B4875]/30"
             >
               <img
@@ -455,237 +502,474 @@ export default function MobileExplorePage() {
           </div>
         )}
 
-        {/* Priority Feed List: New & Important Dispatches First */}
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between px-0.5 gap-2 flex-wrap">
-            <h2 className="font-display text-base sm:text-lg font-black text-[#0F1E36]">
-              Latest &amp; Featured Dispatches
-            </h2>
-            <span className="font-mono text-xs font-bold text-slate-400">
-              {filteredPosts.length} STORIES
+        {/* =========================================================
+            DISPATCHES NAVIGATION: LATEST, SAVED & ARCHIVE
+           ========================================================= */}
+        <div className="space-y-3.5">
+          {/* Sub-Tab Selector */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-slate-200/80">
+            <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 self-start">
+              <button
+                type="button"
+                onClick={() => setFeedTab("latest")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  feedTab === "latest"
+                    ? "bg-white text-[#0F1E36] shadow-xs font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
+                <span>{isRtl ? "الجديد" : "Latest"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFeedTab("saved")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  feedTab === "saved"
+                    ? "bg-white text-[#0F1E36] shadow-xs font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5 text-[#0284C7]" />
+                <span>{isRtl ? "المحفوظات" : "Saved"}</span>
+                {savedIds.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold bg-[#E0F2FE] text-[#0284C7]">
+                    {savedIds.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFeedTab("library")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  feedTab === "library"
+                    ? "bg-white text-[#0F1E36] shadow-xs font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Library className="w-3.5 h-3.5 text-[#0284C7]" />
+                <span>{isRtl ? "المكتبة" : "Library"}</span>
+              </button>
+            </div>
+
+            <span className="font-mono text-xs font-bold text-slate-400 self-end sm:self-auto">
+              {feedTab === "latest"
+                ? `${Math.min(6, filteredPosts.length)} TOP STORIES`
+                : feedTab === "saved"
+                  ? `${publishedPosts.filter((p) => savedIds.includes(p.id)).length} SAVED`
+                  : `${filteredPosts.length} IN LIBRARY`}
             </span>
           </div>
 
-          {filteredPosts.map((post, idx) => {
-            const isSaved = savedIds.includes(post.id);
-            const { priorityBadge } = getPostPriorityMeta(post);
-            const isTopPriority = priorityBadge === "IMPORTANT";
-            return (
-              <div
-                key={post.id}
-                onClick={() => setActiveArticle(post)}
-                style={{ animationDelay: `${120 + idx * 40}ms` }}
-                className={`bg-white rounded-xl border p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/45 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer animate-rise ${
-                  isTopPriority
-                    ? "border-[#182C4E]/35 border-l-[3px] border-l-[#182C4E]"
-                    : "border-slate-200/90"
-                }`}
-              >
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80">
-                  <img
-                    src={post.imageUrl}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[#101F38]/90 text-[#7DD3FC] font-mono text-xs font-bold backdrop-blur-xs">
-                    0{idx + 1}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {priorityBadge === "IMPORTANT" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-                          <span>PRIORITY</span>
-                        </span>
-                      )}
-                      {priorityBadge === "NEW" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0369A1] font-mono text-xs font-bold uppercase tracking-wider">
-                          <Sparkles className="w-3 h-3" />
-                          <span>NEW</span>
-                        </span>
-                      )}
-                      <span
-                        className={`px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
-                          post
-                        )}`}
-                      >
-                        {post.tagLabel}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSave(post.id);
-                      }}
-                      className={`p-1.5 rounded-full hover:bg-slate-100 active:scale-[0.95] transition cursor-pointer ${
-                        isSaved
-                          ? "text-[#182C4E]"
-                          : "text-slate-400 hover:text-slate-600"
-                      }`}
-                      aria-label="Bookmark article"
-                    >
-                      <Bookmark
-                        className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`}
+          {/* TAB 1: LATEST DISPATCHES (FAST, TOP STORIES) */}
+          {feedTab === "latest" && (
+            <div className="space-y-2.5 animate-rise">
+              {filteredPosts.slice(0, 6).map((post, idx) => {
+                const isSaved = savedIds.includes(post.id);
+                const isRead = readArticleIds.includes(post.id);
+                const { priorityBadge } = getPostPriorityMeta(post);
+                const isTopPriority = priorityBadge === "IMPORTANT";
+                return (
+                  <div
+                    key={post.id}
+                    onClick={() => handleOpenArticle(post)}
+                    style={{ animationDelay: `${100 + idx * 30}ms` }}
+                    className={`bg-white rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/45 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer ${
+                      isTopPriority
+                        ? "border-[#182C4E]/35 border-l-[3px] border-l-[#182C4E]"
+                        : "border-slate-200/90"
+                    }`}
+                  >
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80">
+                      <img
+                        src={post.imageUrl}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
                       />
-                    </button>
-                  </div>
+                      <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[#101F38]/90 text-[#7DD3FC] font-mono text-xs font-bold backdrop-blur-xs">
+                        0{idx + 1}
+                      </span>
+                      {isRead && (
+                        <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-600/95 text-white font-mono text-[9px] font-bold tracking-wider backdrop-blur-xs flex items-center gap-0.5">
+                          <Check className="w-2.5 h-2.5" />
+                          <span>READ</span>
+                        </span>
+                      )}
+                    </div>
 
-                  <h3 className="font-display mt-1.5 text-sm sm:text-base font-black text-[#0F1E36] leading-snug line-clamp-2">
-                    {post.title}
-                  </h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {priorityBadge === "IMPORTANT" && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                              <span>PRIORITY</span>
+                            </span>
+                          )}
+                          {priorityBadge === "NEW" && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0369A1] font-mono text-xs font-bold uppercase tracking-wider">
+                              <Sparkles className="w-3 h-3" />
+                              <span>NEW</span>
+                            </span>
+                          )}
+                          <span
+                            className={`px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
+                              post
+                            )}`}
+                          >
+                            {post.tagLabel}
+                          </span>
+                          {isRead && (
+                            <span className="px-2 py-0.5 rounded-md font-mono text-[9.5px] font-bold text-slate-400 bg-slate-100 border border-slate-200">
+                              ARCHIVED
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSave(post.id);
+                          }}
+                          className={`p-1.5 rounded-full hover:bg-slate-100 active:scale-[0.95] transition cursor-pointer ${
+                            isSaved
+                              ? "text-[#0284C7]"
+                              : "text-slate-400 hover:text-slate-600"
+                          }`}
+                          aria-label="Bookmark article"
+                        >
+                          <Bookmark
+                            className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`}
+                          />
+                        </button>
+                      </div>
 
-                  <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans flex-wrap">
-                    <span className="text-[#182C4E] font-bold">
-                      {post.source}
-                    </span>
-                    <span>·</span>
-                    <span className="font-mono">{post.readTime}</span>
-                    <span>·</span>
-                    <span>{post.date}</span>
+                      <h3 className="font-display mt-1.5 text-sm sm:text-base font-black text-[#0F1E36] leading-snug line-clamp-2">
+                        {post.title}
+                      </h3>
+
+                      <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans flex-wrap">
+                        <span className="text-[#182C4E] font-bold">
+                          {post.source}
+                        </span>
+                        <span>·</span>
+                        <span className="font-mono">{post.readTime}</span>
+                        <span>·</span>
+                        <span>{post.date}</span>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+
+              {filteredPosts.length > 6 && (
+                <div className="pt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setFeedTab("library")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                  >
+                    <Library className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <span>View More in Library ({filteredPosts.length - 6} older dispatches)</span>
+                  </button>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: SAVED DISPATCHES (BOOKMARKED BY USER) */}
+          {feedTab === "saved" && (
+            <div className="space-y-2.5 animate-rise">
+              {publishedPosts.filter((p) => savedIds.includes(p.id)).length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-200/90 p-8 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-[#0284C7] mx-auto shadow-xs">
+                    <Bookmark className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">
+                      {isRtl ? "لا توجد مقالات محفوظة بعد" : "No Saved Articles Yet"}
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                      {isRtl
+                        ? "اضغط على أيقونة الإشارة المرجعية بجانب أي مقال لحفظه في هذه القائمة والرجوع إليه لاحقاً."
+                        : "Tap the bookmark icon on any dispatch to save it here for quick reference and offline reading."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFeedTab("latest")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 cursor-pointer transition shadow-xs"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Browse Latest Dispatches</span>
+                  </button>
+                </div>
+              ) : (
+                publishedPosts
+                  .filter((p) => savedIds.includes(p.id))
+                  .map((post, idx) => (
+                    <div
+                      key={post.id}
+                      onClick={() => handleOpenArticle(post)}
+                      className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] hover:border-[#0284C7]/50 active:scale-[0.99] transition-all flex items-center gap-3.5 cursor-pointer"
+                    >
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/80">
+                        <img
+                          src={post.imageUrl}
+                          alt={post.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-[#0284C7]/90 text-white font-mono text-xs font-bold backdrop-blur-xs">
+                          SAVED
+                        </span>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
+                              post
+                            )}`}
+                          >
+                            {post.tagLabel}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSave(post.id);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-[#0284C7] active:scale-[0.95] transition cursor-pointer"
+                            title="Remove from saved"
+                          >
+                            <Bookmark className="w-4 h-4 fill-current" />
+                          </button>
+                        </div>
+
+                        <h3 className="font-display mt-1.5 text-sm sm:text-base font-black text-[#0F1E36] leading-snug line-clamp-2">
+                          {post.title}
+                        </h3>
+
+                        <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold text-slate-500 font-sans flex-wrap">
+                          <span className="text-[#182C4E] font-bold">{post.source}</span>
+                          <span>·</span>
+                          <span className="font-mono">{post.readTime}</span>
+                          <span>·</span>
+                          <span>{post.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: LIBRARY (COMPLETE HISTORICAL DISPATCHES & ARTICLES) */}
+          {feedTab === "library" && (
+            <div className="space-y-2.5 animate-rise">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                <span>{isRtl ? "سجل جميع المقالات والمستجدات العلمية في المكتبة" : "Complete dispatch library & permanent scientific archives"}</span>
+                <span className="font-mono font-bold text-slate-800">{filteredPosts.length} total</span>
               </div>
-            );
-          })}
+
+              {filteredPosts.map((post, idx) => {
+                const isSaved = savedIds.includes(post.id);
+                const isRead = readArticleIds.includes(post.id);
+                return (
+                  <div
+                    key={post.id}
+                    onClick={() => handleOpenArticle(post)}
+                    className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs hover:border-[#182C4E]/45 active:scale-[0.99] transition flex items-center gap-3.5 cursor-pointer"
+                  >
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
+                      <img
+                        src={post.imageUrl}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                      {isRead && (
+                        <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-emerald-600 text-white font-mono text-[8px] font-bold">
+                          ✓
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10.5px] font-mono font-bold text-[#0284C7] uppercase">
+                            {post.category} · {post.tagLabel}
+                          </span>
+                          {isRead && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 text-slate-400">
+                              READ
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSave(post.id);
+                          }}
+                          className={`p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer ${
+                            isSaved ? "text-[#0284C7]" : "text-slate-400 hover:text-slate-600"
+                          }`}
+                        >
+                          <Bookmark className={`w-3.5 h-3.5 ${isSaved ? "fill-current" : ""}`} />
+                        </button>
+                      </div>
+
+                      <h3 className="font-display text-xs sm:text-sm font-bold text-[#0F1E36] leading-snug line-clamp-1 mt-0.5">
+                        {post.title}
+                      </h3>
+
+                      <div className="mt-1 flex items-center gap-2 text-[11px] font-medium text-slate-500 flex-wrap">
+                        <span>{post.source}</span>
+                        <span>·</span>
+                        <span className="font-mono">{post.readTime}</span>
+                        <span>·</span>
+                        <span>{post.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Article Reader Modal with 01/02/03 Stepped Breakdown */}
+      {/* =========================================================
+          UPGRADED EDITORIAL NEWSPAPER & MAGAZINE ARTICLE VIEWER
+         ========================================================= */}
       {activeArticle && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 pb-16 sm:pb-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-5 pb-16 sm:pb-6">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[480px] max-h-[78dvh] sm:max-h-[82dvh] rounded-2xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise"
+            className="w-full max-w-4xl max-h-[92dvh] rounded-3xl bg-white overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-rise"
           >
-            <div className="relative h-48 w-full shrink-0">
-              <img
-                src={activeArticle.imageUrl}
-                alt={activeArticle.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/95 via-[#101F38]/40 to-transparent" />
-              <button
-                type="button"
-                onClick={() => setActiveArticle(null)}
-                className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-slate-900/75 text-white flex items-center justify-center hover:bg-slate-900 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <span className="absolute bottom-3.5 left-4 px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider bg-[#182C4E] text-[#7DD3FC] border border-[#38BDF8]/35 shadow-sm">
-                {activeArticle.tagLabel} · {activeArticle.category}
-              </span>
-            </div>
-
-            <div className="p-5 overflow-y-auto space-y-3.5">
-              <h2 className="font-display text-lg font-extrabold text-[#0F1E36] leading-snug">
-                {activeArticle.title}
-              </h2>
-
-              <div className="flex items-center gap-3 text-xs font-semibold text-slate-500 pb-2.5 border-b border-slate-100 flex-wrap">
-                <span className="text-[#182C4E] font-extrabold">
-                  {activeArticle.source}
+            {/* Top Sticky Bar */}
+            <div className="px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="px-2.5 py-0.5 rounded-md font-mono text-[10.5px] font-bold uppercase tracking-wider bg-[#182C4E] text-[#7DD3FC]">
+                  {activeArticle.tagLabel}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" /> {activeArticle.date}
-                </span>
-                <span className="flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5" /> {activeArticle.readTime}
+                <span className="text-xs font-bold text-slate-500 truncate hidden sm:inline">
+                  {activeArticle.category}
                 </span>
               </div>
 
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {activeArticle.summary}
-              </p>
-
-              {/* 01 / 02 / 03 Stepped Breakdown */}
-              <div className="rounded-xl bg-[#F0F6FF] border-l-4 border-[#182C4E] p-3.5 space-y-2">
-                <div className="font-mono text-xs font-bold uppercase tracking-wider text-[#182C4E]">
-                  THE 3-STEP SCIENTIFIC BREAKDOWN
-                </div>
-                <div className="space-y-1.5 text-xs text-slate-700">
-                  <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#0284C7]">
-                      01
-                    </span>
-                    <span>
-                      <strong>Core Finding:</strong> Verified by QUANTA
-                      Scientific Committee for practical workshop integration.
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#0284C7]">
-                      02
-                    </span>
-                    <span>
-                      <strong>Why It Matters:</strong> Directly connects to
-                      hands-on student lab tracks and skill badge projects.
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="font-mono font-extrabold text-[#0284C7]">
-                      03
-                    </span>
-                    <span>
-                      <strong>How To Participate:</strong> Submit a follow-up
-                      review or workshop proposal (+25 XP) via the Proposals
-                      engine.
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => toggleSave(activeArticle.id)}
-                  className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                    savedIds.includes(activeArticle.id)
+                      ? "bg-[#E0F2FE] border-[#BAE6FD] text-[#0284C7]"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                  }`}
                 >
                   <Bookmark
-                    className={`w-4 h-4 ${
-                      savedIds.includes(activeArticle.id)
-                        ? "fill-[#182C4E] text-[#182C4E]"
-                        : ""
-                    }`}
+                    className={`w-3.5 h-3.5 ${savedIds.includes(activeArticle.id) ? "fill-current text-[#0284C7]" : ""}`}
                   />
-                  <span>
-                    {savedIds.includes(activeArticle.id) ? "Saved" : "Save"}
-                  </span>
+                  <span>{savedIds.includes(activeArticle.id) ? "Saved" : "Save"}</span>
                 </button>
 
-                {activeArticle.externalUrl ? (
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={sanitizeExternalUrl(activeArticle.externalUrl) || "https://quanta-algiers.dz"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-10 px-4 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 active:scale-[0.98] transition"
-                    >
-                      <span>Open Source</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setActiveArticle(null)}
-                      className="h-10 px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
-                    >
-                      Done Reading
-                    </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveArticle(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Newspaper Layout */}
+            <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+              {/* Hero Image */}
+              <div className="relative h-56 sm:h-64 w-full shrink-0 bg-slate-900">
+                <img
+                  src={activeArticle.imageUrl}
+                  alt={activeArticle.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
+                  <span className="font-semibold">{activeArticle.source}</span>
+                  <span className="font-mono bg-black/60 px-2 py-0.5 rounded backdrop-blur-xs">
+                    {activeArticle.readTime}
+                  </span>
+                </div>
+              </div>
+
+              {/* Editorial Body */}
+              <div className="p-5 sm:p-6 space-y-4">
+                <h1 className="font-display text-xl sm:text-2xl font-black text-[#0F1E36] leading-tight">
+                  {activeArticle.title}
+                </h1>
+
+                <div className="flex items-center gap-3 text-xs font-medium text-slate-500 flex-wrap">
+                  <span className="font-bold text-[#182C4E]">{activeArticle.source}</span>
+                  <span>·</span>
+                  <span className="flex items-center gap-1 font-mono">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{activeArticle.date}</span>
+                  </span>
+                  <span>·</span>
+                  <span className="flex items-center gap-1 font-mono text-[#0284C7]">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{activeArticle.readTime}</span>
+                  </span>
+                </div>
+
+                {/* Lead Summary Callout */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 text-xs sm:text-[13px] leading-relaxed italic font-editorial">
+                  {activeArticle.summary}
+                </div>
+
+                {/* Full Article Content with Markdown Parsing (if provided) */}
+                {activeArticle.content ? (
+                  <div className="pt-2">
+                    <MarkdownArticleRenderer content={activeArticle.content} />
                   </div>
-                ) : (
+                ) : null}
+
+                {/* Footer Actions */}
+                <div className="pt-3 flex items-center justify-between gap-2 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => setActiveArticle(null)}
-                    className="h-10 px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold shadow-sm active:scale-[0.98] transition cursor-pointer"
+                    onClick={() => toggleSave(activeArticle.id)}
+                    className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 transition cursor-pointer"
                   >
-                    Done Reading
+                    <Bookmark
+                      className={`w-4 h-4 ${
+                        savedIds.includes(activeArticle.id) ? "fill-[#0284C7] text-[#0284C7]" : ""
+                      }`}
+                    />
+                    <span>{savedIds.includes(activeArticle.id) ? "Saved in Bookmarks" : "Save Article"}</span>
                   </button>
-                )}
+
+                  <div className="flex items-center gap-2">
+                    {activeArticle.externalUrl && (
+                      <a
+                        href={sanitizeExternalUrl(activeArticle.externalUrl) || "https://quanta-algiers.dz"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-10 px-4 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 transition"
+                      >
+                        <span>Original Source</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+
+                  </div>
+                </div>
               </div>
             </div>
           </div>

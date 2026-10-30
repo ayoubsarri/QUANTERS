@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import {
+  verifyEmailWithFailover,
+  VerificationProviderKey,
+} from "@/lib/utils/emailVerification";
+import {
+  AlertTriangle,
   Award,
   CheckCircle2,
   ChevronDown,
@@ -12,17 +17,24 @@ import {
   GraduationCap,
   Globe,
   Link2,
+  LogOut,
+  Mail,
   Moon,
   Plus,
   QrCode,
   RefreshCw,
+  RotateCcw,
   Save,
+  Search,
+  ShieldAlert,
   ShieldCheck,
   Sliders,
+  Smartphone,
   Sparkles,
   Terminal,
   Trash2,
   Users,
+  UserX,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
@@ -48,9 +60,16 @@ export default function AdminSettingsPage() {
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
   const compactAndPruneQuota = useQuantersStore((s) => s.compactAndPruneQuota);
   const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const members = useQuantersStore((s) => s.members);
+  const forceLogoutAllSessions = useQuantersStore((s) => s.forceLogoutAllSessions);
+  const forceLogoutSpecificMember = useQuantersStore((s) => s.forceLogoutSpecificMember);
+  const restoreMemberSessionAccess = useQuantersStore((s) => s.restoreMemberSessionAccess);
   const membersCount = useQuantersStore((s) => s.members.length);
   const ledgerCount = useQuantersStore((s) => s.ledger.length);
   const auditLogsCount = useQuantersStore((s) => s.auditLogs.length);
+
+
 
   const [formState, setFormState] = useState<SystemSettings>({
     ...settings,
@@ -61,6 +80,7 @@ export default function AdminSettingsPage() {
     examFreezeMode: settings.examFreezeMode ?? false,
     quietHoursEnabled: settings.quietHoursEnabled ?? true,
     weeklyWorkloadCapHours: settings.weeklyWorkloadCapHours ?? 6,
+    examRetakeCooldownHours: settings.examRetakeCooldownHours ?? 24,
     quotaSaverPreset: settings.quotaSaverPreset ?? "aggressive",
     syncStrategy: settings.syncStrategy ?? "debounced_30s",
     clientCacheTtlMinutes: settings.clientCacheTtlMinutes ?? 15,
@@ -105,7 +125,7 @@ export default function AdminSettingsPage() {
 
   // Dynamic Member Rank Levels & XP Progression System
   const rankLevels: RankLevelThreshold[] =
-    formState.rankLevels && formState.rankLevels.length > 0
+    formState.rankLevels && formState.rankLevels.length > 0 && formState.rankLevels[0]?.title?.includes("Wooden")
       ? formState.rankLevels
       : DEFAULT_RANK_LEVELS;
 
@@ -251,6 +271,36 @@ export default function AdminSettingsPage() {
   const regOpen = formState.registrationOpen;
   const alumniActive = formState.alumniAccessGlobal;
   const autoApprove = formState.onboardingAutoApprove ?? true;
+  const welcomeMsgEnabled = formState.welcomeMessageEnabled ?? true;
+  const emailVerifyEnabled = formState.emailVerificationEnabled ?? true;
+  const [testEmailInput, setTestEmailInput] = useState("");
+  const [testEmailResult, setTestEmailResult] = useState<any>(null);
+  const [testEmailLoading, setTestEmailLoading] = useState(false);
+
+  const handleTestEmailVerification = async () => {
+    if (!testEmailInput.trim()) return;
+    setTestEmailLoading(true);
+    setTestEmailResult(null);
+    try {
+      const keys: VerificationProviderKey[] = [];
+      if (formState.zerobounceApiKey1) keys.push({ provider: "zerobounce", key: formState.zerobounceApiKey1, label: "ZeroBounce #1" });
+      if (formState.zerobounceApiKey2) keys.push({ provider: "zerobounce", key: formState.zerobounceApiKey2, label: "ZeroBounce #2" });
+      if (formState.abstractApiKey1) keys.push({ provider: "abstract", key: formState.abstractApiKey1, label: "AbstractAPI #1" });
+      if (formState.abstractApiKey2) keys.push({ provider: "abstract", key: formState.abstractApiKey2, label: "AbstractAPI #2" });
+
+      const res = await verifyEmailWithFailover(testEmailInput.trim(), keys);
+      setTestEmailResult(res);
+    } catch (err: any) {
+      setTestEmailResult({
+        valid: false,
+        deliverable: false,
+        status: "invalid",
+        reason: err?.message || "Verification request failed",
+      });
+    } finally {
+      setTestEmailLoading(false);
+    }
+  };
   const qrSec = formState.qrRotationSeconds ?? 30;
   const graceMin = formState.checkinGraceMinutes ?? 15;
   const waitlistAuto = formState.waitlistAutoPromote ?? true;
@@ -349,20 +399,20 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 4-SECTION GOVERNANCE CONSOLE GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* 2-SECTION CORE GATES GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* SECTION 1: ACCESS & REGISTRATION CONTROLS */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                1. Access &amp; Registration Controls
+                Access &amp; Registration Controls
               </h2>
             </div>
           </div>
 
-          <div className="p-4 divide-y divide-slate-100 space-y-3 flex-1">
+          <div className="p-4 divide-y divide-slate-100 space-y-3">
             {/* Row 1: Member Registration Gate */}
             <div className="flex items-center justify-between gap-3 pt-0">
               <div className="min-w-0">
@@ -470,7 +520,9 @@ export default function AdminSettingsPage() {
               <div className="min-w-0">
                 <div className="text-xs font-bold text-[#0F1E36]">Onboarding Admission Mode</div>
                 <p className="text-[11px] text-slate-500">
-                  Auto-admit applicants as Trainees or require manual HR approval
+                  {autoApprove
+                    ? "Auto-Accepted: New applicants directly gain Trainee access upon completing registration."
+                    : "HR Approval: Members see the Waiting Gate screen until reviewed and approved by HR."}
                 </p>
               </div>
 
@@ -480,23 +532,23 @@ export default function AdminSettingsPage() {
                   onClick={() =>
                     applyImmediatePatch(
                       { onboardingAutoApprove: true },
-                      "Set onboarding mode to Auto-Admit as Trainee",
-                      "Onboarding Admission Mode: Auto-Admit as Trainee"
+                      "Set onboarding mode to Auto-Accepted",
+                      "Onboarding Admission Mode: Auto-Accepted"
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
                     autoApprove ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
                   }`}
                 >
-                  Auto-Trainee
+                  Auto-Accepted
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     applyImmediatePatch(
                       { onboardingAutoApprove: false },
-                      "Set onboarding mode to Manual HR Approval",
-                      "Onboarding Admission Mode: Manual HR Approval"
+                      "Set onboarding mode to HR Approval Required",
+                      "Onboarding Admission Mode: HR Approval Required"
                     )
                   }
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
@@ -507,16 +559,17 @@ export default function AdminSettingsPage() {
                 </button>
               </div>
             </div>
-          </div>
+
+            </div>
         </div>
 
         {/* SECTION 2: ATTENDANCE & QR SECURITY */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <QrCode className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                2. Attendance &amp; QR Security
+                Attendance &amp; QR Security
               </h2>
             </div>
           </div>
@@ -627,13 +680,191 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+      </div>
+
+      {/* DEDICATED FULL-WIDTH: POST-ADMISSION AUTOMATED WELCOME NOTICE */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-[#0284C7]" />
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+              Post-Admission Automated Welcome Notice
+            </h2>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]">
+              Auto-Dispatch On Approval
+            </span>
+          </div>
+
+          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setFormState((prev) => ({ ...prev, welcomeMessageEnabled: true }));
+                applyImmediatePatch(
+                  { welcomeMessageEnabled: true },
+                  "Enabled post-admission welcome message",
+                  "Welcome Message: Enabled"
+                );
+              }}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                welcomeMsgEnabled ? "bg-white text-[#0284C7] shadow-2xs" : "text-slate-600"
+              }`}
+            >
+              Enabled
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFormState((prev) => ({ ...prev, welcomeMessageEnabled: false }));
+                applyImmediatePatch(
+                  { welcomeMessageEnabled: false },
+                  "Disabled post-admission welcome message",
+                  "Welcome Message: Disabled"
+                );
+              }}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                !welcomeMsgEnabled ? "bg-white text-rose-600 shadow-2xs" : "text-slate-600"
+              }`}
+            >
+              Disabled
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 space-y-4">
+          <p className="text-[11.5px] text-slate-500 leading-relaxed max-w-3xl">
+            Automatically sends an official personalized notification to members upon admission approval when they first open and navigate the platform. Delivered directly to their in-app inbox and archived after first read.
+          </p>
+
+          {welcomeMsgEnabled && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1">
+              {/* Left Column: Metadata */}
+              <div className="lg:col-span-5 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      Sender Label
+                    </label>
+                    <input
+                      type="text"
+                      value={formState.welcomeMessageSenderLabel ?? "QUANTA Executive Bureau"}
+                      onChange={(e) =>
+                        setFormState((prev) => ({
+                          ...prev,
+                          welcomeMessageSenderLabel: e.target.value,
+                        }))
+                      }
+                      onBlur={() =>
+                        applyImmediatePatch(
+                          { welcomeMessageSenderLabel: formState.welcomeMessageSenderLabel ?? "QUANTA Executive Bureau" },
+                          "Updated welcome message sender label",
+                          `Sender: ${formState.welcomeMessageSenderLabel ?? "QUANTA Executive Bureau"}`
+                        )
+                      }
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#0284C7]"
+                      placeholder="e.g. QUANTA Executive Bureau"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      Sender Department / Role
+                    </label>
+                    <select
+                      value={formState.welcomeMessageSenderRole ?? "Executive"}
+                      onChange={(e) => {
+                        const val = e.target.value as "Executive" | "HR" | "System";
+                        setFormState((prev) => ({ ...prev, welcomeMessageSenderRole: val }));
+                        applyImmediatePatch(
+                          { welcomeMessageSenderRole: val },
+                          `Updated welcome message sender role to ${val}`,
+                          `Role: ${val}`
+                        );
+                      }}
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#0284C7]"
+                    >
+                      <option value="Executive">Executive Bureau</option>
+                      <option value="HR">HR Directorate</option>
+                      <option value="System">System Automated</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    Subject / Title
+                  </label>
+                  <input
+                    type="text"
+                    value={formState.welcomeMessageTitle ?? "🎉 Welcome to QUANTA! Your Admission is Approved"}
+                    onChange={(e) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        welcomeMessageTitle: e.target.value,
+                      }))
+                    }
+                    onBlur={() =>
+                      applyImmediatePatch(
+                        { welcomeMessageTitle: formState.welcomeMessageTitle ?? "🎉 Welcome to QUANTA! Your Admission is Approved" },
+                        "Updated welcome message title",
+                        `Title: ${formState.welcomeMessageTitle ?? "🎉 Welcome to QUANTA! Your Admission is Approved"}`
+                      )
+                    }
+                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#0284C7]"
+                    placeholder="e.g. 🎉 Welcome to QUANTA! Your Admission is Approved"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Message Body */}
+              <div className="lg:col-span-7 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase">
+                      Welcome Message Body
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Dynamic token: <code className="bg-sky-50 text-[#0284C7] px-1 py-0.5 rounded font-bold">{"{name}"}</code> for candidate's name
+                    </span>
+                  </div>
+                  <textarea
+                    rows={5}
+                    value={formState.welcomeMessageBody ?? "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces."}
+                    onChange={(e) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        welcomeMessageBody: e.target.value,
+                      }))
+                    }
+                    onBlur={() =>
+                      applyImmediatePatch(
+                        { welcomeMessageBody: formState.welcomeMessageBody ?? "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces." },
+                        "Updated welcome message body",
+                        "Welcome Message Body Saved"
+                      )
+                    }
+                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white leading-relaxed font-sans focus:outline-none focus:border-[#0284C7]"
+                  />
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-sky-50/70 border border-sky-100 text-[11px] text-[#0369A1] font-mono mt-2">
+                  Preview: &quot;Congratulations Selma Benali! Your membership application and onboarding dossier...&quot;
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2-SECTION POLICIES & THRESHOLDS GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* SECTION 3: ACADEMIC PROTECTION & WORKLOAD GOVERNANCE */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
           <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Moon className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                3. Academic Protection &amp; Workload Governance
+                Academic Policies
               </h2>
             </div>
           </div>
@@ -778,6 +1009,35 @@ export default function AdminSettingsPage() {
                 <span className="text-[11px] font-mono font-bold text-slate-400">hrs/wk</span>
               </div>
             </div>
+
+            {/* Row 5: Badge Exam Retake Cooldown */}
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-[#0F1E36]">
+                  Badge Exam Retake Cooldown
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Mandatory preparation pause after a failed examination attempt
+                </p>
+              </div>
+
+              <select
+                value={formState.examRetakeCooldownHours ?? 24}
+                onChange={(e) =>
+                  setFormState({
+                    ...formState,
+                    examRetakeCooldownHours: Number(e.target.value),
+                  })
+                }
+                className="px-2.5 py-1 rounded-lg bg-[#F4F7FB] border border-slate-200/90 font-mono text-xs font-bold text-[#0F1E36]"
+              >
+                <option value={0}>Instant (Practice Mode)</option>
+                <option value={24}>24 Hours Cooldown</option>
+                <option value={48}>48 Hours Cooldown</option>
+                <option value={72}>3 Days Cooldown</option>
+                <option value={168}>7 Days (Rigorous)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -787,7 +1047,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-[#0284C7]" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                4. HR Qualification &amp; Points Thresholds
+                HR &amp; Points
               </h2>
             </div>
           </div>
@@ -972,16 +1232,13 @@ export default function AdminSettingsPage() {
             <Award className="w-4 h-4 text-[#0284C7] shrink-0" />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  5. Member Rank Levels &amp; XP Progression System
+                <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                  Rank Progression
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#0284C7]/10 text-[#0284C7] border border-[#0284C7]/20">
-                  {rankLevels.length} Progression Tiers
+                  {rankLevels.length} Levels
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Configure XP thresholds, rank titles, and emblems across all {rankLevels.length} progression tiers (Lv. 1 {rankLevels[0]?.title || "Novice"} to Lv. {rankLevels[rankLevels.length - 1]?.level || 10} {rankLevels[rankLevels.length - 1]?.title || "Luminary"})
-              </p>
             </div>
           </div>
 
@@ -1126,47 +1383,76 @@ export default function AdminSettingsPage() {
 
         {devOptionsExpanded && (
           <div className="p-4 space-y-6 border-t border-slate-200/90 animate-rise bg-[#FAFBFD]">
-            {/* SUB-SECTION: FIREBASE FREE-TIER & USER QUOTA OPTIMIZER */}
+            
+            {/* SUB-SECTION: REAL-TIME EMAIL VERIFICATION FAILOVER POOL (DEV MODE) */}
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-              <div className="px-4 py-3 bg-[#F8FAFD] border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+              {/* Header with Spark Tier status */}
+              <div className="px-4 py-3 bg-[#0A1629] text-white flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0284C7]" />
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                    Firebase Free-Tier &amp; User Quota Optimizer
+                  <div className="w-6 h-6 rounded bg-[#0284C7]/20 border border-[#0284C7]/40 flex items-center justify-center text-[#38BDF8]">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                    Cloud Edge &amp; Firebase Free-Tier Quota Architecture
                   </h3>
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     {formState.quotaSaverPreset === "ultra"
-                      ? "94% QUOTA SAVED"
+                      ? "94% QUOTA REDUCTION"
                       : formState.quotaSaverPreset === "aggressive"
-                        ? "85% QUOTA SAVED"
-                        : "STANDARD MODE"}
+                        ? "85% QUOTA REDUCTION"
+                        : "STANDARD OPERATING MODE"}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600">
-                  <span>
-                    Est. Spark Free-Tier Capacity:{" "}
-                    <strong className="text-[#0284C7]">
-                      {formState.quotaSaverPreset === "ultra"
-                        ? "10,000"
-                        : formState.quotaSaverPreset === "aggressive"
-                          ? "4,000"
-                          : "700"}{" "}
-                      Daily Active Users
-                    </strong>
-                  </span>
+                <div className="flex items-center gap-3 text-[11px] font-mono text-slate-300">
+                  <span>Spark Free Plan: <strong className="text-emerald-400">50K Reads / 20K Writes / Day</strong></span>
+                </div>
+              </div>
+
+              {/* Live Spark Plan Capacity Telemetry Meters */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 p-3.5 bg-slate-50/70 border-b border-slate-200/80">
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-mono text-slate-400">Daily Read Cap</div>
+                  <div className="text-xs font-bold text-slate-800 font-mono mt-0.5">50,000 ops / day</div>
+                  <div className="h-1 w-full bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-full bg-sky-500 rounded-full" style={{ width: formState.quotaSaverPreset === "ultra" ? "6%" : formState.quotaSaverPreset === "aggressive" ? "15%" : "60%" }} />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-mono text-slate-400">Daily Write Cap</div>
+                  <div className="text-xs font-bold text-slate-800 font-mono mt-0.5">20,000 ops / day</div>
+                  <div className="h-1 w-full bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: formState.quotaSaverPreset === "ultra" ? "5%" : formState.quotaSaverPreset === "aggressive" ? "12%" : "45%" }} />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-mono text-slate-400">Free Egress Bandwidth</div>
+                  <div className="text-xs font-bold text-slate-800 font-mono mt-0.5">10 GB / month</div>
+                  <div className="h-1 w-full bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-full bg-teal-500 rounded-full" style={{ width: "8%" }} />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-mono text-slate-400">Simultaneous Conns</div>
+                  <div className="text-xs font-bold text-slate-800 font-mono mt-0.5">100 concurrent sockets</div>
+                  <div className="h-1 w-full bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: "14%" }} />
+                  </div>
                 </div>
               </div>
 
               <div className="p-4 space-y-4">
-                {/* Row A: 3 One-Click Quota Presets */}
+                {/* 3 Architecture Presets */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     {
                       key: "standard" as const,
-                      title: "Standard Mode",
-                      badge: "0% Reduction",
-                      desc: "Instant read/write sync · 256px WebP avatars · 5m local cache TTL",
+                      title: "Standard Real-Time",
+                      badge: "Zero Latency",
+                      desc: "Instant read/write sync · 5m cache TTL · Real-time WebSocket subscriptions",
                       patch: {
                         quotaSaverPreset: "standard" as const,
                         syncStrategy: "instant" as const,
@@ -1178,9 +1464,9 @@ export default function AdminSettingsPage() {
                     },
                     {
                       key: "aggressive" as const,
-                      title: "Aggressive Quota-Saver",
-                      badge: "Recommended · -85% Reads/Writes",
-                      desc: "30s batched writes · ETag 304 cache (15m TTL) · 160px WebP avatars (~8 KB)",
+                      title: "Spark Shield (Recommended)",
+                      badge: "-85% Consumption",
+                      desc: "30s coalesced write batching · ETag 304 caching (15m TTL) · 160px WebP compression",
                       patch: {
                         quotaSaverPreset: "aggressive" as const,
                         syncStrategy: "debounced_30s" as const,
@@ -1192,9 +1478,9 @@ export default function AdminSettingsPage() {
                     },
                     {
                       key: "ultra" as const,
-                      title: "Ultra Free-Tier Mode",
-                      badge: "Max Savings · -94% Quota",
-                      desc: "Offline-first manual/exit sync · 60m cache TTL · 128px WebP (~4 KB) · Static hero poster",
+                      title: "Maximum Quota Protection",
+                      badge: "-94% Consumption",
+                      desc: "Offline-first manual sync · 60m local cache TTL · 128px WebP · Background video disabled",
                       patch: {
                         quotaSaverPreset: "ultra" as const,
                         syncStrategy: "manual_offline" as const,
@@ -1213,19 +1499,19 @@ export default function AdminSettingsPage() {
                         onClick={() =>
                           applyImmediatePatch(
                             item.patch,
-                            `Switched Firebase Quota Optimizer preset to ${item.title}`,
+                            `Switched Firebase Quota Architecture preset to ${item.title}`,
                             `Activated ${item.title} (${item.badge})`
                           )
                         }
                         className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                           active
-                            ? "bg-[#EBF3FC] border-[#182C4E] shadow-xs"
+                            ? "bg-[#EBF3FC] border-[#182C4E] shadow-xs ring-1 ring-[#182C4E]/20"
                             : "bg-[#F8FAFD] border-slate-200/90 hover:border-slate-300"
                         }`}
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-extrabold text-[#0F1E36]">
+                            <span className="text-xs font-bold text-[#0F1E36]">
                               {item.title}
                             </span>
                             <span
@@ -1238,7 +1524,7 @@ export default function AdminSettingsPage() {
                               {item.badge}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                          <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
                             {item.desc}
                           </p>
                         </div>
@@ -1247,13 +1533,13 @@ export default function AdminSettingsPage() {
                   })}
                 </div>
 
-                {/* Row B: Fine-Grained Quota & Offline Controls */}
+                {/* Fine-Grained Infrastructure & Network Controls */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-                  {/* Write Sync Strategy */}
+                  {/* Write Coalescing Strategy */}
                   <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
                     <div>
-                      <div className="text-[11px] font-bold text-slate-800">Write Sync Strategy</div>
-                      <div className="text-[10px] text-slate-500">Controls Firestore write frequency</div>
+                      <div className="text-[11px] font-bold text-slate-800">Write Coalescing Strategy</div>
+                      <div className="text-[10px] text-slate-500">Controls Firestore write dispatch</div>
                     </div>
                     <select
                       value={formState.syncStrategy || "debounced_30s"}
@@ -1268,17 +1554,17 @@ export default function AdminSettingsPage() {
                       }
                       className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
                     >
-                      <option value="instant">Instant (Every Action)</option>
-                      <option value="debounced_30s">Batched (30s Coalesced)</option>
-                      <option value="manual_offline">Offline-First (Manual / Reconnect)</option>
+                      <option value="instant">Instant (0s dispatch)</option>
+                      <option value="debounced_30s">Coalesced (30s batching)</option>
+                      <option value="manual_offline">Offline-First (Manual sync)</option>
                     </select>
                   </div>
 
-                  {/* Client Local Cache TTL */}
+                  {/* Local Storage Cache TTL */}
                   <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
                     <div>
-                      <div className="text-[11px] font-bold text-slate-800">Client Cache TTL</div>
-                      <div className="text-[10px] text-slate-500">How long data stays cached</div>
+                      <div className="text-[11px] font-bold text-slate-800">Local Cache Retention (TTL)</div>
+                      <div className="text-[10px] text-slate-500">Browser offline state lifetime</div>
                     </div>
                     <select
                       value={formState.clientCacheTtlMinutes ?? 15}
@@ -1291,18 +1577,18 @@ export default function AdminSettingsPage() {
                       }
                       className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800"
                     >
-                      <option value={5}>5 minutes</option>
+                      <option value={5}>5 minutes (Real-time)</option>
                       <option value={15}>15 minutes (Standard)</option>
-                      <option value={30}>30 minutes</option>
+                      <option value={30}>30 minutes (Moderate)</option>
                       <option value={60}>60 minutes (Ultra-Saver)</option>
                     </select>
                   </div>
 
-                  {/* Max Image Dimension */}
+                  {/* Media Bandwidth Shield */}
                   <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
                     <div>
-                      <div className="text-[11px] font-bold text-slate-800">Avatar Max Bounds</div>
-                      <div className="text-[10px] text-slate-500">Canvas compression target</div>
+                      <div className="text-[11px] font-bold text-slate-800">Avatar Compression Bounds</div>
+                      <div className="text-[10px] text-slate-500">WebP canvas resolution target</div>
                     </div>
                     <select
                       value={formState.maxImageDimensionPx ?? 160}
@@ -1321,11 +1607,11 @@ export default function AdminSettingsPage() {
                     </select>
                   </div>
 
-                  {/* Prune Quota Button */}
+                  {/* 1-Click Compact WAL & Prune Payload */}
                   <div className="p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/90 flex flex-col justify-between gap-2">
                     <div>
-                      <div className="text-[11px] font-bold text-slate-800">Auto-Compact WAL</div>
-                      <div className="text-[10px] text-slate-500">Prune history &amp; free payload</div>
+                      <div className="text-[11px] font-bold text-slate-800">Storage &amp; WAL Purge</div>
+                      <div className="text-[10px] text-slate-500">Prune old tombstones &amp; payload</div>
                     </div>
                     <button
                       type="button"
@@ -1333,10 +1619,10 @@ export default function AdminSettingsPage() {
                         const res = compactAndPruneQuota();
                         await syncWithServer(true);
                         setBanner(
-                          `Compacted database payload: saved ${res.bytesSaved} bytes (${res.prunedCount} stale archived notices pruned)`
+                          `Compacted database payload: freed ${res.bytesSaved} bytes (${res.prunedCount} stale notices pruned)`
                         );
                       }}
-                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                     >
                       <Database className="w-3.5 h-3.5" />
                       <span>Compact &amp; Free Quota</span>
@@ -1544,6 +1830,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       )}
-    </div>
+
+      </div>
   );
 }

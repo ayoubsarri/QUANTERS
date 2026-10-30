@@ -42,6 +42,7 @@ import {
   RoleTemplateName,
   ScientificTeam,
   getRankForXp,
+  DEFAULT_RANK_LEVELS,
   SystemSettings,
   Workshop,
   WorkshopLevel,
@@ -86,6 +87,10 @@ interface QuantersStoreState {
   isAuthenticated: boolean;
   currentMemberId: string;
   activeAdminRole: RoleTemplateName;
+  sessionStartedAt: number;
+  forceLogoutAllSessions: (options?: { keepCurrentSession?: boolean }) => Promise<void>;
+  forceLogoutSpecificMember: (memberId: string, reason?: string) => Promise<void>;
+  restoreMemberSessionAccess: (memberId: string) => Promise<void>;
   activeLanguage: AppLanguage;
   mobileFrameMode: "phone" | "responsive";
   celebration: CelebrationPayload | null;
@@ -132,7 +137,8 @@ interface QuantersStoreState {
   triggerCelebration: (payload: CelebrationPayload | null) => void;
   loginWithEmail: (
     email: string,
-    password?: string
+    password?: string,
+    bypassPasswordCheck?: boolean
   ) => { ok: boolean; redirectPath: string; member?: Member; message?: string };
   loginWithGoogle: (
     email: string,
@@ -232,10 +238,24 @@ interface QuantersStoreState {
         | "availability"
         | "outsideActivitiesAndVolunteering"
         | "skills"
+        | "alumniAccessEnabled"
+        | "graduationYear"
+        | "alumniPosition"
       >
     >
   ) => void;
   confirmTraineeToActive: (memberId: string, reason: string, actorName?: string) => void;
+  approveMemberAdmission: (payload: {
+    memberId: string;
+    actorName?: string;
+    notes?: string;
+  }) => void;
+  ensureWelcomeMessageDelivered: (memberId: string) => void;
+  rejectMemberAdmission: (payload: {
+    memberId: string;
+    actorName?: string;
+    reason: string;
+  }) => void;
   assignBuddyToMember: (traineeId: string, buddyId: string) => void;
   changeMemberStatus: (payload: {
     memberId: string;
@@ -270,7 +290,13 @@ interface QuantersStoreState {
     hrNotes: string,
     actorName?: string
   ) => void;
-  reactivateFormerMember: (memberId: string, toStatus: "Active" | "Trainee", reason: string, actorName?: string) => void;
+  reactivateFormerMember: (
+    memberId: string,
+    toStatus: "Active" | "Trainee",
+    reason: string,
+    departmentIdOrActor?: string,
+    teamId?: string
+  ) => void;
   createAdminMember: (payload: {
     fullName: string;
     email: string;
@@ -447,8 +473,15 @@ interface QuantersStoreState {
     body: string;
     inApp: boolean;
     email: boolean;
+    targetMemberId?: string;
+    targetDepartmentId?: string;
+    targetTeamId?: string;
   }) => void;
-  markMessageRead: (messageId: string) => void;
+  deleteClubMessage: (messageId: string) => void;
+  updateClubMessage: (messageId: string, updates: Partial<ClubMessage>) => void;
+  deleteAllClubMessages: () => void;
+  markMessageRead: (messageId: string, memberId?: string) => void;
+  archiveClubMessage: (messageId: string) => void;
   unarchiveMessage: (messageId: string) => void;
   archiveAllReadMessages: () => void;
   createExplorePost: (post: Omit<ExplorePost, "id">) => void;
@@ -825,6 +858,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   isAuthenticated: false,
   currentMemberId: "",
   activeAdminRole: "Member",
+  sessionStartedAt: Date.now(),
   activeLanguage: "en",
   mobileFrameMode: "phone",
   celebration: null,
@@ -913,7 +947,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
   triggerCelebration: (payload) => set({ celebration: payload }),
 
-  loginWithEmail: (email, password) => {
+  loginWithEmail: (email, password, bypassPasswordCheck = false) => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
       return { ok: false, redirectPath: "/welcome", message: "Please enter your registered email address." };
@@ -951,6 +985,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     if (existing) {
+      if (existing.status === "Removed") {
+        return {
+          ok: false,
+          isDeleted: true,
+          redirectPath: "/welcome",
+          message: "YOUR_ACCOUNT_DELETED",
+          member: existing,
+        };
+      }
       const { adminRole, redirectPath } = resolveRoleAndRedirect(existing);
       const { password: _legacy, ...cleanExisting } = existing as Member & { password?: string };
       const upgradedExisting: Member =
@@ -1002,6 +1045,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         isAuthenticated: true,
         currentMemberId: activeMember.id,
         activeAdminRole: "Super Admin",
+  sessionStartedAt: Date.now(),
       });
       get().saveToLocalCache();
       get().syncWithServer(true).catch(() => {});
@@ -1032,6 +1076,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     const existing = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
 
     if (existing) {
+      if (existing.status === "Removed") {
+        return {
+          ok: false,
+          isDeleted: true,
+          redirectPath: "/welcome",
+          message: "YOUR_ACCOUNT_DELETED",
+          member: existing,
+        };
+      }
       const { adminRole, redirectPath } = resolveRoleAndRedirect(existing);
       set({
         isAuthenticated: true,
@@ -1065,6 +1118,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
     const existing = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
     if (existing) {
+      if (existing.status === "Removed") {
+        return {
+          ok: false,
+          isDeleted: true,
+          redirectPath: "/welcome",
+          message: "YOUR_ACCOUNT_DELETED",
+          member: existing,
+        };
+      }
       return {
         ok: false,
         redirectPath: "/welcome",
@@ -1165,6 +1227,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
     const existing = state.members.find((m) => m.email.toLowerCase() === cleanEmail);
     if (existing) {
+      if (existing.status === "Removed") {
+        return {
+          ok: false,
+          isDeleted: true,
+          redirectPath: "/welcome",
+          message: "YOUR_ACCOUNT_DELETED",
+          member: existing,
+        };
+      }
       return {
         ok: false,
         redirectPath: "/welcome",
@@ -1357,12 +1428,38 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (typeof window === "undefined") return;
     try {
       const s = get();
-      // Strictly strip any plaintext password and scrub other members' credential hashes before caching in localStorage
+      const currentMember = s.members.find((m) => m.id === s.currentMemberId);
+      const isLeadershipOrAdmin = Boolean(
+        currentMember && (
+          currentMember.roles.includes("Super Admin") ||
+          currentMember.roles.includes("Executive") ||
+          currentMember.roles.includes("HR Head") ||
+          currentMember.roles.includes("Department Head") ||
+          isSuperAdminEmail(currentMember.email)
+        )
+      );
+
+      // Strictly strip any plaintext password, and role-scope sensitive PII fields (PRIV-01)
       const sanitizedMembers = s.members.map((m) => {
         const { password: _legacy, passwordHash, ...rest } = m as Member & { password?: string };
-        return m.id === s.currentMemberId && passwordHash
-          ? { ...rest, passwordHash }
-          : rest;
+        const isSelf = m.id === s.currentMemberId;
+
+        // Admins and profile owners retain full KYC data
+        if (isLeadershipOrAdmin || isSelf) {
+          return isSelf && passwordHash ? { ...rest, passwordHash } : rest;
+        }
+
+        // For ordinary members or trainees, mask other members' sensitive personal contact & residence PII
+        return {
+          ...rest,
+          phone: "🔒 Masked for privacy",
+          wilaya: undefined,
+          commune: undefined,
+          housingType: undefined,
+          commuteTime: undefined,
+          cvUrl: undefined,
+          passwordHash: undefined,
+        };
       });
       const snapshot = {
         savedAt: new Date().toISOString(),
@@ -1818,7 +1915,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         explorePosts: currentSnap.explorePosts,
         dailyQuizzes: currentSnap.dailyQuizzes,
         customDailyQuotes: currentSnap.dailyQuotes.filter((q) => q.isCustom),
-        messages: currentSnap.messages,
+        messages: currentSnap.messages.filter((m) => !tombstones.messages?.includes(m.id)),
         accessGrants: currentSnap.accessGrants,
         auditLogs: currentSnap.auditLogs,
         grievances: currentSnap.grievances,
@@ -2241,7 +2338,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   graduationYear: payload.graduationYear || m.graduationYear || (isAlumniTarget ? "2026" : undefined),
                   alumniPosition: payload.alumniPosition || m.alumniPosition,
                   alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
-                  status: isAlumniTarget ? "Alumni" : m.status,
+                  status: isAlumniTarget
+                    ? "Alumni"
+                    : m.status === "Pending"
+                    ? ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending")
+                    : (state.settings.onboardingAutoApprove ?? true) === false && !m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni"
+                    ? "Pending"
+                    : m.status,
                   roles: isAlumniTarget ? ["Alumni"] : m.roles,
                   levelTitle: isAlumniTarget ? (m.levelTitle === "Novice Quanter" ? "Quanta Laureate" : m.levelTitle) : m.levelTitle,
                   level: isAlumniTarget ? Math.max(m.level, 8) : m.level,
@@ -2268,6 +2371,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   onboardingTicks: {
                     ...m.onboardingTicks,
                     profileComplete: true,
+                    hrApproved: isAlumniTarget || ((state.settings.onboardingAutoApprove ?? true) ? true : m.onboardingTicks?.hrApproved ?? false),
+                    hrApprovedAt: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedAt || new Date().toISOString()) : m.onboardingTicks?.hrApprovedAt,
+                    hrApprovedBy: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedBy || "System Auto-Admission") : m.onboardingTicks?.hrApprovedBy,
                   },
                 }
               : m
@@ -2311,7 +2417,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         cvUrl: payload.cvUrl,
         roles: isAlumniTarget ? ["Alumni"] : ["Member"],
         isBureauMember: false,
-        status: isAlumniTarget ? "Alumni" : "Trainee",
+        status: isAlumniTarget ? "Alumni" : (state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending",
         statusSince: new Date().toISOString().slice(0, 10),
         traineeStartDate: new Date().toISOString().slice(0, 10),
         traineeDaysElapsed: isAlumniTarget ? 1000 : 1,
@@ -2335,6 +2441,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           buddyAssigned: false,
           firstTaskBeforeDay30: false,
           firstWorkshopAttended: false,
+          hrApproved: isAlumniTarget || (state.settings.onboardingAutoApprove ?? true),
+          hrApprovedAt: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? new Date().toISOString() : undefined,
+          hrApprovedBy: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? "System Auto-Admission" : undefined,
         },
         traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
         skills: payload.skills && payload.skills.length > 0 ? payload.skills : ["Scientific Research"],
@@ -2488,6 +2597,329 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         },
       };
     }),
+
+    ensureWelcomeMessageDelivered: (memberId: string) => {
+    set((state) => {
+      if (state.settings.welcomeMessageEnabled === false) return state;
+      const member = state.members.find((m) => m.id === memberId);
+      if (!member) return state;
+
+      const isAdmitted =
+        member.status === "Trainee" ||
+        member.status === "Active" ||
+        member.status === "Alumni" ||
+        Boolean(member.onboardingTicks?.hrApproved);
+      if (!isAdmitted) return state;
+
+      const alreadyDelivered = state.messages.some(
+        (m) =>
+          m.targetMemberId === memberId &&
+          (m.id.includes("msg-adm-") || m.id.includes("msg-welcome-"))
+      );
+      if (alreadyDelivered) return state;
+
+      const rawTitle = state.settings.welcomeMessageTitle || "🎉 Welcome to QUANTA! Your Admission is Approved";
+      const rawBody =
+        state.settings.welcomeMessageBody ||
+        "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces.";
+      const senderLabel = state.settings.welcomeMessageSenderLabel || "QUANTA Executive Bureau";
+      const senderRole = state.settings.welcomeMessageSenderRole || "Executive";
+
+      const formattedTitle = rawTitle.replace(/\{name\}/gi, member.fullName);
+      const formattedBody = rawBody.replace(/\{name\}/gi, member.fullName);
+
+      const welcomeNotice: ClubMessage = {
+        id: `msg-welcome-${member.id}-${Date.now()}`,
+        senderLabel,
+        senderRole,
+        recipientScope: member.fullName,
+        priority: "Official notice",
+        title: formattedTitle,
+        body: formattedBody,
+        timeAgo: "Just now",
+        unread: true,
+        channels: { inApp: true, email: true },
+        stats: {
+          totalRecipients: 1,
+          inAppReadCount: 0,
+          emailSentCount: 1,
+          emailFailedCount: 0,
+        },
+        targetMemberId: member.id,
+        readMemberIds: [],
+        actionLink: "/home",
+      };
+
+      return {
+        messages: [welcomeNotice, ...state.messages],
+      };
+    });
+  },
+
+  approveMemberAdmission: ({ memberId, actorName = "HR Directorate", notes }) => {
+    set((state) => {
+      const currentActor = state.members.find((m) => m.id === state.currentMemberId);
+      const isPrivileged = Boolean(
+        currentActor &&
+        (currentActor.roles.some((r) => ["Super Admin", "Executive", "HR Head"].includes(r)) ||
+        ["quantaclubdz@gmail.com", "ayoubsarri1@gmail.com", "hr.quanta@univ-alger.dz"].includes(currentActor.email.toLowerCase()))
+      );
+      if (!isPrivileged) {
+        console.warn("[Security Guard] Unauthorized admission approval rejected.");
+        return state;
+      }
+      const member = state.members.find((m) => m.id === memberId);
+      if (!member) return state;
+
+      const targetStatus: MemberStatus = (member.tenure?.toLowerCase().includes("alumni")
+        ? "Alumni"
+        : "Trainee");
+
+      const audit: AuditLogEntry = {
+        id: `aud-adm-${Date.now()}`,
+        actorName,
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `${member.fullName} (${member.quanterId})`,
+        oldValue: member.status,
+        newValue: targetStatus,
+        reason: notes ? `HR Admission Approved: ${notes}` : "HR Admission Approved by HR Directorate",
+      };
+
+      const welcomeEnabled = state.settings.welcomeMessageEnabled !== false;
+      let newMessages = state.messages;
+
+      if (welcomeEnabled) {
+        const rawTitle = state.settings.welcomeMessageTitle || "🎉 Welcome to QUANTA! Your Admission is Approved";
+        const rawBody =
+          state.settings.welcomeMessageBody ||
+          "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces.";
+        const senderLabel = state.settings.welcomeMessageSenderLabel || actorName || "QUANTA Executive Bureau";
+        const senderRole = state.settings.welcomeMessageSenderRole || "Executive";
+
+        const formattedTitle = rawTitle.replace(/\{name\}/gi, member.fullName);
+        const formattedBody = rawBody.replace(/\{name\}/gi, member.fullName);
+
+        const admissionNotice: ClubMessage = {
+          id: `msg-adm-${member.id}-${Date.now()}`,
+          senderLabel,
+          senderRole,
+          recipientScope: member.fullName,
+          priority: "Official notice",
+          title: formattedTitle,
+          body: formattedBody,
+          timeAgo: "Just now",
+          unread: true,
+          channels: { inApp: true, email: true },
+          stats: {
+            totalRecipients: 1,
+            inAppReadCount: 0,
+            emailSentCount: 1,
+            emailFailedCount: 0,
+          },
+          targetMemberId: member.id,
+          readMemberIds: [],
+          actionLink: "/home",
+        };
+        newMessages = [admissionNotice, ...state.messages];
+      }
+
+      const welcomeLedgerEntry: PointsLedgerEntry = {
+        id: `led-adm-${member.id}-${Date.now()}`,
+        memberId: member.id,
+        memberName: member.fullName,
+        amount: 50,
+        reason: "Welcome Admission Bonus · Official Induction into QUANTA (+50 XP)",
+        ruleLabel: "HR Induction XP Bonus",
+        source: "Manual",
+        actorName,
+        date: new Date().toISOString().slice(0, 10),
+      };
+
+      return {
+        members: state.members.map((m) =>
+          m.id === memberId
+            ? {
+                ...m,
+                status: targetStatus,
+                statusSince: new Date().toISOString().slice(0, 10),
+                xpTotal: (m.xpTotal || 0) + 50,
+                xpSeason: (m.xpSeason || 0) + 50,
+                onboardingTicks: {
+                  ...m.onboardingTicks,
+                  hrApproved: true,
+                  hrApprovedAt: new Date().toISOString(),
+                  hrApprovedBy: actorName,
+                },
+                statusHistory: [
+                  {
+                    id: `sh-${Date.now()}`,
+                    fromStatus: m.status,
+                    toStatus: targetStatus,
+                    reason: notes ? `HR Admission Approved: ${notes}` : "HR Admission Approved",
+                    actorName,
+                    date: new Date().toISOString().slice(0, 10),
+                  },
+                  ...m.statusHistory,
+                ],
+              }
+            : m
+        ),
+        messages: newMessages,
+        ledger: [welcomeLedgerEntry, ...state.ledger],
+        auditLogs: [audit, ...state.auditLogs],
+        celebration: {
+          open: true,
+          type: "confirmation",
+          title: "Quanter Admitted!",
+          subtitle: `${member.fullName} has been approved and inducted into QUANTA as ${targetStatus}.`,
+          xpEarned: 50,
+        },
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  rejectMemberAdmission: ({ memberId, actorName = "HR Directorate", reason }) => {
+    set((state) => {
+      const member = state.members.find((m) => m.id === memberId);
+      if (!member) return state;
+
+      const audit: AuditLogEntry = {
+        id: `aud-rej-${Date.now()}`,
+        actorName,
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `${member.fullName} (${member.quanterId})`,
+        oldValue: member.status,
+        newValue: "Removed" as MemberStatus,
+        reason: `HR Admission Rejected: ${reason}`,
+      };
+
+      return {
+        members: state.members.map((m) =>
+          m.id === memberId
+            ? {
+                ...m,
+                status: "Removed" as MemberStatus,
+                removalReason: reason,
+                statusSince: new Date().toISOString().slice(0, 10),
+                onboardingTicks: {
+                  ...m.onboardingTicks,
+                  hrApproved: false,
+                },
+                statusHistory: [
+                  {
+                    id: `sh-${Date.now()}`,
+                    fromStatus: m.status,
+                    toStatus: "Removed" as MemberStatus,
+                    reason,
+                    actorName,
+                    date: new Date().toISOString().slice(0, 10),
+                  },
+                  ...m.statusHistory,
+                ],
+              }
+            : m
+        ),
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  forceLogoutAllSessions: async (options) => {
+    const now = Date.now();
+    set((state) => ({
+      sessionStartedAt: options?.keepCurrentSession ? now + 1000 : state.sessionStartedAt,
+      settings: {
+        ...state.settings,
+        forceLogoutAllAt: now,
+      },
+      auditLogs: [
+        {
+          id: `aud-rev-all-${now}`,
+          actorName: state.activeAdminRole,
+          actorRole: state.activeAdminRole,
+          timestamp: nowStamp(),
+          actionCategory: "Access Grant / Revoke",
+          targetLabel: "Global Session Revocation",
+          oldValue: "Active Sessions Permitted",
+          newValue: `Terminated All Sessions at ${now}`,
+          reason: "Super Admin Remote Global Session Revocation Directive",
+        },
+        ...state.auditLogs,
+      ],
+    }));
+    get().saveToLocalCache();
+    await get().syncWithServer(true).catch(() => {});
+  },
+
+  forceLogoutSpecificMember: async (memberId, reason = "Remote session terminated by Super Admin") => {
+    const now = Date.now();
+    set((state) => {
+      const target = state.members.find((m) => m.id === memberId);
+      const currentRevoked = state.settings.revokedSessionMemberIds || {};
+      return {
+        settings: {
+          ...state.settings,
+          revokedSessionMemberIds: {
+            ...currentRevoked,
+            [memberId]: now,
+          },
+        },
+        auditLogs: [
+          {
+            id: `aud-rev-mem-${now}`,
+            actorName: state.activeAdminRole,
+            actorRole: state.activeAdminRole,
+            timestamp: nowStamp(),
+            actionCategory: "Access Grant / Revoke",
+            targetLabel: target ? `${target.fullName} (${target.quanterId})` : memberId,
+            oldValue: "Active Session Permitted",
+            newValue: `Revoked Session at ${now}`,
+            reason,
+          },
+          ...state.auditLogs,
+        ],
+      };
+    });
+    get().saveToLocalCache();
+    await get().syncWithServer(true).catch(() => {});
+  },
+
+  restoreMemberSessionAccess: async (memberId) => {
+    set((state) => {
+      const currentRevoked = { ...(state.settings.revokedSessionMemberIds || {}) };
+      delete currentRevoked[memberId];
+      return {
+        settings: {
+          ...state.settings,
+          revokedSessionMemberIds: currentRevoked,
+        },
+      };
+    });
+    get().saveToLocalCache();
+    await get().syncWithServer(true).catch(() => {});
+  },
+
+  deleteClubMessage: (messageId) => {
+    set((state) => ({
+      messages: state.messages.filter((m) => m.id !== messageId),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  deleteAllClubMessages: () => {
+    set({ messages: [] });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   assignBuddyToMember: (traineeId, buddyId) =>
     set((state) => ({
@@ -2826,10 +3258,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer().catch(() => {});
   },
 
-  reactivateFormerMember: (memberId, toStatus, reason, actorName = "HR Administration") =>
+  reactivateFormerMember: (memberId, toStatus, reason, departmentIdOrActor, teamId) => {
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
+
+      const isDept = departmentIdOrActor && departmentIdOrActor.startsWith("dept-");
+      const actorName = isDept ? "HR Administration" : (departmentIdOrActor || "HR Administration");
+      const targetDeptId = isDept ? departmentIdOrActor : member.departmentId;
+      const targetTeamId = teamId || member.teamId;
+
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
         actorName,
@@ -2841,12 +3279,24 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: toStatus,
         reason: `Reactivated: ${reason}`,
       };
+
+      const nextTeams = targetTeamId
+        ? state.teams.map((t) =>
+            t.id === targetTeamId
+              ? { ...t, memberIds: Array.from(new Set([...t.memberIds, member.id])) }
+              : t
+          )
+        : state.teams;
+
       return {
+        teams: nextTeams,
         members: state.members.map((m) =>
           m.id === memberId
             ? {
                 ...m,
                 status: toStatus,
+                departmentId: targetDeptId,
+                teamId: targetTeamId,
                 statusSince: new Date().toISOString().slice(0, 10),
                 statusHistory: [
                   {
@@ -2864,7 +3314,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   createAdminMember: (payload) => {
     const num = Math.floor(100 + Math.random() * 899);
@@ -4593,7 +5046,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     return { ok: true, message: `Correct! +${safeXp} XP awarded`, xpEarned: safeXp };
   },
 
-  sendClubMessage: ({ recipientScope, priority, title, body, inApp, email }) =>
+  sendClubMessage: ({ recipientScope, priority, title, body, inApp, email, targetMemberId, targetDepartmentId, targetTeamId }) =>
     set((state) => {
       const newMsg: ClubMessage = {
         id: `msg-${Date.now()}`,
@@ -4630,19 +5083,52 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  markMessageRead: (messageId) =>
+  markMessageRead: (messageId, memberId) => {
+    set((state) => {
+      const curMember = memberId || state.currentMemberId;
+      return {
+        messages: state.messages.map((m) => {
+          if (m.id !== messageId) return m;
+          const reads = Array.isArray(m.readMemberIds) ? [...m.readMemberIds] : [];
+          if (curMember && !reads.includes(curMember)) {
+            reads.push(curMember);
+          }
+          return {
+            ...m,
+            unread: false,
+            archived: true,
+            readMemberIds: reads,
+            stats: {
+              ...m.stats,
+              inAppReadCount: (m.stats?.inAppReadCount || 0) + (m.unread ? 1 : 0),
+            },
+          };
+        }),
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  updateClubMessage: (messageId, updates) => {
     set((state) => ({
       messages: state.messages.map((m) =>
-        m.id === messageId
-          ? {
-              ...m,
-              unread: false,
-              archived: true,
-              stats: { ...m.stats, inAppReadCount: m.stats.inAppReadCount + (m.unread ? 1 : 0) },
-            }
-          : m
+        m.id === messageId ? { ...m, ...updates } : m
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  archiveClubMessage: (messageId) => {
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === messageId ? { ...m, archived: true } : m
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   unarchiveMessage: (messageId) =>
     set((state) => ({
@@ -4843,7 +5329,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer().catch(() => {});
   },
 
-  updateSettings: (updates, reason) =>
+  updateSettings: (updates, reason) => {
     set((state) => {
       const isRegSwitch =
         typeof updates.registrationOpen === "boolean" &&
@@ -4871,5 +5357,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         settings: sanitizeSystemSettings({ ...state.settings, ...updates }),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 }));

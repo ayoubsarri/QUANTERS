@@ -387,7 +387,7 @@ export default function ProposalsPage() {
                 <p className="text-[11px] text-emerald-700 mt-0.5">
                   &ldquo;{submittedBanner}&rdquo; has been routed to{" "}
                   {selectedType === "Internal Law Amendment"
-                    ? "the Executive Board (2/3 Quorum)"
+                    ? "the Executive Board"
                     : selectedType === "Event" || selectedType === "Collaboration"
                     ? "the Executive Board"
                     : "your Department Head"}
@@ -484,11 +484,11 @@ export default function ProposalsPage() {
                     </span>
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-200/80 text-amber-950 text-[9px] font-bold">
                       <Scale className="w-2.5 h-2.5" />
-                      <span>Requires 2/3 Executive Approval</span>
+                      <span>Requires Executive Approval</span>
                     </span>
                   </div>
                   <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                    Amendments to the QUANTA Internal Law require a two-thirds quorum vote of the Executive Board and are logged permanently.
+                    Amendments to the QUANTA Internal Law are reviewed directly by the Executive Board and logged permanently.
                   </p>
                 </div>
               </div>

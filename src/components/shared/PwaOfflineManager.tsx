@@ -6,124 +6,23 @@ import { Bell, X } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { subscribeToErpStateFirestore } from "@/lib/firebase/auth";
 
-export const OFFLINE_WARM_ROUTES = [
-  "/",
-  "/welcome",
-  "/home",
-  "/workshops",
-  "/explore",
-  "/badges",
-  "/profile",
-  "/checkin",
-  "/exams",
-  "/projects/submit",
-  "/proposals",
-  "/notifications",
-  "/manager",
-  "/onboarding",
-];
+// On-demand route caching via Service Worker runtime stale-while-revalidate.
+// Heavy routes are cached when visited, preserving hosting bandwidth quota (QUOTA-01).
+export const OFFLINE_WARM_ROUTES: string[] = [];
 
-export interface NotificationPrefs {
-  pushEnabled: boolean;
-  hrNotices: boolean;
-  departmentTasks: boolean;
-  workshopReminders: boolean;
-  dailyQuizAndXp: boolean;
-}
-
-export const NOTIFICATION_PREFS_KEY = "quanters_notification_prefs_v1";
-
-export function loadNotificationPrefs(): NotificationPrefs {
-  if (typeof window === "undefined") {
-    return {
-      pushEnabled: true,
-      hrNotices: true,
-      departmentTasks: true,
-      workshopReminders: true,
-      dailyQuizAndXp: true,
-    };
-  }
-  try {
-    const raw = window.localStorage.getItem(NOTIFICATION_PREFS_KEY);
-    if (raw) {
-      return {
-        pushEnabled: true,
-        hrNotices: true,
-        departmentTasks: true,
-        workshopReminders: true,
-        dailyQuizAndXp: true,
-        ...JSON.parse(raw),
-      };
-    }
-  } catch {
-    // ignore
-  }
-  return {
-    pushEnabled: true,
-    hrNotices: true,
-    departmentTasks: true,
-    workshopReminders: true,
-    dailyQuizAndXp: true,
-  };
-}
-
-export async function dispatchSystemNotification(payload: {
-  title: string;
-  body: string;
-  priority?: string;
-  url?: string;
-}) {
-  if (typeof window === "undefined") return;
-
-  const prefs = loadNotificationPrefs();
-  if (!prefs.pushEnabled) return;
-
-  if ("Notification" in window && Notification.permission === "granted") {
-    try {
-      const cleanTitle = payload.title || "QUANTERS";
-      const cleanBody = payload.body || "New update in QUANTERS.";
-      const targetUrl = payload.url || "/notifications";
-
-      // 1. Trigger via Service Worker for native OS/Chrome/Safari integration (even when active)
-      if ("serviceWorker" in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        if (reg && reg.showNotification) {
-          await reg.showNotification(cleanTitle, {
-            body: cleanBody,
-            icon: "/icons/icon-192.png",
-            badge: "/icons/icon-96.png",
-            tag: `quanters-${Date.now()}`,
-            renotify: true,
-            vibrate: [100, 50, 100],
-            requireInteraction: payload.priority === "Action needed",
-            data: { url: targetUrl },
-          } as unknown as NotificationOptions);
-          return;
-        }
-      }
-
-      // 2. Fallback to direct Notification constructor
-      const notif = new Notification(cleanTitle, {
-        body: cleanBody,
-        icon: "/icons/icon-192.png",
-        badge: "/icons/icon-96.png",
-        tag: `quanters-${Date.now()}`,
-        data: { url: targetUrl },
-      });
-      notif.onclick = () => {
-        window.focus();
-        if (targetUrl) {
-          window.location.href = targetUrl;
-        }
-      };
-    } catch {
-      // Ignored
-    }
-  }
-}
+export {
+  type NotificationPrefs,
+  NOTIFICATION_PREFS_KEY,
+  loadNotificationPrefs,
+  dispatchSystemNotification,
+} from "@/lib/utils/notifications";
+import { dispatchSystemNotification, loadNotificationPrefs, NOTIFICATION_PREFS_KEY } from "@/lib/utils/notifications";
 
 export function PwaOfflineManager() {
   const router = useRouter();
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const members = useQuantersStore((s) => s.members);
   const userLowDataMode = useQuantersStore((s) => s.userLowDataMode);
   const activeLanguage = useQuantersStore((s) => s.activeLanguage);
   const settings = useQuantersStore((s) => s.settings);
@@ -141,12 +40,39 @@ export function PwaOfflineManager() {
     }
   }, [activeLanguage]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__QUANTERS_STORE__ = useQuantersStore;
+    }
+  }, []);
+
   const [showPermPrompt, setShowPermPrompt] = useState(false);
   const prevMessagesCountRef = useRef<number>(messages.length);
 
-  // Check first-time permission prompt
+  // Check first-time permission prompt (STRICTLY for authenticated admitted club members only)
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (!isAuthenticated || !currentMemberId) {
+      setShowPermPrompt(false);
+      return;
+    }
+
+    // Suppress notification banner if user is pending admission approval
+    const currentMember = members.find((m) => m.id === currentMemberId);
+    const isPending = Boolean(
+      currentMember &&
+      (currentMember.status === "Pending" ||
+       (settings.onboardingAutoApprove === false &&
+        !currentMember.onboardingTicks?.hrApproved &&
+        currentMember.status !== "Active" &&
+        currentMember.status !== "Alumni"))
+    );
+
+    if (isPending) {
+      setShowPermPrompt(false);
+      return;
+    }
+
     try {
       const alreadyAsked = window.localStorage.getItem("quanters_perm_asked_v1");
       if (Notification.permission === "default" && !alreadyAsked) {
@@ -156,7 +82,7 @@ export function PwaOfflineManager() {
         return () => clearTimeout(timer);
       }
     } catch {}
-  }, []);
+  }, [isAuthenticated, currentMemberId, members, settings.onboardingAutoApprove]);
 
   const handleRequestPerm = async () => {
     setShowPermPrompt(false);
@@ -168,11 +94,13 @@ export function PwaOfflineManager() {
           const prefs = loadNotificationPrefs();
           prefs.pushEnabled = true;
           window.localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
-          dispatchSystemNotification({
-            title: "QUANTERS",
-            body: "Notifications enabled. You will receive live club updates.",
-            url: "/notifications",
-          });
+          if (isAuthenticated && currentMemberId) {
+            dispatchSystemNotification({
+              title: "QUANTERS",
+              body: "Notifications enabled. You will receive live club updates.",
+              url: "/notifications",
+            });
+          }
         }
       }
     } catch {}
@@ -209,17 +137,6 @@ export function PwaOfflineManager() {
         .register("/sw.js", { scope: "/" })
         .then((reg) => {
           reg.update().catch(() => {});
-          const conn = (navigator as unknown as { connection?: { saveData?: boolean } })
-            .connection;
-          const saveData = Boolean(conn?.saveData) || userLowDataMode;
-          if (!saveData && navigator.onLine) {
-            setTimeout(() => {
-              reg.active?.postMessage({
-                type: "WARM_ROUTES",
-                routes: OFFLINE_WARM_ROUTES,
-              });
-            }, 1800);
-          }
         })
         .catch(() => {});
     }
@@ -228,25 +145,6 @@ export function PwaOfflineManager() {
     if (navigator.onLine) {
       window.sessionStorage.setItem("quanters-last-etag-check", String(Date.now()));
       pullExactUpdatesFromServer().catch(() => {});
-    }
-
-    // Real-time Cloud Firestore listener: only start when user is authenticated to preserve Spark quotas
-    let unsubFirestoreFn: (() => void) | null = null;
-    let isCancelled = false;
-    const isAuth = useQuantersStore.getState().isAuthenticated;
-    if (isAuth) {
-      subscribeToErpStateFirestore((cloudData) => {
-        // Ingest directly into store WITHOUT triggering pull or write loop!
-        if (cloudData && typeof cloudData === "object") {
-          useQuantersStore.getState().applyIncomingCloudSnapshot(cloudData);
-        }
-      }).then((fn) => {
-        if (isCancelled && fn) {
-          fn();
-        } else {
-          unsubFirestoreFn = fn;
-        }
-      });
     }
 
     let lastFocusCheck = Date.now();
@@ -261,12 +159,37 @@ export function PwaOfflineManager() {
     window.addEventListener("focus", handleWindowFocus);
 
     return () => {
-      isCancelled = true;
-      if (unsubFirestoreFn) unsubFirestoreFn();
       window.removeEventListener("focus", handleWindowFocus);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 1b. Reactive Cloud Firestore real-time listener (starts as soon as authenticated)
+  useEffect(() => {
+    if (typeof window === "undefined" || !isAuthenticated) return;
+    let unsubFirestoreFn: (() => void) | null = null;
+    let isCancelled = false;
+
+    // Pull fresh state on auth transition
+    pullExactUpdatesFromServer().catch(() => {});
+
+    subscribeToErpStateFirestore((cloudData) => {
+      if (cloudData && typeof cloudData === "object") {
+        useQuantersStore.getState().applyIncomingCloudSnapshot(cloudData);
+      }
+    }).then((fn) => {
+      if (isCancelled && fn) {
+        fn();
+      } else {
+        unsubFirestoreFn = fn;
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+      if (unsubFirestoreFn) unsubFirestoreFn();
+    };
+  }, [isAuthenticated, pullExactUpdatesFromServer]);
 
   // 2. Silently auto-sync delta updates when connection returns
   useEffect(() => {
@@ -300,92 +223,68 @@ export function PwaOfflineManager() {
     pullExactUpdatesFromServer,
   ]);
 
-  // 3. Watch store messages for newly sent dispatches and notify
+  // 3. Watch store messages for newly sent dispatches and notify (Authenticated and target-scoped only)
   useEffect(() => {
+    if (!isAuthenticated || !currentMemberId) {
+      prevMessagesCountRef.current = messages.length;
+      return;
+    }
     if (messages.length > prevMessagesCountRef.current) {
       const newest = messages[0];
       if (newest && newest.unread) {
-        dispatchSystemNotification({
-          title: newest.title,
-          body: newest.body,
-          priority: newest.priority,
-          url: "/notifications",
-        });
+        const currentMember = members.find((m) => m.id === currentMemberId);
+        if (currentMember) {
+          const scope = (newest.recipientScope || "").toLowerCase();
+          const isTargetRecipient =
+            scope.includes("everyone") ||
+            scope.includes("all members") ||
+            scope.includes("all active") ||
+            scope.includes("whole club") ||
+            (newest.targetMemberId ? newest.targetMemberId === currentMember.id : false) ||
+            (newest.targetDepartmentId ? newest.targetDepartmentId === currentMember.departmentId : false) ||
+            (newest.targetTeamId && currentMember.teamId ? newest.targetTeamId === currentMember.teamId : false) ||
+            (scope.includes("trainee") && currentMember.status === "Trainee");
+
+          if (isTargetRecipient) {
+            dispatchSystemNotification({
+              title: newest.title,
+              body: newest.body,
+              priority: newest.priority,
+              url: "/notifications",
+            });
+          }
+        }
       }
     }
     prevMessagesCountRef.current = messages.length;
-  }, [messages]);
+  }, [messages, isAuthenticated, currentMemberId, members]);
 
-  // 4. Persist local data mutations to localStorage & auto-sync to Server / Cloud Firestore
+  // 4. Persist auth session changes to local cache (mutations are synced directly by store actions)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    const DATA_KEYS = [
-      "departments",
-      "teams",
-      "members",
-      "invitations",
-      "workshops",
-      "workshopCategories",
-      "tasks",
-      "pointRules",
-      "ledger",
-      "badges",
-      "badgeCategories",
-      "exams",
-      "examCompletions",
-      "projectSubmissions",
-      "projectCategories",
-      "proposals",
-      "explorePosts",
-      "dailyQuizzes",
-      "dailyQuotes",
-      "messages",
-      "accessGrants",
-      "auditLogs",
-      "grievances",
-      "settings",
-    ] as const;
 
     const unsub = useQuantersStore.subscribe((state, prevState) => {
-      // If lastSyncedAt or lastServerEtag changed in this set(), it came from a server/cloud pull/push
-      if (
-        state.lastSyncedAt !== prevState.lastSyncedAt ||
-        state.lastServerEtag !== prevState.lastServerEtag
-      ) {
-        return;
-      }
-
-      const dataMutated = DATA_KEYS.some((k) => state[k] !== prevState[k]);
       const authMutated =
         state.isAuthenticated !== prevState.isAuthenticated ||
         state.currentMemberId !== prevState.currentMemberId ||
         state.activeAdminRole !== prevState.activeAdminRole;
 
-      if (dataMutated || authMutated) {
+      if (authMutated) {
         saveToLocalCache();
-      }
-
-      if (dataMutated) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          syncWithServer(true).catch(() => {});
-        }, 250);
       }
     });
     return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
       unsub();
     };
-  }, [saveToLocalCache, syncWithServer]);
+  }, [saveToLocalCache]);
 
   if (showPermPrompt) {
     return (
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] px-3 w-full max-w-[400px]">
-        <div className="bg-[#0B192E]/95 backdrop-blur-md text-white border border-[#38BDF8]/40 rounded-2xl p-3 shadow-2xl flex items-center justify-between gap-3 animate-rise">
+      <div className="fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-[100] px-3 w-full max-w-[420px] pointer-events-auto transition-all duration-300">
+        <div className="bg-[#0B192E]/95 backdrop-blur-xl text-white border border-[#38BDF8]/40 rounded-2xl p-3 shadow-[0_16px_40px_rgba(2,132,199,0.35)] flex items-center justify-between gap-3 animate-slide-down">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="w-8 h-8 rounded-xl bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0">
-              <Bell className="w-4 h-4" />
+              <Bell className="w-4 h-4 animate-bounce" />
             </span>
             <div className="min-w-0">
               <div className="font-extrabold text-xs text-white">Enable Notifications</div>

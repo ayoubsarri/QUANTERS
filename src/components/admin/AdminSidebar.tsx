@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -32,6 +32,7 @@ import { isSuperAdminEmail } from "@/lib/firebase/config";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { RoleTemplateName } from "@/lib/types/erp";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
 
 const GROUP_LABELS_AR: Record<string, string> = {
   "Workspace": "مساحة العمل",
@@ -254,6 +255,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const members = useQuantersStore((s) => s.members);
   const logout = useQuantersStore((s) => s.logout);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const adminUser =
     (isAuthenticated && currentMemberId
@@ -307,10 +309,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
 
           <button
             type="button"
-            onClick={() => {
-              logout();
-              router.push("/welcome");
-            }}
+            onClick={() => setSignOutOpen(true)}
             title="Sign Out"
             className="p-1.5 rounded-lg bg-[#081223]/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-[#2B4875]/70 transition cursor-pointer shrink-0"
           >
@@ -318,6 +317,16 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           </button>
         </div>
       </div>
+
+      <SignOutConfirmModal
+        isOpen={signOutOpen}
+        onClose={() => setSignOutOpen(false)}
+        onConfirm={() => {
+          setSignOutOpen(false);
+          logout();
+          router.push("/welcome");
+        }}
+      />
 
       {/* Scrollable Navigation Groups */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-3.5">
@@ -385,17 +394,9 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
         })}
       </nav>
 
-      {/* Bottom Institutional Bar with Official Asset 2.png (Univ Algiers 1 + Quanta) & Member App Link */}
-      <div className="px-3.5 py-3 border-t border-[#2B4875]/45 bg-[#060E1C]/90 space-y-2.5">
-        <Link
-          href="/home"
-          className="w-full py-2 px-3 rounded-xl bg-[#11203A] hover:bg-[#182C4E] border border-[#2B4875]/80 flex items-center justify-between text-[11px] font-display font-bold text-[#7DD3FC] hover:text-white transition"
-        >
-          <span>{isRtl ? "بوابة تطبيق الأعضاء" : "Open Member App"}</span>
-          <ExternalLink className="w-3.5 h-3.5 rtl:rotate-180" />
-        </Link>
-
-        <div className="flex items-center justify-between gap-2 px-0.5 pt-0.5">
+      {/* Bottom Institutional Bar with Official Asset 2.png (Univ Algiers 1 + Quanta) */}
+      <div className="px-3.5 py-3 border-t border-[#2B4875]/45 bg-[#060E1C]/90">
+        <div className="flex items-center justify-between gap-2 px-0.5">
           <img
             src="/brand/univ_quanta_asset2.png"
             alt="University of Algiers 1 & Quanta"
@@ -403,7 +404,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
           />
           <div className="flex items-center gap-1.5 pl-2 border-l border-white/15">
             <img
-              src="/brand/univ_logo.svg"
+              src="/brand/QUANTERS_white_logo.svg"
               alt="Faculty of Sciences"
               className="h-[16px] w-auto object-contain opacity-95 shrink-0"
             />

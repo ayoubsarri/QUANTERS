@@ -18,7 +18,11 @@ import {
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { handleMemberSelectKeyDown, sortMembersByName } from "@/lib/utils/memberKeyboardJump";
+import {
+  handleMemberSelectKeyDown,
+  isAssignableMember,
+  sortMembersByName,
+} from "@/lib/utils/memberKeyboardJump";
 
 export default function AdminPointsPage() {
   const ledger = useQuantersStore((s) => s.ledger);
@@ -38,9 +42,13 @@ export default function AdminPointsPage() {
   const [activeTab, setActiveTab] = useState<"ledger" | "rules" | "appeals" | "motm">("ledger");
   const [banner, setBanner] = useState<string | null>(null);
 
+  // Filter assignable student members (excluding Super Admin / System accounts)
+  const assignableMembers = sortMembersByName(members.filter((m) => isAssignableMember(m)));
+  const sortedMembers = assignableMembers;
+
   // Manual Point Entry Modal state
   const [manualOpen, setManualOpen] = useState(false);
-  const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || "");
+  const [selectedMemberId, setSelectedMemberId] = useState<string>(assignableMembers[0]?.id || "");
   const [selectedRuleId, setSelectedRuleId] = useState<string>(pointRules[0]?.id || "pr-1");
   const [customAmount, setCustomAmount] = useState<number>(pointRules[0]?.points || 15);
   const [manualReason, setManualReason] = useState<string>("");
@@ -66,10 +74,9 @@ export default function AdminPointsPage() {
 
   // Monthly Honours (MotM & 6 Department Champions) state
   const [qualitativeScores, setQualitativeScores] = useState<Record<string, number>>({});
-  const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
+  const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>([]);
 
-  const sortedMembers = sortMembersByName(members);
-  const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
+    const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
 
   const toggleMotmSelect = (id: string) => {
     setSelectedMotmIds((prev) =>
@@ -151,9 +158,13 @@ export default function AdminPointsPage() {
   };
 
   const handlePublishMotm = () => {
+    if (selectedMotmIds.length === 0) {
+      setBanner("Please select at least one Member of the Month candidate before publishing.");
+      return;
+    }
     const championIds = departments
       .map((dept) => {
-        const deptMembers = members
+        const deptMembers = assignableMembers
           .filter((m) => m.departmentId === dept.id)
           .sort((a, b) => b.xpMonth - a.xpMonth);
         return deptMembers[0]?.id;
@@ -164,7 +175,7 @@ export default function AdminPointsPage() {
       publishMonthlyHonours(id, championIds);
     });
     setBanner(
-      `Published ${selectedMotmIds.length} Member(s) of the Month (+50 XP) and Department Champions`
+      `Published ${selectedMotmIds.length} Member(s) of the Month (+50 XP) and Department Champions with official broadcast.`
     );
   };
 
@@ -536,6 +547,18 @@ export default function AdminPointsPage() {
             </p>
           </div>
 
+          {ledger.filter((l) => l.appealStatus && l.appealStatus !== "None").length === 0 && (
+            <div className="bg-white p-8 rounded-2xl border border-slate-200/90 text-center space-y-2">
+              <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto" />
+              <div className="font-display font-extrabold text-sm text-[#0F1E36]">
+                No Pending Point Deduction Appeals
+              </div>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                All member point entries and deductions are currently uncontested. New appeals submitted within the {settings.pointsAppealWindowHours}-hour window will appear here for administrative adjudication.
+              </p>
+            </div>
+          )}
+
           {ledger.filter((l) => l.appealStatus && l.appealStatus !== "None").map((item) => (
             <div
               key={item.id}
@@ -671,15 +694,15 @@ export default function AdminPointsPage() {
                 <tbody className="divide-y divide-[#E2EDF8]">
                   {departments.map((dept) => {
                     const candidate =
-                      members
+                      assignableMembers
                         .filter((m) => m.departmentId === dept.id)
-                        .sort((a, b) => b.xpMonth - a.xpMonth)[0] || members[0];
+                        .sort((a, b) => b.xpMonth - a.xpMonth)[0] || null;
                     if (!candidate) {
                       return (
                         <tr key={dept.id} className="hover:bg-[#F8FAFD] transition-colors">
                           <td className="py-3 px-4 font-bold text-slate-800">{dept.name}</td>
                           <td colSpan={5} className="py-3 px-4 text-slate-400 italic">
-                            No members assigned to this department yet.
+                            No eligible student candidates in this department yet.
                           </td>
                         </tr>
                       );

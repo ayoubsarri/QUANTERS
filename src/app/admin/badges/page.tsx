@@ -40,6 +40,7 @@ import {
 import {
   handleMemberListContainerKeyDown,
   handleMemberSelectKeyDown,
+  isAssignableMember,
   sortMembersByName,
 } from "@/lib/utils/memberKeyboardJump";
 
@@ -133,12 +134,12 @@ export default function AdminBadgesPage() {
 
   // --- MANUAL ASSIGN STATE ---
   const [assigningBadge, setAssigningBadge] = useState<Badge | null>(null);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [assignReason, setAssignReason] = useState("Demonstrated deep practical proficiency in laboratory workshops.");
 
   // --- REVOKE STATE ---
   const [revokingBadge, setRevokingBadge] = useState<Badge | null>(null);
-  const [revokeMemberId, setRevokeMemberId] = useState<string>(members[0]?.id || "");
+  const [revokeMemberId, setRevokeMemberId] = useState<string>("");
   const [revokeReason, setRevokeReason] = useState("");
 
   // --- EXAMS MANAGER STATE ---
@@ -169,7 +170,8 @@ export default function AdminBadgesPage() {
     "sub-1": "Rigorous transit analysis matching theoretical light curve parameters. Well done!",
   });
 
-  const sortedMembers = sortMembersByName(members);
+  // Filter assignable student members (excluding Super Admin / System accounts)
+  const sortedMembers = sortMembersByName(members.filter((m) => isAssignableMember(m)));
 
   const toggleMemberSelect = (id: string) => {
     setSelectedMemberIds((prev) =>
@@ -784,7 +786,7 @@ export default function AdminBadgesPage() {
                       type="button"
                       onClick={() => {
                         setAssigningBadge(badge);
-                        setSelectedMemberIds(members[0]?.id ? [members[0].id] : []);
+                        setSelectedMemberIds([]);
                       }}
                       className="col-span-2 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white text-[11px] font-bold transition cursor-pointer"
                     >

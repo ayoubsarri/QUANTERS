@@ -20,9 +20,9 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { ActivityKind, Workshop } from "@/lib/types/erp";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-type WorkshopFilter = "All" | "Upcoming" | "Completed" | "Mine";
+type WorkshopFilter = "Upcoming" | "Completed" | "Mine";
 
-const FILTER_TABS: WorkshopFilter[] = ["All", "Upcoming", "Completed", "Mine"];
+const FILTER_TABS: WorkshopFilter[] = ["Upcoming", "Completed", "Mine"];
 
 export default function MobileWorkshopsPage() {
   const { t, lang, isRtl } = useTranslation();
@@ -33,7 +33,7 @@ export default function MobileWorkshopsPage() {
     (s) => s.cancelWorkshopRegistration
   );
 
-  const [filter, setFilter] = useState<WorkshopFilter>("All");
+  const [filter, setFilter] = useState<WorkshopFilter>("Upcoming");
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
     null
   );
@@ -43,7 +43,15 @@ export default function MobileWorkshopsPage() {
     []
   );
 
+  React.useEffect(() => {
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
+  }, []);
+
   const filteredWorkshops = workshops.filter((ws) => {
+    // Strictly hide archived or draft workshops from the member-facing portal
+    if (ws.status === "Archived" || ws.status === "Draft") {
+      return false;
+    }
     if (filter === "Upcoming") {
       return ws.status === "Published" || ws.status === "Running";
     }
@@ -51,7 +59,7 @@ export default function MobileWorkshopsPage() {
       return ws.status === "Completed";
     }
     if (filter === "Mine") {
-      return ws.registeredMemberIds.includes(currentMemberId);
+      return Boolean(ws.registeredMemberIds?.includes(currentMemberId));
     }
     return true;
   });
@@ -81,7 +89,7 @@ export default function MobileWorkshopsPage() {
           style={{ animationDelay: "0ms" }}
         >
           <img
-            src="/brand/hero_rank_banner.webp"
+            src="/brand/mascot_workshops.png"
             alt="QUANTERS Cosmic Lab Banner"
             className="absolute inset-0 w-full h-full object-cover object-right opacity-90 select-none pointer-events-none animate-zero-g"
           />
@@ -107,13 +115,6 @@ export default function MobileWorkshopsPage() {
                 {t.workshops.catalogSubtitle}
               </p>
             </div>
-            <Link
-              href="/checkin"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#182C4E]/95 hover:bg-[#38BDF8] text-[#7DD3FC] hover:text-[#0F1E36] text-xs font-bold font-mono uppercase tracking-wider shadow-md active:scale-[0.98] transition border border-[#38BDF8]/40 shrink-0 backdrop-blur-md"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>{isRtl ? "رمز الحضور" : "QR Pass"}</span>
-            </Link>
           </div>
         </div>
 
@@ -125,7 +126,7 @@ export default function MobileWorkshopsPage() {
           {FILTER_TABS.map((tab) => {
             const active = filter === tab;
             const tabLabel = isRtl
-              ? (tab === "All" ? t.workshops.allFilter : tab === "Upcoming" ? t.workshops.upcomingFilter : tab === "Completed" ? t.workshops.completedFilter : t.workshops.registeredFilter)
+              ? (tab === "Upcoming" ? t.workshops.upcomingFilter : tab === "Completed" ? t.workshops.completedFilter : t.workshops.registeredFilter)
               : tab;
             return (
               <button
@@ -164,8 +165,8 @@ export default function MobileWorkshopsPage() {
           <div className="space-y-2.5">
             {filteredWorkshops.map((ws, idx) => {
             const isRegistered =
-              ws.registeredMemberIds.includes(currentMemberId);
-            const isAttended = ws.attendanceRecords.some(
+              Boolean(ws.registeredMemberIds?.includes(currentMemberId));
+            const isAttended = (ws.attendanceRecords || []).some(
               (r) => r.memberId === currentMemberId && r.status === "Present"
             );
             const actKind = resolveActivityType(ws);
@@ -407,7 +408,7 @@ export default function MobileWorkshopsPage() {
 
               {/* Action Buttons: Register / Cancel + Live QR Check-in */}
               <div className="pt-2 flex items-center gap-2">
-                {activeWorkshop.registeredMemberIds.includes(
+                {activeWorkshop.registeredMemberIds?.includes(
                   currentMemberId
                 ) ? (
                   <button

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ClipboardCopy,
+  Clock,
   ExternalLink,
   Filter,
   GraduationCap,
@@ -39,7 +40,7 @@ function isSuperAdminAccount(m?: Partial<Member> | null): boolean {
   return false;
 }
 
-const ACTIVE_STATUSES: MemberStatus[] = ["Trainee", "Active", "Inactive", "Suspended"];
+const ACTIVE_STATUSES: MemberStatus[] = ["Pending", "Trainee", "Active", "Inactive", "Suspended"];
 const FORMER_STATUSES: MemberStatus[] = ["Resigned", "Removed"];
 const ALUMNI_STATUSES: MemberStatus[] = ["Alumni"];
 
@@ -72,10 +73,20 @@ function AdminMembersContent() {
     reactivateFormerMember,
     deleteMember,
     createAdminMember,
+    approveMemberAdmission,
   } = useQuantersStore();
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<"ACTIVE" | "FORMER" | "ALUMNI">("ACTIVE");
+
+  const pendingCount = useMemo(
+    () => members.filter((m) => !isSuperAdminAccount(m) && (m.status === "Pending" || (!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni"))).length,
+    [members]
+  );
+
+  useEffect(() => {
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
+  }, []);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -150,12 +161,12 @@ function AdminMembersContent() {
   // Two-Choice Delete & Removal Modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [targetMember, setTargetMember] = useState<Member | null>(null);
-  const [deleteMode, setDeleteMode] = useState<"remove" | "permanent">("permanent");
+  const [deleteMode, setDeleteMode] = useState<"remove" | "permanent">("remove");
   const [deleteReason, setDeleteReason] = useState("");
 
   const handleOpenDelete = (member: Member) => {
     setTargetMember(member);
-    setDeleteMode("permanent");
+    setDeleteMode("remove");
     setDeleteReason("");
     setDeleteModalOpen(true);
   };
@@ -242,7 +253,10 @@ function AdminMembersContent() {
   const activeRoster = useMemo(
     () =>
       members.filter(
-        (m) => ACTIVE_STATUSES.includes(m.status) && !isSuperAdminAccount(m)
+        (m) =>
+          (ACTIVE_STATUSES.includes(m.status) ||
+            (!m.onboardingTicks?.hrApproved && m.status !== "Alumni" && m.status !== "Removed")) &&
+          !isSuperAdminAccount(m)
       ),
     [members]
   );
@@ -283,7 +297,16 @@ function AdminMembersContent() {
       if (deptFilter !== "ALL" && m.departmentId !== deptFilter) return false;
       if (teamFilter !== "ALL" && m.teamId !== teamFilter) return false;
       if (yearFilter !== "ALL" && m.academicYear !== yearFilter) return false;
-      if (statusFilter !== "ALL" && m.status !== statusFilter) return false;
+      if (statusFilter !== "ALL") {
+        if (statusFilter === "Pending") {
+          const isPending =
+            m.status === "Pending" ||
+            (!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni");
+          if (!isPending) return false;
+        } else if (m.status !== statusFilter) {
+          return false;
+        }
+      }
 
       if (freeDay !== "ALL") {
         const daySlots = m.availability?.[freeDay] || [];
@@ -387,6 +410,11 @@ function AdminMembersContent() {
 
   const getStatusConfig = (status: MemberStatus) => {
     switch (status) {
+      case "Pending":
+        return {
+          pill: "bg-amber-50 text-amber-800 border border-amber-300 font-bold",
+          dot: "bg-amber-500 animate-pulse",
+        };
       case "Active":
         return {
           pill: "bg-emerald-50 text-emerald-700 border border-emerald-200/90",
@@ -535,6 +563,23 @@ function AdminMembersContent() {
           <Users className="w-3.5 h-3.5" />
           <span>Enrolled Members ({activeRoster.length})</span>
         </span>
+
+        {pendingCount > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatusFilter(statusFilter === "Pending" ? "ALL" : "Pending");
+            }}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold border transition shadow-xs cursor-pointer ${
+              statusFilter === "Pending"
+                ? "bg-amber-500 text-white border-amber-600 ring-2 ring-amber-400/30"
+                : "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 animate-pulse"
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>Pending Review ({pendingCount})</span>
+          </button>
+        )}
 
         <Link
           href="/admin/former-members"
@@ -766,7 +811,7 @@ function AdminMembersContent() {
                           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${statusCfg.pill}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
-                          <span>{m.status}</span>
+                          <span>{(!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni") ? "Pending Review" : m.status}</span>
                         </span>
                       </td>
 
@@ -836,6 +881,25 @@ function AdminMembersContent() {
                       <td className="py-3 px-4 text-right">
                         {activeTab === "ACTIVE" || activeTab === "ALUMNI" ? (
                           <div className="inline-flex items-center justify-end gap-1.5">
+                            {(m.status === "Pending" || (!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni")) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  approveMemberAdmission({
+                                    memberId: m.id,
+                                    actorName: "HR Directorate",
+                                    notes: "Approved via Member Directory",
+                                  });
+                                  setCopiedToast(`Approved admission for ${m.fullName}!`);
+                                  setTimeout(() => setCopiedToast(null), 3500);
+                                }}
+                                title="Approve applicant admission into QUANTA"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Approve Admission</span>
+                              </button>
+                            )}
                             <Link
                               href={`/admin/members/${m.id}`}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-[#182C4E] text-slate-700 hover:text-white text-xs font-bold transition"
@@ -896,18 +960,18 @@ function AdminMembersContent() {
       {/* TWO-CHOICE DELETE & REMOVAL CONFIRMATION MODAL */}
       {deleteModalOpen && targetMember && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200">
-                    <Trash2 className="w-4 h-4" />
-                  </span>
-                  <span>Member Removal & Deletion Protocol</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Choose how you want to handle this account in the club database.
-                </p>
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-5 space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200">
+                  <Trash2 className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">
+                    Member Deletion Protocol
+                  </h3>
+                  <p className="text-[11px] text-slate-500">Select archive or purge mode</p>
+                </div>
               </div>
               <button
                 type="button"
@@ -915,90 +979,90 @@ function AdminMembersContent() {
                   setDeleteModalOpen(false);
                   setTargetMember(null);
                 }}
-                className="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold"
+                className="text-slate-400 hover:text-slate-600 p-1 text-base font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {/* Target Member Card */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-bold text-slate-800">{targetMember.fullName}</div>
-                <div className="text-xs text-slate-500 font-mono">{targetMember.email}</div>
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-800 truncate">{targetMember.fullName}</div>
+                <div className="text-[11px] text-slate-500 font-mono truncate">{targetMember.email}</div>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[11px] font-bold text-slate-600">
+              <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10.5px] font-bold text-slate-600 shrink-0">
                 {targetMember.quanterId}
               </span>
             </div>
 
-            {/* Choice 1: Permanent Purge & Free Email (Default) */}
-            <div
-              onClick={() => setDeleteMode("permanent")}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition ${
-                deleteMode === "permanent"
-                  ? "border-rose-600 bg-rose-50/50 shadow-xs"
-                  : "border-slate-200 bg-white hover:border-rose-300"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="font-bold text-rose-950 text-sm flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={deleteMode === "permanent"}
-                    onChange={() => setDeleteMode("permanent")}
-                    className="accent-rose-600"
-                  />
-                  <span>1. Permanent Delete & Free Email (Recommended)</span>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-semibold">
-                  Purge & Re-register
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 mt-1 pl-5 leading-relaxed">
-                Completely removes the member from active and former directories, archives the record safely, and <strong className="text-rose-700">releases their email address</strong> so they can register again from scratch without an &apos;account already exists&apos; error.
-              </p>
-            </div>
-
-            {/* Choice 2: Soft Remove */}
+            {/* Choice 1: Soft Remove (Recommended) */}
             <div
               onClick={() => setDeleteMode("remove")}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition ${
+              className={`p-3 rounded-xl border-2 cursor-pointer transition ${
                 deleteMode === "remove"
-                  ? "border-[#182C4E] bg-slate-50/80 shadow-xs"
+                  ? "border-[#182C4E] bg-slate-50/90 shadow-xs"
                   : "border-slate-200 bg-white hover:border-slate-300"
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <div className="font-bold text-slate-900 text-xs flex items-center gap-2">
                   <input
                     type="radio"
                     checked={deleteMode === "remove"}
                     onChange={() => setDeleteMode("remove")}
                     className="accent-[#182C4E]"
                   />
-                  <span>2. Move to Former Members (Soft Removal)</span>
+                  <span>Move to Former Members (Recommended)</span>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">
-                  Preserve Record
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                  Recommended
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 pl-5 leading-relaxed">
-                Marks the member status as <strong className="text-rose-700">Removed</strong>. Keeps their historical XP, badges, and attendance securely in the Former Members registry. Email remains reserved.
+              <p className="text-[11px] text-slate-500 mt-1 pl-5 leading-normal">
+                Archives records and disables login. Re-registration is blocked.
+              </p>
+            </div>
+
+            {/* Choice 2: Permanent Purge */}
+            <div
+              onClick={() => setDeleteMode("permanent")}
+              className={`p-3 rounded-xl border-2 cursor-pointer transition ${
+                deleteMode === "permanent"
+                  ? "border-rose-600 bg-rose-50/50 shadow-xs"
+                  : "border-slate-200 bg-white hover:border-rose-300"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-rose-950 text-xs flex items-center gap-2">
+                  <input
+                    type="radio"
+                    checked={deleteMode === "permanent"}
+                    onChange={() => setDeleteMode("permanent")}
+                    className="accent-rose-600"
+                  />
+                  <span>Permanent Delete &amp; Free Email</span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-semibold">
+                  Purge &amp; Reset
+                </span>
+              </div>
+              <p className="text-[11px] text-rose-700/80 mt-1 pl-5 leading-normal">
+                Completely deletes member history and frees email for new registration.
               </p>
             </div>
 
             {/* Reason input */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
                 Reason / Reference Note (Optional)
               </label>
               <input
                 type="text"
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
-                placeholder="e.g. Account reset request, test account cleanup, etc."
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#182C4E]/20"
+                placeholder="e.g. Account reset request, test account cleanup"
+                className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#182C4E]/20"
               />
             </div>
 
@@ -1010,22 +1074,20 @@ function AdminMembersContent() {
                   setDeleteModalOpen(false);
                   setTargetMember(null);
                 }}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer transition ${
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer transition ${
                   deleteMode === "permanent"
-                    ? "bg-rose-600 hover:bg-rose-700 border border-rose-700"
-                    : "bg-slate-800 hover:bg-slate-900 border border-slate-900"
+                    ? "bg-rose-600 hover:bg-rose-700"
+                    : "bg-[#182C4E] hover:bg-[#101F38]"
                 }`}
               >
-                {deleteMode === "permanent"
-                  ? "Purge Record & Free Email"
-                  : "Move to Removed Members"}
+                {deleteMode === "permanent" ? "Purge Account" : "Move to Former Members"}
               </button>
             </div>
           </div>

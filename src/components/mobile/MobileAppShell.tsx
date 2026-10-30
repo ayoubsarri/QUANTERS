@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Lock, X } from "lucide-react";
 import { BottomNavBar } from "./BottomNavBar";
 import { MilestoneCelebrationModal } from "./MilestoneCelebrationModal";
+import { WaitingForApprovalScreen } from "./WaitingForApprovalScreen";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
@@ -28,18 +29,25 @@ export function MobileAppShell({
 }: MobileAppShellProps) {
   const pathname = usePathname() || "";
   const router = useRouter();
-  const hasValidSession = useQuantersStore(
-    (s) =>
-      s.isAuthenticated &&
-      Boolean(s.currentMemberId) &&
-      s.members.some((m) => m.id === s.currentMemberId)
-  );
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
+  const members = useQuantersStore((s) => s.members);
+  const logout = useQuantersStore((s) => s.logout);
+  const settings = useQuantersStore((s) => s.settings);
+  const sessionStartedAt = useQuantersStore((s) => s.sessionStartedAt);
+
+  const hasValidSession =
+    isAuthenticated &&
+    Boolean(currentMemberId) &&
+    (!members.length || !members.some((m) => m.id === currentMemberId && (m.status === "Removed" || m.status === "Suspended")));
+
   const { lang, isRtl } = useTranslation();
   const [hydrated, setHydrated] = useState(false);
   const [showQuotaBanner, setShowQuotaBanner] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
     if (isFirestoreQuotaExhausted()) {
       setShowQuotaBanner(true);
     }
@@ -56,6 +64,49 @@ export function MobileAppShell({
   const isPublicRoute = PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
+
+  const currentMember = members.find((m) => m.id === currentMemberId);
+  const isPrivilegedRole = Boolean(
+    currentMember &&
+    (currentMember.roles.some((r) =>
+      ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"].includes(r)
+    ) ||
+    ["quantaclubdz@gmail.com", "ayoubsarri1@gmail.com", "hr.quanta@univ-alger.dz"].includes(currentMember.email.toLowerCase()))
+  );
+
+  const isPendingAdmission = Boolean(
+    currentMember &&
+    !isPrivilegedRole &&
+    (currentMember.status === "Pending" ||
+      (settings.onboardingAutoApprove === false &&
+       !currentMember.onboardingTicks?.hrApproved &&
+       currentMember.status !== "Active" &&
+       currentMember.status !== "Alumni"))
+  );
+
+  // Auto-logout immediately if the member was deleted or removed by administration,
+  // or if their session was revoked by a Super Admin security directive
+  useEffect(() => {
+    if (hydrated && isAuthenticated && currentMemberId) {
+      const forceLogoutAllAt = Number(settings.forceLogoutAllAt || 0);
+      const revokedAt = Number(settings.revokedSessionMemberIds?.[currentMemberId] || 0);
+      if (
+        (forceLogoutAllAt > 0 && sessionStartedAt < forceLogoutAllAt) ||
+        (revokedAt > 0 && sessionStartedAt < revokedAt)
+      ) {
+        logout();
+        router.replace("/welcome?logged_out=admin");
+        return;
+      }
+      if (members.length > 0) {
+        const active = members.find((x) => x.id === currentMemberId);
+        if (active && (active.status === "Removed" || active.status === "Suspended")) {
+          logout();
+          router.replace("/welcome?deactivated=true");
+        }
+      }
+    }
+  }, [hydrated, isAuthenticated, currentMemberId, members, settings.forceLogoutAllAt, settings.revokedSessionMemberIds, sessionStartedAt, logout, router]);
 
   useEffect(() => {
     if (hydrated && !isPublicRoute && !hasValidSession) {
@@ -93,6 +144,11 @@ export function MobileAppShell({
         </div>
       </div>
     );
+  }
+
+  // HR Admission Review Gate: If onboarding admission requires manual approval and member is pending
+  if (hydrated && !isPublicRoute && hasValidSession && isPendingAdmission) {
+    return <WaitingForApprovalScreen />;
   }
 
   return (

@@ -47,6 +47,9 @@ export default function MobileHomeHubPage() {
   const archiveTask = useQuantersStore((s) => s.archiveTask);
   const unarchiveTask = useQuantersStore((s) => s.unarchiveTask);
   const resumeMembershipSelf = useQuantersStore((s) => s.resumeMembershipSelf);
+  const ensureWelcomeMessageDelivered = useQuantersStore(
+    (s) => s.ensureWelcomeMessageDelivered
+  );
 
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const { t, lang, isRtl } = useTranslation();
@@ -67,6 +70,12 @@ export default function MobileHomeHubPage() {
       router.replace("/welcome");
     }
   }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
+
+  useEffect(() => {
+    if (activeMember?.id) {
+      ensureWelcomeMessageDelivered(activeMember.id);
+    }
+  }, [activeMember?.id, ensureWelcomeMessageDelivered]);
 
   const member = activeMember || FALLBACK_SESSION_MEMBER;
   const isAlumni = member.status === "Alumni";
@@ -119,14 +128,22 @@ export default function MobileHomeHubPage() {
   }, [member, settings, departments, teams, dept]);
 
   const motmMember =
-    members.find((m) => m.recognitionLabels.includes("Member of the Month")) ||
+    members.find((m) => m.recognitionLabels?.includes("Member of the Month")) ||
     null;
 
-  const unreadCount = messages.filter((m) => m.unread).length;
+  const unreadCount = messages.filter(
+    (m) =>
+      !m.archived &&
+      m.unread &&
+      !(currentMemberId && Array.isArray(m.readMemberIds) && m.readMemberIds.includes(currentMemberId))
+  ).length;
+  const activeWorkshops = workshops.filter(
+    (w) => w.status !== "Archived" && w.status !== "Draft"
+  );
   const nextWorkshop =
-    workshops.find((w) => w.status === "Running") ||
-    workshops.find((w) => w.status === "Published") ||
-    workshops[0];
+    activeWorkshops.find((w) => w.status === "Running") ||
+    activeWorkshops.find((w) => w.status === "Published") ||
+    activeWorkshops[0];
   const featuredNews =
     explorePosts.find((p) => p.id === "exp-1") || explorePosts[0];
 
@@ -150,8 +167,8 @@ export default function MobileHomeHubPage() {
   const [proofText, setProofText] = useState("");
   const [mentorTeamOptIn, setMentorTeamOptIn] = useState(true);
 
-  const isRegisteredNext = nextWorkshop?.registeredMemberIds.includes(
-    member.id
+  const isRegisteredNext = Boolean(
+    nextWorkshop?.registeredMemberIds?.includes(member.id)
   );
 
   // Dynamic Rank Tier Calculation - 100% synchronized with member's actual score
@@ -384,78 +401,74 @@ export default function MobileHomeHubPage() {
         {!isAppInstalled && (
           <div
             data-testid="pwa-install-box"
-            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0C1D38] via-[#08152B] to-[#040C1A] border border-[#38BDF8]/35 px-3 py-2 text-white shadow-sm animate-rise"
+            className="flex items-center justify-between gap-2.5 rounded-xl bg-[#0C0F17] border border-orange-500/35 px-3 py-2 text-white shadow-sm animate-rise"
             style={{ animationDelay: "20ms" }}
           >
-            <div className="flex items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1D63EB] to-[#0B2564] border border-[#38E4FF]/40 flex items-center justify-center shrink-0 shadow-inner">
-                  <Download className="w-3.5 h-3.5 text-[#38E4FF]" />
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-black shrink-0">
+                ⚡
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-display font-black text-xs text-white truncate">
+                    {isRtl ? "تطبيق كوانترز" : "QUANTERS App"}
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded font-mono text-[8px] font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 shrink-0">
+                    {isRtl ? "سريع" : "Offline"}
+                  </span>
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-display font-black text-xs text-white tracking-tight truncate">
-                      {isRtl ? "تحميل تطبيق كوانترز" : "Download QUANTERS App"}
-                    </span>
-                    <span className="px-1 py-0.2 rounded-full bg-[#38E4FF]/15 border border-[#38E4FF]/30 text-[8.5px] font-mono font-bold text-[#38E4FF] shrink-0">
-                      {isRtl ? "سريع ودون إنترنت" : "OFFLINE & FAST"}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-300 font-sans truncate">
-                    {isRtl
-                      ? "ثبّت التطبيق على شاشتك الرئيسية للتسجيل السريع والتحديثات."
-                      : "Install on your home screen for 1-tap optical check-in and updates."}
-                  </p>
-                </div>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {isRtl ? "تسجيل الحضور بنقرة واحدة" : "1-tap optical check-in"}
+                </p>
               </div>
-
-              <button
-                type="button"
-                onClick={handleInstallApp}
-                className="shrink-0 h-7 px-2.5 rounded-lg bg-[#38E4FF] hover:bg-[#2DD4BF] text-[#061326] font-display font-black text-[11px] shadow-xs active:scale-95 transition flex items-center gap-1 cursor-pointer"
-              >
-                <Download className="w-3 h-3 stroke-[2.5]" />
-                <span>{isRtl ? "تثبيت" : "Install"}</span>
-              </button>
             </div>
 
-            {/* In-Place Browser Installation Helper for iOS / Desktop Fallback */}
-            {showInstallGuide && (
-              <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-xs animate-rise">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#38E4FF]">
-                    Browser Installation Guide
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowInstallGuide(false)}
-                    className="text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300 text-[11px] leading-relaxed">
-                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-                    <span className="font-bold text-white block mb-0.5">iOS (Safari):</span>
-                    Tap Share <span className="font-mono text-[#38E4FF]">⎋</span> at the bottom, then choose <span className="font-bold text-white">Add to Home Screen ⊞</span>.
-                  </div>
-                  <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-                    <span className="font-bold text-white block mb-0.5">Android / Chrome:</span>
-                    Tap the menu <span className="font-mono text-[#38E4FF]">⋮</span> and choose <span className="font-bold text-white">Install App</span> or <span className="font-bold text-white">Add to Home screen</span>.
-                  </div>
-                </div>
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="button"
-                    onClick={markInstalledManually}
-                    className="text-xs font-mono font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>I've installed the app (Dismiss)</span>
-                  </button>
-                </div>
+            <button
+              type="button"
+              onClick={handleInstallApp}
+              className="h-7 px-3 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-white font-display font-black text-[11px] shadow-sm active:scale-95 transition flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <Download className="w-3 h-3 stroke-[2.4]" />
+              <span>{isRtl ? "تثبيت" : "Install"}</span>
+            </button>
+          </div>
+        )}
+
+        {/* In-Place Browser Installation Helper for iOS / Desktop Fallback */}
+        {showInstallGuide && !isAppInstalled && (
+          <div className="rounded-xl bg-[#0C0F17] border border-orange-500/35 p-3 text-white space-y-2 text-xs animate-rise">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#38E4FF]">
+                Browser Installation Guide
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowInstallGuide(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300 text-[11px] leading-relaxed">
+              <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                <span className="font-bold text-white block mb-0.5">iOS (Safari):</span>
+                Tap Share <span className="font-mono text-[#38E4FF]">⎋</span> at the bottom, then choose <span className="font-bold text-white">Add to Home Screen ⊞</span>.
               </div>
-            )}
+              <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                <span className="font-bold text-white block mb-0.5">Android / Chrome:</span>
+                Tap the menu <span className="font-mono text-[#38E4FF]">⋮</span> and choose <span className="font-bold text-white">Install App</span> or <span className="font-bold text-white">Add to Home screen</span>.
+              </div>
+            </div>
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={markInstalledManually}
+                className="text-xs font-mono font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>I&apos;ve installed the app (Dismiss)</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -525,10 +538,10 @@ export default function MobileHomeHubPage() {
 
             <div className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
               <span className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
-                {member.levelTitle.split(" ")[0] || "Quantum"}
+                {(member.levelTitle || "Wooden Quanter").split(" ")[0] || "Wooden"}
               </span>
               <span className="font-editorial italic font-normal text-2xl sm:text-[26px] text-[#7DD3FC] leading-none">
-                {member.levelTitle.split(" ").slice(1).join(" ") || "Explorer"}
+                {(member.levelTitle || "Wooden Quanter").split(" ").slice(1).join(" ") || "Quanter"}
               </span>
             </div>
 

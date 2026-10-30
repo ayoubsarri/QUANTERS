@@ -11,8 +11,10 @@ import {
   BookOpen,
   Briefcase,
   Building2,
+  Car,
   Check,
   CheckCircle2,
+  Compass,
   FileText,
   FolderGit2,
   Globe,
@@ -30,9 +32,13 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Timer,
   UserCheck,
+  Users,
   X,
+  Zap,
 } from "lucide-react";
+import { formatAlgerianPhoneInput, validateAlgerianPhone } from "@/lib/utils/phoneValidation";
 import {
   QUANTA_INTERNAL_LAW_CHAPTERS,
   QUANTA_INTERNAL_LAW_HEADER,
@@ -154,27 +160,42 @@ export default function OnboardingWizardPage() {
   const members = useQuantersStore((s) => s.members);
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
+  const hydrateFromLocalCache = useQuantersStore((s) => s.hydrateFromLocalCache);
   const completeFirstTimeProfile = useQuantersStore(
     (s) => s.completeFirstTimeProfile
   );
   const syncWithServer = useQuantersStore((s) => s.syncWithServer);
 
-  // Authenticated Session Member Resolution
-  const rawSessionMember =
-    isAuthenticated && currentMemberId
-      ? members.find((m) => m.id === currentMemberId)
-      : undefined;
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    hydrateFromLocalCache();
+    setHydrated(true);
+  }, [hydrateFromLocalCache]);
+
+  // Authenticated Session Member Resolution (resilient against initial render delays)
+  const rawSessionMember = useMemo(() => {
+    if (!isAuthenticated || !currentMemberId) return undefined;
+    const direct = members.find((m) => m.id === currentMemberId);
+    if (direct) return direct;
+    const fallback = useQuantersStore.getState().members.find((m) => m.id === currentMemberId);
+    return fallback;
+  }, [isAuthenticated, currentMemberId, members]);
 
   // ROUTE SECURITY GUARD: Prevent opening /onboarding directly without an authenticated account
+  // Strictly waits for client hydration before performing any session check
   useEffect(() => {
-    if (!isAuthenticated || !rawSessionMember || !rawSessionMember.email) {
+    if (!hydrated) return;
+
+    if (!isAuthenticated || !currentMemberId) {
       router.replace("/welcome");
       return;
     }
-    if (rawSessionMember.onboardingTicks?.profileComplete) {
+
+    if (rawSessionMember && rawSessionMember.onboardingTicks?.profileComplete) {
       router.replace("/home");
     }
-  }, [isAuthenticated, rawSessionMember, router]);
+  }, [hydrated, isAuthenticated, currentMemberId, rawSessionMember, router]);
 
   const existingMember = rawSessionMember;
   const verifiedEmail = rawSessionMember?.email || "";
@@ -190,9 +211,27 @@ export default function OnboardingWizardPage() {
       ? existingMember.phone
       : ""
   );
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneValidation = useMemo(() => validateAlgerianPhone(phone), [phone]);
+  const canProceedStep1 = fullName.trim().length >= 2 && phoneValidation.isValid;
   const [avatarUrl, setAvatarUrl] = useState(
     existingMember?.avatarUrl || "/brand/logo_quanta_opt.webp"
   );
+
+  // Sync state once session member resolves after hydration
+  useEffect(() => {
+    if (rawSessionMember) {
+      if (rawSessionMember.fullName && !fullName) {
+        setFullName(rawSessionMember.fullName);
+      }
+      if (rawSessionMember.phone && rawSessionMember.phone !== "+213 550 00 00 00" && !phone) {
+        setPhone(rawSessionMember.phone);
+      }
+      if (rawSessionMember.avatarUrl && avatarUrl === "/brand/logo_quanta_opt.webp") {
+        setAvatarUrl(rawSessionMember.avatarUrl);
+      }
+    }
+  }, [rawSessionMember]);
 
   // Step 2: Where You Live & Commute (HR Logistics)
   const [wilaya, setWilaya] = useState(
@@ -345,14 +384,15 @@ export default function OnboardingWizardPage() {
   const handleFinish = async () => {
     if (!charterConfirmed) return;
     const validEmail = validateEmail(verifiedEmail);
-    if (!fullName.trim() || !validEmail.isValid) {
+    if (!fullName.trim() || !validEmail.isValid || !phoneValidation.isValid) {
       setStep(1);
+      setPhoneTouched(true);
       return;
     }
     completeFirstTimeProfile({
       fullName: fullName.trim(),
       email: validEmail.normalized,
-      phone: phone.trim(),
+      phone: phoneValidation.e164 || phone.trim(),
       avatarUrl,
       university: effectiveUniversity,
       major: effectiveMajor,
@@ -387,8 +427,20 @@ export default function OnboardingWizardPage() {
     router.push("/home");
   };
 
+  // Hydration state check
+  if (!hydrated) {
+    return (
+      <MobileAppShell hideBottomNav>
+        <div className="h-[100dvh] flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-10 h-10 border-2 border-[#0284C7] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-mono text-slate-500">Loading onboarding dossier...</p>
+        </div>
+      </MobileAppShell>
+    );
+  }
+
   // Guard against unauthenticated direct URL visitors
-  if (!isAuthenticated || !rawSessionMember || !rawSessionMember.email) {
+  if (!isAuthenticated || !currentMemberId) {
     return (
       <MobileAppShell hideBottomNav>
         <div className="h-[100dvh] flex flex-col items-center justify-center p-6 text-center animate-rise">
@@ -573,17 +625,67 @@ export default function OnboardingWizardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center gap-1.5">
-                    <Phone className="w-4 h-4 text-[#0284C7]" />
-                    <span>Phone Number (WhatsApp / Emergency)</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
-                    placeholder="+213 5XX XX XX XX"
-                  />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-[#0284C7]" />
+                      <span>Phone Number (WhatsApp / Emergency)</span>
+                    </label>
+                    {phoneValidation.carrier && (
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 transition-all ${
+                          phoneValidation.carrier === "Mobilis"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : phoneValidation.carrier === "Djezzy"
+                            ? "bg-rose-50 text-rose-700 border border-rose-200"
+                            : "bg-amber-50 text-amber-800 border border-amber-200"
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        {phoneValidation.carrier}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhoneTouched(true);
+                        setPhone(formatAlgerianPhoneInput(e.target.value));
+                      }}
+                      onBlur={() => setPhoneTouched(true)}
+                      className={`w-full h-11 pl-3.5 pr-10 rounded-xl bg-[#F8FAFC] border text-sm font-mono font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none transition ${
+                        phoneTouched && phone.length > 3 && !phoneValidation.isValid
+                          ? "border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15"
+                          : phoneValidation.isValid
+                          ? "border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+                          : "border-slate-200/90 focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15"
+                      }`}
+                      placeholder="05 / 06 / 07 XX XX XX XX"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {phoneValidation.isValid ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                      ) : phoneTouched && phone.length > 3 ? (
+                        <AlertTriangle className="w-5 h-5 text-rose-500" />
+                      ) : null}
+                    </div>
+                  </div>
+                  {phoneTouched && phone.length > 0 && !phoneValidation.isValid && (
+                    <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                      <span>⚠</span> {phoneValidation.errorMessage || "Please enter a valid Algerian mobile number."}
+                    </p>
+                  )}
+                  {phoneValidation.isValid && (
+                    <p className="text-[11px] text-emerald-700 font-medium mt-1 flex items-center gap-1">
+                      <span>✓</span> Valid Algerian mobile number ({phoneValidation.carrier || "National"} · {phoneValidation.formatted})
+                    </p>
+                  )}
+                  {!phoneTouched && !phone && (
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Algerian national format: 05, 06, or 07 (Mobilis, Djezzy, Ooredoo) followed by 8 digits.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -643,50 +745,156 @@ export default function OnboardingWizardPage() {
                   </div>
                 ) : (
                   <>
+                    {/* Housing Type Cards — Compact Responsive Horizontal Row */}
                     <div>
-                      <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                        Housing Type
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        {HOUSING_OPTIONS.map((h) => (
-                          <button
-                            key={h}
-                            type="button"
-                            onClick={() => setHousingType(h)}
-                            className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center justify-between gap-2 active:scale-[0.98] transition cursor-pointer ${
-                              housingType === h
-                                ? "bg-[#F0F6FF] text-[#182C4E] border-[#0284C7]/60"
-                                : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                            }`}
-                          >
-                            <span>{h}</span>
-                            {housingType === h && (
-                              <CheckCircle2 className="w-4 h-4 text-[#0284C7] shrink-0" />
-                            )}
-                          </button>
-                        ))}
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
+                          <Home className="w-3.5 h-3.5 text-[#0284C7]" />
+                          <span>Housing Type</span>
+                        </label>
+                        <span className="text-[10px] font-semibold text-slate-400">
+                          Academic Year Residence
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          {
+                            value: "Family Home" as HousingType,
+                            title: "Family Home",
+                            subtitle: "Family House",
+                            icon: Home,
+                          },
+                          {
+                            value: "University Residence (Cité)" as HousingType,
+                            title: "Campus Cité",
+                            subtitle: "Cité U Dorm",
+                            icon: Building2,
+                          },
+                          {
+                            value: "Shared Apartment" as HousingType,
+                            title: "Colocation",
+                            subtitle: "Shared Flat",
+                            icon: Users,
+                          },
+                        ].map((item) => {
+                          const isSelected = housingType === item.value;
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => setHousingType(item.value)}
+                              className={`p-2 sm:p-2.5 rounded-xl text-center border transition-all active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                                isSelected
+                                  ? "bg-[#F0F6FF] text-[#0F1E36] border-[#0284C7] shadow-2xs ring-1 ring-[#0284C7]"
+                                  : "bg-white text-slate-700 border-slate-200/90 hover:border-slate-300 hover:bg-[#F8FAFC]"
+                              }`}
+                            >
+                              <div
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition shrink-0 ${
+                                  isSelected
+                                    ? "bg-[#0284C7] text-white shadow-2xs"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="w-full min-w-0">
+                                <div className="text-[11px] sm:text-xs font-bold font-display text-[#0F1E36] truncate leading-tight">
+                                  {item.title}
+                                </div>
+                                <p className="text-[9.5px] sm:text-[10px] text-slate-400 truncate mt-0.5">
+                                  {item.subtitle}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
+                    {/* Campus Commute Time Cards — Compact Responsive Horizontal Row */}
                     <div>
-                      <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                        Campus Commute Time
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
+                          <Timer className="w-3.5 h-3.5 text-[#0284C7]" />
+                          <span>Campus Commute Time</span>
+                        </label>
+                        <span className="text-[10px] font-semibold text-slate-400">
+                          Door-to-door to Faculty
+                        </span>
+                      </div>
+
                       <div className="grid grid-cols-3 gap-2">
-                        {COMMUTE_OPTIONS.map((c) => (
-                          <button
-                            key={c}
-                            type="button"
-                            onClick={() => setCommuteTime(c)}
-                            className={`h-10.5 rounded-xl text-xs font-extrabold border active:scale-[0.98] transition cursor-pointer ${
-                              commuteTime === c
-                                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875]"
-                                : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                            }`}
-                          >
-                            {c}
-                          </button>
-                        ))}
+                        {[
+                          {
+                            value: "< 30 min" as CommuteDuration,
+                            title: "< 30 min",
+                            subtitle: "Walk / Metro",
+                            icon: Zap,
+                            accent: "emerald",
+                          },
+                          {
+                            value: "30–60 min" as CommuteDuration,
+                            title: "30–60 min",
+                            subtitle: "Bus / Tram",
+                            icon: Timer,
+                            accent: "sky",
+                          },
+                          {
+                            value: "> 1h30" as CommuteDuration,
+                            title: "> 1h30",
+                            subtitle: "Train / Suburb",
+                            icon: Compass,
+                            accent: "amber",
+                          },
+                        ].map((item) => {
+                          const isSelected = commuteTime === item.value;
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => setCommuteTime(item.value)}
+                              className={`p-2 sm:p-2.5 rounded-xl text-center border transition-all active:scale-[0.97] cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                                isSelected
+                                  ? "bg-gradient-to-b from-[#0F1E36] to-[#0A1628] text-white border-[#38BDF8] shadow-2xs ring-1 ring-[#38BDF8]"
+                                  : "bg-white text-slate-700 border-slate-200/90 hover:border-slate-300 hover:bg-[#F8FAFC]"
+                              }`}
+                            >
+                              <div
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition shrink-0 ${
+                                  isSelected
+                                    ? "bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30"
+                                    : item.accent === "emerald"
+                                    ? "bg-emerald-50 text-emerald-600"
+                                    : item.accent === "sky"
+                                    ? "bg-sky-50 text-sky-600"
+                                    : "bg-amber-50 text-amber-600"
+                                }`}
+                              >
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="w-full min-w-0">
+                                <div
+                                  className={`text-[11px] sm:text-xs font-black font-display tracking-tight truncate leading-tight ${
+                                    isSelected ? "text-white" : "text-[#0F1E36]"
+                                  }`}
+                                >
+                                  {item.title}
+                                </div>
+                                <p
+                                  className={`text-[9.5px] sm:text-[10px] truncate mt-0.5 ${
+                                    isSelected ? "text-slate-300" : "text-slate-400"
+                                  }`}
+                                >
+                                  {item.subtitle}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </>
@@ -1582,8 +1790,19 @@ export default function OnboardingWizardPage() {
             {step < maxStep ? (
               <button
                 type="button"
-                onClick={() => setStep((s) => s + 1)}
-                className="h-11 px-6 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 shadow-sm cursor-pointer"
+                disabled={step === 1 && !canProceedStep1}
+                onClick={() => {
+                  if (step === 1) {
+                    setPhoneTouched(true);
+                    if (!canProceedStep1) return;
+                  }
+                  setStep((s) => s + 1);
+                }}
+                className={`h-11 px-6 rounded-xl font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 shadow-sm ${
+                  step === 1 && !canProceedStep1
+                    ? "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
+                    : "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer"
+                }`}
               >
                 <span>Continue</span>
                 <ArrowRight className="w-4 h-4 text-[#7DD3FC]" />

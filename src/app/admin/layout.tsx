@@ -18,6 +18,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -30,13 +31,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const celebration = useQuantersStore((s) => s.celebration);
   const triggerCelebration = useQuantersStore((s) => s.triggerCelebration);
   const logout = useQuantersStore((s) => s.logout);
+  const settings = useQuantersStore((s) => s.settings);
+  const sessionStartedAt = useQuantersStore((s) => s.sessionStartedAt);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dismissedMobileNotice, setDismissedMobileNotice] = useState(false);
   const [showQuotaBanner, setShowQuotaBanner] = useState(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState(false);
 
   useEffect(() => {
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
     if (isFirestoreQuotaExhausted()) {
       setShowQuotaBanner(true);
     }
@@ -50,9 +55,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated && currentMemberId) {
+      const forceLogoutAllAt = Number(settings.forceLogoutAllAt || 0);
+      const revokedAt = Number(settings.revokedSessionMemberIds?.[currentMemberId] || 0);
+      if (
+        (forceLogoutAllAt > 0 && sessionStartedAt < forceLogoutAllAt) ||
+        (revokedAt > 0 && sessionStartedAt < revokedAt)
+      ) {
+        logout();
+        router.replace("/welcome?logged_out=admin");
+        return;
+      }
+      if (members.length > 0) {
+        const active = members.find((x) => x.id === currentMemberId);
+        if (active && (active.status === "Removed" || active.status === "Suspended")) {
+          logout();
+          router.replace("/welcome?deactivated=true");
+        }
+      }
+    }
+  }, [isAuthenticated, currentMemberId, members, settings.forceLogoutAllAt, settings.revokedSessionMemberIds, sessionStartedAt, logout, router]);
+
   const currentMember =
     isAuthenticated && currentMemberId
-      ? members.find((m) => m.id === currentMemberId)
+      ? members.find((m) => m.id === currentMemberId && m.status !== "Removed" && m.status !== "Suspended")
       : undefined;
   const hasAdminAccess = Boolean(
     isAuthenticated &&
@@ -257,13 +284,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </Link>
 
-            {/* Sign Out Button */}
+            {/* Sign Out Button with Confirmation Modal */}
             <button
               type="button"
-              onClick={() => {
-                logout();
-                router.push("/welcome");
-              }}
+              onClick={() => setSignOutModalOpen(true)}
               className="inline-flex items-center gap-1.5 bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-display font-extrabold px-3 py-2 rounded-xl shadow-xs transition cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5 text-[#7DD3FC]" />
@@ -271,6 +295,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
         </header>
+
+        <SignOutConfirmModal
+          isOpen={signOutModalOpen}
+          onClose={() => setSignOutModalOpen(false)}
+          onConfirm={() => {
+            setSignOutModalOpen(false);
+            logout();
+            router.push("/welcome");
+          }}
+        />
 
         {/* Mobile Device Notice */}
         {!dismissedMobileNotice && (

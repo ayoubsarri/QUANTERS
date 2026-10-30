@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   Award,
+  Calendar,
   Check,
   CheckCircle2,
   Clock,
@@ -19,6 +20,7 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { ClubTask, TaskCategory, TaskStatus } from "@/lib/types/erp";
 import {
   handleMemberListContainerKeyDown,
+  isAssignableMember,
   sortMembersByName,
 } from "@/lib/utils/memberKeyboardJump";
 
@@ -66,6 +68,10 @@ export default function AdminTasksPage() {
   const bulkMemberListRef = useRef<HTMLDivElement>(null);
 
   const sortedMembers = useMemo(() => sortMembersByName(members), [members]);
+  const assignableMembers = useMemo(
+    () => sortMembersByName(members.filter((m) => isAssignableMember(m))),
+    [members]
+  );
 
   // Validate & Score Modal state
   const [validatingItem, setValidatingItem] = useState<{
@@ -85,21 +91,92 @@ export default function AdminTasksPage() {
   const [departmentId, setDepartmentId] = useState("dept-it");
   const [teamId, setTeamId] = useState<string>("team-astro");
   const [linkedWorkshopOrEvent] = useState("Python for Scientists");
-  const [taskDate, setTaskDate] = useState("2026-10-26");
-  const [planningOpenDate, setPlanningOpenDate] = useState("2026-10-20");
+  const [taskDate, setTaskDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [planningOpenDate, setPlanningOpenDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [shiftStartTime, setShiftStartTime] = useState("14:00");
   const [shiftEndTime, setShiftEndTime] = useState("18:00");
-  const [deadline, setDeadline] = useState("26 Oct 2026, 18:00");
+  const [deadline, setDeadline] = useState(() => {
+    const now = new Date();
+    const formatted = now.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    return `${formatted} · 14:00 - 18:00`;
+  });
   const [locationOrShift, setLocationOrShift] = useState("Faculty of Sciences · Lab A1");
   const [proposedScore, setProposedScore] = useState(25);
-  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
+  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
 
   // Bulk Scoring state
-  const [bulkMemberIds, setBulkMemberIds] = useState<string[]>(members[0]?.id ? [members[0].id] : []);
+  const [bulkMemberIds, setBulkMemberIds] = useState<string[]>([]);
   const [bulkPoints, setBulkPoints] = useState<number>(20);
   const [bulkReason, setBulkReason] = useState<string>(
     "Event Task Matrix completion — Workshop Logistics Shift"
   );
+
+  const updateComputedDeadline = (dateStr: string, startStr: string, endStr: string) => {
+    if (!dateStr) {
+      setDeadline(`${startStr} - ${endStr}`);
+      return;
+    }
+    try {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const formattedDate = d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        setDeadline(`${formattedDate} · ${startStr} - ${endStr}`);
+        return;
+      }
+    } catch {}
+    setDeadline(`${dateStr} · ${startStr} - ${endStr}`);
+  };
+
+  const applyPreset = (preset: "today" | "tomorrow" | "friday" | "monday" | "week") => {
+    const now = new Date();
+    const target = new Date(now);
+    let start = "14:00";
+    let end = "18:00";
+
+    if (preset === "today") {
+      start = "14:00";
+      end = "18:00";
+    } else if (preset === "tomorrow") {
+      target.setDate(now.getDate() + 1);
+      start = "14:00";
+      end = "18:00";
+    } else if (preset === "friday") {
+      const day = now.getDay();
+      const diff = (5 - day + 7) % 7 || 7;
+      target.setDate(now.getDate() + diff);
+      start = "14:00";
+      end = "17:00";
+    } else if (preset === "monday") {
+      const day = now.getDay();
+      const diff = (1 - day + 7) % 7 || 7;
+      target.setDate(now.getDate() + diff);
+      start = "09:00";
+      end = "13:00";
+    } else if (preset === "week") {
+      target.setDate(now.getDate() + 7);
+      start = "14:00";
+      end = "18:00";
+    }
+
+    const y = target.getFullYear();
+    const m = String(target.getMonth() + 1).padStart(2, "0");
+    const d = String(target.getDate()).padStart(2, "0");
+    const isoDate = `${y}-${m}-${d}`;
+
+    setTaskDate(isoDate);
+    setShiftStartTime(start);
+    setShiftEndTime(end);
+    updateComputedDeadline(isoDate, start, end);
+  };
 
   // Global keyboard letter jump when Create Task or Bulk Score modal is open
   useEffect(() => {
@@ -857,19 +934,111 @@ export default function AdminTasksPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Deadline / Shift Time
-                  </label>
-                  <input
-                    type="text"
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
-                  />
+                <div className="sm:col-span-2 bg-slate-50/90 p-4 rounded-2xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-[#0F1E36] uppercase tracking-wider">
+                      <Calendar className="w-4 h-4 text-[#0284C7]" />
+                      <span>Deadline / Shift Calendar Picker</span>
+                    </label>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#0284C7] bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{deadline || "Upcoming"}</span>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <span className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Task / Shift Date *
+                      </span>
+                      <input
+                        type="date"
+                        value={taskDate}
+                        onChange={(e) => {
+                          const newDate = e.target.value;
+                          setTaskDate(newDate);
+                          updateComputedDeadline(newDate, shiftStartTime, shiftEndTime);
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#182C4E]"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <span className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Shift Start Time
+                      </span>
+                      <input
+                        type="time"
+                        value={shiftStartTime}
+                        onChange={(e) => {
+                          const newStart = e.target.value;
+                          setShiftStartTime(newStart);
+                          updateComputedDeadline(taskDate, newStart, shiftEndTime);
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-[#182C4E]"
+                      />
+                    </div>
+                    <div>
+                      <span className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Shift End / Deadline Due
+                      </span>
+                      <input
+                        type="time"
+                        value={shiftEndTime}
+                        onChange={(e) => {
+                          const newEnd = e.target.value;
+                          setShiftEndTime(newEnd);
+                          updateComputedDeadline(taskDate, shiftStartTime, newEnd);
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-[#182C4E]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quick Calendar Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-200/70">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+                      Quick Presets:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset("today")}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#182C4E] hover:text-[#0284C7] transition cursor-pointer"
+                    >
+                      Today (18:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset("tomorrow")}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#182C4E] hover:text-[#0284C7] transition cursor-pointer"
+                    >
+                      Tomorrow (18:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset("friday")}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#182C4E] hover:text-[#0284C7] transition cursor-pointer"
+                    >
+                      This Friday (17:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset("monday")}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#182C4E] hover:text-[#0284C7] transition cursor-pointer"
+                    >
+                      Next Monday (09:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyPreset("week")}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white border border-slate-200 text-slate-700 hover:border-[#182C4E] hover:text-[#0284C7] transition cursor-pointer"
+                    >
+                      In 1 Week (18:00)
+                    </button>
+                  </div>
                 </div>
 
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                     Location / Post
                   </label>
@@ -896,7 +1065,7 @@ export default function AdminTasksPage() {
                     onKeyDown={handleMemberListContainerKeyDown}
                     className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#182C4E]"
                   >
-                    {sortedMembers.map((m) => {
+                    {assignableMembers.map((m) => {
                       const checked = selectedAssigneeIds.includes(m.id);
                       return (
                         <label
@@ -1077,7 +1246,7 @@ export default function AdminTasksPage() {
                   onKeyDown={handleMemberListContainerKeyDown}
                   className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#182C4E]"
                 >
-                  {sortedMembers.map((m) => {
+                  {assignableMembers.map((m) => {
                     const checked = bulkMemberIds.includes(m.id);
                     return (
                       <label

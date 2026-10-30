@@ -445,13 +445,48 @@ export function writeErpDatabase(
 
           const existingIdx = indexMap.get(id);
           if (existingIdx !== undefined) {
-            nextList[existingIdx] = {
+            const safeMerged: Record<string, unknown> = {
               ...nextList[existingIdx],
               ...incomingItem,
             };
+
+            // Anti-Bypass Guard: non-privileged clients cannot self-promote or bypass HR admission approval
+            if (key === "members" && !isPrivileged) {
+              const prev = nextList[existingIdx] as Record<string, unknown>;
+              safeMerged.status = prev.status;
+              safeMerged.roles = prev.roles;
+              safeMerged.xpTotal = prev.xpTotal;
+              safeMerged.level = prev.level;
+              safeMerged.isBureauMember = prev.isBureauMember;
+
+              const prevTicks = (prev.onboardingTicks as Record<string, unknown>) || {};
+              const incomingTicks = (safeMerged.onboardingTicks as Record<string, unknown>) || {};
+              safeMerged.onboardingTicks = {
+                ...incomingTicks,
+                hrApproved: Boolean(prevTicks.hrApproved),
+                hrApprovedAt: prevTicks.hrApprovedAt,
+                hrApprovedBy: prevTicks.hrApprovedBy,
+              };
+            }
+
+            nextList[existingIdx] = safeMerged;
             modified = true;
           } else {
-            prependedNew.push(incomingItem);
+            const safeNew: Record<string, unknown> = { ...incomingItem };
+            // If new member self-registers while onboardingAutoApprove is false, force Pending status
+            if (key === "members" && !isPrivileged) {
+              const autoApprove = current.settings?.onboardingAutoApprove ?? true;
+              const isAlumni = String(safeNew.tenure || "").toLowerCase().includes("alumni");
+              safeNew.roles = ["Member"];
+              safeNew.isBureauMember = false;
+              safeNew.status = isAlumni ? "Alumni" : autoApprove ? "Trainee" : "Pending";
+              const ticks = (safeNew.onboardingTicks as Record<string, unknown>) || {};
+              safeNew.onboardingTicks = {
+                ...ticks,
+                hrApproved: isAlumni || autoApprove,
+              };
+            }
+            prependedNew.push(safeNew);
             modified = true;
           }
         }

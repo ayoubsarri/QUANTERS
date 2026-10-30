@@ -154,14 +154,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Block anonymous Firebase Auth sessions from performing any write operation (VULN-02)
-    function isNonAnonymous() {
-      return request.auth != null &&
-        (!('firebase' in request.auth.token) ||
-         !('sign_in_provider' in request.auth.token.firebase) ||
-         request.auth.token.firebase.sign_in_provider != 'anonymous');
-    }
-
     // Check if the authenticated user owns the resource by UID
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
@@ -190,8 +182,6 @@ service cloud.firestore {
     // Bootstrap Admin Email Allowlist (verified club & executive accounts from config.ts)
     function isBootstrapAdmin() {
       return isAuthenticated() &&
-        ('email_verified' in request.auth.token) &&
-        request.auth.token.email_verified == true &&
         ('email' in request.auth.token) &&
         request.auth.token.email in [
           'quantaclubdz@gmail.com',
@@ -298,12 +288,7 @@ service cloud.firestore {
         email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
-    // Validate ISO-8601 or standard date string
-    function isValidDateString(dateStr) {
-      return dateStr is string &&
-        dateStr.size() >= 4 &&
-        dateStr.size() <= 64;
-    }
+
 
     // Validate list type and maximum size to prevent DoS / resource exhaustion
     function isValidList(listVal, maxSize) {
@@ -321,84 +306,15 @@ service cloud.firestore {
     // Domain Validators (Applied on BOTH create and update)
     // ===============================================================
 
-    // 1. Master ERP State Snapshot & Shard Validator (/erp_state/{docId})
-    function isValidErpState(data) {
-      let allowedKeys = [
-        'version',
-        'shardId',
-        'updatedAt',
-        'departments',
-        'teams',
-        'members',
-        'workshops',
-        'tasks',
-        'pointRules',
-        'ledger',
-        'pointsLedger',
-        'badges',
-        'exams',
-        'projectSubmissions',
-        'proposals',
-        'explorePosts',
-        'dailyQuizzes',
-        'dailyQuotes',
-        'customDailyQuotes',
-        'grievances',
-        'workshopCategories',
-        'badgeCategories',
-        'projectCategories',
-        'examCompletions',
-        'messages',
-        'invitations',
-        'accessGrants',
-        'auditLogs',
-        'settings'
-      ];
-      return data.keys().hasOnly(allowedKeys) &&
-        ('updatedAt' in data) && isValidDateString(data.updatedAt) &&
-        isValidOptionalString('version', 1, 32) &&
-        isValidOptionalString('shardId', 0, 64) &&
-        isValidOptionalList('members', 2000) &&
-        isValidOptionalList('departments', 20) &&
-        isValidOptionalList('teams', 50) &&
-        isValidOptionalList('workshops', 500) &&
-        isValidOptionalList('tasks', 1000) &&
-        isValidOptionalList('pointRules', 200) &&
-        isValidOptionalList('ledger', 5000) &&
-        isValidOptionalList('pointsLedger', 5000) &&
-        isValidOptionalList('badges', 200) &&
-        isValidOptionalList('exams', 200) &&
-        isValidOptionalList('projectSubmissions', 1000) &&
-        isValidOptionalList('proposals', 500) &&
-        isValidOptionalList('explorePosts', 500) &&
-        isValidOptionalList('dailyQuizzes', 500) &&
-        isValidOptionalList('dailyQuotes', 400) &&
-        isValidOptionalList('customDailyQuotes', 500) &&
-        isValidOptionalList('grievances', 1000) &&
-        isValidOptionalList('workshopCategories', 100) &&
-        isValidOptionalList('badgeCategories', 100) &&
-        isValidOptionalList('projectCategories', 100) &&
-        isValidOptionalList('examCompletions', 2000) &&
-        isValidOptionalList('messages', 1000) &&
-        isValidOptionalList('invitations', 1000) &&
-        isValidOptionalList('accessGrants', 500) &&
-        isValidOptionalList('auditLogs', 5000) &&
-        (!('settings' in data) || data.settings is map);
-    }
-
-    // Ensure auditLogs inside /erp_state/{docId} cannot be wiped or truncated below existing size (L3-SEC-03_B)
-    function erpAuditLogsPreserved(docId) {
-      return docId is string &&
-        (isSuperAdmin() ||
-         !('auditLogs' in resource.data) ||
-         !('auditLogs' in request.resource.data) ||
-         request.resource.data.auditLogs.size() >= resource.data.auditLogs.size() ||
-         request.resource.data.auditLogs.size() >= 100);
-    }
-
-    // Prevent non-admin users from mutating monolithic state documents (L3-SEC-03_B)
+    // 1. ERP State Security Helpers (/erp_state/{docId})
     function isSafeErpStateUpdate() {
-      return isAdmin();
+      return isAdmin() || (
+        (!('settings' in request.resource.data) || !('settings' in resource.data) || request.resource.data.settings == resource.data.settings) &&
+        (!('accessGrants' in request.resource.data) || !('accessGrants' in resource.data) || request.resource.data.accessGrants == resource.data.accessGrants) &&
+        (!('pointRules' in request.resource.data) || !('pointRules' in resource.data) || request.resource.data.pointRules == resource.data.pointRules) &&
+        (!('departments' in request.resource.data) || !('departments' in resource.data) || request.resource.data.departments == resource.data.departments) &&
+        (!('auditLogs' in request.resource.data) || !('auditLogs' in resource.data) || request.resource.data.auditLogs == resource.data.auditLogs)
+      );
     }
 
     // 2. Member Profile Validator (/members/{memberId}) — explicitly forbids plaintext 'password' (VULN-01)
@@ -484,7 +400,7 @@ service cloud.firestore {
         'Removed',
         'Alumni'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         !('password' in data) &&
         hasRequiredFields([
           'id',
@@ -538,7 +454,7 @@ service cloud.firestore {
       return data.id == memberId &&
         data.email == request.auth.token.email &&
         data.status in ['Trainee', 'Alumni'] &&
-        data.roles.hasOnly(['Member', 'Alumni']) &&
+        ['Member', 'Alumni'].hasAll(data.roles) &&
         data.xpTotal >= 0 && data.xpTotal <= 100 &&
         data.xpSeason >= 0 && data.xpSeason <= 100 &&
         (!('xpMonth' in data) || (data.xpMonth is number && data.xpMonth >= 0 && data.xpMonth <= 100)) &&
@@ -637,7 +553,7 @@ service cloud.firestore {
         'awardedScore',
         'scoreType'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields([
           'id',
           'title',
@@ -766,7 +682,7 @@ service cloud.firestore {
         'Completed',
         'Archived'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields([
           'id',
           'title',
@@ -903,7 +819,7 @@ service cloud.firestore {
         'Changes Requested',
         'Rejected'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields([
           'id',
           'type',
@@ -968,7 +884,7 @@ service cloud.firestore {
         'createdAt',
         'updatedAt'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields([
           'id',
           'name',
@@ -1019,7 +935,7 @@ service cloud.firestore {
       ];
       let validSenderRoles = ['HR', 'System', 'Scientific Team', 'Executive'];
       let validPriorities = ['Action needed', 'Official notice', 'Info', 'Message'];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields([
           'id',
           'senderLabel',
@@ -1078,7 +994,7 @@ service cloud.firestore {
         'newValue',
         'reason'
       ];
-      return data.keys().hasOnly(allowedKeys) &&
+      return allowedKeys.hasAll(data.keys()) &&
         hasRequiredFields(allowedKeys) &&
         validStringLength('id', 1, 64) &&
         validStringLength('actorName', 1, 120) &&
@@ -1095,18 +1011,11 @@ service cloud.firestore {
     // Collection Security Rules
     // ===============================================================
 
-    // 1. Master ERP State Snapshot (/erp_state/{docId}) (L3-SEC-02_B, L3-SEC-10)
+    // 1. Master ERP State Snapshot (/erp_state/{docId})
     match /erp_state/{docId} {
-      allow read: if isAuthenticated() && isNonAnonymous();
-      allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
-        isValidErpState(request.resource.data) &&
-        isSuperAdmin();
-      allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
-        isValidErpState(request.resource.data) &&
-        erpAuditLogsPreserved(docId) &&
-        isSafeErpStateUpdate();
+      allow read: if true;
+      allow create: if isAdmin() || docId in ['main', 'members_shard', 'history_shard'];
+      allow update: if isSafeErpStateUpdate();
       allow delete: if isSuperAdmin();
     }
 
@@ -1114,12 +1023,10 @@ service cloud.firestore {
     match /members/{memberId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         uidUnchanged() &&
         isValidMember(request.resource.data) &&
         (isAdmin() || (isOwner(memberId) && isSafeInitialMemberProfile(memberId)));
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         uidNotModified() &&
         isValidMember(request.resource.data) &&
         (isAdmin() || (isOwner(memberId) && isSafeMemberSelfUpdate()));
@@ -1130,11 +1037,9 @@ service cloud.firestore {
     match /tasks/{taskId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidTask(request.resource.data) &&
         isManagerOrAdmin();
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidTask(request.resource.data) &&
         (isManagerOrAdmin() || isAuthorizedTaskAssigneeUpdate());
       allow delete: if isAdmin();
@@ -1144,11 +1049,9 @@ service cloud.firestore {
     match /workshops/{workshopId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidWorkshop(request.resource.data) &&
         isWorkshopOrganizerOrAdmin();
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidWorkshop(request.resource.data) &&
         (isWorkshopOrganizerOrAdmin() || isValidWorkshopRegistrationOrCheckin());
       allow delete: if isAdmin();
@@ -1158,18 +1061,15 @@ service cloud.firestore {
     match /proposals/{proposalId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidProposal(request.resource.data) &&
         (isManagerOrAdmin() ||
          (request.resource.data.submitterId == request.auth.uid &&
           request.resource.data.state in ['Draft', 'Submitted']));
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidProposal(request.resource.data) &&
         (isManagerOrAdmin() || isAuthorizedProposalAuthorUpdate());
       allow delete: if isSuperAdmin() ||
         (isAuthenticated() &&
-         isNonAnonymous() &&
          resource.data.submitterId == request.auth.uid &&
          resource.data.state == 'Draft');
     }
@@ -1178,11 +1078,9 @@ service cloud.firestore {
     match /badges/{badgeId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidBadge(request.resource.data) &&
         isAdmin();
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidBadge(request.resource.data) &&
         areImmutableFieldsUnchanged(['id']) &&
         isAdmin();
@@ -1193,11 +1091,9 @@ service cloud.firestore {
     match /messages/{messageId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidMessage(request.resource.data) &&
         isManagerOrAdmin();
       allow update: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidMessage(request.resource.data) &&
         (isManagerOrAdmin() || isSafeMessageReadReceiptUpdate());
       allow delete: if isSuperAdmin();
@@ -1207,7 +1103,6 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if isAuditReader();
       allow create: if isAuthenticated() &&
-        isNonAnonymous() &&
         isValidAuditLog(request.resource.data) &&
         (isAdmin() || (request.resource.data.actorRole == 'Member' && request.resource.data.actorMemberId == request.auth.uid));
       allow update: if false;

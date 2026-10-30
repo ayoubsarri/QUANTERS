@@ -1,8 +1,10 @@
 import {
+  ActionCodeSettings,
+  applyActionCode,
   createUserWithEmailAndPassword,
   getRedirectResult,
+  sendEmailVerification as fbSendEmailVerification,
   sendPasswordResetEmail as fbSendPasswordResetEmail,
-  signInAnonymously,
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
@@ -15,6 +17,7 @@ import {
   googleProvider,
   isFirebaseConfigured,
   FIRESTORE_COLLECTIONS,
+  isSuperAdminEmail,
 } from "./config";
 
 /**
@@ -26,17 +29,18 @@ export function getFirebaseAuth() {
 }
 
 /**
- * Ensures there is an active Firebase Auth session (anonymous or Google/Email)
- * so Cloud Firestore security rules (`request.auth != null`) are satisfied.
+ * Ensures Firebase Auth is initialized and ready.
+ * Does NOT create anonymous accounts so authentication user pool remains clean.
  */
 export async function ensureFirebaseAuthSession(): Promise<boolean> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return false;
   try {
     const fbAuth = getFirebaseAuth();
     if (!fbAuth) return false;
-    if (fbAuth.currentUser) return true;
-    await signInAnonymously(fbAuth);
-    return true;
+    if (typeof (fbAuth as any).authStateReady === "function") {
+      await (fbAuth as any).authStateReady();
+    }
+    return !!fbAuth.currentUser;
   } catch {
     return false;
   }
@@ -75,6 +79,7 @@ export async function checkFirebaseGoogleRedirectResult(): Promise<{
 
 /**
  * Triggers native Google OAuth sign-in via Firebase Authentication (quanters-d0312).
+ * Invoked synchronously within the user click gesture to prevent browser popup blockers.
  * Automatically falls back to redirect sign-in on mobile in-app browsers if popups are blocked.
  */
 export async function signInWithFirebaseGooglePopup(): Promise<{
@@ -97,22 +102,20 @@ export async function signInWithFirebaseGooglePopup(): Promise<{
         message: "Google Sign-In is currently unavailable.",
       };
     }
-
-    // Strict account isolation: explicitly clear any existing Firebase Auth session
-    // so stale credentials or another signed-in Google account never leaks into this attempt
-    if (fbAuth.currentUser) {
-      await fbAuth.signOut().catch(() => {});
+    if (typeof (fbAuth as any).authStateReady === "function") {
+      await (fbAuth as any).authStateReady();
     }
 
+    // Always prompt account selection so the user can choose their desired Google account
     googleProvider.setCustomParameters({ prompt: "select_account" });
 
-    // Strict 25s timeout so Google OAuth never hangs indefinitely on mobile browsers or quota throttles
+    // Strict 35s timeout so Google OAuth never hangs indefinitely on mobile browsers
     const timeoutPromise = new Promise<never>((_, reject) => {
       const timer = setTimeout(() => {
         const timeoutErr = new Error("Google Sign-In timed out. Please check your connection and try again.");
         (timeoutErr as any).code = "auth/timeout";
         reject(timeoutErr);
-      }, 25000);
+      }, 35000);
       if (typeof timer.unref === "function") timer.unref();
     });
 
@@ -298,6 +301,20 @@ export async function createFirebaseEmailPasswordUser(
   try {
     const cred = await createUserWithEmailAndPassword(fbAuth, cleanEmail, cleanPass);
     const user = cred.user;
+
+    // Dispatches the official verification email to the newly registered member's inbox
+    try {
+      const actionCodeSettings: ActionCodeSettings = {
+        url: "https://quanters.web.app/welcome?emailVerified=true",
+        handleCodeInApp: true,
+      };
+      await fbSendEmailVerification(user, actionCodeSettings).catch(async () => {
+        await fbSendEmailVerification(user);
+      });
+    } catch (verErr) {
+      console.warn("[Firebase Auth] Initial email verification dispatch notice:", verErr);
+    }
+
     return {
       ok: true,
       uid: user.uid,
@@ -381,7 +398,15 @@ export async function sendFirebasePasswordReset(
   try {
     const fbAuth = getFirebaseAuth();
     if (fbAuth) {
-      await fbSendPasswordResetEmail(fbAuth, cleanEmail);
+      const actionCodeSettings: ActionCodeSettings = {
+        url: "https://quanters.web.app/welcome?mode=signin",
+        handleCodeInApp: true,
+      };
+      try {
+        await fbSendPasswordResetEmail(fbAuth, cleanEmail, actionCodeSettings);
+      } catch {
+        await fbSendPasswordResetEmail(fbAuth, cleanEmail);
+      }
       return {
         success: true,
         message: `A secure password reset link has been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`,
@@ -402,6 +427,65 @@ export async function sendFirebasePasswordReset(
         friendlyMsg ||
         "Unable to send reset link automatically. Please contact quantaclubdz@gmail.com or hr.quanta@univ-alger.dz.",
     };
+  }
+}
+
+/**
+ * Dispatches an official email verification link to the active user's inbox.
+ */
+export async function sendFirebaseEmailVerification(
+  user?: any
+): Promise<{ success: boolean; message: string; errorCode?: string }> {
+  try {
+    const fbAuth = getFirebaseAuth();
+    const target = user || fbAuth?.currentUser;
+    if (!target) {
+      return {
+        success: false,
+        errorCode: "NO_ACTIVE_USER",
+        message: "No active user session to send verification email.",
+      };
+    }
+    const actionCodeSettings: ActionCodeSettings = {
+      url: "https://quanters.web.app/welcome?emailVerified=true",
+      handleCodeInApp: true,
+    };
+    try {
+      await fbSendEmailVerification(target, actionCodeSettings);
+    } catch {
+      await fbSendEmailVerification(target);
+    }
+    return {
+      success: true,
+      message: `An official verification email has been dispatched to ${target.email}. Please check your inbox and spam folder.`,
+    };
+  } catch (err: any) {
+    const code = String(err?.code || "");
+    return {
+      success: false,
+      errorCode: code || "UNKNOWN",
+      message: formatFirebaseAuthError(code),
+    };
+  }
+}
+
+/**
+ * Verifies an action code from an email verification link (oobCode).
+ */
+export async function verifyEmailActionCode(
+  oobCode: string
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const fbAuth = getFirebaseAuth();
+    if (!fbAuth) return { ok: false, message: "Firebase Authentication is unavailable." };
+    await applyActionCode(fbAuth, oobCode);
+    if (fbAuth.currentUser) {
+      await fbAuth.currentUser.reload().catch(() => {});
+    }
+    return { ok: true, message: "Email address verified successfully!" };
+  } catch (err: any) {
+    const code = String(err?.code || "");
+    return { ok: false, message: formatFirebaseAuthError(code) };
   }
 }
 
@@ -464,23 +548,51 @@ export function resetFirestoreQuotaExhausted(): void {
 
 /**
  * Pulls the latest ERP state snapshot from Cloud Firestore (`erp_state/main`) on quanters-d0312.
+ * Transparently merges partitioned shards (members_shard, history_shard) into the unified state.
  */
 export async function pullErpStateFromFirestore(): Promise<Record<string, any> | null> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
   if (isFirestoreQuotaExhausted()) return null;
   try {
     await ensureFirebaseAuthSession();
-    const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      const data = snap.data() as Record<string, any>;
-      if (Array.isArray(data.members)) {
-        data.members = sanitizeMembersForCloud(data.members);
+    const mainRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
+    const membersShardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "members_shard");
+    const historyShardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "history_shard");
+
+    const [mainSnap, membersSnap, historySnap] = await Promise.all([
+      getDoc(mainRef),
+      getDoc(membersShardRef).catch(() => null),
+      getDoc(historyShardRef).catch(() => null),
+    ]);
+
+    if (!mainSnap.exists()) return null;
+
+    const data = mainSnap.data() as Record<string, any>;
+
+    // Transparently merge members_shard if present (LIMIT-01)
+    if (membersSnap && membersSnap.exists()) {
+      const shardData = membersSnap.data() as Record<string, any>;
+      if (Array.isArray(shardData.members)) {
+        data.members = mergeCollectionArraysById(shardData.members, data.members || [], undefined, "members");
       }
-      lastReceivedCloudSnapshot = data;
-      return data;
     }
-    return null;
+
+    // Transparently merge history_shard if present (LIMIT-01)
+    if (historySnap && historySnap.exists()) {
+      const historyData = historySnap.data() as Record<string, any>;
+      if (Array.isArray(historyData.auditLogs)) {
+        data.auditLogs = mergeCollectionArraysById(historyData.auditLogs, data.auditLogs || [], undefined, "auditLogs");
+      }
+      if (Array.isArray(historyData.ledger)) {
+        data.ledger = mergeCollectionArraysById(historyData.ledger, data.ledger || [], undefined, "ledger");
+      }
+    }
+
+    if (Array.isArray(data.members)) {
+      data.members = sanitizeMembersForCloud(data.members);
+    }
+    lastReceivedCloudSnapshot = data;
+    return data;
   } catch (err: any) {
     const code = String(err?.code || "");
     if (code.includes("resource-exhausted") || code.includes("quota")) {
@@ -489,6 +601,30 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
     }
     return null;
   }
+}
+
+// In-memory deletion lease to guarantee 0ms resurrection prevention & eliminate item blinking
+const recentlyDeletedIdSet = new Set<string>();
+const recentlyDeletedTimestamps = new Map<string, number>();
+const RECENT_DELETION_LEASE_MS = 60000; // 60s lease
+
+export function registerRecentDeletion(id: string) {
+  if (!id) return;
+  recentlyDeletedIdSet.add(id);
+  recentlyDeletedTimestamps.set(id, Date.now());
+}
+
+export function isRecentlyDeleted(id: string): boolean {
+  if (!id) return false;
+  if (recentlyDeletedIdSet.has(id)) {
+    const ts = recentlyDeletedTimestamps.get(id);
+    if (ts && Date.now() - ts < RECENT_DELETION_LEASE_MS) {
+      return true;
+    }
+    recentlyDeletedIdSet.delete(id);
+    recentlyDeletedTimestamps.delete(id);
+  }
+  return false;
 }
 
 const MERGEABLE_ARRAY_KEYS = [
@@ -524,38 +660,61 @@ function mergeCollectionArraysById(
   for (const rItem of remoteList) {
     if (rItem && typeof rItem.id === "string") {
       if (deletedIds && deletedIds.has(rItem.id)) continue;
+      if (isRecentlyDeleted(rItem.id)) continue;
       map.set(rItem.id, rItem);
     }
   }
   for (const lItem of localList) {
     if (lItem && typeof lItem.id === "string") {
       if (deletedIds && deletedIds.has(lItem.id)) continue;
+      if (isRecentlyDeleted(lItem.id)) continue;
       const existingRemote = map.get(lItem.id);
-      if (key === "teams" && existingRemote && Array.isArray(existingRemote.memberIds) && Array.isArray(lItem.memberIds)) {
-        map.set(lItem.id, {
-          ...existingRemote,
-          ...lItem,
-          memberIds: Array.from(new Set([...lItem.memberIds, ...existingRemote.memberIds])),
-        });
-      } else if (key === "workshops" && existingRemote) {
-        map.set(lItem.id, {
-          ...existingRemote,
-          ...lItem,
-          registeredMemberIds: Array.from(
-            new Set([
-              ...(Array.isArray(lItem.registeredMemberIds) ? lItem.registeredMemberIds : []),
-              ...(Array.isArray(existingRemote.registeredMemberIds) ? existingRemote.registeredMemberIds : []),
-            ])
-          ),
-          checkedInMemberIds: Array.from(
-            new Set([
-              ...(Array.isArray(lItem.checkedInMemberIds) ? lItem.checkedInMemberIds : []),
-              ...(Array.isArray(existingRemote.checkedInMemberIds) ? existingRemote.checkedInMemberIds : []),
-            ])
-          ),
-        });
+      if (existingRemote) {
+        // Concurrency reconciliation: Compare updatedAt / statusSince timestamp
+        const remoteTime = existingRemote.updatedAt
+          ? new Date(existingRemote.updatedAt).getTime()
+          : existingRemote.statusSince
+          ? new Date(existingRemote.statusSince).getTime()
+          : 0;
+        const localTime = lItem.updatedAt
+          ? new Date(lItem.updatedAt).getTime()
+          : lItem.statusSince
+          ? new Date(lItem.statusSince).getTime()
+          : 0;
+
+        // If remote has a strictly newer timestamp, remote item wins over stale local write (ARCH-01)
+        if (remoteTime > 0 && localTime > 0 && remoteTime > localTime) {
+          continue;
+        }
+
+        if (key === "teams" && Array.isArray(existingRemote.memberIds) && Array.isArray(lItem.memberIds)) {
+          map.set(lItem.id, {
+            ...existingRemote,
+            ...lItem,
+            memberIds: Array.from(new Set([...lItem.memberIds, ...existingRemote.memberIds])),
+          });
+        } else if (key === "workshops") {
+          map.set(lItem.id, {
+            ...existingRemote,
+            ...lItem,
+            registeredMemberIds: Array.from(
+              new Set([
+                ...(Array.isArray(lItem.registeredMemberIds) ? lItem.registeredMemberIds : []),
+                ...(Array.isArray(existingRemote.registeredMemberIds) ? existingRemote.registeredMemberIds : []),
+              ])
+            ),
+            checkedInMemberIds: Array.from(
+              new Set([
+                ...(Array.isArray(lItem.checkedInMemberIds) ? lItem.checkedInMemberIds : []),
+                ...(Array.isArray(existingRemote.checkedInMemberIds) ? existingRemote.checkedInMemberIds : []),
+              ])
+            ),
+          });
+        } else {
+          map.set(lItem.id, { ...existingRemote, ...lItem });
+        }
       } else {
-        map.set(lItem.id, existingRemote ? { ...existingRemote, ...lItem } : lItem);
+        map.set(lItem.id, lItem);
       }
     }
   }
@@ -590,14 +749,30 @@ export async function pushErpStateToFirestore(
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
   if (isFirestoreQuotaExhausted()) return null;
   try {
-    const fbAuth = getFirebaseAuth();
-    if (!fbAuth || !fbAuth.currentUser || fbAuth.currentUser.isAnonymous) {
-      // Anonymous sessions are strictly read-only (VULN-02)
-      return null;
+    let fbAuth = getFirebaseAuth();
+    if (!fbAuth) return null;
+    if (typeof (fbAuth as any).authStateReady === "function") {
+      await (fbAuth as any).authStateReady();
+    }
+    if (!fbAuth.currentUser) {
+      await ensureFirebaseAuthSession().catch(() => {});
+      fbAuth = getFirebaseAuth();
     }
 
     const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
     const sanitizedPayload: Record<string, any> = { ...payload };
+
+    // Strip administrative governance keys ONLY if explicitly marked as restricted member write
+    const userEmail = (fbAuth?.currentUser?.email || payload._actorEmail || "").toLowerCase();
+    const isUserAdmin = isSuperAdminEmail(userEmail) || payload._isAdmin === true;
+    if (!isUserAdmin && payload._isRestrictedMemberWrite === true) {
+      delete sanitizedPayload.settings;
+      delete sanitizedPayload.accessGrants;
+      delete sanitizedPayload.pointRules;
+      delete sanitizedPayload.departments;
+      delete sanitizedPayload.auditLogs;
+      delete sanitizedPayload.grievances;
+    }
 
     // 1. Strip plaintext passwords & cap oversized inline avatars (VULN-01 & LIMIT-01)
     if (Array.isArray(sanitizedPayload.members)) {
@@ -616,7 +791,8 @@ export async function pushErpStateToFirestore(
           remoteArr.length > 0
             ? mergeCollectionArraysById(remoteArr, sanitizedPayload[key], delSet, key)
             : sanitizedPayload[key].filter(
-                (item: any) => !item || !item.id || !delSet.has(item.id)
+                (item: any) =>
+                  !item || !item.id || (!delSet.has(item.id) && !isRecentlyDeleted(item.id))
               );
       }
     }
@@ -674,6 +850,22 @@ export async function pushErpStateToFirestore(
 
     await setDoc(ref, cleanPayload, { merge: true });
 
+    // Always mirror members to partitioned members_shard (LIMIT-01)
+    if (Array.isArray(cleanPayload.members) && cleanPayload.members.length > 0) {
+      const membersShardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "members_shard");
+      setDoc(
+        membersShardRef,
+        JSON.parse(
+          JSON.stringify({
+            shardId: "members_shard",
+            updatedAt: nowIso,
+            members: cleanPayload.members,
+          })
+        ),
+        { merge: true }
+      ).catch(() => {});
+    }
+
     // Update in-memory baseline with merged fields
     lastReceivedCloudSnapshot = {
       ...(lastReceivedCloudSnapshot || {}),
@@ -725,7 +917,24 @@ export async function subscribeToErpStateFirestore(
         if (snap.exists() && !snap.metadata.hasPendingWrites) {
           const data = snap.data() as Record<string, any>;
           if (Array.isArray(data.members)) {
-            data.members = sanitizeMembersForCloud(data.members);
+            data.members = sanitizeMembersForCloud(data.members).filter(
+              (m: any) => !isRecentlyDeleted(m?.id)
+            );
+          }
+          if (Array.isArray(data.workshops)) {
+            data.workshops = data.workshops.filter(
+              (w: any) => !isRecentlyDeleted(w?.id)
+            );
+          }
+          if (Array.isArray(data.messages)) {
+            data.messages = data.messages.filter(
+              (m: any) => !isRecentlyDeleted(m?.id)
+            );
+          }
+          if (Array.isArray(data.tasks)) {
+            data.tasks = data.tasks.filter(
+              (t: any) => !isRecentlyDeleted(t?.id)
+            );
           }
           lastReceivedCloudSnapshot = data;
           onUpdate(data);

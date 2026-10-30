@@ -32,9 +32,12 @@ const PROPOSAL_STATES: ProposalState[] = [
 export default function AdminProposalsPage() {
   const proposals = useQuantersStore((s) => s.proposals);
   const reviewProposal = useQuantersStore((s) => s.reviewProposal);
+    const members = useQuantersStore((s) => s.members);
+  const currentMemberId = useQuantersStore((s) => s.currentMemberId);
 
+  
   const [typeFilter, setTypeFilter] = useState<string>("All");
-  const [stateFilter, setStateFilter] = useState<string>("All");
+  const [stateFilter, setStateFilter] = useState<ProposalState>("Submitted");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [reviewingProposal, setReviewingProposal] = useState<Proposal | null>(null);
@@ -43,7 +46,7 @@ export default function AdminProposalsPage() {
 
   const filteredProposals = proposals.filter((p) => {
     const matchesType = typeFilter === "All" || p.type === typeFilter;
-    const matchesState = stateFilter === "All" || p.state === stateFilter;
+    const matchesState = p.state === stateFilter;
     const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.submitterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -136,7 +139,7 @@ export default function AdminProposalsPage() {
 
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-xs font-bold text-slate-500 mr-1">State:</span>
-              {["All", ...PROPOSAL_STATES].map((st) => (
+              {PROPOSAL_STATES.map((st) => (
                 <button
                   key={st}
                   type="button"
@@ -203,13 +206,7 @@ export default function AdminProposalsPage() {
                     <span className="text-xs text-slate-400 tabular-nums">{prop.createdAt}</span>
                   </div>
 
-                  {isLawAmendment && (
-                    <div className="px-3 py-2 rounded-xl bg-[#FEF3C7] border border-amber-300 text-[#B45309] text-xs font-extrabold flex items-center gap-2">
-                      <Scale className="w-4 h-4 shrink-0" />
-                      <span>Executive Board Review</span>
-                    </div>
-                  )}
-
+                  
                   <div>
                     <h3 className="text-base font-extrabold text-[#0F1E36]">{prop.title}</h3>
                     <p className="text-xs text-slate-600 mt-1">{prop.description}</p>
@@ -317,43 +314,46 @@ export default function AdminProposalsPage() {
                 />
               </div>
 
+              
               <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  disabled={!reviewComment.trim()}
-                  onClick={() => handleDecision("Rejected", false)}
-                  className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
-                >
-                  Reject
-                </button>
-                <button
-                  type="button"
-                  disabled={!reviewComment.trim()}
-                  onClick={() => handleDecision("Changes Requested", false)}
-                  className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
-                >
-                  Request Changes
-                </button>
-                <button
-                  type="button"
-                  disabled={!reviewComment.trim()}
-                  onClick={() => handleDecision("Approved", false)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
-                >
-                  Approve {reviewingProposal.type}
-                </button>
-
-                {reviewingProposal.type === "Workshop" && (
-                  <button
-                    type="button"
-                    disabled={!reviewComment.trim()}
-                    onClick={() => handleDecision("Approved", true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-extrabold shadow-sm disabled:opacity-40 cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Approve &amp; Publish Workshop</span>
-                  </button>
-                )}
+                <>
+                    <button
+                      type="button"
+                      disabled={!reviewComment.trim()}
+                      onClick={() => handleDecision("Rejected", false)}
+                      className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!reviewComment.trim()}
+                      onClick={() => handleDecision("Changes Requested", false)}
+                      className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!reviewComment.trim()}
+                      onClick={() => handleDecision("Approved", false)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
+                    >
+                      Approve {reviewingProposal.type}
+                    </button>
+                    {(reviewingProposal.type === "Workshop" ||
+                      reviewingProposal.type === "Activity") && (
+                      <button
+                        type="button"
+                        disabled={!reviewComment.trim()}
+                        onClick={() => handleDecision("Approved", true)}
+                        className="px-4 py-2 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Approve & Convert to Workshop</span>
+                      </button>
+                    )}
+                  </>
               </div>
             </div>
           </div>

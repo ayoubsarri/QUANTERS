@@ -69,7 +69,9 @@ export default function AdminFormerMembersPage() {
     reactivateFormerMember(
       reactivatingMember.id,
       reactivateStatus,
-      `Reactivated to ${deptName}: ${reactivateReason.trim()}`
+      `Reactivated to ${deptName}: ${reactivateReason.trim()}`,
+      targetDeptId,
+      targetTeamId
     );
     setToastMsg(`Successfully reactivated ${reactivatingMember.fullName} as ${reactivateStatus}!`);
     setReactivatingMember(null);
