@@ -41,3 +41,7 @@ next-env.d.ts
 # security & sensitive configs
 identity_toolkit_config.json
 
+# scratch & temporary audit scripts
+scratch/
+
+

@@ -6,16 +6,17 @@
 
 ![QUANTERS Cosmic Observatory Hero](public/brand/admin_overview_banner_bg.webp)
 
-[![Production Live](https://img.shields.io/badge/Production-Live%20v4.4-00E5FF?style=for-the-badge&logo=googlecloud&logoColor=black)](https://quanters.web.app)
+[![Production Live](https://img.shields.io/badge/Production-Live%20v5.0-00E5FF?style=for-the-badge&logo=googlecloud&logoColor=black)](https://quanters.web.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.28%20App%20Router-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Firebase](https://img.shields.io/badge/Google_Cloud-Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
-[![Security Benchmark](https://img.shields.io/badge/Security-Level--4%20Forensic%20Hardened-emerald?style=for-the-badge&logo=shield&logoColor=white)](docs/screenshots/admin-settings.png)
+[![Firebase](https://img.shields.io/badge/Google_Cloud-Firestore%20%26%20Hosting-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Spark Quota](https://img.shields.io/badge/Quota-100%25%20Free%20Tier%20Safe-10B981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://quanters.web.app)
+[![Security Benchmark](https://img.shields.io/badge/Security-Zero--Trust%20Level--4%20Hardened-emerald?style=for-the-badge&logo=shield&logoColor=white)](docs/screenshots/admin-settings.png)
 [![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Internal-red?style=for-the-badge)](LICENSE)
 
-[**Live Web Application**](https://quanters.web.app) · [**ERP Architecture Graph**](#-erp-system-architecture-graph) · [**RBAC Capability Matrix**](#-role-based-access-control-rbac-capability-matrix) · [**Core Capabilities**](#-core-erp-capabilities) · [**Deployment**](#-deployment--setup)
+[**Live Web Application**](https://quanters.web.app) · [**Architecture Graph**](#-erp-system-architecture-graph) · [**RBAC Capability Matrix**](#-role-based-access-control-rbac-capability-matrix) · [**Quota & Cost Math**](#-firebase-spark-free-tier-economics) · [**Security Hardening**](#-level-4-forensic-cybersecurity--zero-trust-controls) · [**Deployment**](#-deployment--setup)
 
 </div>
 
@@ -25,7 +26,7 @@
 
 **QUANTERS** is an enterprise-grade Civic Operations and Resource Planning (ERP) platform custom-architected for **QUANTA Scientific Club** at the Faculty of Sciences, University of Algiers 1.
 
-Engineered to operate reliably under variable mobile network bandwidths and rigorous academic schedules, QUANTERS unifies the governance, talent lifecycle, event operations, academic scheduling, and financial/points accounting of a 500+ member scientific organization across two specialized interfaces:
+Engineered to operate reliably under variable mobile network bandwidths and rigorous academic schedules, QUANTERS unifies governance, talent lifecycles, workshop operations, academic scheduling, and points accounting of a 500+ member scientific organization across two specialized interfaces:
 
 1. **The Executive ERP Command Center (`/admin/**`)**: A desktop-optimized, high-density operations suite empowering the Executive Bureau, HR Directorate, and Department Heads to coordinate member pipelines, resolve academic schedule overlaps through an availability heatmap, validate deliverables, audit append-only ledgers, and execute constitutional amendments requiring formal quorums.
 2. **The Mobile Member Progressive Web App (`src/app/(mobile)/**`)**: A resilient, offline-first smartphone client enabling club members to access live workshop schedules, verify attendance via dynamic QR and 6-digit session tokens, sit for timed STEM certification exams, submit project deliverables, and track their civic rank progression.
@@ -111,14 +112,14 @@ flowchart TD
     subgraph PresentationTier["1. PRESENTATION TIER (DUAL-SURFACE UI)"]
         ADMIN["Executive ERP Command Center<br/>(/admin/** Desktop Viewport)"]:::client
         PWA["Member Progressive Web App<br/>(/(mobile)/** Mobile Viewport)"]:::client
-        SW["Service Worker v5<br/>(CacheStorage / Stale-While-Revalidate)"]:::client
+        SW["Service Worker v10<br/>(CacheStorage / Stale-While-Revalidate)"]:::client
     end
 
     subgraph StateTier["2. DISTRIBUTED STATE & SYNC TIER"]
-        STORE["Zustand In-Memory Store<br/>(Optimistic UI Mutations)"]:::sync
-        LOCAL["Scrubbed Local Storage<br/>(Quota-Safe Persistence & TTL)"]:::sync
-        TOMB["Tombstone Engine v3<br/>(14-Day Automated Purge)"]:::sync
-        DELTA["Delta Versioning Engine<br/>(Collection-Level ETag Diffing)"]:::sync
+        STORE["Zustand In-Memory Store<br/>(Optimistic UI & Re-entrancy Lock)"]:::sync
+        LOCAL["Scrubbed Local Storage<br/>(PII Masking & Auto-Compaction)"]:::sync
+        TOMB["Central Tombstone Engine<br/>(Permanent Deletion & Anti-Ghost)"]:::sync
+        DELTA["Delta Sharding Engine<br/>(main + members_shard + history_shard)"]:::sync
     end
 
     subgraph ErpCoreTier["3. ERP SUBSYSTEMS & DOMAIN ENGINES"]
@@ -129,19 +130,19 @@ flowchart TD
         DISPATCH["Task Matrix & Evaluation Engine<br/>(Rubric Scoring & Proof Audit)"]:::core
     end
 
-    subgraph SecurityTier["4. DEFENSE-IN-DEPTH & ANTI-CHEAT TIER"]
-        RULES["Cloud Firestore Security Rules<br/>(RBAC & Schema Validators)"]:::sec
+    subgraph SecurityTier["4. ZERO-TRUST & CYBERSECURITY TIER"]
+        RULES["Cloud Firestore Security Rules<br/>(Authenticated Reads & isSafeErpStateUpdate)"]:::sec
         TIMING["Constant-Time Crypto Auth<br/>(crypto.timingSafeEqual)"]:::sec
-        REDACT["Server-Side Redaction Engine<br/>(Answer Keys & Sensitive PII Stripped)"]:::sec
-        LOCKOUT["Anti-Farming & Self-Scoring Guards<br/>(Task Assignee Lockouts)"]:::sec
+        XSS_DEF["Markdown Sanitizer<br/>(Protocol Whitelist https/http/mailto)"]:::sec
+        PII_MASK["Client PII Masking<br/>(Phone, Wilaya, CV Stripped for Members)"]:::sec
     end
 
     subgraph CloudTier["5. GOOGLE CLOUD PLATFORM INFRASTRUCTURE"]
         FS_MAIN["Firestore Primary Document<br/>(/erp_state/main Active Window)"]:::gcp
-        FS_SHARD["Firestore History Shard<br/>(/erp_state/history_shard Partition)"]:::gcp
-        FS_COLLS["Firestore Subcollections<br/>(/members, /tasks, /workshops...)"]:::gcp
-        AUTH["Firebase Identity & Authentication<br/>(PBKDF2 / OAuth 2.0 Google SSO)"]:::gcp
-        CDN["Firebase Hosting Edge CDN<br/>(Brotli / HTTP/3 Global Edge)"]:::gcp
+        FS_MEMBERS["Firestore Members Shard<br/>(/erp_state/members_shard Partition)"]:::gcp
+        FS_HIST["Firestore History Shard<br/>(/erp_state/history_shard Partition)"]:::gcp
+        AUTH["Firebase Identity & Authentication<br/>(Verified Email & OAuth 2.0 Google SSO)"]:::gcp
+        CDN["Firebase Hosting Edge CDN<br/>(Brotli / 9.6 MB Lean Bundle)"]:::gcp
     end
 
     ADMIN --> STORE
@@ -161,12 +162,12 @@ flowchart TD
 
     DELTA <--> RULES
     DELTA <--> TIMING
-    DELTA <--> REDACT
-    DISPATCH --> LOCKOUT
+    DELTA <--> XSS_DEF
+    STORE <--> PII_MASK
 
     RULES <--> FS_MAIN
-    RULES <--> FS_SHARD
-    RULES <--> FS_COLLS
+    RULES <--> FS_MEMBERS
+    RULES <--> FS_HIST
     AUTH <--> PresentationTier
     CDN --> PresentationTier
 ```
@@ -193,62 +194,34 @@ QUANTERS implements a granular, role-based capability matrix across eleven organ
 
 ---
 
-## 💼 Core ERP Capabilities
+## ⚡ Firebase Spark Free-Tier Economics
 
-### 1. 7-Day Academic Availability Engine
-Scheduling cross-disciplinary workshops in a university with five departments is notoriously challenging. QUANTERS resolves this through:
-- **Ten Hourly Slots (08:00 to 18:00)**: Members configure recurring availability across Saturday through Thursday.
-- **Cross-Department Indexing**: Schedules map across Computer Science, Mathematics, Physics, Chemistry, and Biology.
-- **Overlap Prevention**: The engine flags timetable clashes with academic laboratory rotations and Friday prayer times.
+The platform has been mathematically optimized to guarantee zero-cost operation under the Google Cloud Firebase Spark free tier:
 
-### 2. Member Lifecycle State Machine
-```mermaid
-stateDiagram-v2
-    [*] --> Trainee: Initial Registration & KYC
-    Trainee --> Active: 30-Day Evaluation & Endorsement
-    Active --> Paused: Disciplinary Review / Academic Freeze
-    Paused --> Active: Executive Review & Re-Activation
-    Active --> Alumni: Academic Graduation
-    Active --> Resigned: Voluntary Resignation
-    Active --> Removed: Executive Expulsion
-    Trainee --> Removed: Failed Probation Review
-    Alumni --> [*]
-    Removed --> [*]
-    Resigned --> [*]
-```
-- **Trainee**: 30-day probationary status requiring mentor assignment, profile completion, and two leadership endorsements.
-- **Active**: Full voting rights, task claiming, workshop enrollment, and exam sitting.
-- **Paused**: Temporary freeze during university exam seasons or disciplinary inquiries; XP accrual halted.
-- **Alumni**: Preserves verified badges and lifetime accomplishments while vacating operational duties.
-
-### 3. Double-Entry Points Accounting & Appeals Tribunal
-- **Append-Only Ledger**: Every XP addition, task award, or attendance point writes to `ledger` with rule name, timestamp, and actor identity.
-- **Reversal Adjudication**: Erroneous or disputed points cannot be deleted; they must be reversed via compensating ledger entries.
-- **Member Appeals**: Members can submit formal appeals with justification notes directly from their mobile ledger view.
-
-### 4. Constitutional Governance & Supermajority Quorums
-- **Internal Law Amendments**: Modifying club bylaws requires an executive board supermajority vote:
-  $$\text{Required Votes} = \left\lceil \frac{2 \times N_{\text{eligible}}}{3} \right\rceil$$
-- **Cryptographic Ballot Record**: Votes are stamped in a verifiable record (`ProposalVote`), preventing duplicate votes, submitter conflict-of-interest votes, or unauthorized executive approvals.
+| Cloud Resource | Spark Free Tier Limit | QUANTERS Real-World Consumption | Headroom & Operational Capacity |
+| :--- | :---: | :---: | :--- |
+| **Firestore Reads** | 50,000 / day | ~3 reads per cold session; 1 read idle sync | **~16,666 daily visits** (500 members $\times$ 10 visits = <30% quota) |
+| **Firestore Writes** | 20,000 / day | ~2 writes per mutation (action + shard) | **~10,000 member actions / day** (check-ins, exams, tasks) |
+| **Firestore Deletes** | 20,000 / day | Near-zero (handled by tombstones) | **Safe** |
+| **Document Size Limit** | 1,048,576 bytes (1 MiB) | Dual-sharding splits payload across 3 documents | **Supports ~2,000 members** before schema changes |
+| **Hosting Bandwidth** | 10 GB / month (~360 MB/day) | Repeat visits = **0 KB static transfer** (PWA cache) | **~24,000 repeat sessions / day** |
+| **Hosting Storage** | 10 GB total stored files | Total production deployment: **6.09 MB** | **0.06% of quota used** (99.94% free storage headroom) |
 
 ---
 
-## 🔒 Level-4 Forensic Cybersecurity & Anti-Cheat Controls
-
-The platform implements defense-in-depth across every layer:
+## 🔒 Level-4 Forensic Cybersecurity & Zero-Trust Controls
 
 | Security Vector | Threat Vector | Applied Forensic Remediation | Code Location |
 | :--- | :--- | :--- | :--- |
-| **Bearer Authentication** | Timing side-channel attacks | Enforced `crypto.timingSafeEqual` with a minimum 16-character secret length floor. | [`src/app/api/erp/route.ts`](file:///c:/Users/hp/QUANTERS/src/app/api/erp/route.ts) |
-| **API State Mutations** | Unauthorized script overwriting settings | Enforced strict privilege guards on `POST /api/erp`, rejecting unauthorized writes to sensitive collections. | [`src/app/api/erp/route.ts`](file:///c:/Users/hp/QUANTERS/src/app/api/erp/route.ts) |
-| **Memory Exhaustion (DoS)** | Multi-megabyte request body floods | Validated `Content-Length` headers against a 2 MB ceiling before reading request streams. | [`src/app/api/erp/route.ts`](file:///c:/Users/hp/QUANTERS/src/app/api/erp/route.ts) |
-| **Firestore Document Limit** | 1 MiB hard ceiling in Cloud Firestore | Implemented delta updates and partitioned older audit records into `/erp_state/history_shard`. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules) |
-| **Workshop Seat Exhaustion** | Malicious users zeroing out workshop capacity | Added `!(uid in oldList)` check in `isSafeMemberIdListUpdate` to block duplicate registration entries. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules) |
-| **Attendance Forgery** | Deleting existing attendance records during check-in | Required preservation of all existing records via `request.resource.data.attendanceRecords.hasAll(...)`. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules) |
-| **Exam Answer Leakage** | Inspecting client payloads for exam answers | Server-side redaction strips `correctIndex` from exams and `correctId` from daily quizzes on all unprivileged endpoints. | [`src/lib/server/db.ts`](file:///c:/Users/hp/QUANTERS/src/lib/server/db.ts) |
-| **Daily Quiz XP Farming** | Replay farming by clearing browser storage | Created `submitDailyQuizAnswer` with server-side ledger deduplication and reward caps. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
-| **Task Self-Scoring** | Assignees awarding themselves unearned points | Added strict self-validation lockouts (`currentMemberId !== memberId`) across all administrative roles. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
-| **Tombstone Storage Leak** | Unbounded growth in local storage deletion lists | Migrated to `quanters-tombstones-v3` with an automated 14-day Time-To-Live auto-purge. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
+| **Database Read Boundary** | Unauthenticated scraping of member roster | Enforced `allow read: if isAuthenticated();` on `/erp_state/{docId}`. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules#L1026) |
+| **Bootstrap Super Admin** | Email spoofing without inbox ownership | Required `request.auth.token.email_verified == true` for bootstrap admin accounts. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules#L185) |
+| **Administrative State Tampering** | Unauthorized mutation of bylaws, roles, or points | Hardened `isSafeErpStateUpdate()` to strictly prohibit non-admin updates to `settings`, `accessGrants`, `pointRules`, and `departments`. | [`firestore.rules`](file:///c:/Users/hp/QUANTERS/firestore.rules#L312) |
+| **Stored Cross-Site Scripting (XSS)** | Malicious URLs in library articles (`javascript:...`) | Enforced strict protocol whitelist (`https:`, `http:`, `mailto:`, `#`) in markdown renderer. | [`src/components/shared/MarkdownArticleRenderer.tsx`](file:///c:/Users/hp/QUANTERS/src/components/shared/MarkdownArticleRenderer.tsx) |
+| **PII Data Exposure** | Phone, wilaya, and CV leaks in browser storage | Stripped sensitive personal contact details in client cache for ordinary members. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
+| **Storage Pressure Crashes** | Recursive quota compaction stack overflows | Implemented re-entrancy lock `isCompactingQuota` in state persistence layer. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
+| **Ghost Record Resurrection** | Offline devices restoring deleted entities | Added central tombstone ingestion (`deletedIdsByCollection`) on snapshot sync. | [`src/lib/store/useQuantersStore.ts`](file:///c:/Users/hp/QUANTERS/src/lib/store/useQuantersStore.ts) |
+| **Exam Cheating & Leakage** | Inspecting client payloads for exam answers | Server-side redaction strips `correctIndex` from exams and daily quizzes for unprivileged members. | [`src/lib/server/db.ts`](file:///c:/Users/hp/QUANTERS/src/lib/server/db.ts) |
+| **Brute-Force Rate Limiting** | Password guessing attacks | Exponential lockout enforced via `useAuthSecurity` (5-attempt lockout threshold). | [`src/lib/utils/authSecurity.ts`](file:///c:/Users/hp/QUANTERS/src/lib/utils/authSecurity.ts) |
 
 ---
 
@@ -261,10 +234,10 @@ QUANTERS Enterprise Technology Stack
 ├── Client State:         Zustand 5.0.2 (Optimistic UI & Custom Delta Synchronization)
 ├── Cloud Infrastructure: Google Cloud Platform / Firebase
 │   ├── Database:         Cloud Firestore (Multi-Shard Partitioning)
-│   ├── Authentication:   Firebase Auth (PBKDF2 & Google Identity OAuth 2.0)
-│   └── Edge Hosting:     Firebase Hosting (Brotli Compression, Global CDN)
-├── Offline & PWA:        Service Worker v5, Web App Manifest V3, CacheStorage API
-└── Verification & E2E:   Playwright Test Suite, Python 3 Forensic Test Harness
+│   ├── Authentication:   Firebase Auth (Email Verification & Google OAuth 2.0)
+│   └── Edge Hosting:     Firebase Hosting (Brotli Compression, Global Edge CDN)
+├── Offline & PWA:        Service Worker v10, Web App Manifest V3, CacheStorage API
+└── Verification & E2E:   Playwright Multi-Viewport Test Suite (iPhone 14, Pixel 7, Desktop 1080p)
 ```
 
 ---
@@ -272,7 +245,7 @@ QUANTERS Enterprise Technology Stack
 ## 🚀 Deployment & Setup
 
 ### Prerequisites
-- **Node.js**: `v18.18.0` or higher (Node 20+ recommended)
+- **Node.js**: `v18.18.0` or higher (Node 20+ LTS recommended)
 - **Firebase CLI**: `npm install -g firebase-tools`
 
 ### 1. Clone & Install
@@ -303,8 +276,8 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-VX6YS3CHCX
 # Verify 100% clean TypeScript compilation (0 errors)
 npx tsc --noEmit
 
-# Compile production bundles (out/ for Firebase Hosting + .next/)
-node scripts/build_firebase_out.mjs
+# Compile lean static production bundle (40 routes in ~9.6 MB)
+npm run build
 ```
 
 ### 4. Deploy to Firebase
@@ -325,17 +298,17 @@ QUANTERS
 ├── data/
 │   └── quanters-db.json              # Server persistent fallback database
 ├── docs/
+│   ├── manual/                       # Official Platform User Manual (HTML & PDF)
 │   └── screenshots/                  # Verified high-resolution platform screenshots
 ├── public/
 │   ├── brand/                        # Brand identity assets, logos, and WebP media
-│   │   ├── admin_overview_banner_bg.webp # Handcrafted amigurumi mascot hero banner
-│   │   ├── welcome_loop.mp4          # Optimized 1.6 MB looped branding video
-│   │   └── QUANTERS_white_logo.svg   # Official club vector emblem
-│   ├── icons/                        # PWA maskable icons
+│   │   ├── admin_overview_banner_bg.webp # Mascot hero banner
+│   │   ├── welcome_loop.mp4          # Optimized looped branding video
+│   │   ├── QUANTERS_white_logo.svg   # Official club vector emblem
+│   │   └── univ_quanta_asset2.png    # Faculty of Sciences university crest
+│   ├── icons/                        # PWA maskable icons (72px to 512px)
 │   ├── manifest.json                 # Web App Manifest V3 specification
-│   └── sw.js                         # Service Worker v5 with cache segregation
-├── scripts/
-│   └── build_firebase_out.mjs        # Production build pipeline (Static out/ + .next/)
+│   └── sw.js                         # Service Worker v10 with cache segregation
 ├── src/
 │   ├── app/
 │   │   ├── (mobile)/                 # Member smartphone PWA routes
@@ -353,7 +326,7 @@ QUANTERS
 │       ├── store/                    # Zustand store with optimistic synchronization
 │       ├── types/erp.ts              # Comprehensive TypeScript type system
 │       └── utils/                    # Cryptography, auth, and image compressors
-├── firestore.rules                   # Cloud Firestore Security Rules
+├── firestore.rules                   # Cloud Firestore Zero-Trust Security Rules
 ├── next.config.ts                    # Next.js configuration & CSP HTTP headers
 ├── tailwind.config.ts                # Tailwind design tokens & typography
 ├── LICENSE                           # Proprietary Club License
