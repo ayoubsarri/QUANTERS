@@ -771,7 +771,6 @@ export async function pushErpStateToFirestore(
       delete sanitizedPayload.pointRules;
       delete sanitizedPayload.departments;
       delete sanitizedPayload.auditLogs;
-      delete sanitizedPayload.grievances;
     }
 
     // 1. Strip plaintext passwords & cap oversized inline avatars (VULN-01 & LIMIT-01)

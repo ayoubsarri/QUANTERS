@@ -112,7 +112,7 @@ export default function AdminAuditPage() {
   };
 
   return (
-    <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
+    <div className="space-y-4 max-w-[1500px] mx-auto">
       {/* Header — Member App Editorial Style */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
         <div>

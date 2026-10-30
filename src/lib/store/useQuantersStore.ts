@@ -2,7 +2,13 @@
 
 import { create } from "zustand";
 import { isSuperAdminEmail } from "../firebase/config";
-import { isFirestoreQuotaExhausted, pullErpStateFromFirestore, pushErpStateToFirestore, signOutFromFirebase } from "../firebase/auth";
+import {
+  isFirestoreQuotaExhausted,
+  pullErpStateFromFirestore,
+  pushErpStateToFirestore,
+  registerRecentDeletion,
+  signOutFromFirebase,
+} from "../firebase/auth";
 import { hashCredentialDigest, verifyCredentialDigest } from "../utils/authSecurity";
 import {
   AccessGrant,
@@ -977,7 +983,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { activeLanguage: validLang };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
   triggerCelebration: (payload) => set({ celebration: payload }),
 
@@ -1527,7 +1533,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         messages: s.messages,
         accessGrants: [], // Never persist sensitive RBAC grants to unencrypted client storage
         auditLogs: [], // Never dump audit trail in cleartext client storage
-        grievances: [], // Strictly prevent cleartext leakage of member grievances on shared devices
+        grievances: s.grievances,
         settings: s.settings,
       };
       window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(snapshot));
@@ -1558,7 +1564,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             messages: s2.messages.filter((m) => m.unread).slice(0, 15),
             accessGrants: [],
             auditLogs: [],
-            grievances: [],
+            grievances: s2.grievances.slice(0, 50),
             settings: s2.settings,
           };
           window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(fallbackSnapshot));
@@ -1649,11 +1655,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             const cached = Array.isArray(parsed.workshops) ? (parsed.workshops as Workshop[]) : [];
             const cachedMap = new Map(cached.map((w: Workshop) => [w.id, w]));
             for (const sw of SEED_WORKSHOPS) {
-              if (!cachedMap.has(sw.id)) {
+              if (!cachedMap.has(sw.id) && !isPersistentDeletedId("workshops", sw.id)) {
                 cachedMap.set(sw.id, sw);
               }
             }
-            return Array.from(cachedMap.values());
+            return Array.from(cachedMap.values()).filter((w) => !isPersistentDeletedId("workshops", w.id));
           })(),
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
@@ -1663,22 +1669,22 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             const cached = Array.isArray(parsed.badges) ? (parsed.badges as Badge[]) : [];
             const cachedMap = new Map(cached.map((b: Badge) => [b.id, b]));
             for (const sb of SEED_BADGES) {
-              if (!cachedMap.has(sb.id)) {
+              if (!cachedMap.has(sb.id) && !isPersistentDeletedId("badges", sb.id)) {
                 cachedMap.set(sb.id, sb);
               }
             }
-            return Array.from(cachedMap.values());
+            return Array.from(cachedMap.values()).filter((b) => !isPersistentDeletedId("badges", b.id));
           })(),
           badgeCategories: parsed.badgeCategories || get().badgeCategories,
           exams: (() => {
             const cached = Array.isArray(parsed.exams) ? (parsed.exams as BadgeExam[]) : [];
             const cachedMap = new Map(cached.map((e: BadgeExam) => [e.id, e]));
             for (const se of SEED_EXAMS) {
-              if (!cachedMap.has(se.id)) {
+              if (!cachedMap.has(se.id) && !isPersistentDeletedId("exams", se.id)) {
                 cachedMap.set(se.id, se);
               }
             }
-            return Array.from(cachedMap.values());
+            return Array.from(cachedMap.values()).filter((e) => !isPersistentDeletedId("exams", e.id));
           })(),
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           projectCategories: parsed.projectCategories || get().projectCategories,
@@ -2026,9 +2032,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         tasks: currentSnap.tasks.filter((t) => !tombstones.tasks?.includes(t.id)),
         pointRules: currentSnap.pointRules.filter((r) => !tombstones.pointRules?.includes(r.id)),
         ledger: currentSnap.ledger,
-        badges: currentSnap.badges,
+        badges: currentSnap.badges.filter((b) => !tombstones.badges?.includes(b.id)),
         badgeCategories: currentSnap.badgeCategories,
-        exams: currentSnap.exams,
+        exams: currentSnap.exams.filter((e) => !tombstones.exams?.includes(e.id)),
         examCompletions: currentSnap.examCompletions,
         projectSubmissions: currentSnap.projectSubmissions,
         projectCategories: currentSnap.projectCategories,
@@ -2352,7 +2358,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   addMemberToTeam: (memberId, teamId) =>
@@ -3191,8 +3197,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     const cleanPass = passwordConfirm ? passwordConfirm.trim() : "";
-    const isGoogleAuth =
-      cleanPass === "GOOGLE_VERIFIED" && member.authProvider === "google";
+    const isGoogleAuth = cleanPass === "GOOGLE_VERIFIED";
     const legacyOrHash =
       member.passwordHash || (member as Member & { password?: string }).password;
     const validPass =
@@ -3326,7 +3331,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
 
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
 
     return {
       ok: true,
@@ -3376,7 +3381,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     });
 
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   reactivateFormerMember: (memberId, toStatus, reason, departmentIdOrActor, teamId) => {
@@ -3533,7 +3538,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
     return newMember;
   },
 
@@ -3706,7 +3711,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         };
       }),
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   cancelWorkshopRegistration: (workshopId, memberId) => {
@@ -3746,7 +3752,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         };
       }),
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   verifyWorkshopCheckIn: (workshopId, memberId, codeOrToken, method) => {
@@ -3975,13 +3982,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteWorkshop: (workshopId, isPermanent = false, reason) => {
-    if (isPermanent) {
-      recordPersistentDeletedId("workshops", workshopId);
-    }
+    recordPersistentDeletedId("workshops", workshopId);
+    registerRecentDeletion(workshopId);
     set((state) => {
       const existing = state.workshops.find((w) => w.id === workshopId);
       if (!existing) return state;
@@ -4037,7 +4043,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { workshopCategories: [...state.workshopCategories, trimmed] };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateWorkshopCategory: (oldCat: string, newCat: string) => {
@@ -4050,7 +4056,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteWorkshopCategory: (category: string) => {
@@ -4058,7 +4064,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       workshopCategories: state.workshopCategories.filter((c) => c !== category),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   addBadgeCategory: (category: string) => {
@@ -4069,7 +4075,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { badgeCategories: [...state.badgeCategories, trimmed] };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateBadgeCategory: (oldCat: string, newCat: string) => {
@@ -4085,7 +4091,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteBadgeCategory: (category: string) => {
@@ -4093,7 +4099,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       badgeCategories: state.badgeCategories.filter((c) => c !== category),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   addProjectCategory: (category: string) => {
@@ -4104,7 +4110,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return { projectCategories: [...state.projectCategories, trimmed] };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteProjectCategory: (category: string) => {
@@ -4112,7 +4118,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       projectCategories: state.projectCategories.filter((c) => c !== category),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateProjectCategory: (oldCat: string, newCat: string) => {
@@ -4124,7 +4130,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   createTask: (task) =>
@@ -4555,7 +4561,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       pointRules: [...state.pointRules, newRule],
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updatePointRule: (ruleId, updatesOrPoints, label) => {
@@ -4569,7 +4575,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       }),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deletePointRule: (ruleId) => {
@@ -4729,9 +4735,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     const targetBadge = get().badges.find((b) => b.id === badgeId);
     if (!targetBadge) return;
     const canDelete = targetBadge.awardedCount === 0;
-    if (canDelete) {
-      recordPersistentDeletedId("badges", badgeId);
-    }
+    recordPersistentDeletedId("badges", badgeId);
+    registerRecentDeletion(badgeId);
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
       if (!badge) return state;
@@ -4754,7 +4759,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   createBadgeExam: (examData) => {
@@ -4791,7 +4796,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       exams: state.exams.filter((e) => e.id !== id),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   completeBadgeExam: (examId, scorePercent) => {
@@ -4897,7 +4902,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   submitBadgeProject: (submission) => {
@@ -4918,7 +4923,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   reviewProjectSubmission: (submissionId, status, comment) => {
@@ -4975,7 +4980,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   submitProposal: (proposal) =>
@@ -5122,7 +5127,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
 
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
     return { ok: true, message: `Vote recorded (${approveCount}/${requiredTwoThirds} needed).` };
   },
 
@@ -5180,7 +5185,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }));
 
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
     return { ok: true, message: `Correct! +${safeXp} XP awarded`, xpEarned: safeXp };
   },
 
@@ -5287,7 +5292,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       explorePosts: [{ ...post, id: `exp-${Date.now()}` }, ...state.explorePosts],
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateExplorePost: (postId, updates) => {
@@ -5297,7 +5302,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteExplorePost: (postId) => {
@@ -5306,7 +5311,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       explorePosts: state.explorePosts.filter((p) => p.id !== postId),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateExplorePostStatus: (postId, status) => {
@@ -5314,7 +5319,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       explorePosts: state.explorePosts.map((p) => (p.id === postId ? { ...p, status } : p)),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   createDailyQuiz: (quiz) => {
@@ -5348,7 +5353,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       dailyQuizzes: state.dailyQuizzes.filter((q) => q.id !== id),
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   pinDailyQuiz: (id) => {
@@ -5395,7 +5400,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           : state.settings,
     }));
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   setPinnedDailyQuote: (quoteId) => {
@@ -5464,7 +5469,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer().catch(() => {});
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateSettings: (updates, reason) => {

@@ -134,7 +134,7 @@ export default function AdminOverviewPage() {
   const motmLeader = leaderboard[0];
 
   return (
-    <div className="space-y-5 max-w-[1600px] mx-auto animate-rise">
+    <div className="space-y-5 max-w-[1600px] mx-auto">
       {/* Action Feedback Toast */}
       {actionToast && (
         <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between text-xs font-display font-bold animate-rise">

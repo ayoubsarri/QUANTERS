@@ -147,7 +147,9 @@ export function MobileAppShell({
   }
 
   // HR Admission Review Gate: If onboarding admission requires manual approval and member is pending
-  if (hydrated && !isPublicRoute && hasValidSession && isPendingAdmission) {
+  // Exclude public catalog viewing routes (/workshops, /badges, /explore) so candidates can explore club schedules
+  const isCatalogRoute = pathname === "/workshops" || pathname === "/badges" || pathname === "/explore";
+  if (hydrated && !isPublicRoute && hasValidSession && isPendingAdmission && !isCatalogRoute) {
     return <WaitingForApprovalScreen />;
   }
 

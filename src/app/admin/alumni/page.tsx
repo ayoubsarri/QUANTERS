@@ -66,7 +66,7 @@ export default function AdminAlumniPage() {
   };
 
   return (
-    <div className="space-y-4 max-w-[1500px] mx-auto animate-rise">
+    <div className="space-y-4 max-w-[1500px] mx-auto">
       {/* Toast Alert */}
       {toastMsg && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm animate-fade-in">
