@@ -1260,7 +1260,7 @@ export default function WelcomeSplashPage() {
                         <button
                           type="button"
                           onClick={() => router.push(isSuper ? "/admin/overview" : "/home")}
-                          className="px-2.5 py-1 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#030812] font-display font-black text-xs transition cursor-pointer shadow-xs"
+                          className="min-h-[36px] px-3 py-1.5 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#030812] font-display font-black text-xs transition cursor-pointer shadow-xs flex items-center justify-center"
                         >
                           Resume
                         </button>
@@ -1270,7 +1270,7 @@ export default function WelcomeSplashPage() {
                             logout();
                             signOutFromFirebase().catch(() => {});
                           }}
-                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-mono text-xs transition cursor-pointer"
+                          className="min-h-[36px] px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-mono text-xs transition cursor-pointer flex items-center justify-center"
                           title="Sign out to switch to another account"
                         >
                           Switch

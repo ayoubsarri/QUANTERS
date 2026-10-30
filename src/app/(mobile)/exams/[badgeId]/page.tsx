@@ -59,6 +59,13 @@ export default function BadgeExamPage() {
     return () => clearInterval(interval);
   }, [phase]);
 
+  // Auto-submit when countdown time expires
+  useEffect(() => {
+    if (phase === "running" && secondsRemaining === 0) {
+      handleSubmitExam();
+    }
+  }, [secondsRemaining, phase]);
+
   if (!exam) {
     return (
       <MobileAppShell>

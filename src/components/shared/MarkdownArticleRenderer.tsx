@@ -351,17 +351,21 @@ export function renderInlineMarkdown(text: string): React.ReactNode {
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
       const linkText = linkMatch[1];
-      const linkHref = linkMatch[2];
+      const rawHref = linkMatch[2].trim();
+      const isSafe = /^(https?:\/\/|mailto:|#)/i.test(rawHref) && !/^(javascript|vbscript|data):/i.test(rawHref);
+      const safeHref = isSafe ? rawHref : "#";
       return (
         <a
           key={idx}
-          href={linkHref}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={safeHref}
+          target={safeHref.startsWith("#") ? undefined : "_blank"}
+          rel={safeHref.startsWith("#") ? undefined : "noopener noreferrer"}
           className="inline-flex items-center gap-0.5 text-[#0284C7] hover:text-[#0369a1] font-semibold underline underline-offset-2 transition"
         >
           <span>{linkText}</span>
-          <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+          {safeHref !== "#" && !safeHref.startsWith("#") && (
+            <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+          )}
         </a>
       );
     }

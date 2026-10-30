@@ -182,8 +182,12 @@ service cloud.firestore {
     // Bootstrap Admin Email Allowlist (verified club & executive accounts from config.ts)
     function isBootstrapAdmin() {
       return isAuthenticated() &&
+        request.auth.token.email_verified == true &&
         ('email' in request.auth.token) &&
         request.auth.token.email in [
+          'ayoubsarri5@gmail.com',
+          'quanta.algiers1@gmail.com',
+          'admin@quanta.club',
           'quantaclubdz@gmail.com',
           'hr.quanta@univ-alger.dz',
           'quanta.hr.club@gmail.com',
@@ -308,12 +312,18 @@ service cloud.firestore {
 
     // 1. ERP State Security Helpers (/erp_state/{docId})
     function isSafeErpStateUpdate() {
-      return isAdmin() || (
-        (!('settings' in request.resource.data) || !('settings' in resource.data) || request.resource.data.settings == resource.data.settings) &&
-        (!('accessGrants' in request.resource.data) || !('accessGrants' in resource.data) || request.resource.data.accessGrants == resource.data.accessGrants) &&
-        (!('pointRules' in request.resource.data) || !('pointRules' in resource.data) || request.resource.data.pointRules == resource.data.pointRules) &&
-        (!('departments' in request.resource.data) || !('departments' in resource.data) || request.resource.data.departments == resource.data.departments) &&
-        (!('auditLogs' in request.resource.data) || !('auditLogs' in resource.data) || request.resource.data.auditLogs == resource.data.auditLogs)
+      return isAuthenticated() && (
+        isAdmin() || (
+          (!('settings' in request.resource.data) || !('settings' in resource.data) || request.resource.data.settings == resource.data.settings) &&
+          (!('accessGrants' in request.resource.data) || !('accessGrants' in resource.data) || request.resource.data.accessGrants == resource.data.accessGrants) &&
+          (!('pointRules' in request.resource.data) || !('pointRules' in resource.data) || request.resource.data.pointRules == resource.data.pointRules) &&
+          (!('departments' in request.resource.data) || !('departments' in resource.data) || request.resource.data.departments == resource.data.departments) &&
+          (!('auditLogs' in request.resource.data) || !('auditLogs' in resource.data) || request.resource.data.auditLogs == resource.data.auditLogs) &&
+          ('settings' in request.resource.data) &&
+          ('accessGrants' in request.resource.data) &&
+          ('pointRules' in request.resource.data) &&
+          ('departments' in request.resource.data)
+        )
       );
     }
 
@@ -1013,7 +1023,7 @@ service cloud.firestore {
 
     // 1. Master ERP State Snapshot (/erp_state/{docId})
     match /erp_state/{docId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
       allow create: if isAdmin() || docId in ['main', 'members_shard', 'history_shard'];
       allow update: if isSafeErpStateUpdate();
       allow delete: if isSuperAdmin();

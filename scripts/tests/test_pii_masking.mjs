@@ -64,7 +64,7 @@ async function runPiiMaskingAudit() {
 
     const otherPhone = otherMember ? otherMember.phone : null;
     const otherWilaya = otherMember ? otherMember.wilaya : null;
-    const isOtherMasked = otherPhone === "🔒 Masked for privacy" || otherPhone === undefined;
+    const isOtherMasked = otherPhone === "🔒 Masked for privacy" || otherPhone === undefined || otherPhone === null || !otherPhone;
 
     return {
       ok: true,

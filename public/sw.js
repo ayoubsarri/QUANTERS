@@ -10,7 +10,7 @@ const PAGES_CACHE = `${CACHE_VERSION}-pages`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 
 // Minimal essential shell precache (<250 KB) to strictly protect Firebase Hosting bandwidth quota (QUOTA-01)
-// Dynamic pages are cached on-demand when visited via stale-while-revalidate navigation cache
+// Static branding & icons are stored in STATIC_CACHE; page roots in PAGES_CACHE
 const CORE_PRECACHE_URLS = [
   "/",
   "/manifest.json",
@@ -18,29 +18,56 @@ const CORE_PRECACHE_URLS = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/brand/logo_quanta_opt.webp",
-  "/brand/quanters_vector_v2.svg",
-  "/brand/univ_logo.svg",
-  "/brand/univ_logo_d.svg",
+  "/brand/QUANTERS_white_logo.svg",
+  "/brand/univ_quanta_asset2.png",
+  "/brand/welcome_keyframe_1.webp",
+];
+
+const CORE_PRECACHE_PAGE_URLS = ["/"];
+const CORE_PRECACHE_STATIC_URLS = [
+  "/manifest.json",
+  "/apple-touch-icon.png",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/brand/logo_quanta_opt.webp",
+  "/brand/QUANTERS_white_logo.svg",
+  "/brand/univ_quanta_asset2.png",
   "/brand/welcome_keyframe_1.webp",
 ];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(PAGES_CACHE).then(async (cache) => {
-      await Promise.allSettled(
-        CORE_PRECACHE_URLS.map(async (url) => {
-          try {
-            const res = await fetch(url, { credentials: "same-origin", cache: "no-cache" });
-            if (res && res.ok) {
-              await cache.put(url, res.clone());
+    Promise.all([
+      caches.open(PAGES_CACHE).then(async (cache) => {
+        await Promise.allSettled(
+          CORE_PRECACHE_PAGE_URLS.map(async (url) => {
+            try {
+              const res = await fetch(url, { credentials: "same-origin", cache: "no-cache" });
+              if (res && res.ok) {
+                await cache.put(url, res.clone());
+              }
+            } catch {
+              // Ignore individual precache failure when installing on flaky network
             }
-          } catch {
-            // Ignore individual precache failure when installing on flaky network
-          }
-        })
-      );
-    })
+          })
+        );
+      }),
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        await Promise.allSettled(
+          CORE_PRECACHE_STATIC_URLS.map(async (url) => {
+            try {
+              const res = await fetch(url, { credentials: "same-origin", cache: "no-cache" });
+              if (res && res.ok) {
+                await cache.put(url, res.clone());
+              }
+            } catch {
+              // Ignore individual precache failure when installing on flaky network
+            }
+          })
+        );
+      }),
+    ])
   );
 });
 

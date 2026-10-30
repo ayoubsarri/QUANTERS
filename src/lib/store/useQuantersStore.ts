@@ -567,6 +567,7 @@ interface TombstoneEntry {
   deletedAt: number;
 }
 
+let isCompactingQuota = false;
 const TOMBSTONES_STORAGE_KEY = "quanters-tombstones-v3";
 const TOMBSTONE_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -1161,7 +1162,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       teamId: "team-cs-ai",
       roles: isSuper ? ["Super Admin", "Executive", "HR Head"] : isAlumni ? ["Alumni"] : ["Member"],
       isBureauMember: isSuper,
-      status: isSuper ? "Active" : isAlumni ? "Alumni" : "Trainee",
+      status: isSuper ? "Active" : isAlumni ? "Alumni" : ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending"),
       statusSince: "Oct 2026",
       traineeStartDate: new Date().toISOString().slice(0, 10),
       traineeDaysElapsed: 1,
@@ -1271,7 +1272,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       teamId: "team-cs-ai",
       roles: isAlumni ? ["Alumni"] : ["Member"],
       isBureauMember: false,
-      status: isAlumni ? "Alumni" : "Trainee",
+      status: isAlumni ? "Alumni" : ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending"),
       statusSince: "Oct 2026",
       graduationYear: isAlumni ? "2026" : undefined,
       traineeStartDate: new Date().toISOString().slice(0, 10),
@@ -1496,36 +1497,41 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
       window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(snapshot));
     } catch (err) {
-      // Automatic quota compaction fallback
-      try {
-        get().compactAndPruneQuota();
-        const s2 = get();
-        const fallbackSnapshot = {
-          savedAt: new Date().toISOString(),
-          isAuthenticated: s2.isAuthenticated,
-          currentMemberId: s2.currentMemberId,
-          activeAdminRole: s2.activeAdminRole,
-          collectionVersions: s2.collectionVersions,
-          departments: s2.departments,
-          teams: s2.teams,
-          members: s2.members.map((m) => {
-            const { password: _p, passwordHash: _ph, phone: _phn, ...safe } = m as Member & { password?: string };
-            return safe;
-          }),
-          workshops: s2.workshops.slice(0, 50),
-          tasks: s2.tasks.slice(0, 50),
-          pointRules: s2.pointRules,
-          ledger: s2.ledger.slice(0, 100),
-          badges: s2.badges,
-          messages: s2.messages.filter((m) => m.unread).slice(0, 15),
-          accessGrants: [],
-          auditLogs: [],
-          grievances: [],
-          settings: s2.settings,
-        };
-        window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(fallbackSnapshot));
-      } catch {
-        // If still failing, silently ignore
+      // Automatic quota compaction fallback with re-entrancy protection
+      if (!isCompactingQuota) {
+        isCompactingQuota = true;
+        try {
+          get().compactAndPruneQuota();
+          const s2 = get();
+          const fallbackSnapshot = {
+            savedAt: new Date().toISOString(),
+            isAuthenticated: s2.isAuthenticated,
+            currentMemberId: s2.currentMemberId,
+            activeAdminRole: s2.activeAdminRole,
+            collectionVersions: s2.collectionVersions,
+            departments: s2.departments,
+            teams: s2.teams,
+            members: s2.members.map((m) => {
+              const { password: _p, passwordHash: _ph, phone: _phn, ...safe } = m as Member & { password?: string };
+              return safe;
+            }),
+            workshops: s2.workshops.slice(0, 50),
+            tasks: s2.tasks.slice(0, 50),
+            pointRules: s2.pointRules,
+            ledger: s2.ledger.slice(0, 100),
+            badges: s2.badges,
+            messages: s2.messages.filter((m) => m.unread).slice(0, 15),
+            accessGrants: [],
+            auditLogs: [],
+            grievances: [],
+            settings: s2.settings,
+          };
+          window.localStorage.setItem("quanters-offline-cache-v10", JSON.stringify(fallbackSnapshot));
+        } catch {
+          // If still failing, silently ignore
+        } finally {
+          isCompactingQuota = false;
+        }
       }
     }
   },
@@ -1669,7 +1675,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ledger: compactedLedger,
     }).length;
 
-    get().saveToLocalCache();
+    if (!isCompactingQuota) {
+      get().saveToLocalCache();
+    }
     return {
       bytesSaved: Math.max(512, beforeSize - afterSize),
       prunedCount,
@@ -1678,6 +1686,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
   applyIncomingCloudSnapshot: (cloudData: Record<string, unknown>) => {
     if (!cloudData || typeof cloudData !== "object") return;
+
+    // Ingest central tombstones to prevent ghost record resurrection
+    if (cloudData.deletedIdsByCollection && typeof cloudData.deletedIdsByCollection === "object") {
+      const incomingTombstones = cloudData.deletedIdsByCollection as Record<string, string[]>;
+      for (const [col, ids] of Object.entries(incomingTombstones)) {
+        if (Array.isArray(ids)) {
+          for (const id of ids) {
+            recordPersistentDeletedId(col, id);
+          }
+        }
+      }
+    }
+
     const current = get();
     const patchState: Partial<QuantersStoreState> = {
       isOnline: true,
@@ -3603,7 +3624,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
         const nextRegistered = w.registeredMemberIds.filter((id) => id !== memberId);
         const shouldPromote =
-          Boolean(state.settings.waitlistAutoPromote) &&
+          Boolean(state.settings.waitlistAutoPromote ?? true) &&
           Array.isArray(w.waitlistMemberIds) &&
           w.waitlistMemberIds.length > 0;
 
@@ -3733,6 +3754,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         badgeName: "Python Explorer",
       },
     }));
+
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
 
     return { ok: true, message: `Checked in! +${ws.xpReward} XP added.` };
   },
@@ -4715,7 +4739,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         ? 0
         : (fullyUnlocked ? exam.xpReward : Math.round(exam.xpReward / 2));
 
+      const newLedgerEntry: PointsLedgerEntry | null = (xpToAward > 0 && curMember) ? {
+        id: `led-${Date.now()}`,
+        memberId: curMember.id,
+        memberName: curMember.fullName,
+        amount: xpToAward,
+        ruleLabel: `Exam Passed: ${exam.title}`,
+        reason: `Skill credential exam passed with score ${scorePercent}%`,
+        source: "Badge",
+        actorName: "Credential Examination Engine",
+        date: new Date().toISOString().slice(0, 10),
+        appealStatus: "None",
+      } : null;
+
       return {
+        ledger: newLedgerEntry ? [newLedgerEntry, ...state.ledger] : state.ledger,
         exams: state.exams.map((e) =>
           e.id === examId ? { ...e, attemptsUsed: e.attemptsUsed + 1 } : e
         ),
