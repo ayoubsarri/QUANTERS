@@ -640,6 +640,7 @@ export function isPersistentDeletedId(collection: string, id: string): boolean {
 let lastSyncedBaselineMap: Record<string, Map<string, string>> | null = null;
 let lastSyncedSettingsJson: string | null = null;
 let debouncedSyncTimeout: NodeJS.Timeout | number | null = null;
+let inFlightPullPromise: Promise<void> | null = null;
 
 function captureBaselineFromState(s: QuantersStoreState) {
   const nextMap: Record<string, Map<string, string>> = {};
@@ -760,8 +761,10 @@ function mergeRemoteWithUnsyncedLocal(
 
     const remoteItem = mergedById.get(id);
     if (!remoteItem) {
-      // Local-only new item not yet on server
-      order.unshift(id);
+      // Local-only new item or seed item not yet on server
+      if (!order.includes(id)) {
+        order.push(id);
+      }
       mergedById.set(id, localItem);
     } else if (prevMap) {
       const baselineJson = prevMap.get(id);
@@ -774,7 +777,33 @@ function mergeRemoteWithUnsyncedLocal(
     }
   }
 
-  // 3. Final deduplicated result, strictly filtering out any tombstoned items
+  // 3. Fallback protection: if remote and local both resulted in empty arrays for critical catalog collections, preserve seeds
+  if (mergedById.size === 0) {
+    if (key === "badges") {
+      for (const b of SEED_BADGES) {
+        if (!isPersistentDeletedId(key, b.id)) {
+          mergedById.set(b.id, b as unknown as Record<string, unknown>);
+          order.push(b.id);
+        }
+      }
+    } else if (key === "workshops") {
+      for (const w of SEED_WORKSHOPS) {
+        if (!isPersistentDeletedId(key, w.id)) {
+          mergedById.set(w.id, w as unknown as Record<string, unknown>);
+          order.push(w.id);
+        }
+      }
+    } else if (key === "exams") {
+      for (const e of SEED_EXAMS) {
+        if (!isPersistentDeletedId(key, e.id)) {
+          mergedById.set(e.id, e as unknown as Record<string, unknown>);
+          order.push(e.id);
+        }
+      }
+    }
+  }
+
+  // 4. Final deduplicated result, strictly filtering out any tombstoned items
   const finalIds = Array.from(new Set(order)).filter((id) => !isPersistentDeletedId(key, id));
   return finalIds.map((id) => mergedById.get(id)!).filter(Boolean);
 }
@@ -1612,14 +1641,23 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
           members: sanitizedHydratedMembers,
-          workshops: parsed.workshops || get().workshops,
+          workshops:
+            Array.isArray(parsed.workshops) && parsed.workshops.length > 0
+              ? parsed.workshops
+              : get().workshops,
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
           pointRules: parsed.pointRules || get().pointRules,
           ledger: parsed.ledger || get().ledger,
-          badges: parsed.badges || get().badges,
+          badges:
+            Array.isArray(parsed.badges) && parsed.badges.length > 0
+              ? parsed.badges
+              : get().badges,
           badgeCategories: parsed.badgeCategories || get().badgeCategories,
-          exams: parsed.exams || get().exams,
+          exams:
+            Array.isArray(parsed.exams) && parsed.exams.length > 0
+              ? parsed.exams
+              : get().exams,
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,
@@ -1709,130 +1747,168 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         minute: "2-digit",
       }),
     };
+    let hasArrayChanges = false;
     for (const key of DELTA_ARRAY_KEYS) {
       if (Array.isArray(cloudData[key])) {
-        (patchState as Record<string, unknown>)[key] =
-          mergeRemoteWithUnsyncedLocal(
-            key,
-            cloudData[key] as unknown[],
-            current
-          );
+        const merged = mergeRemoteWithUnsyncedLocal(
+          key,
+          cloudData[key] as unknown[],
+          current
+        );
+        const currentArr = (current as unknown as Record<string, unknown>)[key];
+        if (JSON.stringify(currentArr) !== JSON.stringify(merged)) {
+          (patchState as Record<string, unknown>)[key] = merged;
+          hasArrayChanges = true;
+        }
       }
     }
-    if (Array.isArray(cloudData.workshopCategories)) {
+    if (
+      Array.isArray(cloudData.workshopCategories) &&
+      JSON.stringify(current.workshopCategories) !== JSON.stringify(cloudData.workshopCategories)
+    ) {
       patchState.workshopCategories = cloudData.workshopCategories as string[];
+      hasArrayChanges = true;
     }
-    if (Array.isArray(cloudData.badgeCategories)) {
+    if (
+      Array.isArray(cloudData.badgeCategories) &&
+      JSON.stringify(current.badgeCategories) !== JSON.stringify(cloudData.badgeCategories)
+    ) {
       patchState.badgeCategories = cloudData.badgeCategories as string[];
+      hasArrayChanges = true;
     }
-    if (Array.isArray(cloudData.projectCategories)) {
+    if (
+      Array.isArray(cloudData.projectCategories) &&
+      JSON.stringify(current.projectCategories) !== JSON.stringify(cloudData.projectCategories)
+    ) {
       patchState.projectCategories = cloudData.projectCategories as string[];
+      hasArrayChanges = true;
     }
     if (Array.isArray(cloudData.customDailyQuotes)) {
       const customQ = cloudData.customDailyQuotes as DailyQuoteItem[];
-      patchState.dailyQuotes = [
+      const mergedQ = [
         ...customQ,
         ...SEED_DAILY_QUOTES_365.filter((sq) => !customQ.some((cq) => cq.id === sq.id)),
       ];
+      if (JSON.stringify(current.dailyQuotes) !== JSON.stringify(mergedQ)) {
+        patchState.dailyQuotes = mergedQ;
+        hasArrayChanges = true;
+      }
     }
     if (cloudData.settings && typeof cloudData.settings === "object") {
-      patchState.settings = sanitizeSystemSettings({
+      const newSettings = sanitizeSystemSettings({
         ...current.settings,
         ...(cloudData.settings as Partial<SystemSettings>),
       });
+      if (JSON.stringify(current.settings) !== JSON.stringify(newSettings)) {
+        patchState.settings = newSettings;
+        hasArrayChanges = true;
+      }
     }
-    set(patchState);
-    captureBaselineFromState(get());
-    get().saveToLocalCache();
+    if (hasArrayChanges || !current.lastSyncedAt) {
+      set(patchState);
+      captureBaselineFromState(get());
+      get().saveToLocalCache();
+    }
   },
 
   pullExactUpdatesFromServer: async () => {
-    const s = get();
-    if (typeof navigator !== "undefined" && !navigator.onLine) {
-      set({ isOnline: false });
-      return;
+    if (inFlightPullPromise) {
+      return inFlightPullPromise;
     }
-    if (isFirestoreQuotaExhausted()) {
-      return;
-    }
-
-    try {
-      const headers: Record<string, string> = {};
-      if (s.lastServerEtag) {
-        headers["If-None-Match"] = s.lastServerEtag;
+    inFlightPullPromise = (async () => {
+      const s = get();
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        set({ isOnline: false });
+        return;
       }
-      const hasKnownVersions =
-        s.collectionVersions && Object.keys(s.collectionVersions).length > 0;
-      const url = hasKnownVersions
-        ? `/api/erp?versions=${encodeURIComponent(
-            JSON.stringify(s.collectionVersions)
-          )}`
-        : "/api/erp";
-
-      const res = await fetch(url, { headers });
-      if (res.status === 304) {
-        set({ isOnline: true });
+      if (isFirestoreQuotaExhausted()) {
         return;
       }
 
-      const contentType = res.headers.get("content-type") || "";
-      const json =
-        res.ok && contentType.includes("application/json")
-          ? await res.json().catch(() => null)
-          : null;
+      try {
+        const headers: Record<string, string> = {};
+        if (s.lastServerEtag) {
+          headers["If-None-Match"] = s.lastServerEtag;
+        }
+        const hasKnownVersions =
+          s.collectionVersions && Object.keys(s.collectionVersions).length > 0;
+        const url = hasKnownVersions
+          ? `/api/erp?versions=${encodeURIComponent(
+              JSON.stringify(s.collectionVersions)
+            )}`
+          : "/api/erp";
 
-      if (json?.ok) {
-        const payload = json.isDelta ? json.delta : json.data;
-        const current = get();
-        const patchState: Partial<QuantersStoreState> = {
-          isOnline: true,
-          lastServerEtag: json.etag || s.lastServerEtag,
-          collectionVersions: json.collectionVersions || s.collectionVersions,
-        };
+        const res = await fetch(url, { headers });
+        if (res.status === 304) {
+          set({ isOnline: true });
+          return;
+        }
 
-        if (payload && typeof payload === "object") {
-          for (const key of DELTA_ARRAY_KEYS) {
-            if (Array.isArray(payload[key])) {
-              (patchState as Record<string, unknown>)[key] =
-                mergeRemoteWithUnsyncedLocal(
+        const contentType = res.headers.get("content-type") || "";
+        const json =
+          res.ok && contentType.includes("application/json")
+            ? await res.json().catch(() => null)
+            : null;
+
+        if (json?.ok) {
+          const payload = json.isDelta ? json.delta : json.data;
+          const current = get();
+          const patchState: Partial<QuantersStoreState> = {
+            isOnline: true,
+            lastServerEtag: json.etag || s.lastServerEtag,
+            collectionVersions: json.collectionVersions || s.collectionVersions,
+          };
+
+          if (payload && typeof payload === "object") {
+            for (const key of DELTA_ARRAY_KEYS) {
+              if (Array.isArray(payload[key])) {
+                const merged = mergeRemoteWithUnsyncedLocal(
                   key,
                   payload[key] as unknown[],
                   current
                 );
+                const currentArr = (current as unknown as Record<string, unknown>)[key];
+                if (JSON.stringify(currentArr) !== JSON.stringify(merged)) {
+                  (patchState as Record<string, unknown>)[key] = merged;
+                }
+              }
+            }
+            if (payload.settings && typeof payload.settings === "object") {
+              patchState.settings = sanitizeSystemSettings({ ...current.settings, ...payload.settings });
             }
           }
-          if (payload.settings && typeof payload.settings === "object") {
-            patchState.settings = sanitizeSystemSettings({ ...current.settings, ...payload.settings });
+
+          set(patchState);
+          // Also pull & merge Cloud Firestore so local dev and Firebase Cloud stay unified
+          const cloudData = await pullErpStateFromFirestore().catch(() => null);
+          if (cloudData && typeof cloudData === "object") {
+            get().applyIncomingCloudSnapshot(cloudData);
+          } else {
+            captureBaselineFromState(get());
+            get().saveToLocalCache();
           }
+          return;
         }
 
-        set(patchState);
-        // Also pull & merge Cloud Firestore so local dev and Firebase Cloud stay unified
-        const cloudData = await pullErpStateFromFirestore().catch(() => null);
-        if (cloudData && typeof cloudData === "object") {
-          get().applyIncomingCloudSnapshot(cloudData);
-        } else {
-          captureBaselineFromState(get());
-          get().saveToLocalCache();
-        }
-        return;
-      }
-
-      // Static Firebase Hosting fallback: pull directly from Cloud Firestore (quanters-d0312)
-      const cloudData = await pullErpStateFromFirestore().catch(() => null);
-      if (cloudData && typeof cloudData === "object") {
-        get().applyIncomingCloudSnapshot(cloudData);
-      }
-    } catch {
-      try {
+        // Static Firebase Hosting fallback: pull directly from Cloud Firestore (quanters-d0312)
         const cloudData = await pullErpStateFromFirestore().catch(() => null);
         if (cloudData && typeof cloudData === "object") {
           get().applyIncomingCloudSnapshot(cloudData);
         }
       } catch {
-        // Silent background fallback: a pull NEVER triggers a push!
+        try {
+          const cloudData = await pullErpStateFromFirestore().catch(() => null);
+          if (cloudData && typeof cloudData === "object") {
+            get().applyIncomingCloudSnapshot(cloudData);
+          }
+        } catch {
+          // Silent background fallback: a pull NEVER triggers a push!
+        }
       }
-    }
+    })().finally(() => {
+      inFlightPullPromise = null;
+    });
+    return inFlightPullPromise;
   },
 
   syncWithServer: async (force = false) => {

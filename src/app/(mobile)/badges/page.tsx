@@ -51,31 +51,38 @@ export default function MobileBadgesPage() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
 
-  const activeBadges = badges.filter((b) => !b.archived);
-  const unlockedCount = activeBadges.filter(
-    (b) => b.memberState === "Unlocked"
-  ).length;
-  const lockedCount = activeBadges.filter(
-    (b) => b.memberState === "Locked"
-  ).length;
+  const activeBadges = React.useMemo(
+    () => badges.filter((b) => !b.archived),
+    [badges]
+  );
+  const unlockedCount = React.useMemo(
+    () => activeBadges.filter((b) => b.memberState === "Unlocked").length,
+    [activeBadges]
+  );
+  const lockedCount = React.useMemo(
+    () => activeBadges.filter((b) => b.memberState === "Locked").length,
+    [activeBadges]
+  );
 
-  const filteredBadges = activeBadges.filter((b) => {
-    const matchesStatus =
-      statusFilter === "All" || b.memberState === statusFilter;
-    const isSoft =
-      b.skillType === "Soft Skill" ||
-      b.category === "Soft Skills" ||
-      b.category === "Leadership" ||
-      b.category === "Public Speaking" ||
-      b.category === "Scientific Writing" ||
-      b.category === "Logistics & Ops";
-    const matchesCategory =
-      categoryFilter === "All" ||
-      (categoryFilter === "Hard Skills" && !isSoft) ||
-      (categoryFilter === "Soft Skills" && isSoft) ||
-      b.category === categoryFilter;
-    return matchesStatus && matchesCategory;
-  });
+  const filteredBadges = React.useMemo(() => {
+    return activeBadges.filter((b) => {
+      const matchesStatus =
+        statusFilter === "All" || b.memberState === statusFilter;
+      const isSoft =
+        b.skillType === "Soft Skill" ||
+        b.category === "Soft Skills" ||
+        b.category === "Leadership" ||
+        b.category === "Public Speaking" ||
+        b.category === "Scientific Writing" ||
+        b.category === "Logistics & Ops";
+      const matchesCategory =
+        categoryFilter === "All" ||
+        (categoryFilter === "Hard Skills" && !isSoft) ||
+        (categoryFilter === "Soft Skills" && isSoft) ||
+        b.category === categoryFilter;
+      return matchesStatus && matchesCategory;
+    });
+  }, [activeBadges, statusFilter, categoryFilter]);
 
   const matchingExam = selectedBadge
     ? exams.find((e) => e.badgeId === selectedBadge.id)
@@ -185,10 +192,7 @@ export default function MobileBadgesPage() {
         </div>
 
         {/* Hexagonal Badge Grid Container */}
-        <div
-          className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-5 shadow-[0_4px_18px_rgba(15,30,54,0.04)] animate-rise"
-          style={{ animationDelay: "80ms" }}
-        >
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-5 shadow-[0_4px_18px_rgba(15,30,54,0.04)]">
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-3">
             {filteredBadges.map((badge) => (
               <HexagonBadgeCard

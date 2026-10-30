@@ -10,7 +10,10 @@ interface HexagonBadgeCardProps {
   onClick?: (badge: Badge) => void;
 }
 
-export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
+export const HexagonBadgeCard = React.memo(function HexagonBadgeCard({
+  badge,
+  onClick,
+}: HexagonBadgeCardProps) {
   const isLocked = badge.memberState === "Locked";
   const isInProgress = badge.memberState === "In Progress";
   const uid = `hex-${badge.id}`;
@@ -212,4 +215,4 @@ export function HexagonBadgeCard({ badge, onClick }: HexagonBadgeCardProps) {
       </div>
     </button>
   );
-}
+});

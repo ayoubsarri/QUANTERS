@@ -43,26 +43,24 @@ export default function MobileWorkshopsPage() {
     []
   );
 
-  React.useEffect(() => {
-    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
-  }, []);
-
-  const filteredWorkshops = workshops.filter((ws) => {
-    // Strictly hide archived or draft workshops from the member-facing portal
-    if (ws.status === "Archived" || ws.status === "Draft") {
-      return false;
-    }
-    if (filter === "Upcoming") {
-      return ws.status === "Published" || ws.status === "Running";
-    }
-    if (filter === "Completed") {
-      return ws.status === "Completed";
-    }
-    if (filter === "Mine") {
-      return Boolean(ws.registeredMemberIds?.includes(currentMemberId));
-    }
-    return true;
-  });
+  const filteredWorkshops = React.useMemo(() => {
+    return workshops.filter((ws) => {
+      // Strictly hide archived or draft workshops from the member-facing portal
+      if (ws.status === "Archived" || ws.status === "Draft") {
+        return false;
+      }
+      if (filter === "Upcoming") {
+        return ws.status === "Published" || ws.status === "Running";
+      }
+      if (filter === "Completed") {
+        return ws.status === "Completed";
+      }
+      if (filter === "Mine") {
+        return Boolean(ws.registeredMemberIds?.includes(currentMemberId));
+      }
+      return true;
+    });
+  }, [workshops, filter, currentMemberId]);
 
   const activeWorkshop =
     workshops.find((w) => w.id === selectedWorkshopId) || null;
@@ -175,8 +173,7 @@ export default function MobileWorkshopsPage() {
               <div
                 key={ws.id}
                 onClick={() => setSelectedWorkshopId(ws.id)}
-                style={{ animationDelay: `${60 + idx * 45}ms` }}
-                className="group bg-white rounded-xl border border-slate-200/90 border-l-[3px] border-l-[#182C4E] p-4 shadow-[0_3px_14px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/50 hover:shadow-[0_8px_22px_rgba(15,30,54,0.08)] active:scale-[0.99] transition-all cursor-pointer animate-rise"
+                className="group bg-white rounded-xl border border-slate-200/90 border-l-[3px] border-l-[#182C4E] p-4 shadow-[0_3px_14px_rgba(15,30,54,0.04)] hover:border-[#182C4E]/50 hover:shadow-[0_8px_22px_rgba(15,30,54,0.08)] active:scale-[0.99] transition-all cursor-pointer"
               >
                 <div className="flex items-start gap-3.5">
                   <FieldIcon field={ws.iconType} size={26} boxed />
