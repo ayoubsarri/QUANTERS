@@ -256,14 +256,15 @@ async function runCloudDeepFinalTest() {
           title: title,
           topic: "Cloud Quantum Computing",
           department: "Quantum Computing",
-          status: "Scheduled",
+          status: "Published",
           date: "2026-11-15",
           time: "14:00 - 17:00",
           location: "Amphi D, Faculty of Sciences",
           capacity: 45,
+          seatsLeft: 44,
           bookedCount: 0,
-          attendees: [],
-          waitlist: [],
+          registeredMemberIds: [],
+          waitlistMemberIds: [],
           attendanceCode: "998877",
           xpReward: 30,
         };
@@ -285,10 +286,9 @@ async function runCloudDeepFinalTest() {
         // Member books the first workshop
         const ws = s.workshops[0];
         const memId = s.currentMemberId;
-        if (!Array.isArray(ws.attendees)) ws.attendees = [];
-        if (!ws.attendees.includes(memId)) {
-          ws.attendees.push(memId);
-          ws.bookedCount = (ws.bookedCount || 0) + 1;
+        if (!Array.isArray(ws.registeredMemberIds)) ws.registeredMemberIds = [];
+        if (!ws.registeredMemberIds.includes(memId)) {
+          ws.registeredMemberIds.push(memId);
         }
         s.saveToLocalCache();
       }
@@ -297,7 +297,7 @@ async function runCloudDeepFinalTest() {
     const memberBookedSuccess = await memberPage.evaluate(() => {
       const s = window.__QUANTERS_STORE__?.getState();
       const ws = s?.workshops?.[0];
-      return Boolean(ws?.attendees?.includes(s?.currentMemberId));
+      return Boolean(ws?.registeredMemberIds?.includes(s?.currentMemberId));
     });
     assert(memberBookedSuccess === true, "Member booked workshop seat with zero conflicts");
 

@@ -50,13 +50,16 @@ export default function MobileWorkshopsPage() {
         return false;
       }
       if (filter === "Upcoming") {
-        return ws.status === "Published" || ws.status === "Running";
+        return ws.status !== "Completed";
       }
       if (filter === "Completed") {
         return ws.status === "Completed";
       }
       if (filter === "Mine") {
-        return Boolean(ws.registeredMemberIds?.includes(currentMemberId));
+        return Boolean(
+          ws.registeredMemberIds?.includes(currentMemberId) ||
+          ws.waitlistMemberIds?.includes(currentMemberId)
+        );
       }
       return true;
     });
@@ -95,7 +98,7 @@ export default function MobileWorkshopsPage() {
           <div className="relative z-10 flex items-end justify-between gap-3">
             <div className="min-w-0 max-w-[65%]">
               <span className="font-mono text-xs font-bold tracking-[0.18em] text-[#7DD3FC] uppercase block">
-                {isRtl ? `دليل الورشات · ${workshops.length} جلسات` : `CATALOG · 0${workshops.length} SESSIONS`}
+                {isRtl ? `دليل الورشات · ${workshops.length} جلسات` : `CATALOG · ${String(workshops.length).padStart(2, "0")} SESSIONS`}
               </span>
               <h1 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight mt-1 leading-tight drop-shadow">
                 {isRtl ? (

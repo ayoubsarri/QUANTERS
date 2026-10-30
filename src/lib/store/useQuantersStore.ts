@@ -777,26 +777,30 @@ function mergeRemoteWithUnsyncedLocal(
     }
   }
 
-  // 3. Fallback protection: if remote and local both resulted in empty arrays for critical catalog collections, preserve seeds
-  if (mergedById.size === 0) {
-    if (key === "badges") {
-      for (const b of SEED_BADGES) {
-        if (!isPersistentDeletedId(key, b.id)) {
-          mergedById.set(b.id, b as unknown as Record<string, unknown>);
-          order.push(b.id);
-        }
-      }
-    } else if (key === "workshops") {
-      for (const w of SEED_WORKSHOPS) {
-        if (!isPersistentDeletedId(key, w.id)) {
-          mergedById.set(w.id, w as unknown as Record<string, unknown>);
+  // 3. Guarantee that official catalog seeds are never lost due to partial remote snapshots or stale local states
+  if (key === "workshops") {
+    for (const w of SEED_WORKSHOPS) {
+      if (!isPersistentDeletedId(key, w.id) && !mergedById.has(w.id)) {
+        mergedById.set(w.id, w as unknown as Record<string, unknown>);
+        if (!order.includes(w.id)) {
           order.push(w.id);
         }
       }
-    } else if (key === "exams") {
-      for (const e of SEED_EXAMS) {
-        if (!isPersistentDeletedId(key, e.id)) {
-          mergedById.set(e.id, e as unknown as Record<string, unknown>);
+    }
+  } else if (key === "badges") {
+    for (const b of SEED_BADGES) {
+      if (!isPersistentDeletedId(key, b.id) && !mergedById.has(b.id)) {
+        mergedById.set(b.id, b as unknown as Record<string, unknown>);
+        if (!order.includes(b.id)) {
+          order.push(b.id);
+        }
+      }
+    }
+  } else if (key === "exams") {
+    for (const e of SEED_EXAMS) {
+      if (!isPersistentDeletedId(key, e.id) && !mergedById.has(e.id)) {
+        mergedById.set(e.id, e as unknown as Record<string, unknown>);
+        if (!order.includes(e.id)) {
           order.push(e.id);
         }
       }
@@ -1641,23 +1645,41 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
           members: sanitizedHydratedMembers,
-          workshops:
-            Array.isArray(parsed.workshops) && parsed.workshops.length > 0
-              ? parsed.workshops
-              : get().workshops,
+          workshops: (() => {
+            const cached = Array.isArray(parsed.workshops) ? (parsed.workshops as Workshop[]) : [];
+            const cachedMap = new Map(cached.map((w: Workshop) => [w.id, w]));
+            for (const sw of SEED_WORKSHOPS) {
+              if (!cachedMap.has(sw.id)) {
+                cachedMap.set(sw.id, sw);
+              }
+            }
+            return Array.from(cachedMap.values());
+          })(),
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
           pointRules: parsed.pointRules || get().pointRules,
           ledger: parsed.ledger || get().ledger,
-          badges:
-            Array.isArray(parsed.badges) && parsed.badges.length > 0
-              ? parsed.badges
-              : get().badges,
+          badges: (() => {
+            const cached = Array.isArray(parsed.badges) ? (parsed.badges as Badge[]) : [];
+            const cachedMap = new Map(cached.map((b: Badge) => [b.id, b]));
+            for (const sb of SEED_BADGES) {
+              if (!cachedMap.has(sb.id)) {
+                cachedMap.set(sb.id, sb);
+              }
+            }
+            return Array.from(cachedMap.values());
+          })(),
           badgeCategories: parsed.badgeCategories || get().badgeCategories,
-          exams:
-            Array.isArray(parsed.exams) && parsed.exams.length > 0
-              ? parsed.exams
-              : get().exams,
+          exams: (() => {
+            const cached = Array.isArray(parsed.exams) ? (parsed.exams as BadgeExam[]) : [];
+            const cachedMap = new Map(cached.map((e: BadgeExam) => [e.id, e]));
+            for (const se of SEED_EXAMS) {
+              if (!cachedMap.has(se.id)) {
+                cachedMap.set(se.id, se);
+              }
+            }
+            return Array.from(cachedMap.values());
+          })(),
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,

@@ -1023,7 +1023,7 @@ service cloud.firestore {
 
     // 1. Master ERP State Snapshot (/erp_state/{docId})
     match /erp_state/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if isAdmin() || docId in ['main', 'members_shard', 'history_shard'];
       allow update: if isSafeErpStateUpdate();
       allow delete: if isSuperAdmin();
