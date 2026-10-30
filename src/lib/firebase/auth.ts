@@ -591,6 +591,41 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
     if (Array.isArray(data.members)) {
       data.members = sanitizeMembersForCloud(data.members);
     }
+
+    // Apply cloud-stored tombstones to localStorage BEFORE returning data
+    // This ensures deletions propagate to ALL devices, not just the one that deleted
+    if (data.deletedIdsByCollection && typeof data.deletedIdsByCollection === "object") {
+      if (typeof window !== "undefined") {
+        const TOMBSTONES_KEY = "quanters-tombstones-v3";
+        try {
+          const raw = window.localStorage.getItem(TOMBSTONES_KEY);
+          const existing = raw ? JSON.parse(raw) : {};
+          const cloudTombstones = data.deletedIdsByCollection as Record<string, string[]>;
+          let changed = false;
+          for (const [col, ids] of Object.entries(cloudTombstones)) {
+            if (!Array.isArray(ids)) continue;
+            if (!Array.isArray(existing[col])) existing[col] = [];
+            for (const id of ids) {
+              const already = existing[col].some((item: any) =>
+                typeof item === "string" ? item === id : item?.id === id
+              );
+              if (!already) {
+                existing[col].push({ id, deletedAt: Date.now() });
+                changed = true;
+              }
+              // Also mark in-memory recently-deleted to prevent resurrection this session
+              registerRecentDeletion(id as string);
+            }
+          }
+          if (changed) {
+            window.localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(existing));
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+    }
+
     lastReceivedCloudSnapshot = data;
     return data;
   } catch (err: any) {
@@ -654,7 +689,8 @@ function mergeCollectionArraysById(
   remoteList: any[],
   localList: any[],
   deletedIds?: Set<string>,
-  key?: string
+  key?: string,
+  isAuthoritativeWrite = false
 ): any[] {
   const map = new Map<string, any>();
   for (const rItem of remoteList) {
@@ -683,7 +719,7 @@ function mergeCollectionArraysById(
           : 0;
 
         // If remote has a strictly newer timestamp, remote item wins over stale local write (ARCH-01)
-        if (remoteTime > 0 && localTime > 0 && remoteTime > localTime) {
+        if (remoteTime > 0 && localTime > 0 && remoteTime > localTime && !isAuthoritativeWrite) {
           continue;
         }
 
@@ -728,6 +764,8 @@ function mergeCollectionArraysById(
   }
   for (const [id, rItem] of map.entries()) {
     if (!localIds.has(id)) {
+      // If this write is authoritative (Admin explicitly managing catalog/deleting items), do NOT resurrect remote deleted items!
+      if (isAuthoritativeWrite) continue;
       ordered.push(rItem);
     }
   }
@@ -788,7 +826,7 @@ export async function pushErpStateToFirestore(
           : [];
         sanitizedPayload[key] =
           remoteArr.length > 0
-            ? mergeCollectionArraysById(remoteArr, sanitizedPayload[key], delSet, key)
+            ? mergeCollectionArraysById(remoteArr, sanitizedPayload[key], delSet, key, isUserAdmin)
             : sanitizedPayload[key].filter(
                 (item: any) =>
                   !item || !item.id || (!delSet.has(item.id) && !isRecentlyDeleted(item.id))
@@ -844,6 +882,20 @@ export async function pushErpStateToFirestore(
         overflowShardPayload.ledger = cleanPayload.ledger.slice(120, 1000);
         cleanPayload.ledger = cleanPayload.ledger.slice(0, 120);
         hasOverflow = true;
+      }
+    }
+
+    // Embed global tombstones in the Firestore document so ALL devices see deletions
+    // This is the only way deleted workshops/badges don't come back on fresh sessions
+    if (deletedIdsByCollection && Object.keys(deletedIdsByCollection).length > 0) {
+      const filteredTombstones: Record<string, string[]> = {};
+      for (const [col, ids] of Object.entries(deletedIdsByCollection)) {
+        if (Array.isArray(ids) && ids.length > 0) {
+          filteredTombstones[col] = ids;
+        }
+      }
+      if (Object.keys(filteredTombstones).length > 0) {
+        (cleanPayload as any).deletedIdsByCollection = filteredTombstones;
       }
     }
 
