@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
@@ -61,6 +62,11 @@ import {
   TimeSlot,
   UNIVERSITY_SPECIALTIES,
 } from "@/lib/types/erp";
+import {
+  searchAlgiersCommunes,
+  POPULAR_STUDENT_COMMUNES,
+  ALGIERS_COMMUNES,
+} from "@/lib/data/algerianCommunes";
 
 const DAYS: DayOfWeek[] = [
   "Saturday",
@@ -154,6 +160,17 @@ const EXTRA_EQUIPMENT_OPTIONS = [
   "Car / Transport",
 ];
 
+const SMART_ACTIVITY_TAGS = [
+  { id: "robotics", label: "🤖 Robotics & Arduino", text: "Passionate about robotics, Arduino, and embedded hardware." },
+  { id: "web_dev", label: "💻 Web & Mobile Dev", text: "Active developer building software, web apps, or AI systems." },
+  { id: "ai_science", label: "🔬 Scientific Research", text: "Interested in scientific investigations, data analysis, and peer labs." },
+  { id: "design_media", label: "🎨 Design & Media", text: "Experienced in graphic design, UI/UX, video editing, or branding." },
+  { id: "speaking", label: "🎤 Public Speaking & Events", text: "Excited about event logistics, pitching, or stage moderation." },
+  { id: "charity", label: "🌱 Charity & Volunteering", text: "Engaged in community volunteering, tutoring, and humanitarian work." },
+  { id: "chess_logic", label: "♟️ Chess & Problem Solving", text: "Chess player, competitive problem solver, and logical thinker." },
+  { id: "first_club", label: "✨ First Student Club", text: "First time joining a university club, motivated and ready to learn!" },
+];
+
 export default function OnboardingWizardPage() {
   const router = useRouter();
   const settings = useQuantersStore((s) => s.settings);
@@ -215,10 +232,28 @@ export default function OnboardingWizardPage() {
   );
   const [phoneTouched, setPhoneTouched] = useState(false);
   const phoneValidation = useMemo(() => validateAlgerianPhone(phone), [phone]);
-  const canProceedStep1 = fullName.trim().length >= 2 && phoneValidation.isValid;
+
+  const nameParts = useMemo(
+    () => fullName.trim().split(/\s+/).filter(Boolean),
+    [fullName]
+  );
+  const isValidFullName = useMemo(() => {
+    return (
+      nameParts.length >= 2 &&
+      nameParts.every((p) => p.length >= 2) &&
+      !/[0-9!@#$%^&*()_+={}\[\]|\\:;"'<,>?/]/.test(fullName)
+    );
+  }, [nameParts, fullName]);
+
+  const canProceedStep1 = isValidFullName && phoneValidation.isValid;
+
   const [avatarUrl, setAvatarUrl] = useState(
     existingMember?.avatarUrl || "/brand/logo_quanta_opt.webp"
   );
+  const isCustomAvatar =
+    avatarUrl &&
+    !avatarUrl.includes("logo_quanta_opt") &&
+    !avatarUrl.includes("default");
 
   // Sync state once session member resolves after hydration
   useEffect(() => {
@@ -235,37 +270,55 @@ export default function OnboardingWizardPage() {
     }
   }, [rawSessionMember]);
 
-  // Step 2: Where You Live & Commute (HR Logistics)
+  // Step 2: Where You Live & Commute (HR Logistics) — Unselected by default to enforce real choices
   const [wilaya, setWilaya] = useState(
-    existingMember?.wilaya || "Algiers (16)"
+    existingMember?.wilaya || ""
   );
   const [commune, setCommune] = useState(existingMember?.commune || "");
-  const [housingType, setHousingType] = useState<HousingType>(
-    existingMember?.housingType || "Family Home"
+  const [communeTouched, setCommuneTouched] = useState(false);
+  const [communeSuggestionsOpen, setCommuneSuggestionsOpen] = useState(false);
+  const [housingType, setHousingType] = useState<HousingType | "">(
+    existingMember?.housingType || ""
   );
-  const [commuteTime, setCommuteTime] = useState<CommuteDuration>(
-    existingMember?.commuteTime || "< 30 min"
+  const [commuteTime, setCommuteTime] = useState<CommuteDuration | "">(
+    existingMember?.commuteTime || ""
   );
 
-  // Step 3: University, Specialty & Study Level
+  const matchingCommunes = useMemo(() => {
+    return searchAlgiersCommunes(commune, 8);
+  }, [commune]);
+
+  const canProceedStep2 =
+    commune.trim().length >= 2 &&
+    wilaya.trim().length >= 2 &&
+    Boolean(housingType) &&
+    Boolean(commuteTime);
+
+  // Step 3: University, Specialty & Study Level — Unselected by default so user cannot skip
   const [selectedUniversity, setSelectedUniversity] = useState<string>(
-    UNIVERSITY_OPTIONS.find((u) =>
-      u.toLowerCase().includes((existingMember?.university || "").toLowerCase())
-    ) || UNIVERSITY_OPTIONS[0]
+    existingMember?.university &&
+      UNIVERSITY_OPTIONS.some((u) => u.toLowerCase() === existingMember.university.toLowerCase())
+      ? UNIVERSITY_OPTIONS.find((u) => u.toLowerCase() === existingMember.university.toLowerCase()) || ""
+      : existingMember?.university
+      ? "Other University / Higher School"
+      : ""
   );
-  const [customUniversity, setCustomUniversity] = useState("");
+  const [customUniversity, setCustomUniversity] = useState(
+    existingMember?.university &&
+      !UNIVERSITY_OPTIONS.some((u) => u.toLowerCase() === existingMember.university.toLowerCase())
+      ? existingMember.university
+      : ""
+  );
   const [specialtySearch, setSpecialtySearch] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>(
-    UNIVERSITY_SPECIALTIES.find((s) =>
-      s.toLowerCase().includes((existingMember?.major || "").toLowerCase())
-    ) || UNIVERSITY_SPECIALTIES[4]
+    existingMember?.major || ""
   );
   const [customMajor, setCustomMajor] = useState("");
-  const [academicYear, setAcademicYear] = useState<Member["academicYear"]>(
-    existingMember?.academicYear || "L3"
+  const [academicYear, setAcademicYear] = useState<Member["academicYear"] | "">(
+    existingMember?.academicYear || ""
   );
-  const [tenure, setTenure] = useState(
-    existingMember?.tenure || "New Trainee (2026/2027)"
+  const [tenure, setTenure] = useState<string>(
+    existingMember?.tenure || ""
   );
 
   // Alumni Branch State
@@ -280,6 +333,29 @@ export default function OnboardingWizardPage() {
     "Software Engineering & AI"
   );
   const [alumniMentorshipWilling, setAlumniMentorshipWilling] = useState(true);
+
+  const effectiveUniversity =
+    selectedUniversity === "Other University / Higher School" &&
+    customUniversity.trim()
+      ? customUniversity.trim()
+      : selectedUniversity.replace(/\s*\(.*?\)\s*$/, "");
+
+  const effectiveMajor =
+    (selectedSpecialty === "Other Scientific / Technical Major" ||
+      selectedSpecialty === "Other (Specify Custom Specialty)") &&
+    customMajor.trim()
+      ? customMajor.trim()
+      : selectedSpecialty;
+
+  // STEP 3 GATE:
+  // For students: University + Specialty + Academic Year + Club Tenure are strictly required.
+  // For alumni: University + Tenure are required (Alumni position & Graduation year are validated in Step 4).
+  const canProceedStep3 = isAlumni
+    ? effectiveUniversity.length >= 2 && Boolean(tenure)
+    : effectiveUniversity.length >= 2 &&
+      effectiveMajor.length >= 2 &&
+      Boolean(academicYear) &&
+      Boolean(tenure);
 
   // Step 4: Personal PC, Equipment & Links
   const [hasLaptop, setHasLaptop] = useState<boolean>(
@@ -298,27 +374,227 @@ export default function OnboardingWizardPage() {
     existingMember?.portfolioUrl || ""
   );
   const [cvUrl, setCvUrl] = useState(existingMember?.cvUrl || "");
+  const [noLinksWaiver, setNoLinksWaiver] = useState(false);
 
-  // Step 5: Placement & 7-Day Availability
+  const isValidUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return true;
+    return /^https?:\/\/|^(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/i.test(trimmed);
+  };
+
+  const hasAnyLink = Boolean(
+    githubUrl.trim() ||
+    linkedinUrl.trim() ||
+    portfolioUrl.trim() ||
+    cvUrl.trim()
+  );
+
+  const allUrlsValid =
+    isValidUrl(githubUrl) &&
+    isValidUrl(linkedinUrl) &&
+    isValidUrl(portfolioUrl) &&
+    isValidUrl(cvUrl);
+
+  // STEP 4 GATE:
+  // For alumni: Current Position/Org (>= 2 chars) and Graduation Year are strictly required.
+  // For students: Valid URL formats, and at least 1 professional link or waiver.
+  const canProceedStep4 = isAlumni
+    ? alumniPosition.trim().length >= 2 && Boolean(graduationYear)
+    : allUrlsValid && (hasAnyLink || noLinksWaiver);
+
+  // Step 5: Placement & 7-Day Availability — Empty by default so user must choose department & free slots
   const [departmentId, setDepartmentId] = useState(
-    existingMember?.departmentId || "dept-it"
+    existingMember?.departmentId || ""
   );
   const [teamId, setTeamId] = useState<string | undefined>(
     existingMember?.teamId
   );
   const [availability, setAvailability] = useState<AvailabilityGrid>(
-    existingMember?.availability || DEFAULT_AVAILABILITY
+    existingMember?.availability && Object.values(existingMember.availability).some((s) => (s?.length || 0) > 0)
+      ? existingMember.availability
+      : {
+          Saturday: [],
+          Sunday: [],
+          Monday: [],
+          Tuesday: [],
+          Wednesday: [],
+          Thursday: [],
+          Friday: [],
+        }
   );
+
+  const totalAvailabilitySlots = useMemo(() => {
+    return Object.values(availability).reduce(
+      (sum, slots) => sum + (slots?.length || 0),
+      0
+    );
+  }, [availability]);
+
+  const canProceedStep5 = isAlumni
+    ? true
+    : Boolean(departmentId) && totalAvailabilitySlots >= 2;
 
   // Step 6: Outside Activities & Charter
   const [outsideActivitiesAndVolunteering, setOutsideActivitiesAndVolunteering] =
     useState(existingMember?.outsideActivitiesAndVolunteering || "");
+  const [selectedActivityTags, setSelectedActivityTags] = useState<string[]>([]);
   const [declaresOtherStudentOrg, setDeclaresOtherStudentOrg] = useState(
     Boolean(existingMember?.declaresOtherStudentOrg)
   );
   const [charterConfirmed, setCharterConfirmed] = useState(false);
   const [showInternalLaw, setShowInternalLaw] = useState(false);
   const [lawChapterFilter, setLawChapterFilter] = useState<string>("ALL");
+
+  const hasValidActivities =
+    outsideActivitiesAndVolunteering.trim().length >= 10 ||
+    selectedActivityTags.length > 0;
+
+  const canProceedStep6 =
+    charterConfirmed && (isAlumni || hasValidActivities);
+
+  // Global Step Navigation Gate
+  const currentStepCanProceed = useMemo(() => {
+    if (step === 1) return canProceedStep1;
+    if (step === 2) return canProceedStep2;
+    if (step === 3) return canProceedStep3;
+    if (step === 4) return canProceedStep4;
+    if (step === 5) return canProceedStep5;
+    if (step === 6) return canProceedStep6;
+    return false;
+  }, [
+    step,
+    canProceedStep1,
+    canProceedStep2,
+    canProceedStep3,
+    canProceedStep4,
+    canProceedStep5,
+    canProceedStep6,
+  ]);
+
+  const currentStepMissingMessage = useMemo(() => {
+    if (step === 1) {
+      if (!isValidFullName) {
+        return "Please enter your full first & last name (min 2 words, letters only)";
+      }
+      if (!phoneValidation.isValid) {
+        return phoneValidation.errorMessage || "Please enter a valid Algerian phone number (05/06/07)";
+      }
+    }
+    if (step === 2) {
+      if (!wilaya || wilaya.trim().length < 2) {
+        return "Please select your Wilaya of residence";
+      }
+      if (commune.trim().length < 2) {
+        return "Please specify your municipality/commune of residence";
+      }
+      if (!housingType) {
+        return "Please select your academic housing type";
+      }
+      if (!commuteTime) {
+        return "Please select your daily faculty commute duration";
+      }
+    }
+    if (step === 3) {
+      if (effectiveUniversity.length < 2) {
+        return "Please select your university or higher school";
+      }
+      if (!isAlumni && effectiveMajor.length < 2) {
+        return "Please select or filter your academic major / specialty";
+      }
+      if (!isAlumni && !academicYear) {
+        return "Please select your current study level (L1–Doctorate)";
+      }
+      if (!tenure) {
+        return "Please select your club affiliation / tenure";
+      }
+    }
+    if (step === 4) {
+      if (isAlumni) {
+        if (!graduationYear) {
+          return "Please select your graduation year (2023–2026)";
+        }
+        if (alumniPosition.trim().length < 2) {
+          return "Please specify your current professional role or company";
+        }
+      } else {
+        if (!allUrlsValid) {
+          return "One or more links has an invalid URL format";
+        }
+        if (!hasAnyLink && !noLinksWaiver) {
+          return "Provide at least 1 link (LinkedIn, GitHub, CV) or tap 'Add links later'";
+        }
+      }
+    }
+    if (step === 5) {
+      if (!isAlumni) {
+        if (!departmentId) {
+          return "Please select your operational department (1 of 6)";
+        }
+        if (totalAvailabilitySlots < 2) {
+          return `Select at least 2 availability time slots (${totalAvailabilitySlots}/2 selected)`;
+        }
+      }
+    }
+    if (step === 6) {
+      if (!isAlumni && !hasValidActivities) {
+        return "Select at least 1 activity tag or write a brief background note";
+      }
+      if (!charterConfirmed) {
+        return "Please review and accept the QUANTA Internal Law & Honor Charter";
+      }
+    }
+    return "";
+  }, [
+    step,
+    isValidFullName,
+    phoneValidation,
+    wilaya,
+    commune,
+    housingType,
+    commuteTime,
+    effectiveUniversity,
+    effectiveMajor,
+    academicYear,
+    tenure,
+    isAlumni,
+    graduationYear,
+    alumniPosition,
+    allUrlsValid,
+    hasAnyLink,
+    noLinksWaiver,
+    departmentId,
+    totalAvailabilitySlots,
+    hasValidActivities,
+    charterConfirmed,
+  ]);
+
+  const profileCompletenessScore = useMemo(() => {
+    let score = 0;
+    if (isValidFullName) score += 15;
+    if (phoneValidation.isValid) score += 15;
+    if (isCustomAvatar) score += 10;
+    if (commune.trim().length >= 2) score += 15;
+    if (effectiveUniversity.length >= 2) score += 10;
+    if (effectiveMajor.length >= 2 || (isAlumni && alumniPosition.trim().length >= 2)) score += 10;
+    if (hasAnyLink) score += 10;
+    else if (hasLaptop) score += 5;
+    if (totalAvailabilitySlots >= 2) score += 5;
+    if (hasValidActivities) score += 10;
+    return Math.min(100, score);
+  }, [
+    isValidFullName,
+    phoneValidation.isValid,
+    isCustomAvatar,
+    commune,
+    effectiveUniversity,
+    effectiveMajor,
+    isAlumni,
+    alumniPosition,
+    hasAnyLink,
+    hasLaptop,
+    totalAvailabilitySlots,
+    hasValidActivities,
+  ]);
 
   const filteredSpecialties = useMemo(() => {
     const q = specialtySearch.trim().toLowerCase();
@@ -371,18 +647,6 @@ export default function OnboardingWizardPage() {
     0
   );
 
-  const effectiveUniversity =
-    selectedUniversity === "Other University / Higher School" &&
-    customUniversity.trim()
-      ? customUniversity.trim()
-      : selectedUniversity.replace(/\s*\(.*?\)\s*$/, "");
-
-  const effectiveMajor =
-    selectedSpecialty === "Other Scientific / Technical Major" &&
-    customMajor.trim()
-      ? customMajor.trim()
-      : selectedSpecialty;
-
   const handleFinish = async () => {
     if (!charterConfirmed) return;
     const validEmail = validateEmail(verifiedEmail);
@@ -398,20 +662,20 @@ export default function OnboardingWizardPage() {
       avatarUrl,
       university: effectiveUniversity,
       major: effectiveMajor,
-      academicYear: isAlumni ? "Graduated" : academicYear,
-      tenure,
-      yearsInClub: parseYearsInClub(tenure),
-      clubJoinYear: 2026 - parseYearsInClub(tenure),
+      academicYear: isAlumni ? "Graduated" : (academicYear as Member["academicYear"]) || "L1",
+      tenure: tenure || "New Trainee (2026/2027)",
+      yearsInClub: parseYearsInClub(tenure || "New Trainee (2026/2027)"),
+      clubJoinYear: 2026 - parseYearsInClub(tenure || "New Trainee (2026/2027)"),
       isAlumni,
       graduationYear: isAlumni ? graduationYear : undefined,
       alumniPosition: isAlumni ? alumniPosition.trim() : undefined,
       alumniAccessEnabled: isAlumni ? alumniMentorshipWilling : undefined,
-      departmentId: isAlumni ? "dept-scientific" : departmentId,
+      departmentId: isAlumni ? "dept-scientific" : departmentId || "dept-it",
       teamId: isAlumni ? undefined : teamId,
-      wilaya,
+      wilaya: wilaya || "Algiers (16)",
       commune,
-      housingType: isAlumni ? "Family Home" : housingType,
-      commuteTime: isAlumni ? "< 30 min" : commuteTime,
+      housingType: isAlumni ? "Family Home" : (housingType as HousingType) || "Family Home",
+      commuteTime: isAlumni ? "< 30 min" : (commuteTime as CommuteDuration) || "< 30 min",
       hasLaptop,
       pcCapability: hasLaptop ? "Coding & Dev" : "No Personal PC",
       equipmentTags,
@@ -424,7 +688,14 @@ export default function OnboardingWizardPage() {
         ? alumniIndustry
           ? `Industry: ${alumniIndustry}`
           : ""
-        : outsideActivitiesAndVolunteering,
+        : [
+            ...selectedActivityTags
+              .map((tId) => SMART_ACTIVITY_TAGS.find((s) => s.id === tId)?.text)
+              .filter(Boolean),
+            outsideActivitiesAndVolunteering.trim(),
+          ]
+            .filter(Boolean)
+            .join(" — ") || "Member of QUANTA Scientific Club",
       declaresOtherStudentOrg: isAlumni ? false : declaresOtherStudentOrg,
     });
     await syncWithServer(true);
@@ -537,9 +808,15 @@ export default function OnboardingWizardPage() {
               <QuantaLogo size={22} showWordmark variant="light" centered />
             </div>
 
-            <span className="text-[11px] font-mono font-black text-[#0284C7] bg-[#F0F6FF] border border-[#D5E3F5] px-2.5 py-1 rounded-lg tabular-nums">
-              Step {step} / {maxStep}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-sky-500/15 border border-amber-300/60 text-[10px] font-mono font-extrabold text-amber-800 shadow-2xs">
+                <Sparkles className="w-2.5 h-2.5 text-amber-600 animate-pulse" />
+                <span>+30 XP</span>
+              </span>
+              <span className="text-[11px] font-mono font-black text-[#0284C7] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-lg tabular-nums">
+                {step}/{maxStep}
+              </span>
+            </div>
           </div>
 
           {/* Sleek Segment Progress Line */}
@@ -561,6 +838,23 @@ export default function OnboardingWizardPage() {
                 title={s.title}
               />
             ))}
+          </div>
+
+          {/* Subtle Live Dossier Completeness Bar */}
+          <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500 pt-0.5">
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-[#0284C7]" />
+              <span>Dossier Completeness</span>
+            </span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-12 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-300"
+                  style={{ width: `${profileCompletenessScore}%` }}
+                />
+              </div>
+              <span className="text-[#0284C7] font-black">{profileCompletenessScore}%</span>
+            </div>
           </div>
 
           {/* Step Title Row */}
@@ -588,7 +882,20 @@ export default function OnboardingWizardPage() {
             {/* STEP 1: Identity & Avatar */}
             {step === 1 && (
               <div className="space-y-3.5">
-                <div className="p-3.5 rounded-2xl bg-[#F0F6FF]/80 border border-[#D5E3F5]">
+                <div className="p-3.5 rounded-2xl bg-[#F0F6FF]/80 border border-[#D5E3F5] space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-[#0F1E36]">Official Member Photo</span>
+                    {isCustomAvatar ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        <span>Photo Uploaded (+10 XP)</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-amber-700 font-semibold">
+                        Used on Digital Member Pass
+                      </span>
+                    )}
+                  </div>
                   <AvatarUploader
                     currentAvatarUrl={avatarUrl}
                     onAvatarCompressed={(url) => setAvatarUrl(url)}
@@ -596,16 +903,33 @@ export default function OnboardingWizardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                    Full Name (Official University Record)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-[#0F1E36]">
+                      Full Name (Official Student ID Record)
+                    </label>
+                    <span className="text-[10px] font-mono text-slate-500 font-semibold">
+                      First &amp; Last Name
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
-                    placeholder="Full Name"
+                    className={`w-full h-11 px-3.5 rounded-xl border text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 transition ${
+                      isValidFullName
+                        ? "bg-white border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/15"
+                        : fullName.trim()
+                        ? "bg-[#FFF8F6] border-amber-300 focus:border-amber-400 focus:ring-amber-500/15"
+                        : "bg-[#F8FAFC] border-slate-200/90 focus:border-[#0284C7] focus:ring-[#0284C7]/15"
+                    }`}
+                    placeholder="e.g. Ayoub Sarri"
                   />
+                  {!isValidFullName && fullName.trim().length > 0 && (
+                    <p className="mt-1 text-[11px] font-mono text-amber-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      <span>Please enter both first and last name (letters only)</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -719,18 +1043,88 @@ export default function OnboardingWizardPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#0284C7]" />
-                    <span>Commune / District</span>
-                  </label>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-[#0284C7]" />
+                      <span>Commune / Municipality</span>
+                    </label>
+                    <span className="text-[10px] font-mono text-slate-500 font-semibold">
+                      Required for club logistics
+                    </span>
+                  </div>
+
                   <input
                     type="text"
                     value={commune}
-                    onChange={(e) => setCommune(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
-                    placeholder="e.g. Bab Ezzouar, Alger Centre, Kouba..."
+                    onChange={(e) => {
+                      setCommune(e.target.value);
+                      setCommuneTouched(true);
+                      setCommuneSuggestionsOpen(true);
+                    }}
+                    onFocus={() => setCommuneSuggestionsOpen(true)}
+                    className={`w-full h-11 px-3.5 rounded-xl border text-sm font-semibold text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 transition ${
+                      commune.trim().length >= 2
+                        ? "bg-white border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500/15"
+                        : communeTouched
+                        ? "bg-[#FFF8F6] border-amber-300 focus:border-amber-400 focus:ring-amber-500/15"
+                        : "bg-[#F8FAFC] border-slate-200/90 focus:border-[#0284C7] focus:ring-[#0284C7]/15"
+                    }`}
+                    placeholder="Type municipality (e.g. Bab Ezzouar, Kouba, Hydra...)"
                   />
+
+                  {/* Autocomplete Suggestions Dropdown when typing */}
+                  {communeSuggestionsOpen && matchingCommunes.length > 0 && (
+                    <div className="absolute z-30 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                      <div className="p-1 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider px-2.5 pt-1.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                        <span>Algiers Communes Suggestions</span>
+                        <span className="text-[9px] text-[#0284C7]">Tap to select</span>
+                      </div>
+                      {matchingCommunes.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            setCommune(c);
+                            setCommuneSuggestionsOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs font-bold text-[#0F1E36] hover:bg-sky-50 hover:text-[#0284C7] transition flex items-center justify-between cursor-pointer border-b border-slate-50 last:border-0"
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#0284C7]" />
+                            <span>{c}</span>
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">Wilaya 16</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Quick Select Popular Student & Campus Hubs */}
+                  <div className="mt-2.5">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      Or Quick Select Campus Hub:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {POPULAR_STUDENT_COMMUNES.map((pc) => (
+                        <button
+                          key={pc}
+                          type="button"
+                          onClick={() => {
+                            setCommune(pc);
+                            setCommuneSuggestionsOpen(false);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition cursor-pointer ${
+                            commune.toLowerCase() === pc.toLowerCase()
+                              ? "bg-sky-50 text-[#0284C7] border-sky-300 font-bold shadow-2xs"
+                              : "bg-[#F8FAFC] text-slate-600 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          {pc}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {isAlumni ? (
@@ -918,10 +1312,17 @@ export default function OnboardingWizardPage() {
                   <select
                     value={selectedUniversity}
                     onChange={(e) => setSelectedUniversity(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-sm font-bold text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
+                    className={`w-full h-11 px-3.5 rounded-xl border text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 transition ${
+                      selectedUniversity
+                        ? "bg-white text-[#0F1E36] border-slate-200/90 focus:border-[#0284C7] focus:ring-[#0284C7]/15"
+                        : "bg-[#F8FAFC] text-slate-400 border-amber-300 focus:border-amber-500 focus:ring-amber-500/15"
+                    }`}
                   >
+                    <option value="" disabled>
+                      -- Choose your University / Higher School --
+                    </option>
                     {UNIVERSITY_OPTIONS.map((univ) => (
-                      <option key={univ} value={univ}>
+                      <option key={univ} value={univ} className="text-[#0F1E36]">
                         {univ}
                       </option>
                     ))}
@@ -939,89 +1340,113 @@ export default function OnboardingWizardPage() {
                   )}
                 </div>
 
-                {/* Faculty of Sciences & Tech Specialty */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-[#0F1E36]">
-                      Faculty of Sciences &amp; Tech Specialty
-                    </label>
-                    <span className="text-[10px] font-mono font-bold text-[#0284C7]">
-                      {filteredSpecialties.length} majors
-                    </span>
+                {/* Alumni vs Student Branch Display */}
+                {isAlumni ? (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 border border-indigo-700/60 text-white space-y-1.5 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-amber-400" />
+                      <span className="font-display text-xs font-black text-amber-300">
+                        QUANTA Alumni Track Activated
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Your affiliation is set to <strong>QUANTA Alumni (Graduated)</strong>. Step 4 will record your Alma Mater graduation year (2023–2026), current professional position, and mentorship domain.
+                    </p>
                   </div>
-                  <div className="relative mb-2">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={specialtySearch}
-                      onChange={(e) => setSpecialtySearch(e.target.value)}
-                      placeholder="Filter majors (Physics, AI, Biology, Math...)"
-                      className="w-full h-10 pl-9 pr-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
-                    />
-                  </div>
-                  <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 rounded-2xl border border-slate-200/90 p-2 bg-[#F8FAFC]">
-                    {filteredSpecialties.map((spec) => {
-                      const active = selectedSpecialty === spec;
-                      return (
-                        <button
-                          key={spec}
-                          type="button"
-                          onClick={() => setSelectedSpecialty(spec)}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs active:scale-[0.99] transition flex items-center justify-between gap-2 cursor-pointer ${
-                            active
-                              ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white font-extrabold shadow-2xs"
-                              : "bg-white text-slate-700 hover:bg-[#F0F6FF] font-semibold border border-slate-100"
-                          }`}
-                        >
-                          <span className="leading-snug">{spec}</span>
-                          {active && (
-                            <CheckCircle2 className="w-4 h-4 text-[#7DD3FC] shrink-0" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                ) : (
+                  <>
+                    {/* Faculty of Sciences & Tech Specialty */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-[#0F1E36]">
+                          Faculty of Sciences &amp; Tech Specialty
+                        </label>
+                        <span className="text-[10px] font-mono font-bold text-[#0284C7]">
+                          {filteredSpecialties.length} majors
+                        </span>
+                      </div>
+                      <div className="relative mb-2">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={specialtySearch}
+                          onChange={(e) => setSpecialtySearch(e.target.value)}
+                          placeholder="Filter majors (Physics, AI, Biology, Math...)"
+                          className="w-full h-10 pl-9 pr-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition"
+                        />
+                      </div>
+                      <div className="max-h-[140px] overflow-y-auto space-y-1.5 pr-1 rounded-2xl border border-slate-200/90 p-2 bg-[#F8FAFC]">
+                        {filteredSpecialties.map((spec) => {
+                          const active = selectedSpecialty === spec;
+                          return (
+                            <button
+                              key={spec}
+                              type="button"
+                              onClick={() => setSelectedSpecialty(spec)}
+                              className={`w-full text-left px-3 py-2 rounded-xl text-xs active:scale-[0.99] transition flex items-center justify-between gap-2 cursor-pointer ${
+                                active
+                                  ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white font-extrabold shadow-2xs"
+                                  : "bg-white text-slate-700 hover:bg-[#F0F6FF] font-semibold border border-slate-100"
+                              }`}
+                            >
+                              <span className="leading-snug">{spec}</span>
+                              {active && (
+                                <CheckCircle2 className="w-4 h-4 text-[#7DD3FC] shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                  {selectedSpecialty ===
-                    "Other Scientific / Technical Major" && (
-                    <input
-                      type="text"
-                      value={customMajor}
-                      onChange={(e) => setCustomMajor(e.target.value)}
-                      placeholder="Specify your exact specialty or faculty..."
-                      className="mt-2 w-full h-10 px-3.5 rounded-xl bg-[#F8FAFC] border border-[#0284C7] text-xs font-semibold text-[#0F1E36] focus:bg-white focus:outline-none"
-                    />
-                  )}
-                </div>
+                      {selectedSpecialty ===
+                        "Other Scientific / Technical Major" && (
+                        <input
+                          type="text"
+                          value={customMajor}
+                          onChange={(e) => setCustomMajor(e.target.value)}
+                          placeholder="Specify your exact specialty or faculty..."
+                          className="mt-2 w-full h-10 px-3.5 rounded-xl bg-[#F8FAFC] border border-[#0284C7] text-xs font-semibold text-[#0F1E36] focus:bg-white focus:outline-none"
+                        />
+                      )}
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                    Academic Study Level
-                  </label>
-                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
-                    {ACADEMIC_YEARS.map((yr) => (
-                      <button
-                        key={yr}
-                        type="button"
-                        onClick={() => setAcademicYear(yr)}
-                        className={`h-9 rounded-xl text-xs font-extrabold border active:scale-[0.98] transition cursor-pointer ${
-                          academicYear === yr
-                            ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875] shadow-2xs"
-                            : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
-                        }`}
-                      >
-                        {yr}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center justify-between">
+                        <span>Academic Study Level</span>
+                        {!academicYear && (
+                          <span className="text-[10px] font-mono text-amber-600 font-bold">
+                            Please select level
+                          </span>
+                        )}
+                      </label>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                        {ACADEMIC_YEARS.filter((yr) => yr !== "Graduated").map((yr) => (
+                          <button
+                            key={yr}
+                            type="button"
+                            onClick={() => setAcademicYear(yr)}
+                            className={`h-9 rounded-xl text-xs font-extrabold border active:scale-[0.98] transition cursor-pointer ${
+                              academicYear === yr
+                                ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white border-[#2B4875] shadow-2xs"
+                                : "bg-[#F8FAFC] text-slate-700 border-slate-200/90 hover:border-[#182C4E]/40"
+                            }`}
+                          >
+                            {yr}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center justify-between">
                     <span>Club Tenure &amp; Affiliation</span>
-                    <span className="text-[10px] font-mono text-slate-500 font-semibold">
-                      Select background
-                    </span>
+                    {!tenure && (
+                      <span className="text-[10px] font-mono text-amber-600 font-bold">
+                        Please select tenure
+                      </span>
+                    )}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {TENURE_OPTIONS.map((t) => {
@@ -1035,6 +1460,8 @@ export default function OnboardingWizardPage() {
                             setTenure(t);
                             if (isAlumniOpt) {
                               setAcademicYear("Graduated");
+                            } else if (academicYear === "Graduated") {
+                              setAcademicYear("");
                             }
                           }}
                           className={`px-3 py-2.5 rounded-xl text-xs font-bold border active:scale-[0.98] transition cursor-pointer flex items-center justify-between gap-1.5 ${
@@ -1121,16 +1548,26 @@ export default function OnboardingWizardPage() {
                 </div>
 
                 <div className="space-y-2.5 pt-2.5 border-t border-slate-100">
-                  <label className="block text-xs font-bold text-[#0F1E36]">
-                    Digital Portfolio &amp; Professional Links (Optional)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#0F1E36]">
+                      Digital Portfolio &amp; Professional Links
+                    </label>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                      <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                      <span>+30 XP Bonus</span>
+                    </span>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="relative">
                       <FolderGit2 className="w-4 h-4 text-[#0284C7] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="url"
                         value={githubUrl}
-                        onChange={(e) => setGithubUrl(e.target.value)}
+                        onChange={(e) => {
+                          setGithubUrl(e.target.value);
+                          if (e.target.value) setNoLinksWaiver(false);
+                        }}
                         placeholder="GitHub / GitLab URL"
                         className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7]"
                       />
@@ -1140,7 +1577,10 @@ export default function OnboardingWizardPage() {
                       <input
                         type="url"
                         value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                        onChange={(e) => {
+                          setLinkedinUrl(e.target.value);
+                          if (e.target.value) setNoLinksWaiver(false);
+                        }}
                         placeholder="LinkedIn Profile Link"
                         className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7]"
                       />
@@ -1150,7 +1590,10 @@ export default function OnboardingWizardPage() {
                       <input
                         type="url"
                         value={portfolioUrl}
-                        onChange={(e) => setPortfolioUrl(e.target.value)}
+                        onChange={(e) => {
+                          setPortfolioUrl(e.target.value);
+                          if (e.target.value) setNoLinksWaiver(false);
+                        }}
                         placeholder="Portfolio / Behance / Drive"
                         className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7]"
                       />
@@ -1160,11 +1603,42 @@ export default function OnboardingWizardPage() {
                       <input
                         type="url"
                         value={cvUrl}
-                        onChange={(e) => setCvUrl(e.target.value)}
+                        onChange={(e) => {
+                          setCvUrl(e.target.value);
+                          if (e.target.value) setNoLinksWaiver(false);
+                        }}
                         placeholder="Academic CV / Resume URL"
                         className="w-full h-10 pl-9 pr-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-medium text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7]"
                       />
                     </div>
+                  </div>
+
+                  {!allUrlsValid && (
+                    <p className="text-[11px] font-mono text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Please check that your links start with https:// or domain.com</span>
+                    </p>
+                  )}
+
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setNoLinksWaiver((prev) => !prev)}
+                      className={`w-full py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
+                        noLinksWaiver && !hasAnyLink
+                          ? "bg-slate-100 border-slate-300 text-slate-800 font-bold shadow-2xs"
+                          : "bg-[#F8FAFC] border-slate-200 text-slate-600 hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2
+                          className={`w-4 h-4 transition ${
+                            noLinksWaiver && !hasAnyLink ? "text-[#0284C7]" : "text-slate-300"
+                          }`}
+                        />
+                        <span>I don&apos;t have public tech links yet (will add later in profile)</span>
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1547,9 +2021,43 @@ export default function OnboardingWizardPage() {
             {step === 6 && !isAlumni && (
               <div className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-extrabold text-[#0F1E36] mb-1.5">
-                    Other Clubs, Associations &amp; Volunteering Experience
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-extrabold text-[#0F1E36]">
+                      Passions, Volunteering &amp; Background
+                    </label>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      Tap tags or describe
+                    </span>
+                  </div>
+
+                  {/* Smart Activity Quick-Pills */}
+                  <div className="flex flex-wrap gap-1.5 mb-2.5">
+                    {SMART_ACTIVITY_TAGS.map((tag) => {
+                      const isSelected = selectedActivityTags.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedActivityTags((prev) => prev.filter((id) => id !== tag.id));
+                            } else {
+                              setSelectedActivityTags((prev) => [...prev, tag.id]);
+                            }
+                          }}
+                          className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                            isSelected
+                              ? "bg-sky-50 text-[#0284C7] border-sky-300 shadow-2xs font-extrabold"
+                              : "bg-[#F8FAFC] text-slate-700 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <span>{tag.label}</span>
+                          {isSelected && <Check className="w-3 h-3 text-[#0284C7]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <textarea
                     rows={2.5}
                     value={outsideActivitiesAndVolunteering}
@@ -1557,8 +2065,15 @@ export default function OnboardingWizardPage() {
                       setOutsideActivitiesAndVolunteering(e.target.value)
                     }
                     className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs text-[#0F1E36] focus:bg-white focus:outline-none focus:border-[#0284C7]"
-                    placeholder="Share any other student clubs, associations, or volunteering initiatives..."
+                    placeholder="Share any other student clubs, volunteer initiatives, hobbies, or what excites you about QUANTA..."
                   />
+
+                  {!hasValidActivities && (
+                    <p className="mt-1 text-[11px] font-mono text-amber-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      <span>Select at least 1 tag or describe your background (min 10 chars)</span>
+                    </p>
+                  )}
                 </div>
 
                 <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 cursor-pointer">
@@ -1777,56 +2292,65 @@ export default function OnboardingWizardPage() {
           </div>
 
           {/* Pinned Bottom Footer — Solid & Crisp */}
-          <div className="shrink-0 p-3 sm:p-3.5 bg-white border-t border-slate-100 flex items-center justify-between gap-2.5">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => s - 1)}
-                className="h-11 px-4.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-bold text-[#0F1E36] hover:bg-[#F0F6FF] active:scale-[0.98] transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-            ) : (
-              <div />
-            )}
+          <div className="shrink-0 p-3 sm:p-3.5 bg-white border-t border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2.5">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setStep((s) => s - 1)}
+                  className="h-11 px-4.5 rounded-xl bg-[#F8FAFC] border border-slate-200/90 text-xs font-bold text-[#0F1E36] hover:bg-[#F0F6FF] active:scale-[0.98] transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </button>
+              ) : (
+                <div />
+              )}
 
-            {step < maxStep ? (
-              <button
-                type="button"
-                disabled={step === 1 && !canProceedStep1}
-                onClick={() => {
-                  if (step === 1) {
-                    setPhoneTouched(true);
-                    if (!canProceedStep1) return;
-                  }
-                  setStep((s) => s + 1);
-                }}
-                className={`h-11 px-6 rounded-xl font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 shadow-sm ${
-                  step === 1 && !canProceedStep1
-                    ? "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
-                    : "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer"
-                }`}
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4 text-[#7DD3FC]" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={!charterConfirmed}
-                onClick={handleFinish}
-                className={`h-11 px-6 rounded-xl font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 ${
-                  charterConfirmed
-                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer shadow-sm"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4 text-[#7DD3FC]" />
-                <span>
-                  {isAlumni ? "Complete Alumni Dossier" : "Complete Registration"}
-                </span>
-              </button>
+              {step < maxStep ? (
+                <button
+                  type="button"
+                  disabled={!currentStepCanProceed}
+                  onClick={() => {
+                    if (step === 1) setPhoneTouched(true);
+                    if (step === 2) setCommuneTouched(true);
+                    if (!currentStepCanProceed) return;
+                    setStep((s) => s + 1);
+                  }}
+                  className={`h-11 px-6 rounded-xl font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 shadow-sm ${
+                    !currentStepCanProceed
+                      ? "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed"
+                      : "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer"
+                  }`}
+                >
+                  <span>Continue</span>
+                  <ArrowRight className="w-4 h-4 text-[#7DD3FC]" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!currentStepCanProceed}
+                  onClick={handleFinish}
+                  className={`h-11 px-6 rounded-xl font-display text-xs font-black active:scale-[0.98] transition flex items-center gap-2 ${
+                    currentStepCanProceed
+                      ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/75 text-white cursor-pointer shadow-sm"
+                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4 text-[#7DD3FC]" />
+                  <span>
+                    {isAlumni ? "Complete Alumni Dossier" : "Complete Registration"}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Missing Step Requirement Helper */}
+            {!currentStepCanProceed && currentStepMissingMessage && (
+              <p className="text-[11px] font-mono font-bold text-amber-700 bg-amber-50/95 border border-amber-200 px-3 py-1.5 rounded-xl text-center flex items-center justify-center gap-1.5 shadow-2xs animate-fadeIn">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>{currentStepMissingMessage}</span>
+              </p>
             )}
           </div>
         </div>
