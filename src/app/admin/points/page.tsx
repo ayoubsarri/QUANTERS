@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Coins,
+  Crown,
   Lock,
   Plus,
   RotateCcw,
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   Sparkles,
   Trophy,
+  UserCheck,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
@@ -38,6 +40,7 @@ export default function AdminPointsPage() {
   const updatePointRule = useQuantersStore((s) => s.updatePointRule);
   const deletePointRule = useQuantersStore((s) => s.deletePointRule);
   const publishMonthlyHonours = useQuantersStore((s) => s.publishMonthlyHonours);
+  const removeMonthlyHonours = useQuantersStore((s) => s.removeMonthlyHonours);
 
   const [activeTab, setActiveTab] = useState<"ledger" | "rules" | "appeals" | "motm">("ledger");
   const [banner, setBanner] = useState<string | null>(null);
@@ -75,8 +78,17 @@ export default function AdminPointsPage() {
   // Monthly Honours (MotM & 6 Department Champions) state
   const [qualitativeScores, setQualitativeScores] = useState<Record<string, number>>({});
   const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>([]);
+  const [motmDirectMemberId, setMotmDirectMemberId] = useState<string>("");
+  const [motmBonusXp, setMotmBonusXp] = useState<number>(50);
+  const [motmCitation, setMotmCitation] = useState<string>(
+    "Recognized for outstanding scientific dedication, peer collaboration, and exemplary club contribution."
+  );
 
-    const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
+  const crownedMotmMembers = members.filter((m) =>
+    m.recognitionLabels?.includes("Member of the Month")
+  );
+
+  const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
 
   const toggleMotmSelect = (id: string) => {
     setSelectedMotmIds((prev) =>
@@ -157,11 +169,18 @@ export default function AdminPointsPage() {
     setBanner("Reversal entry recorded.");
   };
 
-  const handlePublishMotm = () => {
-    if (selectedMotmIds.length === 0) {
-      setBanner("Please select at least one Member of the Month candidate before publishing.");
+  const handlePublishMotm = (targetId?: string) => {
+    const candidateIds = targetId
+      ? [targetId]
+      : motmDirectMemberId
+      ? [motmDirectMemberId]
+      : selectedMotmIds;
+
+    if (candidateIds.length === 0) {
+      setBanner("Please choose a member from the dropdown or select candidate(s) from the table.");
       return;
     }
+
     const championIds = departments
       .map((dept) => {
         const deptMembers = assignableMembers
@@ -171,12 +190,28 @@ export default function AdminPointsPage() {
       })
       .filter(Boolean) as string[];
 
-    selectedMotmIds.forEach((id) => {
-      publishMonthlyHonours(id, championIds);
+    const bonus = Number(motmBonusXp) || 50;
+    const note = motmCitation.trim() || "Published Monthly Club-Wide Member of the Month";
+
+    candidateIds.forEach((id) => {
+      publishMonthlyHonours(id, championIds, bonus, note);
     });
+
+    const candidateNames = members
+      .filter((m) => candidateIds.includes(m.id))
+      .map((m) => m.fullName)
+      .join(", ");
+
     setBanner(
-      `Published ${selectedMotmIds.length} Member(s) of the Month (+50 XP) and Department Champions with official broadcast.`
+      `Crowned ${candidateNames} as Member of the Month (+${bonus} XP) and updated Department Champions.`
     );
+    setSelectedMotmIds([]);
+    setMotmDirectMemberId("");
+  };
+
+  const handleClearMotm = (memberId?: string) => {
+    removeMonthlyHonours(memberId);
+    setBanner("Member of the Month honours have been cleared.");
   };
 
   return (
@@ -647,36 +682,210 @@ export default function AdminPointsPage() {
       {/* TAB 4: MONTHLY "MEMBER OF THE MONTH" & "6 DEPARTMENT CHAMPIONS" DESK */}
       {activeTab === "motm" && (
         <div className="space-y-4">
-          {/* Compact Honours Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Active Crowned MOTM Card */}
+          {crownedMotmMembers.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-2 border-amber-400/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 text-amber-900 font-display font-extrabold text-sm sm:text-base">
+                  <span className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-sm">
+                    <Crown className="w-5 h-5 fill-current" />
+                  </span>
+                  <span>Active Member of the Month</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleClearMotm()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-200 text-xs font-bold transition shadow-2xs cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset / Clear Title</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {crownedMotmMembers.map((m) => {
+                  const dept = departments.find((d) => d.id === m.departmentId);
+                  return (
+                    <div
+                      key={m.id}
+                      className="bg-white/90 backdrop-blur rounded-xl p-3.5 border border-amber-200/90 flex items-center justify-between gap-3 shadow-xs"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={m.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=faces"}
+                          alt={m.fullName}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-amber-400 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="font-display font-extrabold text-slate-900 text-sm truncate flex items-center gap-1.5">
+                            <span>{m.fullName}</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+                              ★ MOTM
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-medium truncate">
+                            {dept?.name || "General"} · {m.quanterId}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
+                              Level {m.level} · {m.levelTitle}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              +{m.xpMonth} XP Month
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500">
+                              {m.xpTotal} XP Total
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleClearMotm(m.id)}
+                        title="Remove title from this member"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Configuration Card: Crown Any Member with Custom Reward XP & Citation */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
             <div>
-              <h2 className="font-display text-base font-extrabold text-[#0F1E36]">
-                Monthly Honours Selection
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Select one or more Members of the Month (+50 XP) alongside Department Champions
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-sky-100 text-[#0284C7] flex items-center justify-center font-bold text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </span>
+                <h3 className="font-display text-sm sm:text-base font-extrabold text-[#0F1E36]">
+                  Crown &amp; Configure Member of the Month
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5 ml-8">
+                Crown any active member from the roster, customize their bonus merit points, and attach an official commendation citation.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handlePublishMotm}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFE500] hover:bg-[#FDE047] text-[#09192F] font-display font-extrabold text-xs shadow-sm transition cursor-pointer"
-            >
-              <Trophy className="w-4 h-4" />
-              <span>Publish Selected ({selectedMotmIds.length})</span>
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-1">
+              {/* Select Any Member */}
+              <div className="md:col-span-5 space-y-1">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
+                  Select Member to Crown
+                </label>
+                <select
+                  value={motmDirectMemberId}
+                  onChange={(e) => setMotmDirectMemberId(e.target.value)}
+                  onKeyDown={(e) => handleMemberSelectKeyDown(e, sortedMembers, setMotmDirectMemberId)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 cursor-pointer"
+                >
+                  <option value="">-- Choose any member ({sortedMembers.length} available) --</option>
+                  {sortedMembers.map((m) => {
+                    const dept = departments.find((d) => d.id === m.departmentId);
+                    return (
+                      <option key={m.id} value={m.id}>
+                        {m.fullName} ({dept?.name || "Member"} · Lvl {m.level} {m.levelTitle} · {m.xpMonth} XP month)
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Reward Bonus XP */}
+              <div className="md:col-span-3 space-y-1">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
+                  Reward XP Amount
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min={10}
+                    max={500}
+                    step={5}
+                    value={motmBonusXp}
+                    onChange={(e) => setMotmBonusXp(Number(e.target.value))}
+                    className="w-24 px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-mono font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
+                  />
+                  <div className="flex items-center gap-1">
+                    {[50, 75, 100].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setMotmBonusXp(preset)}
+                        className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
+                          motmBonusXp === preset
+                            ? "bg-[#0284C7] text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        +{preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Commendation Citation */}
+              <div className="md:col-span-4 space-y-1">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
+                  Official Citation / Reason
+                </label>
+                <input
+                  type="text"
+                  value={motmCitation}
+                  onChange={(e) => setMotmCitation(e.target.value)}
+                  placeholder="e.g. Recognized for leading QSSC workshops..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => handlePublishMotm()}
+                disabled={!motmDirectMemberId && selectedMotmIds.length === 0}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFE500] hover:bg-[#FDE047] disabled:opacity-50 disabled:cursor-not-allowed text-[#09192F] font-display font-extrabold text-xs shadow-sm transition cursor-pointer"
+              >
+                <Crown className="w-4 h-4" />
+                <span>
+                  Crown Member of the Month (+{motmBonusXp} XP)
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* 6 Department Champions Table */}
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-            <div className="p-3.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600">
-                Department Nominees &amp; Overall Winners
-              </h3>
-              <span className="text-[11px] font-semibold text-[#0284C7]">
-                {selectedMotmIds.length} candidate(s) selected
-              </span>
+            <div className="p-3.5 bg-[#F8FAFD] border-b border-slate-200/90 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                  Department Top Candidates &amp; Nominees
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Select candidate(s) directly to crown them alongside Department Champions.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-[#0284C7]">
+                  {selectedMotmIds.length} candidate(s) selected
+                </span>
+                {selectedMotmIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handlePublishMotm()}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#FFE500] hover:bg-[#FDE047] text-[#09192F] font-bold text-[11px] shadow-2xs transition cursor-pointer"
+                  >
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span>Publish ({selectedMotmIds.length})</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -685,10 +894,11 @@ export default function AdminPointsPage() {
                   <tr className="bg-[#F8FAFD] border-b border-slate-200/90 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                     <th className="py-3 px-4">Department</th>
                     <th className="py-3 px-4">Top Candidate</th>
+                    <th className="py-3 px-4">Seniority</th>
                     <th className="py-3 px-4 text-center">Monthly XP</th>
                     <th className="py-3 px-4">Attendance &amp; On-Time</th>
                     <th className="py-3 px-4 text-center">Qualitative Score</th>
-                    <th className="py-3 px-4 text-right">Member of Month</th>
+                    <th className="py-3 px-4 text-right">Quick Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2EDF8]">
@@ -701,7 +911,7 @@ export default function AdminPointsPage() {
                       return (
                         <tr key={dept.id} className="hover:bg-[#F8FAFD] transition-colors">
                           <td className="py-3 px-4 font-bold text-slate-800">{dept.name}</td>
-                          <td colSpan={5} className="py-3 px-4 text-slate-400 italic">
+                          <td colSpan={6} className="py-3 px-4 text-slate-400 italic">
                             No eligible student candidates in this department yet.
                           </td>
                         </tr>
@@ -709,15 +919,28 @@ export default function AdminPointsPage() {
                     }
                     const qualScore = qualitativeScores[candidate.id] ?? 92;
                     const isSelected = selectedMotmIds.includes(candidate.id);
+                    const isAlreadyCrowned = candidate.recognitionLabels?.includes("Member of the Month");
 
                     return (
                       <tr key={dept.id} className="hover:bg-[#F8FAFD] transition-colors">
                         <td className="py-3 px-4 font-bold text-slate-800">{dept.name}</td>
                         <td className="py-3 px-4">
-                          <div className="font-extrabold text-[#0F1E36]">{candidate.fullName}</div>
+                          <div className="font-extrabold text-[#0F1E36] flex items-center gap-1.5">
+                            <span>{candidate.fullName}</span>
+                            {isAlreadyCrowned && (
+                              <span className="text-[9px] font-mono font-bold px-1 rounded bg-amber-100 text-amber-800">
+                                MOTM
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[10px] text-slate-400 font-mono">
                             {candidate.quanterId}
                           </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+                            Lvl {candidate.level} · {candidate.levelTitle}
+                          </span>
                         </td>
                         <td className="py-3 px-4 text-center">
                           <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-mono text-[11px] font-bold tabular-nums whitespace-nowrap">
@@ -743,21 +966,30 @@ export default function AdminPointsPage() {
                           />
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleMotmSelect(candidate.id)}
-                              className="w-4 h-4 text-[#0284C7] rounded cursor-pointer"
-                            />
-                            <span
-                              className={`text-[11px] font-bold ${
-                                isSelected ? "text-[#0284C7]" : "text-slate-400"
-                              }`}
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handlePublishMotm(candidate.id)}
+                              className="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold transition cursor-pointer"
                             >
-                              {isSelected ? "Selected" : "Select"}
-                            </span>
-                          </label>
+                              Crown
+                            </button>
+                            <label className="inline-flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleMotmSelect(candidate.id)}
+                                className="w-3.5 h-3.5 text-[#0284C7] rounded cursor-pointer"
+                              />
+                              <span
+                                className={`text-[10px] font-bold ${
+                                  isSelected ? "text-[#0284C7]" : "text-slate-400"
+                                }`}
+                              >
+                                {isSelected ? "Selected" : "Select"}
+                              </span>
+                            </label>
+                          </div>
                         </td>
                       </tr>
                     );

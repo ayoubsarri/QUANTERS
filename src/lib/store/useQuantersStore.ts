@@ -48,6 +48,7 @@ import {
   RoleTemplateName,
   ScientificTeam,
   getRankForXp,
+  getSeniorityForMember,
   DEFAULT_RANK_LEVELS,
   SystemSettings,
   Workshop,
@@ -421,7 +422,14 @@ interface QuantersStoreState {
   createPointRule: (rule: Omit<PointRule, "id">) => void;
   updatePointRule: (ruleId: string, updatesOrPoints: Partial<PointRule> | number, label?: string) => void;
   deletePointRule: (ruleId: string) => void;
-  publishMonthlyHonours: (motmMemberId: string, championMemberIds: string[], actorName?: string) => void;
+  publishMonthlyHonours: (
+    motmMemberId: string,
+    championMemberIds: string[],
+    bonusXp?: number,
+    citation?: string,
+    actorName?: string
+  ) => void;
+  removeMonthlyHonours: (memberId?: string) => void;
 
   // §M6: Badges, Exams & Project Submissions
   addBadgeCategory: (category: string) => void;
@@ -2392,6 +2400,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       );
 
       if (existing) {
+        const nextTenure = payload.tenure || existing.tenure;
+        const targetSeniority = getSeniorityForMember({
+          tenure: nextTenure,
+          status: isAlumniTarget ? "Alumni" : existing.status,
+          roles: isAlumniTarget ? ["Alumni"] : existing.roles,
+        });
+        const baseMinXp = isAlumniTarget
+          ? 1800
+          : targetSeniority.level === 3
+          ? 300
+          : targetSeniority.level === 2
+          ? 150
+          : 50;
+
         const nextTeams = payload.teamId
           ? state.teams.map((t) =>
               t.id === payload.teamId
@@ -2427,10 +2449,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                     ? "Pending"
                     : m.status,
                   roles: isAlumniTarget ? ["Alumni"] : m.roles,
-                  levelTitle: isAlumniTarget ? (m.levelTitle === "Novice Quanter" ? "Quanta Laureate" : m.levelTitle) : m.levelTitle,
-                  level: isAlumniTarget ? Math.max(m.level, 8) : m.level,
-                  xpTotal: isAlumniTarget ? Math.max(m.xpTotal, 1800) : m.xpTotal,
-                  xpSeason: isAlumniTarget ? Math.max(m.xpSeason, 600) : m.xpSeason,
+                  levelTitle: targetSeniority.levelTitle,
+                  level: targetSeniority.level,
+                  xpTotal: Math.max(m.xpTotal, baseMinXp),
+                  xpSeason: Math.max(m.xpSeason, isAlumniTarget ? 600 : baseMinXp),
                   departmentId: payload.departmentId,
                   teamId: payload.teamId,
                   wilaya: payload.wilaya ?? m.wilaya,
@@ -2461,6 +2483,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           ),
         };
       }
+
+      const newSeniority = getSeniorityForMember({
+        tenure: payload.tenure || (isAlumniTarget ? "Alumni" : "New Member"),
+        status: isAlumniTarget ? "Alumni" : undefined,
+        roles: isAlumniTarget ? ["Alumni"] : ["Member"],
+      });
+      const newBaseXp = isAlumniTarget
+        ? 1800
+        : newSeniority.level === 3
+        ? 300
+        : newSeniority.level === 2
+        ? 150
+        : 50;
 
       const num = Math.floor(100 + Math.random() * 899);
       const newId = `mem-${Date.now()}`;
@@ -2505,11 +2540,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
         declaresOtherStudentOrg: Boolean(payload.declaresOtherStudentOrg),
         availability: payload.availability || DEFAULT_AVAILABILITY,
-        xpTotal: isAlumniTarget ? 1800 : 50,
-        xpSeason: isAlumniTarget ? 600 : 50,
+        xpTotal: newBaseXp,
+        xpSeason: isAlumniTarget ? 600 : newBaseXp,
         xpMonth: 50,
-        level: isAlumniTarget ? 8 : 1,
-        levelTitle: isAlumniTarget ? "Quanta Laureate" : "Novice Quanter",
+        level: newSeniority.level,
+        levelTitle: newSeniority.levelTitle,
         attendanceRate: 100,
         onTimeTaskRate: 100,
         recentActivityScore: 100,
@@ -4293,14 +4328,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         members: state.members.map((m) => {
           if (m.id !== memberId) return m;
           const newSeasonXp = Math.max(0, m.xpSeason + safeScore);
-          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
           return {
             ...m,
             xpTotal: Math.max(0, m.xpTotal + safeScore),
             xpSeason: newSeasonXp,
             xpMonth: Math.max(0, m.xpMonth + safeScore),
-            level: rank.level,
-            levelTitle: rank.title,
           };
         }),
         ledger: [newLedger, ...state.ledger],
@@ -4355,14 +4387,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         members: state.members.map((m) => {
           if (!memberIds.includes(m.id)) return m;
           const newSeasonXp = Math.max(0, m.xpSeason + points);
-          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
           return {
             ...m,
             xpTotal: Math.max(0, m.xpTotal + points),
             xpSeason: newSeasonXp,
             xpMonth: Math.max(0, m.xpMonth + points),
-            level: rank.level,
-            levelTitle: rank.title,
           };
         }),
         ledger: [...newEntries, ...state.ledger],
@@ -4407,7 +4436,6 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: `${ruleLabel}: ${reason}`,
       };
       const newSeasonXp = Math.max(0, member.xpSeason + amount);
-      const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
       return {
         ledger: [entry, ...state.ledger],
         members: state.members.map((m) =>
@@ -4417,8 +4445,6 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 xpTotal: Math.max(0, m.xpTotal + amount),
                 xpSeason: newSeasonXp,
                 xpMonth: Math.max(0, m.xpMonth + amount),
-                level: rank.level,
-                levelTitle: rank.title,
               }
             : m
         ),
@@ -4461,7 +4487,6 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const newTotal = Math.max(0, member.xpTotal - target.amount);
       const newSeason = Math.max(0, member.xpSeason - target.amount);
       const newMonth = Math.max(0, member.xpMonth - target.amount);
-      const rank = getRankForXp(newSeason, state.settings.rankLevels);
 
       return {
         ledger: [
@@ -4477,8 +4502,6 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 xpTotal: newTotal,
                 xpSeason: newSeason,
                 xpMonth: newMonth,
-                level: rank.level,
-                levelTitle: rank.title,
               }
             : m
         ),
@@ -4541,7 +4564,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  publishMonthlyHonours: (motmMemberId, championMemberIds, actorName = "HR Administration") =>
+  publishMonthlyHonours: (
+    motmMemberId,
+    championMemberIds,
+    bonusXp = 50,
+    citation = "Published Monthly Club-Wide Member of the Month",
+    actorName = "HR Administration"
+  ) => {
+    const safeBonus = Math.max(0, Number(bonusXp) || 50);
     set((state) => {
       const motm = state.members.find((m) => m.id === motmMemberId);
       if (!motm) return state;
@@ -4549,9 +4579,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         id: `led-motm-${Date.now()}`,
         memberId: motm.id,
         memberName: motm.fullName,
-        amount: 50,
+        amount: safeBonus,
         ruleLabel: "Member of the Month",
-        reason: "Published Monthly Club-Wide Member of the Month (+50 XP)",
+        reason: citation || `Published Monthly Club-Wide Member of the Month (+${safeBonus} XP)`,
         source: "Monthly Honour",
         actorName,
         date: new Date().toISOString().slice(0, 10),
@@ -4569,9 +4599,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           return {
             ...m,
             recognitionLabels: cleanLabels,
-            xpTotal: isMotm ? m.xpTotal + 50 : m.xpTotal,
-            xpSeason: isMotm ? m.xpSeason + 50 : m.xpSeason,
-            xpMonth: isMotm ? m.xpMonth + 50 : m.xpMonth,
+            xpTotal: isMotm ? m.xpTotal + safeBonus : m.xpTotal,
+            xpSeason: isMotm ? m.xpSeason + safeBonus : m.xpSeason,
+            xpMonth: isMotm ? m.xpMonth + safeBonus : m.xpMonth,
           };
         }),
         ledger: [newEntry, ...state.ledger],
@@ -4579,11 +4609,30 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           open: true,
           type: "motm",
           title: "Member of the Month!",
-          subtitle: `${motm.fullName} has been crowned QUANTA Member of the Month (+50 XP) alongside 6 Department Champions!`,
-          xpEarned: 50,
+          subtitle: `${motm.fullName} has been crowned QUANTA Member of the Month (+${safeBonus} XP)!`,
+          xpEarned: safeBonus,
         },
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  removeMonthlyHonours: (memberId) => {
+    set((state) => ({
+      members: state.members.map((m) => {
+        if (memberId && m.id !== memberId) return m;
+        return {
+          ...m,
+          recognitionLabels: m.recognitionLabels.filter(
+            (l) => l !== "Member of the Month" && l !== "Department Champion"
+          ),
+        };
+      }),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   createBadge: (badge) =>
     set((state) => ({
@@ -4830,14 +4879,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         members: state.members.map((m) => {
           if (m.id !== state.currentMemberId) return m;
           const newSeasonXp = Math.max(0, m.xpSeason + xpToAward);
-          const rank = getRankForXp(newSeasonXp, state.settings.rankLevels);
           return {
             ...m,
             xpTotal: Math.max(0, m.xpTotal + xpToAward),
             xpSeason: newSeasonXp,
             xpMonth: Math.max(0, m.xpMonth + xpToAward),
-            level: rank.level,
-            levelTitle: rank.title,
             badgeIds: fullyUnlocked
               ? Array.from(new Set([...m.badgeIds, exam.badgeId]))
               : m.badgeIds,

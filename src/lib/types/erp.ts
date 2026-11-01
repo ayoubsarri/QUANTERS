@@ -959,3 +959,58 @@ export function getRankForXp(
     nextLevelXp: next ? next.minXp : matched.maxXp ? matched.maxXp + 1 : matched.minXp + 2000,
   };
 }
+
+/**
+ * Calculates official member seniority level and title based on club tenure and standing.
+ * Strictly decoupled from monthly XP or scoring fluctuations:
+ * - Level 1: "Novice Quanter" (strictly for new members < 1 year / new recruit)
+ * - Level 2: "1 Year Member" (for members with 1 year club standing)
+ * - Level 3: "2 Years Member" (for members with 2+ years club standing)
+ * - Level 8: "Quanta Laureate" (for verified club alumni)
+ * - Executive / Bureau Leadership: "Executive Quanter"
+ */
+export function getSeniorityForMember(member: {
+  tenure?: string;
+  status?: string;
+  roles?: string[];
+  level?: number;
+  levelTitle?: string;
+}): { level: number; levelTitle: string } {
+  const cleanTenure = String(member.tenure || "").trim().toLowerCase();
+  const isAlumni = member.status === "Alumni" || cleanTenure.includes("alumni");
+  if (isAlumni) {
+    return { level: 8, levelTitle: "Quanta Laureate" };
+  }
+
+  // True bureau leadership is explicitly recorded in tenure or Super Admin
+  const isBureauLeadership =
+    cleanTenure.includes("bureau") ||
+    cleanTenure.includes("leadership") ||
+    (Array.isArray(member.roles) && member.roles.includes("Super Admin"));
+
+  if (isBureauLeadership) {
+    return { level: 3, levelTitle: "Executive Quanter" };
+  }
+
+  if (
+    cleanTenure.includes("2+") ||
+    cleanTenure.includes("2 years") ||
+    cleanTenure.includes("3 year") ||
+    cleanTenure.includes("senior")
+  ) {
+    return {
+      level: 3,
+      levelTitle: "2 Years Member",
+    };
+  }
+
+  if (cleanTenure === "1 year" || cleanTenure.includes("1 year")) {
+    return {
+      level: 2,
+      levelTitle: "1 Year Member",
+    };
+  }
+
+  // Default: Level 1 Novice strictly for new members (< 1 year, 1 semester, new trainee, new member)
+  return { level: 1, levelTitle: "Novice Quanter" };
+}
