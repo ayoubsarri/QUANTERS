@@ -14,9 +14,11 @@
 [![Firebase](https://img.shields.io/badge/Google_Cloud-Firestore%20%26%20Hosting-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Spark Quota](https://img.shields.io/badge/Quota-100%25%20Free%20Tier%20Safe-10B981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://quanters.web.app)
 [![Security Benchmark](https://img.shields.io/badge/Security-Zero--Trust%20Level--4%20Hardened-emerald?style=for-the-badge&logo=shield&logoColor=white)](docs/screenshots/admin-settings.png)
+[![Official Manual](https://img.shields.io/badge/Manual-16--Page%20Master%20PDF-blue?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](manual/QUANTERS_App_Manual_2026-2027.pdf)
+[![Launch Media Kit](https://img.shields.io/badge/Launch%20Kit-1:1%20Social%20Poster-f59e0b?style=for-the-badge&logo=instagram&logoColor=white)](manual/QUANTERS_Social_Post_Master_Perfect.jpg)
 [![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Internal-red?style=for-the-badge)](LICENSE)
 
-[**Live Web Application**](https://quanters.web.app) · [**Architecture Graph**](#-erp-system-architecture-graph) · [**RBAC Capability Matrix**](#-role-based-access-control-rbac-capability-matrix) · [**Quota & Cost Math**](#-firebase-spark-free-tier-economics) · [**Security Hardening**](#-level-4-forensic-cybersecurity--zero-trust-controls) · [**Deployment**](#-deployment--setup)
+[**Live Web Application**](https://quanters.web.app) · [**Official Manual (PDF)**](manual/QUANTERS_App_Manual_2026-2027.pdf) · [**Launch Media Kit**](manual/QUANTERS_Social_Post_Master_Perfect.jpg) · [**Architecture Graph**](#-erp-system-architecture-graph) · [**RBAC Capability Matrix**](#-role-based-access-control-rbac-capability-matrix) · [**Deployment**](#-deployment--setup)
 
 </div>
 
@@ -300,6 +302,13 @@ QUANTERS
 ├── docs/
 │   ├── manual/                       # Official Platform User Manual (HTML & PDF)
 │   └── screenshots/                  # Verified high-resolution platform screenshots
+├── manual/                           # Official Platform Publications & Launch Media Kit
+│   ├── QUANTERS_App_Manual_2026-2027.pdf # 16-Page Master Operating Manual (High-DPI PDF)
+│   ├── QUANTERS_Social_Post_Master_Perfect.png # 2400×2400 1:1 Social Media Launch Poster
+│   ├── facebook_post_master_perfect.html       # Standalone master poster HTML
+│   ├── email_template.html                     # Responsive institutional welcome email
+│   ├── build_manual.js                         # Headless manual compilation engine
+│   └── assets/                                 # Institutional crests & mascot assets
 ├── public/
 │   ├── brand/                        # Brand identity assets, logos, and WebP media
 │   │   ├── admin_overview_banner_bg.webp # Mascot hero banner
