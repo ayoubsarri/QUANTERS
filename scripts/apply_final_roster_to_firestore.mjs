@@ -150,31 +150,45 @@ async function main() {
     let level = 1;
     let levelTitle = "Novice Quanter";
     let baseTotalXp = 50;
+    let yearsInClub = 0;
+    let clubJoinYear = 2026;
 
     if (isAlumni) {
       level = 8;
       levelTitle = "Quanta Laureate";
       baseTotalXp = 1800;
+      yearsInClub = 3;
+      clubJoinYear = 2023;
     } else if (isBureauLeadership) {
       level = 3;
       levelTitle = "Executive Quanter";
       baseTotalXp = 350;
+      yearsInClub = 2;
+      clubJoinYear = 2024;
     } else if (cleanTenure.includes("3 year") || cleanTenure.includes("3+ year")) {
       level = 3;
       levelTitle = "3 Years Member";
       baseTotalXp = 300;
+      yearsInClub = 3;
+      clubJoinYear = 2023;
     } else if (cleanTenure.includes("2+") || cleanTenure.includes("2 year") || cleanTenure.includes("senior")) {
       level = 3;
       levelTitle = "2 Years Member";
       baseTotalXp = 300;
+      yearsInClub = 2;
+      clubJoinYear = 2024;
     } else if (cleanTenure.includes("1 year")) {
       level = 2;
       levelTitle = "1 Year Member";
       baseTotalXp = 150;
+      yearsInClub = 1;
+      clubJoinYear = 2025;
     } else {
       level = 1;
       levelTitle = "Novice Quanter";
       baseTotalXp = 50;
+      yearsInClub = 0;
+      clubJoinYear = 2026;
     }
 
     // "also for old members make them auto Confirm Active not Trainee"
@@ -199,6 +213,8 @@ async function main() {
     return {
       ...m,
       tenure,
+      yearsInClub,
+      clubJoinYear,
       level,
       levelTitle,
       status: finalStatus,
@@ -214,7 +230,7 @@ async function main() {
   console.log("\n--- UPDATED ROSTER ---");
   updatedMembers.forEach((m, idx) => {
     console.log(
-      `[${String(idx + 1).padStart(2, " ")}] ${m.fullName.padEnd(25)} | Tenure: ${(m.tenure || "").padEnd(12)} | Lvl: ${m.level} (${m.levelTitle.padEnd(17)}) | Status: ${m.status.padEnd(7)} | Total XP: ${String(m.xpTotal).padEnd(4)} | Month XP: ${m.xpMonth}`
+      `[${String(idx + 1).padStart(2, " ")}] ${m.fullName.padEnd(25)} | Tenure: ${(m.tenure || "").padEnd(12)} | Years: ${m.yearsInClub} (Joined: ${m.clubJoinYear}) | Lvl: ${m.level} (${m.levelTitle.padEnd(17)}) | Status: ${m.status.padEnd(7)} | Total XP: ${String(m.xpTotal).padEnd(4)} | Month XP: ${m.xpMonth}`
     );
   });
 

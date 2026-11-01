@@ -472,14 +472,27 @@ export function writeErpDatabase(
             // If new member self-registers while onboardingAutoApprove is false, force Pending status
             if (key === "members" && !isPrivileged) {
               const autoApprove = current.settings?.onboardingAutoApprove ?? true;
-              const isAlumni = String(safeNew.tenure || "").toLowerCase().includes("alumni");
-              safeNew.roles = ["Member"];
-              safeNew.isBureauMember = false;
-              safeNew.status = isAlumni ? "Alumni" : autoApprove ? "Trainee" : "Pending";
+              const tenureStr = String(safeNew.tenure || "").toLowerCase();
+              const isAlumni = tenureStr.includes("alumni");
+              const yearsInClub = typeof safeNew.yearsInClub === "number" && !isNaN(Number(safeNew.yearsInClub))
+                ? Number(safeNew.yearsInClub)
+                : tenureStr.includes("3 year") || tenureStr.includes("3+ year") ? 3
+                : (tenureStr.includes("2+") || tenureStr.includes("2 year")) ? 2
+                : tenureStr.includes("1 year") ? 1
+                : 0;
+              const isOldMember = yearsInClub >= 1;
+              safeNew.yearsInClub = yearsInClub;
+              safeNew.clubJoinYear = typeof safeNew.clubJoinYear === "number" && !isNaN(Number(safeNew.clubJoinYear))
+                ? Number(safeNew.clubJoinYear)
+                : (2026 - yearsInClub);
+              safeNew.roles = safeNew.roles && Array.isArray(safeNew.roles) && safeNew.roles.length > 0 ? safeNew.roles : ["Member"];
+              safeNew.isBureauMember = Boolean(safeNew.isBureauMember);
+              safeNew.status = isAlumni ? "Alumni" : isOldMember ? "Active" : autoApprove ? "Trainee" : "Pending";
               const ticks = (safeNew.onboardingTicks as Record<string, unknown>) || {};
               safeNew.onboardingTicks = {
                 ...ticks,
-                hrApproved: isAlumni || autoApprove,
+                hrApproved: isAlumni || isOldMember || autoApprove,
+                hrApprovedBy: isOldMember ? "Seniority Auto-Confirmation" : (ticks.hrApprovedBy || "System Auto-Admission"),
               };
             }
             prependedNew.push(safeNew);

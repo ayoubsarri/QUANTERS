@@ -49,6 +49,7 @@ import {
   ScientificTeam,
   getRankForXp,
   getSeniorityForMember,
+  parseYearsInClub,
   DEFAULT_RANK_LEVELS,
   SystemSettings,
   Workshop,
@@ -199,6 +200,8 @@ interface QuantersStoreState {
     major: string;
     academicYear: Member["academicYear"];
     tenure: string;
+    yearsInClub?: number;
+    clubJoinYear?: number;
     graduationYear?: string;
     alumniPosition?: string;
     alumniAccessEnabled?: boolean;
@@ -1179,6 +1182,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       university: "University of Algiers 1",
       academicYear: "L2",
       tenure: isSuper ? "Bureau Leadership" : isAlumni ? "Alumni" : "New Member",
+      yearsInClub: isSuper ? 2 : isAlumni ? 3 : 0,
+      clubJoinYear: isSuper ? 2024 : isAlumni ? 2023 : 2026,
       departmentId: "dept-it",
       teamId: "team-cs-ai",
       roles: isSuper ? ["Super Admin", "Executive", "HR Head"] : isAlumni ? ["Alumni"] : ["Member"],
@@ -1289,6 +1294,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       university: "University of Algiers 1",
       academicYear: isAlumni ? "Graduated" : "L2",
       tenure: isAlumni ? "3 Years" : "New Member",
+      yearsInClub: isAlumni ? 3 : 0,
+      clubJoinYear: isAlumni ? 2023 : 2026,
       departmentId: "dept-it",
       teamId: "team-cs-ai",
       roles: isAlumni ? ["Alumni"] : ["Member"],
@@ -2401,8 +2408,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
       if (existing) {
         const nextTenure = payload.tenure || existing.tenure;
+        const targetYears = typeof payload.yearsInClub === "number" && !isNaN(payload.yearsInClub)
+          ? payload.yearsInClub
+          : parseYearsInClub(nextTenure, existing.yearsInClub);
+        const joinYear = payload.clubJoinYear || existing.clubJoinYear || (2026 - targetYears);
         const targetSeniority = getSeniorityForMember({
           tenure: nextTenure,
+          yearsInClub: targetYears,
           status: isAlumniTarget ? "Alumni" : existing.status,
           roles: isAlumniTarget ? ["Alumni"] : existing.roles,
         });
@@ -2438,7 +2450,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   university: payload.university || m.university,
                   major: payload.major || m.major,
                   academicYear: isAlumniTarget ? "Graduated" : payload.academicYear,
-                  tenure: payload.tenure,
+                  tenure: nextTenure,
+                  yearsInClub: targetYears,
+                  clubJoinYear: joinYear,
                   graduationYear: payload.graduationYear || m.graduationYear || (isAlumniTarget ? "2026" : undefined),
                   alumniPosition: payload.alumniPosition || m.alumniPosition,
                   alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
@@ -2490,8 +2504,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         };
       }
 
+      const nextTenure = payload.tenure || (isAlumniTarget ? "Alumni" : "New Member");
+      const targetYears = typeof payload.yearsInClub === "number" && !isNaN(payload.yearsInClub)
+        ? payload.yearsInClub
+        : parseYearsInClub(nextTenure);
+      const joinYear = payload.clubJoinYear || (2026 - targetYears);
       const newSeniority = getSeniorityForMember({
-        tenure: payload.tenure || (isAlumniTarget ? "Alumni" : "New Member"),
+        tenure: nextTenure,
+        yearsInClub: targetYears,
         status: isAlumniTarget ? "Alumni" : undefined,
         roles: isAlumniTarget ? ["Alumni"] : ["Member"],
       });
@@ -2520,7 +2540,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         major: payload.major || "Computer Science",
         university: payload.university || "University of Algiers 1",
         academicYear: isAlumniTarget ? "Graduated" : (payload.academicYear || "L2"),
-        tenure: payload.tenure || (isAlumniTarget ? "Alumni" : "New Member"),
+        tenure: nextTenure,
+        yearsInClub: targetYears,
+        clubJoinYear: joinYear,
         graduationYear: payload.graduationYear || (isAlumniTarget ? "2026" : undefined),
         alumniPosition: payload.alumniPosition || "",
         alumniAccessEnabled: isAlumniTarget ? (payload.alumniAccessEnabled ?? true) : undefined,
@@ -3466,6 +3488,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       university: "University of Algiers 1",
       academicYear: payload.academicYear || "L3",
       tenure: status === "Active" ? "1 Year" : "New Member",
+      yearsInClub: status === "Active" ? 1 : 0,
+      clubJoinYear: status === "Active" ? 2025 : 2026,
       departmentId: payload.departmentId || "dept-it",
       teamId: payload.teamId || undefined,
       wilaya: "Algiers (16)",
@@ -3489,7 +3513,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       xpSeason: status === "Active" ? 150 : 50,
       xpMonth: status === "Active" ? 150 : 50,
       level: status === "Active" ? 2 : 1,
-      levelTitle: status === "Active" ? "Scientific Explorer" : "Novice Quanter",
+      levelTitle: status === "Active" ? "1 Year Member" : "Novice Quanter",
       attendanceRate: 100,
       onTimeTaskRate: 100,
       recentActivityScore: 100,

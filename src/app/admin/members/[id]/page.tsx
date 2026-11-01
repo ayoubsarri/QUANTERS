@@ -329,7 +329,7 @@ export default function AdminMemberDetailCardPage() {
                   <span>Level {member.level} · {member.levelTitle}</span>
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-100 text-slate-700">
-                  Tenure: {member.tenure || "Active"}
+                  Tenure: {typeof member.yearsInClub === "number" && member.yearsInClub > 0 ? `${member.yearsInClub} Year${member.yearsInClub === 1 ? "" : "s"} (${member.tenure})` : (member.tenure || "Active")}
                 </span>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold border tabular-nums ${healthColor}`}
@@ -607,7 +607,7 @@ export default function AdminMemberDetailCardPage() {
                     Academic Year &amp; Club Tenure
                   </div>
                   <div className="font-bold text-[#0F1E36] mt-1">
-                    Year: {member.academicYear} · Tenure: {member.tenure}
+                    Year: {member.academicYear} · Tenure: {member.tenure} {typeof member.yearsInClub === "number" ? `(${member.yearsInClub}y)` : ""}
                   </div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-slate-200/80">

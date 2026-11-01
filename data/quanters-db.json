@@ -250,7 +250,9 @@
           "16-17"
         ]
       },
-      "workshopsCompletedCount": 0
+      "workshopsCompletedCount": 0,
+      "yearsInClub": 3,
+      "clubJoinYear": 2023
     },
     {
       "isBureauMember": true,
@@ -369,7 +371,9 @@
       "badgeIds": [],
       "eventsAttendedCount": 0,
       "declaresOtherStudentOrg": false,
-      "traineeStartDate": "2026-10-01"
+      "traineeStartDate": "2026-10-01",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "roles": [
@@ -475,7 +479,9 @@
         "hrApproved": true,
         "hrApprovedAt": "2026-11-01T12:04:22.509Z",
         "hrApprovedBy": "Seniority Auto-Confirmation"
-      }
+      },
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "lateTasksThisMonth": 0,
@@ -581,7 +587,9 @@
       },
       "traineeStartDate": "2026-10-29",
       "departmentId": "dept-it",
-      "quanterId": "QT-00-0000"
+      "quanterId": "QT-00-0000",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "statusSince": "2026-11-01",
@@ -743,7 +751,9 @@
         "Personal Laptop"
       ],
       "academicYear": "L3",
-      "recognitionLabels": []
+      "recognitionLabels": [],
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "housingType": "Family Home",
@@ -865,7 +875,9 @@
       "traineeStartDate": "2026-11-01",
       "lateTasksThisMonth": 0,
       "major": "Computer Science (Informatique Générale)",
-      "badgeIds": []
+      "badgeIds": [],
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "academicYear": "L2",
@@ -988,7 +1000,9 @@
         "coManagerEndorsed": false
       },
       "traineeDaysElapsed": 1,
-      "projectsCompletedCount": 0
+      "projectsCompletedCount": 0,
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "onboardingTicks": {
@@ -1102,7 +1116,9 @@
         "headEndorsed": false,
         "coManagerEndorsed": false
       },
-      "fullName": "Abdelkader Larbes"
+      "fullName": "Abdelkader Larbes",
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "pcCapability": "No Personal PC",
@@ -1224,7 +1240,9 @@
       "level": 3,
       "wilaya": "Algiers (16)",
       "tenure": "2+ Years",
-      "housingType": "Family Home"
+      "housingType": "Family Home",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "eventsAttendedCount": 0,
@@ -1353,7 +1371,9 @@
       "traineeStartDate": "2026-11-01",
       "projectsCompletedCount": 0,
       "outsideActivitiesAndVolunteering": "",
-      "housingType": "Family Home"
+      "housingType": "Family Home",
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "attendanceRate": 100,
@@ -1466,7 +1486,9 @@
         ]
       },
       "traineeStartDate": "2026-11-01",
-      "academicYear": "L2"
+      "academicYear": "L2",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "workshopsCompletedCount": 0,
@@ -1589,7 +1611,9 @@
       "tenure": "2+ Years",
       "wilaya": "Algiers (16)",
       "healthScore": 95,
-      "commuteTime": "> 1h30"
+      "commuteTime": "> 1h30",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "traineeDaysElapsed": 1,
@@ -1712,7 +1736,9 @@
       "wilaya": "Algiers (16)",
       "tenure": "1 Year",
       "projectsCompletedCount": 0,
-      "id": "mem-1793525872606"
+      "id": "mem-1793525872606",
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "declaresOtherStudentOrg": false,
@@ -1831,7 +1857,9 @@
           "14-15",
           "15-16"
         ]
-      }
+      },
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "onTimeTaskRate": 100,
@@ -1938,7 +1966,9 @@
       },
       "bio": "QUANTA Scientific Club Member",
       "eventsAttendedCount": 0,
-      "githubUrl": "https://github.com/EimaneLassakeur"
+      "githubUrl": "https://github.com/EimaneLassakeur",
+      "yearsInClub": 3,
+      "clubJoinYear": 2023
     },
     {
       "wilaya": "Algiers (16)",
@@ -2071,7 +2101,9 @@
       "recognitionLabels": [],
       "fullName": "Djida Hadjout",
       "xpSeason": 150,
-      "departmentId": "dept-media"
+      "departmentId": "dept-media",
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "university": "University of Algiers 1",
@@ -2194,7 +2226,9 @@
         "headEndorsed": false,
         "coManagerEndorsed": false,
         "notes": ""
-      }
+      },
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "availability": {
@@ -2318,7 +2352,9 @@
       "declaresOtherStudentOrg": false,
       "workshopsCompletedCount": 0,
       "quanterId": "QT-26-0683",
-      "hasLaptop": true
+      "hasLaptop": true,
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     },
     {
       "healthScore": 95,
@@ -2422,7 +2458,9 @@
       "outsideActivitiesAndVolunteering": "",
       "workshopsCompletedCount": 0,
       "placementHistory": [],
-      "levelTitle": "1 Year Member"
+      "levelTitle": "1 Year Member",
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "eventsAttendedCount": 0,
@@ -2535,7 +2573,9 @@
       "phone": "+213 550 00 00 00",
       "workshopsCompletedCount": 0,
       "healthScore": 95,
-      "recentActivityScore": 100
+      "recentActivityScore": 100,
+      "yearsInClub": 1,
+      "clubJoinYear": 2025
     },
     {
       "equipmentTags": [
@@ -2637,7 +2677,9 @@
         "Monday": []
       },
       "recognitionLabels": [],
-      "departmentId": "dept-hr"
+      "departmentId": "dept-hr",
+      "yearsInClub": 2,
+      "clubJoinYear": 2024
     }
   ],
   "workshops": [],

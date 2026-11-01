@@ -802,7 +802,7 @@ function AdminMembersContent() {
                               </span>
                             </div>
                             <div className="text-[10px] text-slate-400 font-mono truncate">
-                              {m.quanterId} · {m.email} · {m.tenure || "Active"}
+                              {m.quanterId} · {m.email} · {typeof m.yearsInClub === "number" && m.yearsInClub > 0 ? `${m.yearsInClub}y club` : (m.tenure || "Active")}
                             </div>
                           </div>
                         </div>

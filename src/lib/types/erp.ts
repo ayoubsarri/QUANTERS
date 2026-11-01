@@ -327,6 +327,8 @@ export interface Member {
   university: string;
   academicYear: "L1" | "L2" | "L3" | "M1" | "M2" | "Doctorate" | "Graduated";
   tenure: string;
+  yearsInClub: number; // Quantitative seniority: 0 (new/trainee), 1 (1 yr), 2 (2 yrs), 3 (3+ yrs)
+  clubJoinYear: number; // Explicit calendar join year: e.g. 2026, 2025, 2024, 2023
   departmentId: string; // Single department only (§2.1)
   teamId?: string; // At most one scientific team (§2.2)
   roles: RoleTemplateName[];
@@ -961,9 +963,45 @@ export function getRankForXp(
 }
 
 /**
+ * Canonical parser for converting member tenure string to a numeric years in club value.
+ */
+export function parseYearsInClub(tenure?: string, fallbackYears?: number): number {
+  if (typeof fallbackYears === "number" && !isNaN(fallbackYears)) {
+    return Math.max(0, Math.floor(fallbackYears));
+  }
+  const clean = String(tenure || "").trim().toLowerCase();
+  if (
+    !clean ||
+    clean.includes("new") ||
+    clean.includes("trainee") ||
+    clean.includes("semester") ||
+    clean.includes("novice") ||
+    clean.includes("guest")
+  ) {
+    return 0;
+  }
+  if (clean.includes("3 year") || clean.includes("3+ year") || clean.includes("3+")) {
+    return 3;
+  }
+  if (clean.includes("2+") || clean.includes("2 year") || clean.includes("senior")) {
+    return 2;
+  }
+  if (clean.includes("1 year")) {
+    return 1;
+  }
+  if (clean.includes("alumni")) {
+    return 3;
+  }
+  if (clean.includes("bureau") || clean.includes("leadership")) {
+    return 2;
+  }
+  return 0;
+}
+
+/**
  * Calculates official member seniority level and title based on club tenure and standing.
  * Strictly decoupled from monthly XP or scoring fluctuations:
- * - Level 1: "Novice Quanter" (strictly for new members < 1 year / new recruit)
+ * - Level 1: "Novice Quanter" (strictly for new members < 1 year / new recruit, 0 years)
  * - Level 2: "1 Year Member" (for members with 1 year club standing)
  * - Level 3: "2 Years Member" or "3 Years Member" (for members with 2+ or 3 years club standing)
  * - Level 8: "Quanta Laureate" (for verified club alumni)
@@ -971,15 +1009,17 @@ export function getRankForXp(
  */
 export function getSeniorityForMember(member: {
   tenure?: string;
+  yearsInClub?: number;
   status?: string;
   roles?: string[];
   level?: number;
   levelTitle?: string;
-}): { level: number; levelTitle: string } {
+}): { level: number; levelTitle: string; yearsInClub: number } {
   const cleanTenure = String(member.tenure || "").trim().toLowerCase();
   const isAlumni = member.status === "Alumni" || cleanTenure.includes("alumni");
   if (isAlumni) {
-    return { level: 8, levelTitle: "Quanta Laureate" };
+    const y = typeof member.yearsInClub === "number" ? member.yearsInClub : 3;
+    return { level: 8, levelTitle: "Quanta Laureate", yearsInClub: Math.max(3, y) };
   }
 
   // True bureau leadership is explicitly recorded in tenure or Super Admin
@@ -989,35 +1029,39 @@ export function getSeniorityForMember(member: {
     (Array.isArray(member.roles) && member.roles.includes("Super Admin"));
 
   if (isBureauLeadership) {
-    return { level: 3, levelTitle: "Executive Quanter" };
+    const y = typeof member.yearsInClub === "number" ? member.yearsInClub : 2;
+    return { level: 3, levelTitle: "Executive Quanter", yearsInClub: y };
   }
 
-  if (cleanTenure.includes("3 year") || cleanTenure.includes("3+ year")) {
+  // Pure numeric years calculation
+  const y = typeof member.yearsInClub === "number" && !isNaN(member.yearsInClub)
+    ? member.yearsInClub
+    : parseYearsInClub(member.tenure);
+
+  if (y >= 3) {
     return {
       level: 3,
       levelTitle: "3 Years Member",
+      yearsInClub: y,
     };
   }
 
-  if (
-    cleanTenure.includes("2+") ||
-    cleanTenure.includes("2 years") ||
-    cleanTenure.includes("2 year") ||
-    cleanTenure.includes("senior")
-  ) {
+  if (y === 2) {
     return {
       level: 3,
       levelTitle: "2 Years Member",
+      yearsInClub: 2,
     };
   }
 
-  if (cleanTenure === "1 year" || cleanTenure.includes("1 year")) {
+  if (y === 1) {
     return {
       level: 2,
       levelTitle: "1 Year Member",
+      yearsInClub: 1,
     };
   }
 
-  // Default: Level 1 Novice strictly for new members (< 1 year, 1 semester, new trainee, new member)
-  return { level: 1, levelTitle: "Novice Quanter" };
+  // Default: Level 1 Novice strictly for new members (< 1 year, 0 years)
+  return { level: 1, levelTitle: "Novice Quanter", yearsInClub: 0 };
 }
