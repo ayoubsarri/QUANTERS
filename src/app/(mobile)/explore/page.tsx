@@ -120,7 +120,7 @@ export default function MobileExplorePage() {
   };
 
   // Interactive Daily Quiz State (Single Quiz of the Exact Day)
-  const [isQuizExpanded, setIsQuizExpanded] = useState(false);
+  const [isQuizExpanded, setIsQuizExpanded] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
     {}
   );

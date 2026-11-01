@@ -109,11 +109,7 @@ export function sanitizeSnapshotForClient(
         return safeQ;
       }),
     })),
-    dailyQuizzes: (snapshot.dailyQuizzes || []).map((quiz) => {
-      if (isPrivileged) return quiz;
-      const { correctId, explanation, ...safeQuiz } = quiz;
-      return safeQuiz;
-    }),
+    dailyQuizzes: snapshot.dailyQuizzes || [],
     members: (snapshot.members || []).map((m) => {
       if (!m || typeof m !== "object") return m;
       const {

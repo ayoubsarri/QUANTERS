@@ -328,379 +328,9 @@ export const SUPER_ADMIN_MEMBER: Member = {
 export const SEED_MEMBERS: Member[] = [SUPER_ADMIN_MEMBER];
 
 // Authentic QUANTA Workshops & Scientific Labs
-export const SEED_WORKSHOPS: Workshop[] = [
-  {
-    id: "ws-python",
-    title: "Python for Scientists",
-    activityType: "Workshop",
-    category: "Python",
-    iconType: "python",
-    level: "Beginner",
-    instructor: "Lotfi Benali & Ayoub Sarri",
-    dateLabel: "Tomorrow",
-    timeRange: "14:00 - 17:00",
-    location: "Faculty of Sciences · Lab A1",
-    capacity: 30,
-    seatsLeft: 24,
-    xpReward: 150,
-    status: "Published",
-    description:
-      "Hands-on numerical computing with NumPy, SciPy, and Matplotlib for experimental physics, chemistry, and biology data.",
-    objectives: [
-      "Set up reproducible scientific Python notebooks",
-      "Vectorize experimental data arrays with NumPy",
-      "Plot publication-grade figures with Matplotlib",
-    ],
-    materials: ["Laptop with Python 3.11+", "Lab A1 Dataset Pack (CSV)"],
-    linkedBadgeId: "badge-python",
-    liveQrToken: "QUANTA-WS-PYTHON-2026-LIVE",
-    liveSixDigitCode: "482910",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-arduino",
-    title: "Arduino & Electronics",
-    activityType: "Workshop",
-    category: "Arduino",
-    iconType: "arduino",
-    level: "Beginner",
-    instructor: "Karim Hadj & Riad Touati",
-    dateLabel: "12 Oct 2026",
-    timeRange: "10:00 - 13:00",
-    location: "Lab A1",
-    capacity: 25,
-    seatsLeft: 18,
-    xpReward: 120,
-    status: "Published",
-    description:
-      "Microcontroller interfacing, sensor calibration, breadboard prototyping, and real-time serial telemetry.",
-    objectives: [
-      "Build sensor acquisition circuits on breadboard",
-      "Read analog/I2C sensors and log serial data",
-      "Control actuators with PWM feedback loops",
-    ],
-    materials: ["Arduino Uno Kit (provided by QUANTA Logistics)", "USB-B Cable"],
-    linkedBadgeId: "badge-electronics",
-    liveQrToken: "QUANTA-WS-ARDUINO-2026",
-    liveSixDigitCode: "739104",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-astronomy",
-    title: "Astronomy Observation",
-    activityType: "Workshop",
-    category: "Astronomy",
-    iconType: "astronomy",
-    level: "Intermediate",
-    instructor: "Sara Mansouri & Ayoub Sarri",
-    dateLabel: "25 Oct 2026",
-    timeRange: "18:00 - 21:00",
-    location: "Observatory",
-    capacity: 20,
-    seatsLeft: 12,
-    xpReward: 180,
-    status: "Published",
-    description:
-      "Equatorial telescope alignment, deep-sky celestial navigation, planetary imaging, and spectral classification.",
-    objectives: [
-      "Perform polar alignment on equatorial mounts",
-      "Locate Messier objects and Jupiter's Galilean moons",
-      "Capture and stack long-exposure astrophotography frames",
-    ],
-    materials: ["Red flashlight", "Stellarium Mobile App", "Field Observation Logbook"],
-    linkedBadgeId: "badge-astro",
-    liveQrToken: "QUANTA-WS-ASTRO-2026",
-    liveSixDigitCode: "910284",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-3dprinting",
-    title: "3D Printing for Research",
-    activityType: "Workshop",
-    category: "3D Printing",
-    iconType: "printing",
-    level: "Beginner",
-    instructor: "Lotfi Benali",
-    dateLabel: "02 Nov 2026",
-    timeRange: "14:00 - 17:00",
-    location: "Innovation Lab",
-    capacity: 24,
-    seatsLeft: 20,
-    xpReward: 100,
-    status: "Published",
-    description:
-      "Parametric CAD modeling, STL slicing tolerances, and FDM/resin fabrication of custom laboratory holders and enclosures.",
-    objectives: [
-      "Design parametric lab fixtures in CAD",
-      "Optimize infill, layer height, and support structures",
-      "Calibrate bed leveling and extrusion flow",
-    ],
-    materials: ["Laptop with UltiMaker Cura / PrusaSlicer"],
-    linkedBadgeId: "badge-innovation",
-    liveQrToken: "QUANTA-WS-3D-2026",
-    liveSixDigitCode: "558201",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-ai-science",
-    title: "AI & Neural Networks in Lab Research",
-    activityType: "Scientific Activity",
-    category: "AI",
-    iconType: "ai-ml",
-    level: "Intermediate",
-    instructor: "Lotfi Benali & Nesrine Khelifi",
-    dateLabel: "14 Nov 2026",
-    timeRange: "13:30 - 16:30",
-    location: "Faculty of Sciences · Amphi B",
-    capacity: 45,
-    seatsLeft: 19,
-    xpReward: 160,
-    status: "Published",
-    description:
-      "Deep learning architectures for spectral classification, molecular property prediction, and experimental signal denoising.",
-    objectives: [
-      "Train PyTorch models on real spectroscopic and astronomical data",
-      "Evaluate physics-informed neural networks (PINNs)",
-      "Deploy lightweight inference notebooks",
-    ],
-    materials: ["Laptop with Google Colab / PyTorch", "Spectra Benchmark Dataset"],
-    linkedBadgeId: "badge-ai",
-    liveQrToken: "QUANTA-WS-AI-2026",
-    liveSixDigitCode: "620419",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-quantum",
-    title: "Quantum Computing & Qiskit Lab",
-    activityType: "Lab Session",
-    category: "Quantum Physics",
-    iconType: "quantum",
-    level: "Advanced",
-    instructor: "Dr. Amine Cherif (Alumni Guest)",
-    dateLabel: "19 Nov 2026",
-    timeRange: "14:00 - 17:00",
-    location: "Physics Computing Lab C3",
-    capacity: 25,
-    seatsLeft: 9,
-    xpReward: 180,
-    status: "Published",
-    description:
-      "Quantum gates, entanglement circuits, Grover's search algorithm, and executing quantum circuits on IBM Quantum simulators.",
-    objectives: [
-      "Construct Bell states and quantum teleportation circuits in Qiskit",
-      "Simulate noise models and quantum error mitigation",
-      "Earn Alumni-mentored Quantum Lab credit",
-    ],
-    materials: ["Python + Qiskit SDK", "Linear Algebra Refresher Sheet"],
-    linkedBadgeId: "badge-research",
-    liveQrToken: "QUANTA-WS-QUANTUM-2026",
-    liveSixDigitCode: "884120",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-  {
-    id: "ws-latex",
-    title: "Scientific Writing, LaTeX & Peer Review",
-    activityType: "Workshop",
-    category: "Scientific Writing",
-    iconType: "scientific-writing",
-    level: "Beginner",
-    instructor: "Sara Mansouri & Yasmine Bouzid",
-    dateLabel: "24 Nov 2026",
-    timeRange: "10:00 - 12:30",
-    location: "Seminar Room A2",
-    capacity: 35,
-    seatsLeft: 21,
-    xpReward: 110,
-    status: "Published",
-    description:
-      "Master academic typesetting in LaTeX/Overleaf, BibTeX reference management, and structured abstract authoring for student research papers.",
-    objectives: [
-      "Structure IEEE & Nature templates in Overleaf",
-      "Typeset multi-line equations, matrices, and vector figures",
-      "Automate citations with BibTeX and Zotero",
-    ],
-    materials: ["Overleaf Account", "Sample Manuscript Pack"],
-    linkedBadgeId: "badge-comm",
-    liveQrToken: "QUANTA-WS-LATEX-2026",
-    liveSixDigitCode: "194028",
-    registeredMemberIds: [],
-    waitlistMemberIds: [],
-    attendanceRecords: [],
-  },
-];
-
-export const SEED_BADGES: Badge[] = [
-  {
-    id: "badge-test-python",
-    name: "Python Scientific Explorer",
-    category: "Technology",
-    skillType: "Hard Skill",
-    iconName: "python",
-    borderTone: "cyan",
-    description:
-      "Verified command of Python scientific computing, array manipulation, and experimental data analysis pipelines.",
-    criteriaText:
-      "Pass the online skill exam (≥70%) or submit a verified repository.",
-    xpReward: 120,
-    earningMethods: ["exam", "project"],
-    requirementType: "both",
-    linkedExamId: "exam-test-python",
-    memberState: "In Progress",
-    progressPercent: 50,
-    awardedCount: 0,
-    archived: false,
-  },
-  {
-    id: "badge-test-quantum",
-    name: "Astrophysics & Quantum Pioneer",
-    category: "Science",
-    skillType: "Hard Skill",
-    iconName: "astrophysics",
-    borderTone: "gold",
-    description:
-      "Foundational mastery of stellar spectroscopy, exoplanet transit photometry, and quantum state mechanics.",
-    criteriaText:
-      "Pass the Astrophysics & Quantum Foundations assessment (≥70%) or present a research digest with the Astronomy Team.",
-    xpReward: 150,
-    earningMethods: ["exam", "manual"],
-    requirementType: "exam",
-    linkedExamId: "exam-test-quantum",
-    memberState: "Locked",
-    progressPercent: 0,
-    awardedCount: 0,
-    archived: false,
-  },
-];
-
-export const SEED_EXAMS: BadgeExam[] = [
-  {
-    id: "exam-test-python",
-    badgeId: "badge-test-python",
-    title: "Python Scientific Explorer Assessment",
-    category: "Technology",
-    iconName: "python",
-    level: "Beginner",
-    xpReward: 120,
-    durationMinutes: 30,
-    totalQuestionsCount: 4,
-    passingScorePercent: 70,
-    maxAttempts: 2,
-    attemptsUsed: 0,
-    rules: [
-      "Stable internet connection required",
-      "Passing score is 70% or above to unlock the Python Scientific Explorer badge",
-      "Submit your answers before the timer expires",
-    ],
-    questions: [
-      {
-        id: "q-py-1",
-        question: "Which NumPy operation computes the element-wise dot product of two 1D vectors a and b?",
-        options: ["np.dot(a, b)", "np.concat(a, b)", "np.split(a, b)", "np.where(a, b)"],
-        correctIndex: 0,
-      },
-      {
-        id: "q-py-2",
-        question: "In Pandas, which method returns summary statistics (mean, std, quartiles) of numerical columns?",
-        options: ["df.describe()", "df.head()", "df.rename()", "df.dropna()"],
-        correctIndex: 0,
-      },
-      {
-        id: "q-py-3",
-        question: "Why are vectorized NumPy arrays faster than standard Python loops for numerical datasets?",
-        options: [
-          "Contiguous C-level memory layout and SIMD vector operations",
-          "They automatically compress files to ZIP format",
-          "They run exclusively inside HTML templates",
-          "They disable floating-point precision",
-        ],
-        correctIndex: 0,
-      },
-      {
-        id: "q-py-4",
-        question: "Which Matplotlib function saves a high-resolution figure to disk for a scientific report?",
-        options: ["plt.savefig('figure.png', dpi=300)", "plt.export_raw()", "plt.write_csv()", "plt.clear_axes()"],
-        correctIndex: 0,
-      },
-    ],
-  },
-  {
-    id: "exam-test-quantum",
-    badgeId: "badge-test-quantum",
-    title: "Astrophysics & Quantum Pioneer Exam",
-    category: "Science",
-    iconName: "astrophysics",
-    level: "Intermediate",
-    xpReward: 150,
-    durationMinutes: 40,
-    totalQuestionsCount: 4,
-    passingScorePercent: 70,
-    maxAttempts: 2,
-    attemptsUsed: 0,
-    rules: [
-      "Stable internet connection required",
-      "Passing score is 70% or above to unlock the Astrophysics & Quantum Pioneer badge",
-      "Submit your answers before the timer expires",
-    ],
-    questions: [
-      {
-        id: "q-aq-1",
-        question: "What observable dip in stellar brightness indicates a transiting exoplanet?",
-        options: [
-          "Periodic flux reduction in the transit light curve proportional to (Rp / Rs)²",
-          "Permanent disappearance of the host star's magnetic field",
-          "Sudden radio burst from galactic cosmic rays",
-          "Complete gravitational collapse of the star",
-        ],
-        correctIndex: 0,
-      },
-      {
-        id: "q-aq-2",
-        question: "In quantum mechanics, what does the squared modulus |ψ(x, t)|² of a wave function represent?",
-        options: [
-          "Probability density of finding the particle at position x at time t",
-          "Classical kinetic momentum of the system",
-          "Rest mass energy of the atomic nucleus",
-          "Thermal conductivity of the lattice",
-        ],
-        correctIndex: 0,
-      },
-      {
-        id: "q-aq-3",
-        question: "Which space telescope instrument suite detected methane and CO₂ in exoplanet K2-18 b?",
-        options: [
-          "JWST NIRISS and NIRSpec transmission spectroscopy",
-          "Chandra X-Ray Grazing Incidence Mirrors",
-          "LIGO Laser Interferometer Arms",
-          "Voyager 1 Plasma Wave Subsystem",
-        ],
-        correctIndex: 0,
-      },
-      {
-        id: "q-aq-4",
-        question: "What physical law relates the peak wavelength of blackbody stellar radiation to surface temperature?",
-        options: [
-          "Wien's Displacement Law (λ_max · T = b)",
-          "Hooke's Law of Elasticity",
-          "Faraday's Law of Electrolysis",
-          "Ohm's Law of Resistance",
-        ],
-        correctIndex: 0,
-      },
-    ],
-  },
-];
+export const SEED_WORKSHOPS: Workshop[] = [];
+export const SEED_BADGES: Badge[] = [];
+export const SEED_EXAMS: BadgeExam[] = [];
 export const SEED_TASKS: ClubTask[] = [];
 export const SEED_LEDGER: PointsLedgerEntry[] = [];
 export const SEED_MESSAGES: ClubMessage[] = [];
@@ -709,7 +339,384 @@ export const SEED_PROJECT_SUBMISSIONS: ProjectSubmission[] = [];
 export const SEED_INVITATIONS: Invitation[] = [];
 export const SEED_ACCESS_GRANTS: AccessGrant[] = [];
 export const SEED_AUDIT_LOGS: AuditLogEntry[] = [];
-export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [];
+export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [
+  {
+    "id": "quiz-nov1-01",
+    "domain": "بيان أول نوفمبر 1954",
+    "icon": "legal-charter",
+    "question": "ما هو المبدأ الأساسي الذي أعلنه بيان أول نوفمبر 1954 كهدف أسمى للثورة التحريرية الجزائرية؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية"
+      },
+      {
+        "id": "b",
+        "label": "المطالبة بحكم ذاتي وإصلاحات إدارية محدودة مع البقاء تحت السيادة الاستعمارية"
+      },
+      {
+        "id": "c",
+        "label": "الاندماج السياسي المشروط في الجمعية الوطنية الفرنسية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "تأكيد مبادئ بيان أول نوفمبر 1954 الخالد",
+    "explanation": "نص بيان أول نوفمبر 1954 صراحة على إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية.",
+    "xpReward": 25,
+    "isPinnedToday": true,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-02",
+    "domain": "هندسة الاتصالات وشبكات الثورة",
+    "icon": "electronics",
+    "question": "كيف نجح مهندسو ومجاهدو الاتصالات في إطلاق إذاعة 'صوت الجزائر الحرة المكافحة' عام 1956 رغم التشويش الاستعماري؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "استخدام أجهزة إرسال لاسلكية متحركة على متن شاحنات وتقنية التنقل الترددي (Frequency Hopping)"
+      },
+      {
+        "id": "b",
+        "label": "الاعتماد الحصري على الكابلات البحرية السلكية بين الجزائر وفرنسا"
+      },
+      {
+        "id": "c",
+        "label": "استعمال أبراج البث التلفزيوني الاستعمارية العامة في العاصمة فقط"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "عبقرية هندسة الاتصالات اللاسلكية الثورية",
+    "explanation": "اعتمدت شبكة الاتصالات اللاسلكية لجبهة التحرير الوطني على أجهزة إرسال متنقلة عالية التردد لتفادي الرصد والتثليث الراديوي من قبل جيش الاحتلال.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-03",
+    "domain": "الطلبة والثورة التحريرية",
+    "icon": "scientific-writing",
+    "question": "ما هو التاريخ المفصلي الذي أعلن فيه الطلبة الجزائريون إضرابهم التاريخي والتحاقهم الجماعي بجيش التحرير الوطني؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "19 ماي 1956 تحت شعار: بشهادة واحدة لا نصنع وطناً، ولكن بوطن نصنع آلاف الشهادات"
+      },
+      {
+        "id": "b",
+        "label": "11 ديسمبر 1960 خلال المظاهرات الشعبية"
+      },
+      {
+        "id": "c",
+        "label": "05 جويلية 1962 يوم الاستقلال الوطني"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "نداء 19 ماي 1956: سلاح العلم في معركة التحرير",
+    "explanation": "أصدر الاتحاد العام للطلبة المسلمين الجزائريين (UGEMA) نداء الإضراب العام في 19 ماي 1956، ملتحقين بصفوف الثورة كأطباء، مهندسين، وإعلاميين.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-04",
+    "domain": "التنظيم العسكري والجغرافي",
+    "icon": "leadership",
+    "question": "كم كان عدد المناطق العسكرية (الولايات التاريخية) التي قُسمت إليها الجزائر في مؤتمر الصومام 1956؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "6 ولايات تاريخية بعد إضافة الولاية السادسة (الصحراء)"
+      },
+      {
+        "id": "b",
+        "label": "3 ولايات فقط (الشرق، الوسط، والغرب)"
+      },
+      {
+        "id": "c",
+        "label": "12 ولاية مستقلة دون قيادة موحدة"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الهيكلة الاستراتيجية الموحدة للتراب الوطني",
+    "explanation": "قسم مؤتمر الصومام عام 1956 الوطن إلى ست ولايات تاريخية تحت قيادة أركان موحدة وتنظيم عسكري ولوجستي متكامل.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-05",
+    "domain": "التشفير والأمن السيبراني الثوري",
+    "icon": "cybersecurity",
+    "question": "كيف كانت تُنقل الأوامر والرسائل الاستراتيجية السرية بين قيادة جيش التحرير والولايات التاريخية لتأمينها ضد فك الشفرات؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "استخدام جداول استبدال مشفرة وشبكات فدائيين بريديين بنظام المسافات المتقطعة وحيدة الاستعمال"
+      },
+      {
+        "id": "b",
+        "label": "إرسالها عبر مكاتب البريد العادي الاستعماري دون أي حماية"
+      },
+      {
+        "id": "c",
+        "label": "نشرها علناً في الصحف الفرنسية عبر إعلانات تجارية وهمية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "بروتوكول الأمان والتشفير البشري الثوري",
+    "explanation": "اعتمد جيش التحرير الوطني على شفرات أبجدية ورقمية معقدة يتم تغيير مفاتيحها دورياً مع شبكة بريديين فدائيين لا يعرف كل حلقة فيها سوى سابقتها.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-06",
+    "domain": "الطب الثوري وإنقاذ الأرواح",
+    "icon": "health",
+    "question": "من هو الطبيب والمفكر الجزائري الذي وظّف الطب النفسي لتحليل آثار الاستعمار وكرّس قلمه وعلاجه لخدمة الثورة التحريرية؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "فرانز فانون (Frantz Fanon) في كتابه معذبو الأرض والطب النفسي في البليدة"
+      },
+      {
+        "id": "b",
+        "label": "لويس باستور في أبحاث الجراثيم"
+      },
+      {
+        "id": "c",
+        "label": "رينيه لاينك مخترع السماعة الطبية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الطب النفسي التحرري وتفكيك الصدمات الاستعمارية",
+    "explanation": "انضم الدكتور فرانز فانون إلى جبهة التحرير الوطني وعالج مجاهدي جيش التحرير ووثق في مؤلفاته الفكرية الآثار النفسية العميقة للعنف الاستعماري.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-07",
+    "domain": "الدبلوماسية وتدويل القضية",
+    "icon": "journal-club",
+    "question": "ما هو المؤتمر الدولي الأول الذي نجحت فيه جبهة التحرير الوطني في إدراج القضية الجزائرية على الساحة الدولية عام 1955؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "مؤتمر باندونغ (Bandung) لحركة عدم الانحياز في إندونيسيا"
+      },
+      {
+        "id": "b",
+        "label": "مؤتمر يالطا في القرم"
+      },
+      {
+        "id": "c",
+        "label": "قمة جنيف للسلام العالمي"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الانتصار الدبلوماسي في مؤتمر باندونغ 1955",
+    "explanation": "حضر وفد جبهة التحرير الوطني مؤتمر باندونغ في أبريل 1955، مما مهد لطرح القضية رسمياً في الجمعية العامة للأمم المتحدة.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-08",
+    "domain": "الهندسة العكسية وتصنيع السلاح",
+    "icon": "circuit-design",
+    "question": "ما هي الورشات التقنية السرية التي أسسها جيش التحرير الوطني لتصنيع الأسلحة وتطوير القنابل والذخائر محلياً؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "مصانع الأسلحة السرية بقيادة عبد الحفيظ بوصوف ومسعود زقار عبر الحدود"
+      },
+      {
+        "id": "b",
+        "label": "شراء الأسلحة الجاهزة بالكامل دون أي تعديل أو تصنيع محلي"
+      },
+      {
+        "id": "c",
+        "label": "استيراد الذخائر حصراً عبر الطيران المدني الدولي"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "التصنيع الحربي والهندسة الميدانية للثورة",
+    "explanation": "أقامت قيادة الثورة ورشات ومصانع سرية أنتجت مدافع الهاون وقذائف 'البازوكا' والعبوات الموجهة بكفاءة تقنية عالية.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-09",
+    "domain": "مظاهرات الشعب والشرعية الدولية",
+    "icon": "leadership",
+    "question": "ما هي المظاهرات الشعبية التاريخية التي حسمت أمام لجان الأمم المتحدة رغبة الشعب الجزائري المطلقة في الاستقلال التام؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "مظاهرات 11 ديسمبر 1960 التي رفعت فيها الأعلام الوطنية في وجه الدبابات"
+      },
+      {
+        "id": "b",
+        "label": "مظاهرات 14 جويلية في باريس"
+      },
+      {
+        "id": "c",
+        "label": "مسيرات عيد العمال عام 1940"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "ملحمة 11 ديسمبر 1960 والاستفتاء الشعبي الميداني",
+    "explanation": "أثبتت مظاهرات 11 ديسمبر 1960 للعالم بأسره أن جبهة التحرير الوطني هي الممثل الشرعي والوحيد للشعب الجزائري.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-10",
+    "domain": "العلوم والرياضيات في الإمداد الثوري",
+    "icon": "mathematics",
+    "question": "كيف ساهمت الحسابات الرياضية والفيزيائية في اختراق خطي 'شارل' و'موريس' المكهربين على الحدود؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "حسابات المقاومة والجهد الكهربائي، وتوقيت الدوريات، وتفجير الفجوات بأنابيب البنغالور المتزامنة"
+      },
+      {
+        "id": "b",
+        "label": "المرور العشوائي دون دراسة للتيار والجهد الكهربائي للأسلاك الشائكة"
+      },
+      {
+        "id": "c",
+        "label": "انتظار انقطاع التيار الكهربائي الطبيعي في جميع أرجاء الخطوط"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الهندسة الطبوغرافية والفيزيائية في اختراق الأسلاك المكهربة",
+    "explanation": "اعتمد مهندسو جيش التحرير على دراسة دقيقة لقيم الجهد والتيار ومجسات الاهتزاز لاختراق خطي موريس وشارل وتمرير قوافل السلاح.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-11",
+    "domain": "مفاوضات إيفيان ووحدة التراب الوطني",
+    "icon": "legal-charter",
+    "question": "ما هو المبدأ الجغرافي والسيادي الذي تمسك به الوفد الجزائري المفاوض في إيفيان ورفض المساومة عليه إطلاقاً؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "وحدة التراب الوطني ورفض فصل الصحراء الجزائرية عن شمال الوطن"
+      },
+      {
+        "id": "b",
+        "label": "التنازل عن الحقول النفطية والمناجم مقابل استقلال المدن الساحلية"
+      },
+      {
+        "id": "c",
+        "label": "تقسيم الجزائر إلى دويلات فيدرالية متباعدة"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "صلابة الوفد المفاوض: الجزائر كلٌ لا يتجزأ",
+    "explanation": "أصر الوفد المفاوض برئاسة كريم بلقاسم على أن الصحراء الجزائرية جزء لا يتجزأ من السيادة الوطنية، مما أحبط مخططات الاستعمار لفصل الجنوب وثرواته.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-12",
+    "domain": "أبطال الفكر والتضحية",
+    "icon": "leadership",
+    "question": "من هو الشهيد القائد الرمز الذي قال عبارته التاريخية: 'ألقوا بالثورة إلى الشارع يحتضنها الشعب'؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "الشهيد البطل العربي بن مهيدي"
+      },
+      {
+        "id": "b",
+        "label": "الشهيد زيغود يوسف"
+      },
+      {
+        "id": "c",
+        "label": "الشهيد ديدوش مراد"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "حكمة الشهيد العربي بن مهيدي الخالدة",
+    "explanation": "جسد العربي بن مهيدي فلسفة الثورة الشعبية الشاملة، مبيناً أن إرادة الشعب هي المحرك الأساسي والحاضن الأعظم للتحرر والاستقلال.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-13",
+    "domain": "المرأة الجزائرية في الثورة",
+    "icon": "optics",
+    "question": "ما هو الدور الاستراتيجي الذي أدته المجاهدات والممرضات الجزائريات (مثل جميلة بوحيرد وفضيلة سعدان) في معركة الجزائر والجبال؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "نقل الرسائل والأسلحة، التمريض الميداني، والتنسيق الاستخباراتي في قلب شبكات المدن والجبال"
+      },
+      {
+        "id": "b",
+        "label": "الاقتصار على الأدوار الإدارية المكتبية خارج أرض الوطن"
+      },
+      {
+        "id": "c",
+        "label": "عدم المشاركة في العمليات الميدانية للثورة"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "شجاعة وتضحيات المرأة الجزائرية المجاهدة",
+    "explanation": "كانت المجاهدة الجزائرية في طليعة الفدائيين، قادت شبكات الاتصال ونقلت التموين والأسلحة وشاركت في أصعب المواجهات البطولية.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-14",
+    "domain": "السيادة العلمية بعد الاستقلال",
+    "icon": "energy",
+    "question": "ما هو القرار السيادي التاريخي المتخذ في 24 فيفري 1971 الذي رسخ الاستقلال الاقتصادي والعلمي للجزائر؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "تأميم المحروقات واسترجاع الثروات الطبيعية بسواعد المهندسين الجزائريين"
+      },
+      {
+        "id": "b",
+        "label": "توقيع اتفاقيات التبعية النفطية للشركات الأجنبية"
+      },
+      {
+        "id": "c",
+        "label": "إلغاء الجامعات والمعاهد التكنولوجية الوطنية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "معركة تأميم المحروقات وبناء الإطارات الوطنية",
+    "explanation": "أعلن تأميم المحروقات في 24 فيفري 1971، مما أتاح للكوادر والمهندسين الجزائريين قيادة قطاع الطاقة والتصنيع الوطني بكفاءة واقتدار.",
+    "xpReward": 25,
+    "active": true
+  },
+  {
+    "id": "quiz-nov1-15",
+    "domain": "مسؤولية جيل اليوم: علم وعمل",
+    "icon": "quantum",
+    "question": "كيف يُواصل الطالب والباحث الجزائري اليوم في نادي QUANTERS أمانة شهداء أول نوفمبر 1954؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "بالتفوق في العلوم المتقدمة، البرمجة، والبحث التطبيقي لبناء سيادة تكنولوجية واقتصادية متينة"
+      },
+      {
+        "id": "b",
+        "label": "بالاكتفاء بالدراسة النظرية دون ابتكار أو خدمة للمجتمع"
+      },
+      {
+        "id": "c",
+        "label": "بالانتظار والاعتماد الدائم على التقنيات المستوردة دون تطوير محلي"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "عهد الشهداء: السيادة التكنولوجية بسواعد الباحثين والعلماء",
+    "explanation": "الثورة المعاصرة هي ثورة الذكاء، الفيزياء، البرمجيات، والابتكار الوطني لحماية استقلال الجزائر وصون مكانتها بين الأمم.",
+    "xpReward": 25,
+    "active": true
+  }
+];
 export const SEED_GRIEVANCES: MemberGrievance[] = [];
 
 // 16 Official Club Point Rules

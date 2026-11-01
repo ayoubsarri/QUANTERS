@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "updatedAt": "2026-10-28T19:31:47.592Z",
+  "updatedAt": "2026-11-01T01:25:50.343Z",
   "collectionVersions": {
     "settings": "2026-10-27T13:23:47.274Z",
     "departments": "2026-10-27T14:16:51.178Z",
@@ -373,182 +373,8 @@
     }
   ],
   "ledger": [],
-  "badges": [
-    {
-      "id": "badge-test-python",
-      "name": "Python Scientific Explorer",
-      "category": "Technology",
-      "skillType": "Hard Skill",
-      "iconName": "python",
-      "borderTone": "cyan",
-      "description": "Verified command of Python scientific computing, array manipulation, and experimental data analysis pipelines.",
-      "criteriaText": "Complete the Scientific Python Workshop and pass the online skill exam (≥70%) or submit a verified repository.",
-      "xpReward": 120,
-      "earningMethods": [
-        "exam",
-        "project"
-      ],
-      "requirementType": "both",
-      "linkedExamId": "exam-test-python",
-      "memberState": "In Progress",
-      "progressPercent": 50,
-      "awardedCount": 0,
-      "archived": false
-    },
-    {
-      "id": "badge-test-quantum",
-      "name": "Astrophysics & Quantum Pioneer",
-      "category": "Science",
-      "skillType": "Hard Skill",
-      "iconName": "astrophysics",
-      "borderTone": "gold",
-      "description": "Foundational mastery of stellar spectroscopy, exoplanet transit photometry, and quantum state mechanics.",
-      "criteriaText": "Pass the Astrophysics & Quantum Foundations assessment (≥70%) or present a research digest with the Astronomy Team.",
-      "xpReward": 150,
-      "earningMethods": [
-        "exam",
-        "manual"
-      ],
-      "requirementType": "exam",
-      "linkedExamId": "exam-test-quantum",
-      "memberState": "Locked",
-      "progressPercent": 0,
-      "awardedCount": 0,
-      "archived": false
-    }
-  ],
-  "exams": [
-    {
-      "id": "exam-test-python",
-      "badgeId": "badge-test-python",
-      "title": "Python Scientific Explorer Assessment",
-      "category": "Technology",
-      "iconName": "python",
-      "level": "Beginner",
-      "xpReward": 120,
-      "durationMinutes": 30,
-      "totalQuestionsCount": 4,
-      "passingScorePercent": 70,
-      "maxAttempts": 2,
-      "attemptsUsed": 0,
-      "rules": [
-        "Stable internet connection required",
-        "Passing score is 70% or above to unlock the Python Scientific Explorer badge",
-        "Submit your answers before the timer expires"
-      ],
-      "questions": [
-        {
-          "id": "q-py-1",
-          "question": "Which NumPy operation computes the element-wise dot product of two 1D vectors a and b?",
-          "options": [
-            "np.dot(a, b)",
-            "np.concat(a, b)",
-            "np.split(a, b)",
-            "np.where(a, b)"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-py-2",
-          "question": "In Pandas, which method returns summary statistics (mean, std, quartiles) of numerical columns?",
-          "options": [
-            "df.describe()",
-            "df.head()",
-            "df.rename()",
-            "df.dropna()"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-py-3",
-          "question": "Why are vectorized NumPy arrays faster than standard Python loops for numerical datasets?",
-          "options": [
-            "Contiguous C-level memory layout and SIMD vector operations",
-            "They automatically compress files to ZIP format",
-            "They run exclusively inside HTML templates",
-            "They disable floating-point precision"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-py-4",
-          "question": "Which Matplotlib function saves a high-resolution figure to disk for a scientific report?",
-          "options": [
-            "plt.savefig('figure.png', dpi=300)",
-            "plt.export_raw()",
-            "plt.write_csv()",
-            "plt.clear_axes()"
-          ],
-          "correctIndex": 0
-        }
-      ]
-    },
-    {
-      "id": "exam-test-quantum",
-      "badgeId": "badge-test-quantum",
-      "title": "Astrophysics & Quantum Pioneer Exam",
-      "category": "Science",
-      "iconName": "astrophysics",
-      "level": "Intermediate",
-      "xpReward": 150,
-      "durationMinutes": 40,
-      "totalQuestionsCount": 4,
-      "passingScorePercent": 70,
-      "maxAttempts": 2,
-      "attemptsUsed": 0,
-      "rules": [
-        "Stable internet connection required",
-        "Passing score is 70% or above to unlock the Astrophysics & Quantum Pioneer badge",
-        "Submit your answers before the timer expires"
-      ],
-      "questions": [
-        {
-          "id": "q-aq-1",
-          "question": "What observable dip in stellar brightness indicates a transiting exoplanet?",
-          "options": [
-            "Periodic flux reduction in the transit light curve proportional to (Rp / Rs)²",
-            "Permanent disappearance of the host star's magnetic field",
-            "Sudden radio burst from galactic cosmic rays",
-            "Complete gravitational collapse of the star"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-aq-2",
-          "question": "In quantum mechanics, what does the squared modulus |ψ(x, t)|² of a wave function represent?",
-          "options": [
-            "Probability density of finding the particle at position x at time t",
-            "Classical kinetic momentum of the system",
-            "Rest mass energy of the atomic nucleus",
-            "Thermal conductivity of the lattice"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-aq-3",
-          "question": "Which space telescope instrument suite detected methane and CO₂ in exoplanet K2-18 b?",
-          "options": [
-            "JWST NIRISS and NIRSpec transmission spectroscopy",
-            "Chandra X-Ray Grazing Incidence Mirrors",
-            "LIGO Laser Interferometer Arms",
-            "Voyager 1 Plasma Wave Subsystem"
-          ],
-          "correctIndex": 0
-        },
-        {
-          "id": "q-aq-4",
-          "question": "What physical law relates the peak wavelength of blackbody stellar radiation to surface temperature?",
-          "options": [
-            "Wien's Displacement Law (λ_max · T = b)",
-            "Hooke's Law of Elasticity",
-            "Faraday's Law of Electrolysis",
-            "Ohm's Law of Resistance"
-          ],
-          "correctIndex": 0
-        }
-      ]
-    }
-  ],
+  "badges": [],
+  "exams": [],
   "projectSubmissions": [],
   "proposals": [],
   "explorePosts": [
@@ -633,7 +459,384 @@
       "externalUrl": "https://ieeexplore.ieee.org/"
     }
   ],
-  "dailyQuizzes": [],
+  "dailyQuizzes": [
+    {
+      "id": "quiz-nov1-01",
+      "domain": "بيان أول نوفمبر 1954",
+      "icon": "legal-charter",
+      "question": "ما هو المبدأ الأساسي الذي أعلنه بيان أول نوفمبر 1954 كهدف أسمى للثورة التحريرية الجزائرية؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية"
+        },
+        {
+          "id": "b",
+          "label": "المطالبة بحكم ذاتي وإصلاحات إدارية محدودة مع البقاء تحت السيادة الاستعمارية"
+        },
+        {
+          "id": "c",
+          "label": "الاندماج السياسي المشروط في الجمعية الوطنية الفرنسية"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "تأكيد مبادئ بيان أول نوفمبر 1954 الخالد",
+      "explanation": "نص بيان أول نوفمبر 1954 صراحة على إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية.",
+      "xpReward": 25,
+      "isPinnedToday": true,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-02",
+      "domain": "هندسة الاتصالات وشبكات الثورة",
+      "icon": "electronics",
+      "question": "كيف نجح مهندسو ومجاهدو الاتصالات في إطلاق إذاعة 'صوت الجزائر الحرة المكافحة' عام 1956 رغم التشويش الاستعماري؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "استخدام أجهزة إرسال لاسلكية متحركة على متن شاحنات وتقنية التنقل الترددي (Frequency Hopping)"
+        },
+        {
+          "id": "b",
+          "label": "الاعتماد الحصري على الكابلات البحرية السلكية بين الجزائر وفرنسا"
+        },
+        {
+          "id": "c",
+          "label": "استعمال أبراج البث التلفزيوني الاستعمارية العامة في العاصمة فقط"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "عبقرية هندسة الاتصالات اللاسلكية الثورية",
+      "explanation": "اعتمدت شبكة الاتصالات اللاسلكية لجبهة التحرير الوطني على أجهزة إرسال متنقلة عالية التردد لتفادي الرصد والتثليث الراديوي من قبل جيش الاحتلال.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-03",
+      "domain": "الطلبة والثورة التحريرية",
+      "icon": "scientific-writing",
+      "question": "ما هو التاريخ المفصلي الذي أعلن فيه الطلبة الجزائريون إضرابهم التاريخي والتحاقهم الجماعي بجيش التحرير الوطني؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "19 ماي 1956 تحت شعار: بشهادة واحدة لا نصنع وطناً، ولكن بوطن نصنع آلاف الشهادات"
+        },
+        {
+          "id": "b",
+          "label": "11 ديسمبر 1960 خلال المظاهرات الشعبية"
+        },
+        {
+          "id": "c",
+          "label": "05 جويلية 1962 يوم الاستقلال الوطني"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "نداء 19 ماي 1956: سلاح العلم في معركة التحرير",
+      "explanation": "أصدر الاتحاد العام للطلبة المسلمين الجزائريين (UGEMA) نداء الإضراب العام في 19 ماي 1956، ملتحقين بصفوف الثورة كأطباء، مهندسين، وإعلاميين.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-04",
+      "domain": "التنظيم العسكري والجغرافي",
+      "icon": "leadership",
+      "question": "كم كان عدد المناطق العسكرية (الولايات التاريخية) التي قُسمت إليها الجزائر في مؤتمر الصومام 1956؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "6 ولايات تاريخية بعد إضافة الولاية السادسة (الصحراء)"
+        },
+        {
+          "id": "b",
+          "label": "3 ولايات فقط (الشرق، الوسط، والغرب)"
+        },
+        {
+          "id": "c",
+          "label": "12 ولاية مستقلة دون قيادة موحدة"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "الهيكلة الاستراتيجية الموحدة للتراب الوطني",
+      "explanation": "قسم مؤتمر الصومام عام 1956 الوطن إلى ست ولايات تاريخية تحت قيادة أركان موحدة وتنظيم عسكري ولوجستي متكامل.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-05",
+      "domain": "التشفير والأمن السيبراني الثوري",
+      "icon": "cybersecurity",
+      "question": "كيف كانت تُنقل الأوامر والرسائل الاستراتيجية السرية بين قيادة جيش التحرير والولايات التاريخية لتأمينها ضد فك الشفرات؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "استخدام جداول استبدال مشفرة وشبكات فدائيين بريديين بنظام المسافات المتقطعة وحيدة الاستعمال"
+        },
+        {
+          "id": "b",
+          "label": "إرسالها عبر مكاتب البريد العادي الاستعماري دون أي حماية"
+        },
+        {
+          "id": "c",
+          "label": "نشرها علناً في الصحف الفرنسية عبر إعلانات تجارية وهمية"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "بروتوكول الأمان والتشفير البشري الثوري",
+      "explanation": "اعتمد جيش التحرير الوطني على شفرات أبجدية ورقمية معقدة يتم تغيير مفاتيحها دورياً مع شبكة بريديين فدائيين لا يعرف كل حلقة فيها سوى سابقتها.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-06",
+      "domain": "الطب الثوري وإنقاذ الأرواح",
+      "icon": "health",
+      "question": "من هو الطبيب والمفكر الجزائري الذي وظّف الطب النفسي لتحليل آثار الاستعمار وكرّس قلمه وعلاجه لخدمة الثورة التحريرية؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "فرانز فانون (Frantz Fanon) في كتابه معذبو الأرض والطب النفسي في البليدة"
+        },
+        {
+          "id": "b",
+          "label": "لويس باستور في أبحاث الجراثيم"
+        },
+        {
+          "id": "c",
+          "label": "رينيه لاينك مخترع السماعة الطبية"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "الطب النفسي التحرري وتفكيك الصدمات الاستعمارية",
+      "explanation": "انضم الدكتور فرانز فانون إلى جبهة التحرير الوطني وعالج مجاهدي جيش التحرير ووثق في مؤلفاته الفكرية الآثار النفسية العميقة للعنف الاستعماري.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-07",
+      "domain": "الدبلوماسية وتدويل القضية",
+      "icon": "journal-club",
+      "question": "ما هو المؤتمر الدولي الأول الذي نجحت فيه جبهة التحرير الوطني في إدراج القضية الجزائرية على الساحة الدولية عام 1955؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "مؤتمر باندونغ (Bandung) لحركة عدم الانحياز في إندونيسيا"
+        },
+        {
+          "id": "b",
+          "label": "مؤتمر يالطا في القرم"
+        },
+        {
+          "id": "c",
+          "label": "قمة جنيف للسلام العالمي"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "الانتصار الدبلوماسي في مؤتمر باندونغ 1955",
+      "explanation": "حضر وفد جبهة التحرير الوطني مؤتمر باندونغ في أبريل 1955، مما مهد لطرح القضية رسمياً في الجمعية العامة للأمم المتحدة.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-08",
+      "domain": "الهندسة العكسية وتصنيع السلاح",
+      "icon": "circuit-design",
+      "question": "ما هي الورشات التقنية السرية التي أسسها جيش التحرير الوطني لتصنيع الأسلحة وتطوير القنابل والذخائر محلياً؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "مصانع الأسلحة السرية بقيادة عبد الحفيظ بوصوف ومسعود زقار عبر الحدود"
+        },
+        {
+          "id": "b",
+          "label": "شراء الأسلحة الجاهزة بالكامل دون أي تعديل أو تصنيع محلي"
+        },
+        {
+          "id": "c",
+          "label": "استيراد الذخائر حصراً عبر الطيران المدني الدولي"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "التصنيع الحربي والهندسة الميدانية للثورة",
+      "explanation": "أقامت قيادة الثورة ورشات ومصانع سرية أنتجت مدافع الهاون وقذائف 'البازوكا' والعبوات الموجهة بكفاءة تقنية عالية.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-09",
+      "domain": "مظاهرات الشعب والشرعية الدولية",
+      "icon": "leadership",
+      "question": "ما هي المظاهرات الشعبية التاريخية التي حسمت أمام لجان الأمم المتحدة رغبة الشعب الجزائري المطلقة في الاستقلال التام؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "مظاهرات 11 ديسمبر 1960 التي رفعت فيها الأعلام الوطنية في وجه الدبابات"
+        },
+        {
+          "id": "b",
+          "label": "مظاهرات 14 جويلية في باريس"
+        },
+        {
+          "id": "c",
+          "label": "مسيرات عيد العمال عام 1940"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "ملحمة 11 ديسمبر 1960 والاستفتاء الشعبي الميداني",
+      "explanation": "أثبتت مظاهرات 11 ديسمبر 1960 للعالم بأسره أن جبهة التحرير الوطني هي الممثل الشرعي والوحيد للشعب الجزائري.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-10",
+      "domain": "العلوم والرياضيات في الإمداد الثوري",
+      "icon": "mathematics",
+      "question": "كيف ساهمت الحسابات الرياضية والفيزيائية في اختراق خطي 'شارل' و'موريس' المكهربين على الحدود؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "حسابات المقاومة والجهد الكهربائي، وتوقيت الدوريات، وتفجير الفجوات بأنابيب البنغالور المتزامنة"
+        },
+        {
+          "id": "b",
+          "label": "المرور العشوائي دون دراسة للتيار والجهد الكهربائي للأسلاك الشائكة"
+        },
+        {
+          "id": "c",
+          "label": "انتظار انقطاع التيار الكهربائي الطبيعي في جميع أرجاء الخطوط"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "الهندسة الطبوغرافية والفيزيائية في اختراق الأسلاك المكهربة",
+      "explanation": "اعتمد مهندسو جيش التحرير على دراسة دقيقة لقيم الجهد والتيار ومجسات الاهتزاز لاختراق خطي موريس وشارل وتمرير قوافل السلاح.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-11",
+      "domain": "مفاوضات إيفيان ووحدة التراب الوطني",
+      "icon": "legal-charter",
+      "question": "ما هو المبدأ الجغرافي والسيادي الذي تمسك به الوفد الجزائري المفاوض في إيفيان ورفض المساومة عليه إطلاقاً؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "وحدة التراب الوطني ورفض فصل الصحراء الجزائرية عن شمال الوطن"
+        },
+        {
+          "id": "b",
+          "label": "التنازل عن الحقول النفطية والمناجم مقابل استقلال المدن الساحلية"
+        },
+        {
+          "id": "c",
+          "label": "تقسيم الجزائر إلى دويلات فيدرالية متباعدة"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "صلابة الوفد المفاوض: الجزائر كلٌ لا يتجزأ",
+      "explanation": "أصر الوفد المفاوض برئاسة كريم بلقاسم على أن الصحراء الجزائرية جزء لا يتجزأ من السيادة الوطنية، مما أحبط مخططات الاستعمار لفصل الجنوب وثرواته.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-12",
+      "domain": "أبطال الفكر والتضحية",
+      "icon": "leadership",
+      "question": "من هو الشهيد القائد الرمز الذي قال عبارته التاريخية: 'ألقوا بالثورة إلى الشارع يحتضنها الشعب'؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "الشهيد البطل العربي بن مهيدي"
+        },
+        {
+          "id": "b",
+          "label": "الشهيد زيغود يوسف"
+        },
+        {
+          "id": "c",
+          "label": "الشهيد ديدوش مراد"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "حكمة الشهيد العربي بن مهيدي الخالدة",
+      "explanation": "جسد العربي بن مهيدي فلسفة الثورة الشعبية الشاملة، مبيناً أن إرادة الشعب هي المحرك الأساسي والحاضن الأعظم للتحرر والاستقلال.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-13",
+      "domain": "المرأة الجزائرية في الثورة",
+      "icon": "optics",
+      "question": "ما هو الدور الاستراتيجي الذي أدته المجاهدات والممرضات الجزائريات (مثل جميلة بوحيرد وفضيلة سعدان) في معركة الجزائر والجبال؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "نقل الرسائل والأسلحة، التمريض الميداني، والتنسيق الاستخباراتي في قلب شبكات المدن والجبال"
+        },
+        {
+          "id": "b",
+          "label": "الاقتصار على الأدوار الإدارية المكتبية خارج أرض الوطن"
+        },
+        {
+          "id": "c",
+          "label": "عدم المشاركة في العمليات الميدانية للثورة"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "شجاعة وتضحيات المرأة الجزائرية المجاهدة",
+      "explanation": "كانت المجاهدة الجزائرية في طليعة الفدائيين، قادت شبكات الاتصال ونقلت التموين والأسلحة وشاركت في أصعب المواجهات البطولية.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-14",
+      "domain": "السيادة العلمية بعد الاستقلال",
+      "icon": "energy",
+      "question": "ما هو القرار السيادي التاريخي المتخذ في 24 فيفري 1971 الذي رسخ الاستقلال الاقتصادي والعلمي للجزائر؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "تأميم المحروقات واسترجاع الثروات الطبيعية بسواعد المهندسين الجزائريين"
+        },
+        {
+          "id": "b",
+          "label": "توقيع اتفاقيات التبعية النفطية للشركات الأجنبية"
+        },
+        {
+          "id": "c",
+          "label": "إلغاء الجامعات والمعاهد التكنولوجية الوطنية"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "معركة تأميم المحروقات وبناء الإطارات الوطنية",
+      "explanation": "أعلن تأميم المحروقات في 24 فيفري 1971، مما أتاح للكوادر والمهندسين الجزائريين قيادة قطاع الطاقة والتصنيع الوطني بكفاءة واقتدار.",
+      "xpReward": 25,
+      "active": true
+    },
+    {
+      "id": "quiz-nov1-15",
+      "domain": "مسؤولية جيل اليوم: علم وعمل",
+      "icon": "quantum",
+      "question": "كيف يُواصل الطالب والباحث الجزائري اليوم في نادي QUANTERS أمانة شهداء أول نوفمبر 1954؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "بالتفوق في العلوم المتقدمة، البرمجة، والبحث التطبيقي لبناء سيادة تكنولوجية واقتصادية متينة"
+        },
+        {
+          "id": "b",
+          "label": "بالاكتفاء بالدراسة النظرية دون ابتكار أو خدمة للمجتمع"
+        },
+        {
+          "id": "c",
+          "label": "بالانتظار والاعتماد الدائم على التقنيات المستوردة دون تطوير محلي"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "عهد الشهداء: السيادة التكنولوجية بسواعد الباحثين والعلماء",
+      "explanation": "الثورة المعاصرة هي ثورة الذكاء، الفيزياء، البرمجيات، والابتكار الوطني لحماية استقلال الجزائر وصون مكانتها بين الأمم.",
+      "xpReward": 25,
+      "active": true
+    }
+  ],
   "dailyQuotes": [
     {
       "id": "quote-001",

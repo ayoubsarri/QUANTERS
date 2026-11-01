@@ -767,11 +767,13 @@ function mergeRemoteWithUnsyncedLocal(
 
     const remoteItem = mergedById.get(id);
     if (!remoteItem) {
-      // Local-only new item or seed item not yet on server
-      if (!order.includes(id)) {
-        order.push(id);
+      // Only keep local-only item if client has active un-synced local offline creations
+      if (localState.pendingSyncCount > 0 || (prevMap && !prevMap.has(id))) {
+        if (!order.includes(id)) {
+          order.push(id);
+        }
+        mergedById.set(id, localItem);
       }
-      mergedById.set(id, localItem);
     } else if (prevMap) {
       const baselineJson = prevMap.get(id);
       const localJson = JSON.stringify(localItem);
@@ -783,37 +785,7 @@ function mergeRemoteWithUnsyncedLocal(
     }
   }
 
-  // 3. Guarantee that official catalog seeds are never lost due to partial remote snapshots or stale local states
-  if (key === "workshops") {
-    for (const w of SEED_WORKSHOPS) {
-      if (!isPersistentDeletedId(key, w.id) && !mergedById.has(w.id)) {
-        mergedById.set(w.id, w as unknown as Record<string, unknown>);
-        if (!order.includes(w.id)) {
-          order.push(w.id);
-        }
-      }
-    }
-  } else if (key === "badges") {
-    for (const b of SEED_BADGES) {
-      if (!isPersistentDeletedId(key, b.id) && !mergedById.has(b.id)) {
-        mergedById.set(b.id, b as unknown as Record<string, unknown>);
-        if (!order.includes(b.id)) {
-          order.push(b.id);
-        }
-      }
-    }
-  } else if (key === "exams") {
-    for (const e of SEED_EXAMS) {
-      if (!isPersistentDeletedId(key, e.id) && !mergedById.has(e.id)) {
-        mergedById.set(e.id, e as unknown as Record<string, unknown>);
-        if (!order.includes(e.id)) {
-          order.push(e.id);
-        }
-      }
-    }
-  }
-
-  // 4. Final deduplicated result, strictly filtering out any tombstoned items
+  // 3. Final deduplicated result, strictly filtering out any tombstoned items
   const finalIds = Array.from(new Set(order)).filter((id) => !isPersistentDeletedId(key, id));
   return finalIds.map((id) => mergedById.get(id)!).filter(Boolean);
 }
@@ -914,14 +886,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   teams: SEED_TEAMS,
   members: SEED_MEMBERS,
   invitations: SEED_INVITATIONS,
-  workshops: SEED_WORKSHOPS,
+  workshops: [],
   workshopCategories: DEFAULT_WORKSHOP_CATEGORIES,
   tasks: SEED_TASKS,
   pointRules: SEED_POINT_RULES,
   ledger: SEED_LEDGER,
-  badges: SEED_BADGES,
+  badges: [],
   badgeCategories: DEFAULT_BADGE_CATEGORIES,
-  exams: SEED_EXAMS,
+  exams: [],
   examCompletions: [],
   projectSubmissions: SEED_PROJECT_SUBMISSIONS,
   projectCategories: DEFAULT_PROJECT_CATEGORIES,
@@ -1651,46 +1623,28 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
           members: sanitizedHydratedMembers,
-          workshops: (() => {
-            const cached = Array.isArray(parsed.workshops) ? (parsed.workshops as Workshop[]) : [];
-            const cachedMap = new Map(cached.map((w: Workshop) => [w.id, w]));
-            for (const sw of SEED_WORKSHOPS) {
-              if (!cachedMap.has(sw.id) && !isPersistentDeletedId("workshops", sw.id)) {
-                cachedMap.set(sw.id, sw);
-              }
-            }
-            return Array.from(cachedMap.values()).filter((w) => !isPersistentDeletedId("workshops", w.id));
-          })(),
+          workshops: Array.isArray(parsed.workshops)
+            ? (parsed.workshops as Workshop[]).filter((w) => !isPersistentDeletedId("workshops", w.id))
+            : [],
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
           tasks: parsed.tasks || get().tasks,
           pointRules: parsed.pointRules || get().pointRules,
           ledger: parsed.ledger || get().ledger,
-          badges: (() => {
-            const cached = Array.isArray(parsed.badges) ? (parsed.badges as Badge[]) : [];
-            const cachedMap = new Map(cached.map((b: Badge) => [b.id, b]));
-            for (const sb of SEED_BADGES) {
-              if (!cachedMap.has(sb.id) && !isPersistentDeletedId("badges", sb.id)) {
-                cachedMap.set(sb.id, sb);
-              }
-            }
-            return Array.from(cachedMap.values()).filter((b) => !isPersistentDeletedId("badges", b.id));
-          })(),
+          badges: Array.isArray(parsed.badges)
+            ? (parsed.badges as Badge[]).filter((b) => !isPersistentDeletedId("badges", b.id))
+            : [],
           badgeCategories: parsed.badgeCategories || get().badgeCategories,
-          exams: (() => {
-            const cached = Array.isArray(parsed.exams) ? (parsed.exams as BadgeExam[]) : [];
-            const cachedMap = new Map(cached.map((e: BadgeExam) => [e.id, e]));
-            for (const se of SEED_EXAMS) {
-              if (!cachedMap.has(se.id) && !isPersistentDeletedId("exams", se.id)) {
-                cachedMap.set(se.id, se);
-              }
-            }
-            return Array.from(cachedMap.values()).filter((e) => !isPersistentDeletedId("exams", e.id));
-          })(),
+          exams: Array.isArray(parsed.exams)
+            ? (parsed.exams as BadgeExam[]).filter((e) => !isPersistentDeletedId("exams", e.id))
+            : [],
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,
           explorePosts: parsed.explorePosts || get().explorePosts,
-          dailyQuizzes: parsed.dailyQuizzes || get().dailyQuizzes,
+          dailyQuizzes:
+            Array.isArray(parsed.dailyQuizzes) && parsed.dailyQuizzes.length > 0
+              ? (parsed.dailyQuizzes as DailyQuizItem[])
+              : SEED_DAILY_QUIZZES,
           dailyQuotes: mergedQuotes,
           messages: parsed.messages || get().messages,
           accessGrants: parsed.accessGrants || get().accessGrants,
