@@ -2170,15 +2170,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
   },
 
-  updateDepartmentMeta: (deptId, updates, reason) =>
+  updateDepartmentMeta: (deptId, updates, reason) => {
     set((state) => {
       const target = state.departments.find((d) => d.id === deptId);
       if (!target) return state;
       const nextDepartments = state.departments.map((d) =>
         d.id === deptId ? { ...d, ...updates } : d
       );
-      const headIds = new Set(nextDepartments.map((d) => d.headMemberId));
-      const coIds = new Set(nextDepartments.map((d) => d.coManagerMemberId));
+      const headIds = new Set(nextDepartments.map((d) => d.headMemberId).filter(Boolean));
+      const coIds = new Set(nextDepartments.map((d) => d.coManagerMemberId).filter(Boolean));
       const nextMembers = state.members.map((m) => {
         const filtered = m.roles.filter(
           (r) => r !== "Department Head" && r !== "Co-Manager"
@@ -2205,9 +2205,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         members: nextMembers,
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  moveMemberDepartment: (memberId, toDeptId, reason, actorName = "HR Administration") =>
+  moveMemberDepartment: (memberId, toDeptId, reason, actorName = "HR Administration") => {
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       const fromDept = state.departments.find((d) => d.id === member?.departmentId);
@@ -2235,7 +2238,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 placementHistory: [
                   {
                     id: `ph-${Date.now()}`,
-                    changeType: "Department Move",
+                    changeType: "Department Move" as const,
                     fromName: fromDept?.name || m.departmentId,
                     toName: toDept.name,
                     reason,
@@ -2249,54 +2252,153 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  createTeam: (team) =>
+  createTeam: (team) => {
+    const newTeamId = `team-${Date.now()}`;
+    const initialLeaderId = (team.leaderMemberId || "").trim();
+    const initialMemberIds = Array.from(
+      new Set([
+        ...(team.memberIds || []),
+        ...(initialLeaderId ? [initialLeaderId] : []),
+      ].filter(Boolean))
+    );
+
     set((state) => {
       const nextTeams = [
         ...state.teams,
         {
           ...team,
-          id: `team-${Date.now()}`,
+          id: newTeamId,
+          leaderMemberId: initialLeaderId,
+          memberIds: initialMemberIds,
           archived: false,
         },
       ];
       const leaderIds = new Set(
-        nextTeams.filter((t) => !t.archived).map((t) => t.leaderMemberId)
+        nextTeams
+          .filter((t) => !t.archived && Boolean(t.leaderMemberId))
+          .map((t) => t.leaderMemberId)
       );
       const nextMembers = state.members.map((m) => {
+        const isLeader = leaderIds.has(m.id);
         const filtered = m.roles.filter((r) => r !== "Team Leader");
         const nextRoles: RoleTemplateName[] = [...filtered];
-        if (leaderIds.has(m.id)) nextRoles.push("Team Leader");
+        if (isLeader) nextRoles.push("Team Leader");
         if (nextRoles.length === 0) nextRoles.push("Member");
-        return { ...m, roles: Array.from(new Set(nextRoles)) };
-      });
-      return {
-        teams: nextTeams,
-        members: nextMembers,
-      };
-    }),
 
-  updateTeam: (teamId, updates) =>
-    set((state) => {
-      const nextTeams = state.teams.map((t) =>
-        t.id === teamId ? { ...t, ...updates } : t
-      );
-      const leaderIds = new Set(
-        nextTeams.filter((t) => !t.archived).map((t) => t.leaderMemberId)
-      );
-      const nextMembers = state.members.map((m) => {
-        const filtered = m.roles.filter((r) => r !== "Team Leader");
-        const nextRoles: RoleTemplateName[] = [...filtered];
-        if (leaderIds.has(m.id)) nextRoles.push("Team Leader");
-        if (nextRoles.length === 0) nextRoles.push("Member");
-        return { ...m, roles: Array.from(new Set(nextRoles)) };
+        const updatedTeamId =
+          m.id === initialLeaderId
+            ? newTeamId
+            : initialMemberIds.includes(m.id)
+            ? newTeamId
+            : m.teamId;
+
+        return {
+          ...m,
+          roles: Array.from(new Set(nextRoles)),
+          teamId: updatedTeamId,
+        };
       });
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Department / Team Move",
+        targetLabel: `Scientific Team: ${team.name}`,
+        oldValue: "None",
+        newValue: `Created (Leader: ${initialLeaderId || "Unassigned"})`,
+        reason: "Created new scientific research team",
+      };
+
       return {
         teams: nextTeams,
         members: nextMembers,
+        auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  updateTeam: (teamId, updates) => {
+    set((state) => {
+      const currentTeam = state.teams.find((t) => t.id === teamId);
+      if (!currentTeam) return state;
+
+      const newLeaderId =
+        updates.leaderMemberId !== undefined
+          ? updates.leaderMemberId.trim()
+          : currentTeam.leaderMemberId;
+
+      let nextMemberIds = updates.memberIds ? [...updates.memberIds] : [...currentTeam.memberIds];
+      if (newLeaderId && !nextMemberIds.includes(newLeaderId)) {
+        nextMemberIds.push(newLeaderId);
+      }
+      nextMemberIds = Array.from(new Set(nextMemberIds.filter(Boolean)));
+
+      const nextTeams = state.teams.map((t) =>
+        t.id === teamId
+          ? {
+              ...t,
+              ...updates,
+              leaderMemberId: newLeaderId,
+              memberIds: nextMemberIds,
+            }
+          : t
+      );
+
+      const leaderIds = new Set(
+        nextTeams
+          .filter((t) => !t.archived && Boolean(t.leaderMemberId))
+          .map((t) => t.leaderMemberId)
+      );
+
+      const nextMembers = state.members.map((m) => {
+        const isLeader = leaderIds.has(m.id);
+        const filtered = m.roles.filter((r) => r !== "Team Leader");
+        const nextRoles: RoleTemplateName[] = [...filtered];
+        if (isLeader) nextRoles.push("Team Leader");
+        if (nextRoles.length === 0) nextRoles.push("Member");
+
+        let memberTeamId = m.teamId;
+        if (m.id === newLeaderId) {
+          memberTeamId = teamId;
+        }
+
+        return {
+          ...m,
+          roles: Array.from(new Set(nextRoles)),
+          teamId: memberTeamId,
+        };
+      });
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Department / Team Move",
+        targetLabel: `Scientific Team: ${currentTeam.name}`,
+        oldValue: `Leader: ${currentTeam.leaderMemberId || "Unassigned"}`,
+        newValue: `Leader: ${newLeaderId || "Unassigned"}`,
+        reason: "Updated team leadership/attributes",
+      };
+
+      return {
+        teams: nextTeams,
+        members: nextMembers,
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   deleteOrArchiveTeam: (teamId, reason) => {
     const currentTeam = get().teams.find((t) => t.id === teamId);
@@ -2330,21 +2432,96 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  addMemberToTeam: (memberId, teamId) =>
-    set((state) => ({
-      teams: state.teams.map((t) =>
+  addMemberToTeam: (memberId, teamId) => {
+    set((state) => {
+      const member = state.members.find((m) => m.id === memberId);
+      const targetTeam = state.teams.find((t) => t.id === teamId);
+      if (!member || !targetTeam) return state;
+
+      const nextTeams = state.teams.map((t) =>
         t.id === teamId
           ? { ...t, memberIds: Array.from(new Set([...t.memberIds, memberId])) }
           : { ...t, memberIds: t.memberIds.filter((id) => id !== memberId) }
-      ),
-      members: state.members.map((m) => (m.id === memberId ? { ...m, teamId } : m)),
-    })),
+      );
 
-  removeMemberFromTeam: (memberId, teamId, reason) =>
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Department / Team Move",
+        targetLabel: `${member.fullName} (${member.quanterId})`,
+        oldValue: member.teamId || "No Team",
+        newValue: targetTeam.name,
+        reason: `Added to ${targetTeam.name}`,
+      };
+
+      return {
+        teams: nextTeams,
+        members: state.members.map((m) =>
+          m.id === memberId ? { ...m, teamId } : m
+        ),
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  removeMemberFromTeam: (memberId, teamId, reason) => {
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       const team = state.teams.find((t) => t.id === teamId);
       if (!member || !team) return state;
+
+      const nextTeams = state.teams.map((t) =>
+        t.id === teamId
+          ? {
+              ...t,
+              memberIds: t.memberIds.filter((id) => id !== memberId),
+              leaderMemberId: t.leaderMemberId === memberId ? "" : t.leaderMemberId,
+            }
+          : t
+      );
+
+      const leaderIds = new Set(
+        nextTeams
+          .filter((t) => !t.archived && Boolean(t.leaderMemberId))
+          .map((t) => t.leaderMemberId)
+      );
+
+      const nextMembers = state.members.map((m) => {
+        const isLeader = leaderIds.has(m.id);
+        const filtered = m.roles.filter((r) => r !== "Team Leader");
+        const nextRoles: RoleTemplateName[] = [...filtered];
+        if (isLeader) nextRoles.push("Team Leader");
+        if (nextRoles.length === 0) nextRoles.push("Member");
+
+        if (m.id === memberId) {
+          return {
+            ...m,
+            teamId: undefined,
+            roles: Array.from(new Set(nextRoles)),
+            placementHistory: [
+              {
+                id: `ph-${Date.now()}`,
+                changeType: "Team Removal" as const,
+                fromName: team.name,
+                toName: "Unassigned",
+                reason,
+                actorName: state.activeAdminRole,
+                date: new Date().toISOString().slice(0, 10),
+              },
+              ...m.placementHistory,
+            ],
+          };
+        }
+        return {
+          ...m,
+          roles: Array.from(new Set(nextRoles)),
+        };
+      });
+
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
         actorName: "Admin",
@@ -2356,33 +2533,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: "No Team",
         reason,
       };
+
       return {
-        teams: state.teams.map((t) =>
-          t.id === teamId ? { ...t, memberIds: t.memberIds.filter((id) => id !== memberId) } : t
-        ),
-        members: state.members.map((m) =>
-          m.id === memberId
-            ? {
-                ...m,
-                teamId: undefined,
-                placementHistory: [
-                  {
-                    id: `ph-${Date.now()}`,
-                    changeType: "Team Removal",
-                    fromName: team.name,
-                    toName: "Unassigned",
-                    reason,
-                    actorName: state.activeAdminRole,
-                    date: new Date().toISOString().slice(0, 10),
-                  },
-                  ...m.placementHistory,
-                ],
-              }
-            : m
-        ),
+        teams: nextTeams,
+        members: nextMembers,
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   completeFirstTimeProfile: (payload) => {
     set((state) => {

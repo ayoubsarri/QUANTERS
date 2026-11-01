@@ -26,6 +26,7 @@ const ROLES: RoleTemplateName[] = [
   "HR Head",
   "Department Head",
   "Co-Manager",
+  "Team Leader",
   "Editor",
   "KPI Viewer",
 ];
@@ -73,6 +74,7 @@ export default function AdminAccessPage() {
         "HR Head",
         "Department Head",
         "Co-Manager",
+        "Team Leader",
         "Editor",
         "KPI Viewer",
       ].includes(r)
@@ -98,6 +100,9 @@ export default function AdminAccessPage() {
       ),
     }));
 
+    useQuantersStore.getState().saveToLocalCache();
+    useQuantersStore.getState().syncWithServer(true).catch(() => {});
+
     const mem = members.find((m) => m.id === selectedMemberId);
     setToast(`Granted ${selectedRole} to ${mem?.fullName || "Member"}`);
     setGrantModalOpen(false);
@@ -115,6 +120,10 @@ export default function AdminAccessPage() {
           : m
       ),
     }));
+
+    useQuantersStore.getState().saveToLocalCache();
+    useQuantersStore.getState().syncWithServer(true).catch(() => {});
+
     setToast(`Removed ${roleToRemove} role`);
     setTimeout(() => setToast(null), 3000);
   };

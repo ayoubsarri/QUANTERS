@@ -143,8 +143,7 @@ export default function AdminOrgStructurePage() {
     setTeamName("");
     setTeamField("Physics & Quantum Computing");
     setTeamDesc("");
-    const assignable = members.filter((m) => isAssignableMember(m));
-    setTeamLeaderId(assignable[0]?.id || "");
+    setTeamLeaderId("");
     setTeamModalOpen(true);
   };
 
@@ -153,7 +152,7 @@ export default function AdminOrgStructurePage() {
     setTeamName(t.name);
     setTeamField(t.field);
     setTeamDesc(t.description);
-    setTeamLeaderId(t.leaderMemberId);
+    setTeamLeaderId(t.leaderMemberId || "");
     setTeamModalOpen(true);
   };
 
@@ -175,7 +174,7 @@ export default function AdminOrgStructurePage() {
         description: teamDesc.trim(),
         icon: "Atom",
         leaderMemberId: teamLeaderId,
-        memberIds: [teamLeaderId],
+        memberIds: teamLeaderId ? [teamLeaderId] : [],
       });
       triggerToast(`Created ${teamName.trim()}`);
     }
@@ -490,16 +489,26 @@ export default function AdminOrgStructurePage() {
                             {leader?.fullName || "Unassigned"}
                           </span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setManagingTeamId(team.id);
-                            setSelectedAddMemberId(activeMembers[0]?.id || "");
-                          }}
-                          className="text-[11px] font-bold text-[#0284C7] hover:underline cursor-pointer"
-                        >
-                          Manage Members
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditTeamModal(team)}
+                            className="text-[11px] font-bold text-amber-600 hover:underline cursor-pointer"
+                          >
+                            {leader ? "Change Lead" : "Assign Lead"}
+                          </button>
+                          <span className="text-slate-300">·</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setManagingTeamId(team.id);
+                              setSelectedAddMemberId(activeMembers[0]?.id || "");
+                            }}
+                            className="text-[11px] font-bold text-[#0284C7] hover:underline cursor-pointer"
+                          >
+                            Manage Members
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -788,6 +797,7 @@ export default function AdminOrgStructurePage() {
                   }
                   className="w-full px-3 py-2 text-xs bg-[#F4F7FB] border border-slate-200/90 rounded-xl font-semibold"
                 >
+                  <option value="">-- No Leader Assigned --</option>
                   {activeMembers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName} ({m.quanterId})
@@ -918,20 +928,38 @@ export default function AdminOrgStructurePage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeMemberFromTeam(
-                            m.id,
-                            managingTeam.id,
-                            "Removed via Manage Team Members modal"
-                          )
-                        }
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition cursor-pointer"
-                      >
-                        <UserMinus className="w-3 h-3" />
-                        <span>Remove</span>
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {!isLeader && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateTeam(managingTeam.id, {
+                                leaderMemberId: m.id,
+                              });
+                              triggerToast(`Assigned ${m.fullName} as Leader of ${managingTeam.name}`);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 text-[11px] font-bold transition cursor-pointer border border-amber-200/60"
+                            title="Set as Team Leader"
+                          >
+                            <Crown className="w-3 h-3 text-amber-600" />
+                            <span>Set Lead</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeMemberFromTeam(
+                              m.id,
+                              managingTeam.id,
+                              "Removed via Manage Team Members modal"
+                            )
+                          }
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition cursor-pointer"
+                        >
+                          <UserMinus className="w-3 h-3" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })
