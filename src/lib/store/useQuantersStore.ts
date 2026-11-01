@@ -254,6 +254,11 @@ interface QuantersStoreState {
       >
     >
   ) => void;
+  updateMemberFullAdmin: (
+    memberId: string,
+    updates: Partial<Member>,
+    reason?: string
+  ) => void;
   confirmTraineeToActive: (memberId: string, reason: string, actorName?: string) => void;
   approveMemberAdmission: (payload: {
     memberId: string;
@@ -2812,7 +2817,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  updateMemberProfileSelf: (memberId, updates) =>
+  updateMemberProfileSelf: (memberId, updates) => {
     set((state) => {
       if (
         state.currentMemberId !== memberId &&
@@ -2860,7 +2865,102 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           m.id === memberId ? { ...m, ...sanitizedUpdates } : m
         ),
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  updateMemberFullAdmin: (memberId, updates, reason = "Admin profile update") => {
+    set((state) => {
+      const currentMember = state.members.find((m) => m.id === memberId);
+      if (!currentMember) return state;
+
+      // Handle team membership sync if teamId was modified
+      let nextTeams = state.teams;
+      if (updates.teamId !== undefined && updates.teamId !== currentMember.teamId) {
+        nextTeams = state.teams.map((t) => {
+          if (updates.teamId && t.id === updates.teamId) {
+            return {
+              ...t,
+              memberIds: Array.from(new Set([...t.memberIds, memberId])),
+            };
+          } else if (currentMember.teamId && t.id === currentMember.teamId) {
+            return {
+              ...t,
+              memberIds: t.memberIds.filter((id) => id !== memberId),
+              leaderMemberId: t.leaderMemberId === memberId ? "" : t.leaderMemberId,
+            };
+          }
+          return t;
+        });
+      }
+
+      // If roles changed or team leader role needs sync
+      const leaderIds = new Set(
+        nextTeams
+          .filter((t) => !t.archived && Boolean(t.leaderMemberId))
+          .map((t) => t.leaderMemberId)
+      );
+
+      const nextMembers = state.members.map((m) => {
+        if (m.id !== memberId) {
+          const isLead = leaderIds.has(m.id);
+          if (m.roles.includes("Team Leader") && !isLead) {
+            return { ...m, roles: m.roles.filter((r) => r !== "Team Leader") };
+          }
+          return m;
+        }
+
+        const merged: Member = { ...m, ...updates };
+
+        // Recalculate levelTitle and level if tenure/seniority or XP changed and wasn't explicitly overridden
+        if (updates.tenure && !updates.levelTitle) {
+          const cleanTenure = String(updates.tenure).trim().toLowerCase();
+          if (cleanTenure.includes("alumni")) {
+            merged.level = 8;
+            merged.levelTitle = "Quanta Laureate";
+          } else if (cleanTenure.includes("3 year")) {
+            merged.level = 3;
+            merged.levelTitle = "3 Years Member";
+          } else if (cleanTenure.includes("2+") || cleanTenure.includes("2 years")) {
+            merged.level = 3;
+            merged.levelTitle = "2 Years Member";
+          } else if (cleanTenure.includes("1 year")) {
+            merged.level = 2;
+            merged.levelTitle = "1 Year Member";
+          } else if (cleanTenure.includes("bureau") || cleanTenure.includes("leadership")) {
+            merged.level = 3;
+            merged.levelTitle = "Executive Quanter";
+          } else if (cleanTenure.includes("new")) {
+            merged.level = 1;
+            merged.levelTitle = "Novice Quanter";
+          }
+        }
+
+        return merged;
+      });
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName: "Super Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `${updates.fullName || currentMember.fullName} (${currentMember.quanterId})`,
+        oldValue: currentMember.fullName,
+        newValue: updates.fullName || currentMember.fullName,
+        reason,
+      };
+
+      return {
+        members: nextMembers,
+        teams: nextTeams,
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   confirmTraineeToActive: (memberId, reason, actorName = "HR Administration") =>
     set((state) => {

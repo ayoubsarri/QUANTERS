@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ClipboardCopy,
   Clock,
+  Edit3,
   ExternalLink,
   Filter,
   GraduationCap,
@@ -23,6 +24,7 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { isSuperAdminEmail } from "@/lib/firebase/config";
 import { DayOfWeek, Member, MemberStatus, TimeSlot } from "@/lib/types/erp";
 import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
+import { EditMemberModal } from "@/components/admin/EditMemberModal";
 
 // Comprehensive Super Admin Exemption Shield (guarantees system accounts are hidden from student directory)
 function isSuperAdminAccount(m?: Partial<Member> | null): boolean {
@@ -163,6 +165,10 @@ function AdminMembersContent() {
   const [targetMember, setTargetMember] = useState<Member | null>(null);
   const [deleteMode, setDeleteMode] = useState<"remove" | "permanent">("remove");
   const [deleteReason, setDeleteReason] = useState("");
+
+  // Super Admin Edit Member Modal
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const handleOpenDelete = (member: Member) => {
     setTargetMember(member);
@@ -912,6 +918,17 @@ function AdminMembersContent() {
                             </Link>
                             <button
                               type="button"
+                              onClick={() => {
+                                setEditingMember(m);
+                                setEditModalOpen(true);
+                              }}
+                              title="Edit Member Dossier (Super Admin)"
+                              className="p-1.5 rounded-lg border border-amber-200 text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handleOpenDelete(m)}
                               title="Delete or Remove Member"
                               className="p-1.5 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 transition cursor-pointer"
@@ -940,6 +957,17 @@ function AdminMembersContent() {
                             >
                               Details
                             </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingMember(m);
+                                setEditModalOpen(true);
+                              }}
+                              title="Edit Member Dossier (Super Admin)"
+                              className="p-1.5 rounded-lg border border-amber-200 text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleOpenDelete(m)}
@@ -1313,6 +1341,20 @@ function AdminMembersContent() {
           </div>
         </div>
       )}
+
+      {/* Super Admin Edit Member Modal */}
+      <EditMemberModal
+        member={editingMember}
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingMember(null);
+        }}
+        onSaved={(name) => {
+          setCopiedToast(`Updated profile for ${name}`);
+          setTimeout(() => setCopiedToast(null), 3500);
+        }}
+      />
     </div>
   );
 }

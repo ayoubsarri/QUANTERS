@@ -12,6 +12,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Edit3,
   ExternalLink,
   History,
   Laptop,
@@ -33,6 +34,7 @@ import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { DayOfWeek, isMemberAvailableInSlot, MemberStatus, STUDY_HOUR_SLOTS, TimeSlot } from "@/lib/types/erp";
 import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
+import { EditMemberModal } from "@/components/admin/EditMemberModal";
 
 const DAYS: DayOfWeek[] = [
   "Saturday",
@@ -97,6 +99,8 @@ export default function AdminMemberDetailCardPage() {
 
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [showDigitalIdModal, setShowDigitalIdModal] = useState(false);
+  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
+  const [profileToast, setProfileToast] = useState<string | null>(null);
 
   // Award Badge Manually modal state
   const [awardModalOpen, setAwardModalOpen] = useState(false);
@@ -237,6 +241,13 @@ export default function AdminMemberDetailCardPage() {
           </span>
         </div>
 
+        {profileToast && (
+          <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{profileToast}</span>
+          </div>
+        )}
+
       {/* Paused / Frozen Status Alert Banner (Shown prominently if member is Inactive / Paused) */}
       {isPaused && (
         <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 p-5 shadow-sm space-y-3">
@@ -344,6 +355,15 @@ export default function AdminMemberDetailCardPage() {
                 >
                   <QrCode className="w-3.5 h-3.5" />
                   <span>Digital ID Pass</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditProfileModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-mono font-bold shadow-xs transition cursor-pointer"
+                  title="Edit All Member Profile Data (Super Admin)"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Profile</span>
                 </button>
               </div>
 
@@ -1541,6 +1561,17 @@ export default function AdminMemberDetailCardPage() {
         member={member}
         departmentName={department?.name || "Unassigned"}
         teamName={team?.name}
+      />
+
+      {/* Super Admin Edit Member Modal */}
+      <EditMemberModal
+        member={member}
+        isOpen={editProfileModalOpen}
+        onClose={() => setEditProfileModalOpen(false)}
+        onSaved={(updatedName) => {
+          setProfileToast(`Successfully updated full profile for ${updatedName}`);
+          setTimeout(() => setProfileToast(null), 4000);
+        }}
       />
     </>
   );
