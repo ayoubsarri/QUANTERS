@@ -179,22 +179,50 @@ export default function MobileManagerWorkspacePage() {
 
   const currentMember = activeMember || FALLBACK_SESSION_MEMBER;
 
-  const isManager = Boolean(
+  const isSuperOrExecutive = Boolean(
     isAuthenticated &&
       activeMember &&
       (activeMember.roles.some((r) =>
-        [
-          "Super Admin",
-          "Executive",
-          "HR Head",
-          "Department Head",
-          "Co-Manager",
-          "Team Leader",
-          "Workshop Organizer",
-          "Reviewer",
-        ].includes(r)
+        ["Super Admin", "Executive", "HR Head"].includes(r)
       ) ||
-        departments.some((d) => d.headMemberId === activeMember.id || d.coManagerMemberId === activeMember.id) ||
+        (settings.presidentId && settings.presidentId === activeMember.id) ||
+        (settings.vicePresidentId && settings.vicePresidentId === activeMember.id) ||
+        (settings.secretaryGeneralId && settings.secretaryGeneralId === activeMember.id))
+  );
+
+  const isEventsManagerOrSub = Boolean(
+    isAuthenticated &&
+      activeMember &&
+      departments.some(
+        (d) =>
+          d.id === "dept-events" &&
+          (d.headMemberId === activeMember.id ||
+            d.coManagerMemberId === activeMember.id ||
+            (activeMember.departmentId === "dept-events" &&
+              activeMember.roles.some((r) =>
+                ["Department Head", "Co-Manager"].includes(r)
+              )))
+      )
+  );
+
+  const isManager = Boolean(
+    isAuthenticated &&
+      activeMember &&
+      (isSuperOrExecutive ||
+        activeMember.roles.some((r) =>
+          [
+            "Department Head",
+            "Co-Manager",
+            "Team Leader",
+            "Workshop Organizer",
+            "Reviewer",
+          ].includes(r)
+        ) ||
+        departments.some(
+          (d) =>
+            d.headMemberId === activeMember.id ||
+            d.coManagerMemberId === activeMember.id
+        ) ||
         teams.some((t) => t.leaderMemberId === activeMember.id))
   );
 
@@ -202,11 +230,9 @@ export default function MobileManagerWorkspacePage() {
     if (hydrated) {
       if (!isAuthenticated || !currentMemberId || !activeMember) {
         router.replace("/welcome");
-      } else if (!isManager) {
-        router.replace("/home");
       }
     }
-  }, [hydrated, isAuthenticated, currentMemberId, activeMember, isManager, router]);
+  }, [hydrated, isAuthenticated, currentMemberId, activeMember, router]);
 
   // Derive Organigramme Roles directly from Admin Dashboard state (departments, teams, settings)
   const managedDepts = departments.filter(
@@ -217,13 +243,6 @@ export default function MobileManagerWorkspacePage() {
   );
   const ledTeams = activeTeams.filter(
     (t) => t.leaderMemberId === currentMember.id
-  );
-
-  const isEventsManagerOrSub = departments.some(
-    (d) =>
-      d.id === "dept-events" &&
-      (d.headMemberId === currentMember.id ||
-        d.coManagerMemberId === currentMember.id)
   );
 
   // Build Organigramme Role Badges for a given member
@@ -342,23 +361,34 @@ export default function MobileManagerWorkspacePage() {
   };
 
   // Exact Organigramme Permission Rules:
-  // 1. Department editing: Manager (headMemberId) or Sub-Manager (coManagerMemberId) of that department
+  // 1. Department editing: Super Admins, Executive Bureau (President, VP, SG, HR Head),
+  //    or Manager (headMemberId) / Sub-Manager (coManagerMemberId) / Department Head of that department
   const canEditDepartment = (deptId: string): boolean => {
+    if (isSuperOrExecutive) return true;
     return departments.some(
       (d) =>
         d.id === deptId &&
         (d.headMemberId === currentMember.id ||
-          d.coManagerMemberId === currentMember.id)
+          d.coManagerMemberId === currentMember.id ||
+          (currentMember.departmentId === deptId &&
+            currentMember.roles.some((r) =>
+              ["Department Head", "Co-Manager"].includes(r)
+            )))
     );
   };
 
   // 2. Scientific Team editing:
+  //    - Super Admins & Executive Bureau can edit all teams
   //    - Events Manager / Events Sub-Manager can edit in ALL Scientific Teams
   //    - Team Leader (leaderMemberId) can edit in their own Scientific Team
   const canEditTeam = (teamId: string): boolean => {
-    if (isEventsManagerOrSub) return true;
+    if (isSuperOrExecutive || isEventsManagerOrSub) return true;
     return activeTeams.some(
-      (t) => t.id === teamId && t.leaderMemberId === currentMember.id
+      (t) =>
+        t.id === teamId &&
+        (t.leaderMemberId === currentMember.id ||
+          (currentMember.teamId === teamId &&
+            currentMember.roles.includes("Team Leader")))
     );
   };
 
@@ -413,7 +443,14 @@ export default function MobileManagerWorkspacePage() {
 
   const scopeMembers =
     browseMode === "department" ? deptMembers : teamMembers;
-  const assignableMembers = sortMembersByName(scopeMembers);
+  const assignableMembers =
+    scopeMembers.length > 0
+      ? sortMembersByName(scopeMembers)
+      : sortMembersByName(
+          members.filter(
+            (m) => m.status !== "Resigned" && m.status !== "Removed"
+          )
+        );
   const sortedMembers = sortMembersByName(members);
 
   // Tasks for current scope
@@ -909,7 +946,7 @@ export default function MobileManagerWorkspacePage() {
   );
   const teamLeader = members.find((m) => m.id === currentTeam?.leaderMemberId);
 
-  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember || !isManager) {
+  if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
     return (
       <MobileAppShell>
         <div className="min-h-[60vh] w-full flex items-center justify-center p-6 text-white">
@@ -929,7 +966,7 @@ export default function MobileManagerWorkspacePage() {
               Organigramme &amp; Operations
             </span>
             <h1 className="text-lg sm:text-xl font-black font-display text-[#0F172A] tracking-tight">
-              Manager Workspace
+              {canEditCurrentScope ? "Manager Workspace" : "Department Desk"}
             </h1>
           </div>
 
