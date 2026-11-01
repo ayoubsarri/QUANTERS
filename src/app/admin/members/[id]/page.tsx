@@ -314,10 +314,23 @@ export default function AdminMemberDetailCardPage() {
                     <span>Paused ({pauseDurationLabel})</span>
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F0F6FF] text-[#182C4E]">
-                    {member.status}
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      member.status === "Active"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold"
+                        : "bg-[#F0F6FF] text-[#182C4E]"
+                    }`}
+                  >
+                    {member.status === "Active" ? "Confirmed Active" : member.status}
                   </span>
                 )}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs">
+                  <Award className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span>Level {member.level} · {member.levelTitle}</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-100 text-slate-700">
+                  Tenure: {member.tenure || "Active"}
+                </span>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold border tabular-nums ${healthColor}`}
                 >
@@ -342,10 +355,6 @@ export default function AdminMemberDetailCardPage() {
                 <span>
                   Scientific Team:{" "}
                   <strong className="text-slate-800">{team?.name || "Unassigned"}</strong>
-                </span>
-                <span>·</span>
-                <span className="tabular-nums">
-                  Level {member.level} ({member.levelTitle})
                 </span>
               </div>
 

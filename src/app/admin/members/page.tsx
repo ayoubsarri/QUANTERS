@@ -795,11 +795,14 @@ function AdminMembersContent() {
                             className="w-9 h-9 rounded-full object-cover border border-slate-200/90 shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-extrabold text-[#0F1E36] truncate">
-                              {m.fullName}
+                            <div className="font-extrabold text-[#0F1E36] truncate flex items-center gap-1.5">
+                              <span>{m.fullName}</span>
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200/90 shadow-2xs">
+                                Lvl {m.level} · {m.levelTitle}
+                              </span>
                             </div>
                             <div className="text-[10px] text-slate-400 font-mono truncate">
-                              {m.quanterId} · {m.email}
+                              {m.quanterId} · {m.email} · {m.tenure || "Active"}
                             </div>
                           </div>
                         </div>

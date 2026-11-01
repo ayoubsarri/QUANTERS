@@ -2406,6 +2406,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           status: isAlumniTarget ? "Alumni" : existing.status,
           roles: isAlumniTarget ? ["Alumni"] : existing.roles,
         });
+        const isOldMember = targetSeniority.level >= 2;
         const baseMinXp = isAlumniTarget
           ? 1800
           : targetSeniority.level === 3
@@ -2443,6 +2444,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
                   status: isAlumniTarget
                     ? "Alumni"
+                    : isOldMember
+                    ? "Active"
                     : m.status === "Pending"
                     ? ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending")
                     : (state.settings.onboardingAutoApprove ?? true) === false && !m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni"
@@ -2474,9 +2477,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   onboardingTicks: {
                     ...m.onboardingTicks,
                     profileComplete: true,
-                    hrApproved: isAlumniTarget || ((state.settings.onboardingAutoApprove ?? true) ? true : m.onboardingTicks?.hrApproved ?? false),
-                    hrApprovedAt: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedAt || new Date().toISOString()) : m.onboardingTicks?.hrApprovedAt,
-                    hrApprovedBy: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedBy || "System Auto-Admission") : m.onboardingTicks?.hrApprovedBy,
+                    buddyAssigned: isOldMember ? true : m.onboardingTicks?.buddyAssigned,
+                    firstTaskBeforeDay30: isOldMember ? true : m.onboardingTicks?.firstTaskBeforeDay30,
+                    firstWorkshopAttended: isOldMember ? true : m.onboardingTicks?.firstWorkshopAttended,
+                    hrApproved: isAlumniTarget || isOldMember || ((state.settings.onboardingAutoApprove ?? true) ? true : m.onboardingTicks?.hrApproved ?? false),
+                    hrApprovedAt: (isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedAt || new Date().toISOString()) : m.onboardingTicks?.hrApprovedAt,
+                    hrApprovedBy: (isAlumniTarget || isOldMember) ? "Seniority Auto-Confirmation" : (m.onboardingTicks?.hrApprovedBy || "System Auto-Admission"),
                   },
                 }
               : m
@@ -2489,6 +2495,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         status: isAlumniTarget ? "Alumni" : undefined,
         roles: isAlumniTarget ? ["Alumni"] : ["Member"],
       });
+      const isOldMember = newSeniority.level >= 2;
       const newBaseXp = isAlumniTarget
         ? 1800
         : newSeniority.level === 3
@@ -2533,10 +2540,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         cvUrl: payload.cvUrl,
         roles: isAlumniTarget ? ["Alumni"] : ["Member"],
         isBureauMember: false,
-        status: isAlumniTarget ? "Alumni" : (state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending",
+        status: isAlumniTarget
+          ? "Alumni"
+          : isOldMember
+          ? "Active"
+          : (state.settings.onboardingAutoApprove ?? true)
+          ? "Trainee"
+          : "Pending",
         statusSince: new Date().toISOString().slice(0, 10),
         traineeStartDate: new Date().toISOString().slice(0, 10),
-        traineeDaysElapsed: isAlumniTarget ? 1000 : 1,
+        traineeDaysElapsed: isAlumniTarget || isOldMember ? 1000 : 1,
         outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
         declaresOtherStudentOrg: Boolean(payload.declaresOtherStudentOrg),
         availability: payload.availability || DEFAULT_AVAILABILITY,
@@ -2554,12 +2567,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         recognitionLabels: [],
         onboardingTicks: {
           profileComplete: true,
-          buddyAssigned: false,
-          firstTaskBeforeDay30: false,
-          firstWorkshopAttended: false,
-          hrApproved: isAlumniTarget || (state.settings.onboardingAutoApprove ?? true),
-          hrApprovedAt: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? new Date().toISOString() : undefined,
-          hrApprovedBy: (isAlumniTarget || (state.settings.onboardingAutoApprove ?? true)) ? "System Auto-Admission" : undefined,
+          buddyAssigned: isOldMember,
+          firstTaskBeforeDay30: isOldMember,
+          firstWorkshopAttended: isOldMember,
+          hrApproved: isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true),
+          hrApprovedAt: (isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true)) ? new Date().toISOString() : undefined,
+          hrApprovedBy: (isAlumniTarget || isOldMember) ? "Seniority Auto-Confirmation" : "System Auto-Admission",
         },
         traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
         skills: payload.skills && payload.skills.length > 0 ? payload.skills : ["Scientific Research"],

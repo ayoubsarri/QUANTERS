@@ -568,6 +568,28 @@ export default function MobileProfilePage() {
                 <p className="text-xs font-medium text-slate-500 mt-0.5 font-sans">
                   {member.major} · {member.university}
                 </p>
+
+                {/* Prominent Seniority Level & Tenure Badge */}
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-200/90 text-[11px] font-mono font-bold shadow-2xs">
+                    <Award className="w-3 h-3 text-[#0284C7]" />
+                    <span>Level {member.level} · {member.levelTitle}</span>
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-mono font-semibold">
+                    {member.tenure || (member.level === 3 ? "2+ Years" : member.level === 2 ? "1 Year" : "New Member")}
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold ${
+                      member.status === "Active"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : member.status === "Alumni"
+                        ? "bg-purple-50 text-purple-700 border border-purple-200"
+                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                    }`}
+                  >
+                    {member.status === "Active" ? "Confirmed Active" : member.status}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -617,17 +639,17 @@ export default function MobileProfilePage() {
                     : "bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]"
                 }`}
               />
-              <span className="text-xs font-black tracking-[0.18em] font-mono text-[#7DD3FC] uppercase">
-                RANK 0{member.level}
+              <span className="text-xs font-black tracking-[0.14em] font-mono text-[#7DD3FC] uppercase">
+                LEVEL 0{member.level} · {member.levelTitle}
               </span>
               <span className="text-white/30 text-xs">·</span>
               <span className="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">
-                {member.status === "Trainee" ? "Trainee" : "Active"}
+                {member.status === "Active" ? "Active" : member.status}
               </span>
             </div>
 
             <p className="mt-1 text-sm sm:text-base font-editorial italic text-sky-100/95 tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              {member.levelTitle}
+              Tenure: {member.tenure || (member.level === 3 ? "2+ Years" : member.level === 2 ? "1 Year" : "New Member")}
             </p>
 
             <div className="mt-3 flex items-baseline gap-1.5 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)]">
@@ -766,14 +788,14 @@ export default function MobileProfilePage() {
                 <ShieldCheck className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 block">
-                  Standing &amp; Tenure
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
+                  Club Seniority &amp; Standing
                 </span>
                 <p className="text-sm font-extrabold font-display text-[#0F1E36]">
-                  {member.status === "Active"
-                    ? "Active Member"
-                    : `${member.status} Member`}{" "}
-                  · Since {member.statusSince}
+                  Level {member.level} ({member.levelTitle}) · {member.tenure || "Active"}
+                </p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {member.status === "Active" ? "Confirmed Active Quanter" : `${member.status} Member`} · Since {member.statusSince}
                 </p>
               </div>
             </div>
