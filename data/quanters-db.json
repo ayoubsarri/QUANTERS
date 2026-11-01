@@ -1841,15 +1841,15 @@
       "linkedinUrl": "https://www.linkedin.com/in/e%C3%AFmane-lassakeur-a380a0294",
       "recognitionLabels": [],
       "traineeStartDate": "2026-11-01",
-      "xpTotal": 75,
+      "xpTotal": 300,
       "onboardingTicks": {
         "hrApprovedAt": "2026-11-01T10:12:15.258Z",
-        "firstWorkshopAttended": false,
+        "firstWorkshopAttended": true,
         "profileComplete": true,
-        "hrApprovedBy": "HR Directorate",
-        "buddyAssigned": false,
+        "hrApprovedBy": "Seniority Auto-Confirmation",
+        "buddyAssigned": true,
         "hrApproved": true,
-        "firstTaskBeforeDay30": false
+        "firstTaskBeforeDay30": true
       },
       "statusSince": "2026-11-01",
       "major": "Computer Science",
@@ -1867,10 +1867,10 @@
       "xpMonth": 25,
       "traineeDaysElapsed": 1,
       "badgeIds": [],
-      "status": "Trainee",
+      "status": "Active",
       "quanterId": "QT-26-0885",
       "outsideActivitiesAndVolunteering": "",
-      "level": 1,
+      "level": 3,
       "workshopsCompletedCount": 0,
       "placementHistory": [],
       "traineeEvaluation": {
@@ -1886,9 +1886,9 @@
       "academicYear": "L2",
       "declaresOtherStudentOrg": false,
       "fullName": "eimaneelfadil lassakeur",
-      "xpSeason": 75,
+      "xpSeason": 300,
       "recentActivityScore": 100,
-      "levelTitle": "Novice Quanter",
+      "levelTitle": "3 Years Member",
       "isBureauMember": false,
       "teamId": "team-cs-ai",
       "roles": [
@@ -1899,7 +1899,7 @@
       "id": "mem-1793527252129",
       "commuteTime": "> 1 hour",
       "healthScore": 100,
-      "tenure": "New Member",
+      "tenure": "3 Years",
       "wilaya": "Algiers (16)",
       "phone": "🔒 Masked for privacy",
       "departmentId": "dept-it",
@@ -2360,7 +2360,7 @@
       },
       "departmentId": "dept-it",
       "phone": "+213554131246",
-      "status": "Trainee",
+      "status": "Active",
       "commune": "cheraga ",
       "hasLaptop": true,
       "quanterId": "QT-26-0413",
@@ -2380,8 +2380,8 @@
         "notes": "",
         "headEndorsed": false
       },
-      "xpTotal": 100,
-      "xpSeason": 100,
+      "xpTotal": 150,
+      "xpSeason": 150,
       "projectsCompletedCount": 0,
       "traineeDaysElapsed": 1,
       "fullName": "messaoudi thiziri narimane",
@@ -2392,7 +2392,7 @@
       "roles": [
         "Member"
       ],
-      "level": 1,
+      "level": 2,
       "bio": "Exploring today, a brighter tomorrow.",
       "traineeStartDate": "2026-11-01",
       "recentActivityScore": 100,
@@ -2402,7 +2402,7 @@
       "id": "mem-1793530699501",
       "lateTasksThisMonth": 0,
       "wilaya": "Algiers (16)",
-      "tenure": "1 Semester",
+      "tenure": "1 Year",
       "isBureauMember": false,
       "housingType": "Family Home",
       "major": "Applied Mathematics, Probability & Statistics",
@@ -2410,10 +2410,10 @@
       "onboardingTicks": {
         "hrApprovedAt": "2026-11-01T11:17:23.703Z",
         "hrApproved": true,
-        "firstWorkshopAttended": false,
-        "hrApprovedBy": "HR Directorate",
-        "buddyAssigned": false,
-        "firstTaskBeforeDay30": false,
+        "firstWorkshopAttended": true,
+        "hrApprovedBy": "Seniority Auto-Confirmation",
+        "buddyAssigned": true,
+        "firstTaskBeforeDay30": true,
         "profileComplete": true
       },
       "declaresOtherStudentOrg": false,
@@ -2422,7 +2422,7 @@
       "outsideActivitiesAndVolunteering": "",
       "workshopsCompletedCount": 0,
       "placementHistory": [],
-      "levelTitle": "Novice Quanter"
+      "levelTitle": "1 Year Member"
     },
     {
       "eventsAttendedCount": 0,

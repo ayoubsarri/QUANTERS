@@ -965,7 +965,7 @@ export function getRankForXp(
  * Strictly decoupled from monthly XP or scoring fluctuations:
  * - Level 1: "Novice Quanter" (strictly for new members < 1 year / new recruit)
  * - Level 2: "1 Year Member" (for members with 1 year club standing)
- * - Level 3: "2 Years Member" (for members with 2+ years club standing)
+ * - Level 3: "2 Years Member" or "3 Years Member" (for members with 2+ or 3 years club standing)
  * - Level 8: "Quanta Laureate" (for verified club alumni)
  * - Executive / Bureau Leadership: "Executive Quanter"
  */
@@ -992,10 +992,17 @@ export function getSeniorityForMember(member: {
     return { level: 3, levelTitle: "Executive Quanter" };
   }
 
+  if (cleanTenure.includes("3 year") || cleanTenure.includes("3+ year")) {
+    return {
+      level: 3,
+      levelTitle: "3 Years Member",
+    };
+  }
+
   if (
     cleanTenure.includes("2+") ||
     cleanTenure.includes("2 years") ||
-    cleanTenure.includes("3 year") ||
+    cleanTenure.includes("2 year") ||
     cleanTenure.includes("senior")
   ) {
     return {

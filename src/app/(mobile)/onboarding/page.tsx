@@ -122,6 +122,7 @@ const TENURE_OPTIONS = [
   "1 Semester",
   "1 Year",
   "2+ Years",
+  "3+ Years",
   "QUANTA Alumni",
 ];
 

@@ -122,6 +122,8 @@ async function main() {
     // 3. SAADI Maria: 2 years
     // 4. Abderrahmane Bent: 1 year
     // 5. Bouhenika Méroua Sarah: 1 year
+    // 6. Messaoudi Thiziri Narimane: 1 year
+    // 7. Eimaneelfadil Lassakeur: 3 years in the club
     if (norm.includes("nadil") && norm.includes("chaima")) {
       tenure = "2+ Years";
     } else if (norm.includes("akram") && norm.includes("fd")) {
@@ -132,6 +134,10 @@ async function main() {
       tenure = "1 Year";
     } else if (norm.includes("bouhenika") || (norm.includes("méroua") && norm.includes("sarah"))) {
       tenure = "1 Year";
+    } else if (norm.includes("messaoudi") || (norm.includes("thiziri") && norm.includes("narimane"))) {
+      tenure = "1 Year";
+    } else if (norm.includes("eimane") || norm.includes("lassakeur")) {
+      tenure = "3 Years";
     }
 
     const cleanTenure = String(tenure || "").trim().toLowerCase();
@@ -153,7 +159,11 @@ async function main() {
       level = 3;
       levelTitle = "Executive Quanter";
       baseTotalXp = 350;
-    } else if (cleanTenure.includes("2+") || cleanTenure.includes("2 year") || cleanTenure.includes("3 year")) {
+    } else if (cleanTenure.includes("3 year") || cleanTenure.includes("3+ year")) {
+      level = 3;
+      levelTitle = "3 Years Member";
+      baseTotalXp = 300;
+    } else if (cleanTenure.includes("2+") || cleanTenure.includes("2 year") || cleanTenure.includes("senior")) {
       level = 3;
       levelTitle = "2 Years Member";
       baseTotalXp = 300;
