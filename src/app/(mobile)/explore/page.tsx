@@ -58,6 +58,7 @@ export default function MobileExplorePage() {
   const { t, lang, isRtl } = useTranslation();
   const explorePosts = useQuantersStore((s) => s.explorePosts);
   const storeQuizzes = useQuantersStore((s) => s.dailyQuizzes);
+  const members = useQuantersStore((s) => s.members);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const ledger = useQuantersStore((s) => s.ledger);
   const submitDailyQuizAnswer = useQuantersStore((s) => s.submitDailyQuizAnswer);
@@ -126,7 +127,7 @@ export default function MobileExplorePage() {
   );
   const [rewardedRounds, setRewardedRounds] = useState<string[]>([]);
 
-  // Restore completed quizzes from localStorage to prevent quiz reload XP farming
+  // Restore completed quizzes and prior attempts from localStorage to prevent quiz reload XP farming
   React.useEffect(() => {
     if (typeof window === "undefined" || !currentMemberId) return;
     try {
@@ -135,6 +136,12 @@ export default function MobileExplorePage() {
       );
       if (Array.isArray(stored)) {
         setRewardedRounds((prev) => Array.from(new Set([...prev, ...stored])));
+      }
+      const attempts = JSON.parse(
+        localStorage.getItem(`quanters_quiz_attempts_${currentMemberId}`) || "{}"
+      );
+      if (attempts && typeof attempts === "object") {
+        setSelectedAnswers((prev) => ({ ...attempts, ...prev }));
       }
     } catch {}
   }, [currentMemberId]);
@@ -182,12 +189,27 @@ export default function MobileExplorePage() {
       : null;
 
   const activeChallenge = todayQuiz;
-  const chosenOptionId = activeChallenge
-    ? selectedAnswers[activeChallenge.id] || null
-    : null;
-  const isSolvedCorrect = activeChallenge
-    ? chosenOptionId === activeChallenge.correctId
-    : false;
+
+  const currentMember = React.useMemo(
+    () => members.find((m) => m.id === currentMemberId),
+    [members, currentMemberId]
+  );
+
+  const recordedAttempt = React.useMemo(() => {
+    if (!activeChallenge || !currentMember) return null;
+    return currentMember.quizAttempts?.[activeChallenge.id] || null;
+  }, [activeChallenge, currentMember]);
+
+  const chosenOptionId =
+    recordedAttempt?.optionId ||
+    (activeChallenge ? selectedAnswers[activeChallenge.id] || null : null);
+
+  const isSolvedCorrect =
+    recordedAttempt !== null
+      ? recordedAttempt.correct
+      : activeChallenge
+      ? chosenOptionId === activeChallenge.correctId
+      : false;
 
   const isAlreadyRewarded = React.useMemo(() => {
     if (!activeChallenge || !currentMemberId) return false;
@@ -202,24 +224,38 @@ export default function MobileExplorePage() {
     return inLedger || rewardedRounds.includes(activeChallenge.id);
   }, [ledger, activeChallenge, currentMemberId, rewardedRounds]);
 
+  const isAlreadyAttempted =
+    Boolean(recordedAttempt) ||
+    Boolean(activeChallenge && selectedAnswers[activeChallenge.id]) ||
+    isAlreadyRewarded;
+
   const handleSelectOption = (optionId: string) => {
-    if (!activeChallenge || selectedAnswers[activeChallenge.id]) return;
+    if (!activeChallenge || isAlreadyAttempted) return;
+
+    // Immediately lock in local component state
     setSelectedAnswers((prev) => ({
       ...prev,
       [activeChallenge.id]: optionId,
     }));
 
-    if (optionId === activeChallenge.correctId && !isAlreadyRewarded) {
-      const nextRewarded = Array.from(new Set([...rewardedRounds, activeChallenge.id]));
-      setRewardedRounds(nextRewarded);
-      try {
+    // Cache to localStorage
+    try {
+      const key = `quanters_quiz_attempts_${currentMemberId}`;
+      const existingLocal = JSON.parse(localStorage.getItem(key) || "{}");
+      existingLocal[activeChallenge.id] = optionId;
+      localStorage.setItem(key, JSON.stringify(existingLocal));
+      if (optionId === activeChallenge.correctId) {
+        const nextRewarded = Array.from(new Set([...rewardedRounds, activeChallenge.id]));
+        setRewardedRounds(nextRewarded);
         localStorage.setItem(
           `quanters_completed_quizzes_${currentMemberId}`,
           JSON.stringify(nextRewarded)
         );
-      } catch {}
-      submitDailyQuizAnswer(activeChallenge.id, optionId);
-    }
+      }
+    } catch {}
+
+    // Submit attempt to store and Firestore (permanent one-time attempt)
+    submitDailyQuizAnswer(activeChallenge.id, optionId);
   };
 
 // toggleSave defined above with localStorage persistence
@@ -404,9 +440,19 @@ export default function MobileExplorePage() {
                 <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
                   Quiz
                 </span>
-                <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
-                  +{activeChallenge.xpReward} XP
-                </span>
+                {isAlreadyAttempted ? (
+                  <span className={`px-2 py-0.5 rounded font-mono text-[10.5px] font-bold border shrink-0 ${
+                    isSolvedCorrect
+                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40"
+                      : "bg-rose-500/20 text-rose-300 border-rose-400/40"
+                  }`}>
+                    {isSolvedCorrect ? `+${activeChallenge.xpReward} XP Earned` : "Attempted (1/1)"}
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
+                    +{activeChallenge.xpReward} XP
+                  </span>
+                )}
                 {!isQuizExpanded && (
                   <span className="text-xs text-sky-100/85 font-sans truncate ml-1">
                     {activeChallenge.question}
@@ -446,8 +492,8 @@ export default function MobileExplorePage() {
                         badgeStyle = "bg-[#0284C7] text-white";
                       } else if (isSelected && !isRightOption) {
                         cardStyle =
-                          "bg-slate-100 border-slate-300 text-slate-500 opacity-85";
-                        badgeStyle = "bg-slate-400 text-white";
+                          "bg-rose-50 border-rose-300 text-rose-900";
+                        badgeStyle = "bg-rose-600 text-white";
                       } else {
                         cardStyle =
                           "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
@@ -488,13 +534,18 @@ export default function MobileExplorePage() {
                 </div>
 
                 {chosenOptionId && (
-                  <div className="p-2.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5] flex items-center justify-between gap-2.5 animate-rise">
+                  <div className={`p-2.5 rounded-lg border flex items-center justify-between gap-2.5 animate-rise ${
+                    isSolvedCorrect ? "bg-[#F0F6FF] border-[#D5E3F5]" : "bg-rose-50 border-rose-200"
+                  }`}>
                     <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
-                      <strong className="font-mono text-[#0284C7]">
-                        {isSolvedCorrect ? "✓ Correct:" : "Answer:"}
+                      <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
+                        {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
                       </strong>{" "}
                       {activeChallenge.verdictTitle}
                     </p>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0">
+                      1/1 Attempt Used
+                    </span>
                   </div>
                 )}
               </div>

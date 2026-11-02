@@ -767,7 +767,8 @@ export default function WelcomeSplashPage() {
     // 1. Create in Firebase Auth
     const fbCreateRes = await createFirebaseEmailPasswordUser(validEmail.normalized, password);
     if (!fbCreateRes.ok && fbCreateRes.errorCode === "auth/email-already-in-use") {
-      const existingInErp = members.find((m) => m.email.toLowerCase() === validEmail.normalized);
+      const currentList = members.length > 0 ? members : useQuantersStore.getState().members;
+      const existingInErp = currentList.find((m) => m.email.toLowerCase() === validEmail.normalized);
       if (existingInErp && existingInErp.status === "Removed") {
         setRegisterLoading(false);
         setAccountDeletedModalOpen(true);
@@ -778,15 +779,13 @@ export default function WelcomeSplashPage() {
         setErrorMsg("An active account with this email address already exists. Please sign in instead.");
         return;
       }
-      // If the account was registered in Firebase Auth previously, sign in to link the active non-anonymous session
+      // If email was permanently purged from ERP ("Delete for ever"), email is free!
+      // Attempt Firebase Auth sign in with entered password to sync session
       const signInRes = await signInWithFirebaseEmailPassword(validEmail.normalized, password);
       if (!signInRes.ok) {
-        // Dispatches 1-click password recovery so user can seamlessly set their new password without being blocked
-        await sendFirebasePasswordReset(validEmail.normalized).catch(() => {});
-        setRegisterLoading(false);
-        setSuccessMsg(`An authentication record exists for this email. We've sent a 1-click activation link to ${validEmail.normalized} so you can verify and set your new password!`);
-        setAuthMode("signin");
-        return;
+        // Dispatch background password reset in case user wants to synchronize Firebase Google cloud password
+        sendFirebasePasswordReset(validEmail.normalized).catch(() => {});
+        // DO NOT block registration! Continue to provision fresh member dossier in ERP
       }
     } else if (!fbCreateRes.ok) {
       setRegisterLoading(false);

@@ -379,6 +379,12 @@ export interface Member {
   traineeEvaluation: TraineeEvaluation;
   skills: string[];
   badgeIds: string[];
+  quizAttempts?: Record<string, {
+    optionId: string;
+    correct: boolean;
+    answeredAt: string;
+    xpEarned: number;
+  }>;
   workshopsCompletedCount: number;
   projectsCompletedCount: number;
   eventsAttendedCount: number;

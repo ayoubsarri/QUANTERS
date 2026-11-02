@@ -22,6 +22,7 @@ import {
   CommuteDuration,
   PcCapability,
 } from "@/lib/types/erp";
+import { getEffectiveMemberAvatar } from "@/lib/utils/avatarUtils";
 
 interface EditMemberModalProps {
   member: Member | null;
@@ -393,7 +394,7 @@ export function EditMemberModal({
                 </label>
                 <div className="flex items-center gap-3">
                   <img
-                    src={avatarUrl || member.avatarUrl}
+                    src={getEffectiveMemberAvatar({ fullName, avatarUrl: avatarUrl || member.avatarUrl })}
                     alt={fullName}
                     className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                   />

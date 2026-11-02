@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
+import { getEffectiveMemberAvatar } from "@/lib/utils/avatarUtils";
 import { DayOfWeek, isMemberAvailableInSlot, MemberStatus, STUDY_HOUR_SLOTS, TimeSlot } from "@/lib/types/erp";
 import { PersonalQRModal } from "@/components/mobile/PersonalQRModal";
 import { EditMemberModal } from "@/components/admin/EditMemberModal";
@@ -170,16 +171,19 @@ export default function AdminMemberDetailCardPage() {
 
   const handleStatusTransition = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hrModalType || !hrReason.trim()) return;
+    if (!hrModalType) return;
+    const finalReason = hrReason.trim() || `Status updated to ${hrModalType} by HR Administration`;
     changeMemberStatus({
       memberId: member.id,
       toStatus: hrModalType,
-      reason: hrReason.trim(),
+      reason: finalReason,
       actorName: hrActorName.trim() || "HR Administration",
       decisionReference: hrModalType === "Removed" ? hrDecisionRef : undefined,
       graduationYear: hrModalType === "Alumni" ? hrGraduationYear : undefined,
       suspensionEndDate: hrModalType === "Suspended" ? hrSuspensionEnd : undefined,
     });
+    setProfileToast(`Status of ${member.fullName} updated to ${hrModalType}!`);
+    setTimeout(() => setProfileToast(null), 4000);
     setHrModalType(null);
     setHrReason("");
   };
@@ -309,7 +313,7 @@ export default function AdminMemberDetailCardPage() {
           {/* Avatar & Identity */}
           <div className="flex items-start sm:items-center gap-4">
             <img
-              src={member.avatarUrl}
+              src={getEffectiveMemberAvatar(member)}
               alt={member.fullName}
               className="w-14 h-14 rounded-2xl object-cover border-2 border-[#182C4E]/20 shadow-sm shrink-0"
             />
@@ -537,12 +541,14 @@ export default function AdminMemberDetailCardPage() {
 
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
                 confirmTraineeToActive(
                   member.id,
                   "Confirmed as Official Active Member."
-                )
-              }
+                );
+                setProfileToast(`Confirmed ${member.fullName} as Official Active Member! Status saved & synced.`);
+                setTimeout(() => setProfileToast(null), 4000);
+              }}
               className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer shrink-0"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />

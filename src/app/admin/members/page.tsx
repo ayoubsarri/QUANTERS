@@ -25,6 +25,7 @@ import { isSuperAdminEmail } from "@/lib/firebase/config";
 import { DayOfWeek, Member, MemberStatus, TimeSlot } from "@/lib/types/erp";
 import { copyToClipboardReliable } from "@/lib/utils/memberKeyboardJump";
 import { EditMemberModal } from "@/components/admin/EditMemberModal";
+import { getEffectiveMemberAvatar } from "@/lib/utils/avatarUtils";
 
 // Comprehensive Super Admin Exemption Shield (guarantees system accounts are hidden from student directory)
 function isSuperAdminAccount(m?: Partial<Member> | null): boolean {
@@ -796,7 +797,7 @@ function AdminMembersContent() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={m.avatarUrl}
+                            src={getEffectiveMemberAvatar(m)}
                             alt={m.fullName}
                             className="w-9 h-9 rounded-full object-cover border border-slate-200/90 shrink-0"
                           />

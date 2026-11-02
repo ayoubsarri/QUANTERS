@@ -4,15 +4,18 @@ import React, { useRef, useState } from "react";
 import { Camera, CheckCircle2, Sparkles, UploadCloud } from "lucide-react";
 import { compressAndResizeImage, CompressedImageResult, formatBytes } from "@/lib/utils/imageCompressor";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { getEffectiveMemberAvatar } from "@/lib/utils/avatarUtils";
 
 interface AvatarUploaderProps {
   currentAvatarUrl: string;
+  memberName?: string;
   onAvatarCompressed: (dataUrl: string, meta?: CompressedImageResult) => void;
   compact?: boolean;
 }
 
 export function AvatarUploader({
   currentAvatarUrl,
+  memberName,
   onAvatarCompressed,
   compact = false,
 }: AvatarUploaderProps) {
@@ -46,7 +49,7 @@ export function AvatarUploader({
     <div className="flex flex-col items-center gap-2">
       <div className="relative group">
         <img
-          src={currentAvatarUrl}
+          src={getEffectiveMemberAvatar({ fullName: memberName || "Quanter", avatarUrl: currentAvatarUrl })}
           alt="Member Avatar"
           className={`${
             compact ? "w-16 h-16" : "w-20 h-20"

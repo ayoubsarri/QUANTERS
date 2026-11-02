@@ -50,6 +50,7 @@ import { QuantaLogo } from "@/components/shared/QuantaLogo";
 import { DEFAULT_AVAILABILITY } from "@/lib/data/seed";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { validateEmail } from "@/lib/utils/authSecurity";
+import { generateInitialsAvatar, isDefaultOrPlaceholderAvatar } from "@/lib/utils/avatarUtils";
 import {
   AvailabilityGrid,
   CommuteDuration,
@@ -248,12 +249,11 @@ export default function OnboardingWizardPage() {
   const canProceedStep1 = isValidFullName && phoneValidation.isValid;
 
   const [avatarUrl, setAvatarUrl] = useState(
-    existingMember?.avatarUrl || "/brand/logo_quanta_opt.webp"
+    existingMember?.avatarUrl || ""
   );
-  const isCustomAvatar =
-    avatarUrl &&
-    !avatarUrl.includes("logo_quanta_opt") &&
-    !avatarUrl.includes("default");
+  const isCustomAvatar = Boolean(
+    avatarUrl && !isDefaultOrPlaceholderAvatar(avatarUrl)
+  );
 
   // Sync state once session member resolves after hydration
   useEffect(() => {
@@ -264,8 +264,10 @@ export default function OnboardingWizardPage() {
       if (rawSessionMember.phone && rawSessionMember.phone !== "+213 550 00 00 00" && !phone) {
         setPhone(rawSessionMember.phone);
       }
-      if (rawSessionMember.avatarUrl && avatarUrl === "/brand/logo_quanta_opt.webp") {
-        setAvatarUrl(rawSessionMember.avatarUrl);
+      if (rawSessionMember.avatarUrl && (!avatarUrl || isDefaultOrPlaceholderAvatar(avatarUrl))) {
+        if (!isDefaultOrPlaceholderAvatar(rawSessionMember.avatarUrl)) {
+          setAvatarUrl(rawSessionMember.avatarUrl);
+        }
       }
     }
   }, [rawSessionMember]);
@@ -430,10 +432,6 @@ export default function OnboardingWizardPage() {
     );
   }, [availability]);
 
-  const canProceedStep5 = isAlumni
-    ? true
-    : Boolean(departmentId) && totalAvailabilitySlots >= 2;
-
   // Step 6: Outside Activities & Charter
   const [outsideActivitiesAndVolunteering, setOutsideActivitiesAndVolunteering] =
     useState(existingMember?.outsideActivitiesAndVolunteering || "");
@@ -444,6 +442,10 @@ export default function OnboardingWizardPage() {
   const [charterConfirmed, setCharterConfirmed] = useState(false);
   const [showInternalLaw, setShowInternalLaw] = useState(false);
   const [lawChapterFilter, setLawChapterFilter] = useState<string>("ALL");
+
+  const canProceedStep5 = isAlumni
+    ? charterConfirmed
+    : Boolean(departmentId) && totalAvailabilitySlots >= 2;
 
   const hasValidActivities =
     outsideActivitiesAndVolunteering.trim().length >= 10 ||
@@ -526,7 +528,11 @@ export default function OnboardingWizardPage() {
       }
     }
     if (step === 5) {
-      if (!isAlumni) {
+      if (isAlumni) {
+        if (!charterConfirmed) {
+          return "Please review and accept the QUANTA Alumni Network Charter & Scientific Honor Code";
+        }
+      } else {
         if (!departmentId) {
           return "Please select your operational department (1 of 6)";
         }
@@ -659,7 +665,7 @@ export default function OnboardingWizardPage() {
       fullName: fullName.trim(),
       email: validEmail.normalized,
       phone: phoneValidation.e164 || phone.trim(),
-      avatarUrl,
+      avatarUrl: isCustomAvatar ? avatarUrl : generateInitialsAvatar(fullName.trim()),
       university: effectiveUniversity,
       major: effectiveMajor,
       academicYear: isAlumni ? "Graduated" : (academicYear as Member["academicYear"]) || "L1",
@@ -898,6 +904,7 @@ export default function OnboardingWizardPage() {
                   </div>
                   <AvatarUploader
                     currentAvatarUrl={avatarUrl}
+                    memberName={fullName}
                     onAvatarCompressed={(url) => setAvatarUrl(url)}
                   />
                 </div>
@@ -1926,7 +1933,7 @@ export default function OnboardingWizardPage() {
                 <div className="rounded-2xl bg-gradient-to-br from-[#071328] via-[#0E2042] to-[#1E1B4B] text-white p-4 border border-indigo-500/40 shadow-sm space-y-3">
                   <div className="flex items-center gap-3">
                     <img
-                      src={avatarUrl || "/brand/logo_quanta_opt.webp"}
+                      src={isCustomAvatar ? avatarUrl : generateInitialsAvatar(fullName)}
                       alt={fullName}
                       className="w-12 h-12 rounded-2xl object-cover border-2 border-amber-400/80 shadow-xs shrink-0"
                     />

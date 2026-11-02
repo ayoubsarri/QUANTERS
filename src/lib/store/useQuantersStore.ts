@@ -10,6 +10,7 @@ import {
   signOutFromFirebase,
 } from "../firebase/auth";
 import { hashCredentialDigest, verifyCredentialDigest } from "../utils/authSecurity";
+import { generateInitialsAvatar, isDefaultOrPlaceholderAvatar } from "../utils/avatarUtils";
 import {
   AccessGrant,
   AccessLevel,
@@ -1180,8 +1181,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       fullName: derivedName,
       phone: "+213 550 00 00 00",
       avatarUrl:
-        avatarUrl ||
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
+        avatarUrl && !isDefaultOrPlaceholderAvatar(avatarUrl)
+          ? avatarUrl
+          : generateInitialsAvatar(derivedName),
       bio: isSuper ? "QUANTA Club Administration" : "QUANTA Scientific Club Member",
       major: "Computer Science",
       university: "University of Algiers 1",
@@ -1239,6 +1241,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       currentMemberId: newMember.id,
       activeAdminRole: isSuper ? "Super Admin" : isAlumni ? "Alumni" : "Member",
       isAuthenticated: true,
+      settings: {
+        ...state.settings,
+        archivedMembers: (state.settings.archivedMembers || []).filter(
+          (a) => a.email.toLowerCase() !== cleanEmail
+        ),
+      },
     });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
@@ -1292,8 +1300,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       passwordHash: password?.trim() ? hashCredentialDigest(cleanEmail, password.trim()) : undefined,
       fullName: fullName.trim() || "New Quanter",
       phone: "+213 550 00 00 00",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces",
+      avatarUrl: generateInitialsAvatar(fullName.trim() || "New Quanter"),
       bio: isAlumni ? "QUANTA Club Alumni" : "Exploring today, a brighter tomorrow.",
       major: "Computer Science",
       university: "University of Algiers 1",
@@ -1361,6 +1368,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       currentMemberId: finalizedRegMember.id,
       activeAdminRole: isSuper ? "Super Admin" : isAlumni ? "Alumni" : "Member",
       isAuthenticated: true,
+      settings: {
+        ...state.settings,
+        archivedMembers: (state.settings.archivedMembers || []).filter(
+          (a) => a.email.toLowerCase() !== cleanEmail
+        ),
+      },
     });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
@@ -2962,7 +2975,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  confirmTraineeToActive: (memberId, reason, actorName = "HR Administration") =>
+  confirmTraineeToActive: (memberId, reason, actorName = "HR Administration") => {
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -2983,7 +2996,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ? {
                 ...m,
                 status: "Active",
-                statusSince: "Oct 2026",
+                statusSince: new Date().toISOString().slice(0, 10),
+                onboardingTicks: {
+                  ...m.onboardingTicks,
+                  hrApproved: true,
+                  hrApprovedAt: new Date().toISOString(),
+                  hrApprovedBy: actorName,
+                },
                 statusHistory: [
                   {
                     id: `sh-${Date.now()}`,
@@ -3003,11 +3022,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           open: true,
           type: "confirmation",
           title: "Official Member Confirmed!",
-          subtitle: `${member.fullName} has completed the 3-month qualification and is now an Official Active Member of QUANTA.`,
+          subtitle: `${member.fullName} has completed the qualification review and is now an Official Active Member of QUANTA.`,
           xpEarned: 50,
         },
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
     ensureWelcomeMessageDelivered: (memberId: string) => {
     set((state) => {
@@ -3377,6 +3399,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 ...m,
                 status: toStatus,
                 statusSince: new Date().toISOString().slice(0, 10),
+                onboardingTicks:
+                  toStatus === "Active"
+                    ? {
+                        ...m.onboardingTicks,
+                        hrApproved: true,
+                        hrApprovedAt: new Date().toISOString(),
+                        hrApprovedBy: actorName,
+                      }
+                    : m.onboardingTicks,
                 resignationManagerName: toStatus === "Resigned" ? actorName : m.resignationManagerName,
                 resignationReason: toStatus === "Resigned" ? reason : m.resignationReason,
                 removalReason: toStatus === "Removed" ? reason : m.removalReason,
@@ -5433,8 +5464,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     const curMember = state.members.find((m) => m.id === state.currentMemberId);
     if (!curMember) return { ok: false, message: "Member session not found" };
 
-    const quiz = (state.dailyQuizzes || []).find((q) => q.id === quizId && q.active !== false);
+    const quiz =
+      (state.dailyQuizzes || []).find((q) => q.id === quizId && q.active !== false) ||
+      SEED_DAILY_QUIZZES.find((q) => q.id === quizId);
     if (!quiz) return { ok: false, message: "Daily challenge not found or inactive" };
+
+    // Strictly enforce 1 attempt per challenge per member (no resets or replay farming)
+    if (curMember.quizAttempts?.[quizId]) {
+      return { ok: false, message: "Daily challenge already attempted (1/1 attempts used)." };
+    }
 
     const todayIso = new Date().toISOString().slice(0, 10);
     const alreadyRewarded = (state.ledger || []).some(
@@ -5449,41 +5487,59 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     const isCorrect = optionId === quiz.correctId;
-    if (!isCorrect) {
-      return { ok: false, message: "Incorrect answer" };
-    }
+    const safeXp = isCorrect ? Math.min(50, Math.max(5, quiz.xpReward || 15)) : 0;
 
-    const safeXp = Math.min(50, Math.max(5, quiz.xpReward || 15));
-    const newEntry: PointsLedgerEntry = {
-      id: `led-${Date.now()}`,
-      memberId: curMember.id,
-      memberName: curMember.fullName,
-      amount: safeXp,
-      ruleLabel: `Daily Quiz: ${quiz.id}`,
-      reason: `Daily Quiz verified: ${quiz.verdictTitle || quiz.id}`,
-      source: "Badge",
-      actorName: "Science Exploration Engine",
-      date: todayIso,
-      appealStatus: "None",
+    const attemptRecord = {
+      optionId,
+      correct: isCorrect,
+      answeredAt: new Date().toISOString(),
+      xpEarned: safeXp,
     };
+
+    let nextLedger = state.ledger;
+    if (isCorrect) {
+      const newEntry: PointsLedgerEntry = {
+        id: `led-${Date.now()}`,
+        memberId: curMember.id,
+        memberName: curMember.fullName,
+        amount: safeXp,
+        ruleLabel: `Daily Quiz: ${quiz.id}`,
+        reason: `Daily Quiz verified: ${quiz.verdictTitle || quiz.id}`,
+        source: "Badge",
+        actorName: "Science Exploration Engine",
+        date: todayIso,
+        appealStatus: "None",
+      };
+      nextLedger = [newEntry, ...state.ledger];
+    }
 
     set((s) => ({
       members: s.members.map((m) =>
         m.id === curMember.id
           ? {
               ...m,
-              xpTotal: m.xpTotal + safeXp,
-              xpSeason: m.xpSeason + safeXp,
-              xpMonth: m.xpMonth + safeXp,
+              xpTotal: isCorrect ? m.xpTotal + safeXp : m.xpTotal,
+              xpSeason: isCorrect ? m.xpSeason + safeXp : m.xpSeason,
+              xpMonth: isCorrect ? m.xpMonth + safeXp : m.xpMonth,
+              quizAttempts: {
+                ...(m.quizAttempts || {}),
+                [quizId]: attemptRecord,
+              },
             }
           : m
       ),
-      ledger: [newEntry, ...s.ledger],
+      ledger: nextLedger,
     }));
 
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
-    return { ok: true, message: `Correct! +${safeXp} XP awarded`, xpEarned: safeXp };
+    return {
+      ok: isCorrect,
+      message: isCorrect
+        ? `Correct! +${safeXp} XP awarded`
+        : "Incorrect answer. 1/1 attempts used.",
+      xpEarned: safeXp,
+    };
   },
 
   sendClubMessage: ({ recipientScope, priority, title, body, inApp, email, targetMemberId, targetDepartmentId, targetTeamId }) =>
