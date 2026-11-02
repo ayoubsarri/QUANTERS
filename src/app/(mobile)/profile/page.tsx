@@ -59,6 +59,7 @@ import { signInWithFirebaseGooglePopup } from "@/lib/firebase/auth";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { DEFAULT_AVAILABILITY, FALLBACK_SESSION_MEMBER, getActiveDailyQuote } from "@/lib/data/seed";
 import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
+import { EditMemberModal } from "@/components/admin/EditMemberModal";
 import {
   AvailabilityGrid,
   CommuteDuration,
@@ -157,6 +158,7 @@ export default function MobileProfilePage() {
   const ledger = useQuantersStore((s) => s.ledger);
   const settings = useQuantersStore((s) => s.settings);
   const dailyQuotes = useQuantersStore((s) => s.dailyQuotes);
+  const activeAdminRole = useQuantersStore((s) => s.activeAdminRole);
   const updateMemberProfileSelf = useQuantersStore(
     (s) => s.updateMemberProfileSelf
   );
@@ -211,6 +213,7 @@ export default function MobileProfilePage() {
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
   const [editHrModalOpen, setEditHrModalOpen] = useState(false);
+  const [adminEditModalOpen, setAdminEditModalOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleToast, setScheduleToast] = useState<string | null>(null);
 
@@ -452,6 +455,10 @@ export default function MobileProfilePage() {
   const displayHousing = member.housingType || "Family Home";
   const displayCommute = member.commuteTime || "< 30 min";
 
+  const isSuperAdmin = Boolean(
+    member?.roles?.includes("Super Admin") || activeAdminRole === "Super Admin"
+  );
+
   if (!hydrated || !isAuthenticated || !currentMemberId || !activeMember) {
     return (
       <div className="min-h-dvh w-full bg-[#030812] flex items-center justify-center p-6 text-white">
@@ -485,6 +492,17 @@ export default function MobileProfilePage() {
             </h1>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => setAdminEditModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold font-mono tracking-wider uppercase shadow-xs border border-amber-400 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
+                title="Edit Full Member Dossier & Season XP (Super Admin)"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Edit Profile</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setLedgerModalOpen(true)}
@@ -2265,7 +2283,7 @@ export default function MobileProfilePage() {
                     Season XP
                   </span>
                   <div className="text-base font-black font-display text-amber-600 tabular-nums mt-0.5">
-                    {member.xpTotal}
+                    {typeof member.xpSeason === "number" ? member.xpSeason : member.xpTotal}
                   </div>
                   <span className="text-[9.5px] font-bold text-slate-500 block">
                     Goal {settings.confirmationXpThreshold} XP
@@ -2493,6 +2511,14 @@ export default function MobileProfilePage() {
             </div>
           </div>
         </div>
+      )}
+      {/* Super Admin Edit Member Modal */}
+      {isSuperAdmin && (
+        <EditMemberModal
+          member={member}
+          isOpen={adminEditModalOpen}
+          onClose={() => setAdminEditModalOpen(false)}
+        />
       )}
     </MobileAppShell>
   );

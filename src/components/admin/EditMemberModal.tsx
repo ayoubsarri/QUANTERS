@@ -98,6 +98,7 @@ export function EditMemberModal({
   const [level, setLevel] = useState<number>(1);
   const [levelTitle, setLevelTitle] = useState("");
   const [xpTotal, setXpTotal] = useState<number>(0);
+  const [xpSeason, setXpSeason] = useState<number>(0);
   const [xpMonth, setXpMonth] = useState<number>(0);
   const [healthScore, setHealthScore] = useState<number>(95);
 
@@ -150,6 +151,7 @@ export function EditMemberModal({
     setLevel(member.level || 1);
     setLevelTitle(member.levelTitle || "Member");
     setXpTotal(member.xpTotal || 0);
+    setXpSeason(typeof member.xpSeason === "number" ? member.xpSeason : member.xpTotal || 0);
     setXpMonth(member.xpMonth || 0);
     setHealthScore(member.healthScore ?? 95);
 
@@ -225,6 +227,7 @@ export function EditMemberModal({
         level: Number(level) || 1,
         levelTitle: levelTitle.trim(),
         xpTotal: Number(xpTotal) || 0,
+        xpSeason: Number(xpSeason) || 0,
         xpMonth: Number(xpMonth) || 0,
         healthScore: Number(healthScore) || 0,
 
@@ -559,6 +562,18 @@ export function EditMemberModal({
                       value={xpTotal}
                       onChange={(e) => setXpTotal(parseInt(e.target.value, 10) || 0)}
                       className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-mono font-bold text-emerald-700"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Season XP (Current Season)
+                    </label>
+                    <input
+                      type="number"
+                      value={xpSeason}
+                      onChange={(e) => setXpSeason(parseInt(e.target.value, 10) || 0)}
+                      className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-mono font-bold text-amber-600"
                     />
                   </div>
 
