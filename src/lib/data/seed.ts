@@ -951,6 +951,7 @@ export function getActiveDailyQuote(
 
 export const SEED_SETTINGS: SystemSettings = {
   registrationOpen: true,
+  onboardingAutoApprove: false,
   invitationValidityDays: 7,
   alumniAccessGlobal: true,
   traineeDurationMonths: 3,

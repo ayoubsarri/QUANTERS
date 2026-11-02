@@ -73,7 +73,7 @@ export default function AdminSettingsPage() {
 
   const [formState, setFormState] = useState<SystemSettings>({
     ...settings,
-    onboardingAutoApprove: settings.onboardingAutoApprove ?? true,
+    onboardingAutoApprove: settings.onboardingAutoApprove ?? false,
     qrRotationSeconds: settings.qrRotationSeconds ?? 30,
     checkinGraceMinutes: settings.checkinGraceMinutes ?? 15,
     waitlistAutoPromote: settings.waitlistAutoPromote ?? true,
@@ -88,6 +88,18 @@ export default function AdminSettingsPage() {
     disableVideoOnCellular: settings.disableVideoOnCellular ?? true,
     autoCompactHistoryLimit: settings.autoCompactHistoryLimit ?? 100,
   });
+
+  // Keep formState strictly synchronized with external store/Firestore updates
+  useEffect(() => {
+    setFormState((prev) => ({
+      ...prev,
+      ...settings,
+      onboardingAutoApprove:
+        typeof settings.onboardingAutoApprove === "boolean"
+          ? settings.onboardingAutoApprove
+          : prev.onboardingAutoApprove ?? false,
+    }));
+  }, [settings]);
 
   const [banner, setBanner] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -270,7 +282,12 @@ export default function AdminSettingsPage() {
 
   const regOpen = formState.registrationOpen;
   const alumniActive = formState.alumniAccessGlobal;
-  const autoApprove = formState.onboardingAutoApprove ?? true;
+  const autoApprove =
+    typeof formState.onboardingAutoApprove === "boolean"
+      ? formState.onboardingAutoApprove
+      : typeof settings.onboardingAutoApprove === "boolean"
+      ? settings.onboardingAutoApprove
+      : false;
   const welcomeMsgEnabled = formState.welcomeMessageEnabled ?? true;
   const emailVerifyEnabled = formState.emailVerificationEnabled ?? true;
   const [testEmailInput, setTestEmailInput] = useState("");

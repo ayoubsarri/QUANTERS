@@ -1173,6 +1173,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         .replace(/[._-]+/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase());
 
+    const autoApprove = state.settings.onboardingAutoApprove ?? false;
     const newMember: Member = {
       id: `mem-${Date.now()}`,
       quanterId: isSuper ? "QT-00-0000" : `QT-26-0${num}`,
@@ -1195,7 +1196,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       teamId: "team-cs-ai",
       roles: isSuper ? ["Super Admin", "Executive", "HR Head"] : isAlumni ? ["Alumni"] : ["Member"],
       isBureauMember: isSuper,
-      status: isSuper ? "Active" : isAlumni ? "Alumni" : ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending"),
+      status: isSuper ? "Active" : isAlumni ? "Alumni" : (autoApprove ? "Trainee" : "Pending"),
       statusSince: "Oct 2026",
       traineeStartDate: new Date().toISOString().slice(0, 10),
       traineeDaysElapsed: 1,
@@ -1219,6 +1220,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         buddyAssigned: isSuper,
         firstTaskBeforeDay30: isSuper,
         firstWorkshopAttended: isSuper,
+        hrApproved: isSuper || isAlumni || autoApprove,
+        hrApprovedAt: (isSuper || isAlumni || autoApprove) ? new Date().toISOString() : undefined,
+        hrApprovedBy: isSuper ? "Super Admin Directive" : isAlumni ? "Alumni Auto-Confirmation" : autoApprove ? "System Auto-Admission" : undefined,
       },
       traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
       skills: ["Scientific Research"],
@@ -1292,6 +1296,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     const num = Math.floor(400 + Math.random() * 500);
+    const autoApprove = state.settings.onboardingAutoApprove ?? false;
     const newMember: Member = {
       id: `mem-${Date.now()}`,
       quanterId: isAlumni ? `QT-23-0${num}` : `QT-26-0${num}`,
@@ -1312,7 +1317,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       teamId: "team-cs-ai",
       roles: isAlumni ? ["Alumni"] : ["Member"],
       isBureauMember: false,
-      status: isAlumni ? "Alumni" : ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending"),
+      status: isAlumni ? "Alumni" : (autoApprove ? "Trainee" : "Pending"),
       statusSince: "Oct 2026",
       graduationYear: isAlumni ? "2026" : undefined,
       traineeStartDate: new Date().toISOString().slice(0, 10),
@@ -1337,6 +1342,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         buddyAssigned: false,
         firstTaskBeforeDay30: false,
         firstWorkshopAttended: false,
+        hrApproved: isAlumni || autoApprove,
+        hrApprovedAt: (isAlumni || autoApprove) ? new Date().toISOString() : undefined,
+        hrApprovedBy: isAlumni ? "Alumni Auto-Confirmation" : autoApprove ? "System Auto-Admission" : undefined,
       },
       traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
       skills: ["Scientific Research"],
@@ -2612,6 +2620,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 : { ...t, memberIds: t.memberIds.filter((id) => id !== existing.id) }
             )
           : state.teams;
+        const autoApprove = state.settings.onboardingAutoApprove ?? false;
+        const isAlreadyApproved = Boolean(existing.onboardingTicks?.hrApproved);
+        const resolvedStatus: MemberStatus = isAlumniTarget
+          ? "Alumni"
+          : autoApprove
+          ? (isOldMember ? "Active" : "Trainee")
+          : isAlreadyApproved
+          ? (isOldMember ? "Active" : existing.status === "Pending" ? "Trainee" : existing.status)
+          : "Pending";
+        const resolvedHrApproved = isAlumniTarget || (autoApprove ? true : isAlreadyApproved);
+
         return {
           teams: nextTeams,
           currentMemberId: existing.id,
@@ -2634,15 +2653,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   graduationYear: payload.graduationYear || m.graduationYear || (isAlumniTarget ? "2026" : undefined),
                   alumniPosition: payload.alumniPosition || m.alumniPosition,
                   alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
-                  status: isAlumniTarget
-                    ? "Alumni"
-                    : isOldMember
-                    ? "Active"
-                    : m.status === "Pending"
-                    ? ((state.settings.onboardingAutoApprove ?? true) ? "Trainee" : "Pending")
-                    : (state.settings.onboardingAutoApprove ?? true) === false && !m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni"
-                    ? "Pending"
-                    : m.status,
+                  status: resolvedStatus,
                   roles: isAlumniTarget ? ["Alumni"] : m.roles,
                   levelTitle: targetSeniority.levelTitle,
                   level: targetSeniority.level,
@@ -2669,12 +2680,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   onboardingTicks: {
                     ...m.onboardingTicks,
                     profileComplete: true,
-                    buddyAssigned: isOldMember ? true : m.onboardingTicks?.buddyAssigned,
-                    firstTaskBeforeDay30: isOldMember ? true : m.onboardingTicks?.firstTaskBeforeDay30,
-                    firstWorkshopAttended: isOldMember ? true : m.onboardingTicks?.firstWorkshopAttended,
-                    hrApproved: isAlumniTarget || isOldMember || ((state.settings.onboardingAutoApprove ?? true) ? true : m.onboardingTicks?.hrApproved ?? false),
-                    hrApprovedAt: (isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true)) ? (m.onboardingTicks?.hrApprovedAt || new Date().toISOString()) : m.onboardingTicks?.hrApprovedAt,
-                    hrApprovedBy: (isAlumniTarget || isOldMember) ? "Seniority Auto-Confirmation" : (m.onboardingTicks?.hrApprovedBy || "System Auto-Admission"),
+                    buddyAssigned: autoApprove && isOldMember ? true : m.onboardingTicks?.buddyAssigned,
+                    firstTaskBeforeDay30: autoApprove && isOldMember ? true : m.onboardingTicks?.firstTaskBeforeDay30,
+                    firstWorkshopAttended: autoApprove && isOldMember ? true : m.onboardingTicks?.firstWorkshopAttended,
+                    hrApproved: resolvedHrApproved,
+                    hrApprovedAt: resolvedHrApproved
+                      ? (m.onboardingTicks?.hrApprovedAt || new Date().toISOString())
+                      : undefined,
+                    hrApprovedBy: resolvedHrApproved
+                      ? (m.onboardingTicks?.hrApprovedBy || (isAlumniTarget ? "Alumni Auto-Confirmation" : autoApprove ? "System Auto-Admission" : undefined))
+                      : undefined,
                   },
                 }
               : m
@@ -2704,7 +2719,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
       const num = Math.floor(100 + Math.random() * 899);
       const newId = `mem-${Date.now()}`;
-      const newMember: Member = {
+        const autoApprove = state.settings.onboardingAutoApprove ?? false;
+        const newStatus: MemberStatus = isAlumniTarget
+          ? "Alumni"
+          : autoApprove
+          ? (isOldMember ? "Active" : "Trainee")
+          : "Pending";
+        const newHrApproved = isAlumniTarget || autoApprove;
+
+        const newMember: Member = {
         id: newId,
         quanterId: isAlumniTarget ? `QT-23-0${num}` : `QT-26-0${num}`,
         handle: `@quanter0${num}`,
@@ -2740,16 +2763,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         cvUrl: payload.cvUrl,
         roles: isAlumniTarget ? ["Alumni"] : ["Member"],
         isBureauMember: false,
-        status: isAlumniTarget
-          ? "Alumni"
-          : isOldMember
-          ? "Active"
-          : (state.settings.onboardingAutoApprove ?? true)
-          ? "Trainee"
-          : "Pending",
+        status: newStatus,
         statusSince: new Date().toISOString().slice(0, 10),
         traineeStartDate: new Date().toISOString().slice(0, 10),
-        traineeDaysElapsed: isAlumniTarget || isOldMember ? 1000 : 1,
+        traineeDaysElapsed: isAlumniTarget || (autoApprove && isOldMember) ? 1000 : 1,
         outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
         declaresOtherStudentOrg: Boolean(payload.declaresOtherStudentOrg),
         availability: payload.availability || DEFAULT_AVAILABILITY,
@@ -2767,12 +2784,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         recognitionLabels: [],
         onboardingTicks: {
           profileComplete: true,
-          buddyAssigned: isOldMember,
-          firstTaskBeforeDay30: isOldMember,
-          firstWorkshopAttended: isOldMember,
-          hrApproved: isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true),
-          hrApprovedAt: (isAlumniTarget || isOldMember || (state.settings.onboardingAutoApprove ?? true)) ? new Date().toISOString() : undefined,
-          hrApprovedBy: (isAlumniTarget || isOldMember) ? "Seniority Auto-Confirmation" : "System Auto-Admission",
+          buddyAssigned: autoApprove && isOldMember,
+          firstTaskBeforeDay30: autoApprove && isOldMember,
+          firstWorkshopAttended: autoApprove && isOldMember,
+          hrApproved: newHrApproved,
+          hrApprovedAt: newHrApproved ? new Date().toISOString() : undefined,
+          hrApprovedBy: newHrApproved
+            ? (isAlumniTarget ? "Alumni Auto-Confirmation" : isOldMember ? "Seniority Auto-Confirmation" : "System Auto-Admission")
+            : undefined,
         },
         traineeEvaluation: { headEndorsed: false, coManagerEndorsed: false, notes: "" },
         skills: payload.skills && payload.skills.length > 0 ? payload.skills : ["Scientific Research"],

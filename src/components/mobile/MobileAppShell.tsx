@@ -78,8 +78,7 @@ export function MobileAppShell({
     currentMember &&
     !isPrivilegedRole &&
     (currentMember.status === "Pending" ||
-      (settings.onboardingAutoApprove === false &&
-       !currentMember.onboardingTicks?.hrApproved &&
+      (!currentMember.onboardingTicks?.hrApproved &&
        currentMember.status !== "Active" &&
        currentMember.status !== "Alumni"))
   );
@@ -147,9 +146,7 @@ export function MobileAppShell({
   }
 
   // HR Admission Review Gate: If onboarding admission requires manual approval and member is pending
-  // Exclude public catalog viewing routes (/workshops, /badges, /explore) so candidates can explore club schedules
-  const isCatalogRoute = pathname === "/workshops" || pathname === "/badges" || pathname === "/explore";
-  if (hydrated && !isPublicRoute && hasValidSession && isPendingAdmission && !isCatalogRoute) {
+  if (hydrated && !isPublicRoute && hasValidSession && isPendingAdmission) {
     return <WaitingForApprovalScreen />;
   }
 

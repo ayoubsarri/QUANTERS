@@ -487,12 +487,18 @@ export function writeErpDatabase(
                 : (2026 - yearsInClub);
               safeNew.roles = safeNew.roles && Array.isArray(safeNew.roles) && safeNew.roles.length > 0 ? safeNew.roles : ["Member"];
               safeNew.isBureauMember = Boolean(safeNew.isBureauMember);
-              safeNew.status = isAlumni ? "Alumni" : isOldMember ? "Active" : autoApprove ? "Trainee" : "Pending";
+              safeNew.status = isAlumni
+                ? "Alumni"
+                : autoApprove
+                ? (isOldMember ? "Active" : "Trainee")
+                : "Pending";
               const ticks = (safeNew.onboardingTicks as Record<string, unknown>) || {};
               safeNew.onboardingTicks = {
                 ...ticks,
-                hrApproved: isAlumni || isOldMember || autoApprove,
-                hrApprovedBy: isOldMember ? "Seniority Auto-Confirmation" : (ticks.hrApprovedBy || "System Auto-Admission"),
+                hrApproved: isAlumni || autoApprove,
+                hrApprovedBy: autoApprove
+                  ? (isOldMember ? "Seniority Auto-Confirmation" : (ticks.hrApprovedBy || "System Auto-Admission"))
+                  : undefined,
               };
             }
             prependedNew.push(safeNew);
