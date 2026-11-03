@@ -1682,10 +1682,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,
           explorePosts: parsed.explorePosts || get().explorePosts,
-          dailyQuizzes:
-            Array.isArray(parsed.dailyQuizzes) && parsed.dailyQuizzes.length > 0
-              ? (parsed.dailyQuizzes as DailyQuizItem[])
-              : SEED_DAILY_QUIZZES,
+          dailyQuizzes: Array.isArray(parsed.dailyQuizzes)
+            ? (parsed.dailyQuizzes as DailyQuizItem[]).filter(
+                (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
+              )
+            : SEED_DAILY_QUIZZES.filter(
+                (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
+              ),
           dailyQuotes: mergedQuotes,
           messages: parsed.messages || get().messages,
           accessGrants: parsed.accessGrants || get().accessGrants,
@@ -2035,7 +2038,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         projectCategories: currentSnap.projectCategories,
         proposals: currentSnap.proposals,
         explorePosts: currentSnap.explorePosts,
-        dailyQuizzes: currentSnap.dailyQuizzes,
+        dailyQuizzes: currentSnap.dailyQuizzes.filter((q) => !tombstones.dailyQuizzes?.includes(q.id)),
         customDailyQuotes: currentSnap.dailyQuotes.filter((q) => q.isCustom),
         messages: currentSnap.messages.filter((m) => !tombstones.messages?.includes(m.id)),
         accessGrants: currentSnap.accessGrants,
@@ -5484,8 +5487,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     if (!curMember) return { ok: false, message: "Member session not found" };
 
     const quiz =
-      (state.dailyQuizzes || []).find((q) => q.id === quizId && q.active !== false) ||
-      SEED_DAILY_QUIZZES.find((q) => q.id === quizId);
+      (state.dailyQuizzes || []).find(
+        (q) => q.id === quizId && q.active !== false && !isPersistentDeletedId("dailyQuizzes", q.id)
+      ) ||
+      SEED_DAILY_QUIZZES.find(
+        (q) => q.id === quizId && !isPersistentDeletedId("dailyQuizzes", q.id)
+      );
     if (!quiz) return { ok: false, message: "Daily challenge not found or inactive" };
 
     // Strictly enforce 1 attempt per challenge per member (no resets or replay farming)
@@ -5695,19 +5702,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   createDailyQuiz: (quiz) => {
+    const nextItem: DailyQuizItem = {
+      ...quiz,
+      id: (quiz as Partial<DailyQuizItem>).id || `quiz-${Date.now()}`,
+      active: quiz.active !== false,
+    };
     set((state) => {
-      const nextItem: DailyQuizItem = {
-        ...quiz,
-        id: `lc-${Date.now()}`,
-      };
       const existing = quiz.isPinnedToday
         ? state.dailyQuizzes.map((q) => ({ ...q, isPinnedToday: false }))
         : state.dailyQuizzes;
       return {
-        dailyQuizzes: [nextItem, ...existing],
+        dailyQuizzes: [nextItem, ...existing.filter((q) => q.id !== nextItem.id)],
       };
     });
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateDailyQuiz: (id, updates) => {
@@ -5717,6 +5726,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteDailyQuiz: (id) => {
@@ -5737,6 +5747,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       })),
     }));
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   createDailyQuote: (quote) => {

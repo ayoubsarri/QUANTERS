@@ -20,10 +20,10 @@ import {
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
-import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useQuantersStore, isPersistentDeletedId } from "@/lib/store/useQuantersStore";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
 import { getCurrentDayOfYear, SEED_DAILY_QUIZZES } from "@/lib/data/seed";
-import { ExploreCategory, ExplorePost } from "@/lib/types/erp";
+import { ExploreCategory, ExplorePost, DailyQuizItem } from "@/lib/types/erp";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { MarkdownArticleRenderer } from "@/components/shared/MarkdownArticleRenderer";
 
@@ -147,11 +147,21 @@ export default function MobileExplorePage() {
   }, [currentMemberId]);
 
   const todayQuiz = React.useMemo(() => {
-    const raw =
-      storeQuizzes && storeQuizzes.length > 0
-        ? storeQuizzes.filter((q) => q.active !== false)
-        : SEED_DAILY_QUIZZES;
-    const list = raw.length > 0 ? raw : SEED_DAILY_QUIZZES;
+    // 1. Quizzes currently in store that are active and not tombstoned
+    const activeQuizzes = (storeQuizzes || []).filter(
+      (q) => q.active !== false && !isPersistentDeletedId("dailyQuizzes", q.id)
+    );
+
+    let list: DailyQuizItem[] = [];
+    if (activeQuizzes.length > 0) {
+      list = activeQuizzes;
+    } else if (!storeQuizzes || storeQuizzes.length === 0) {
+      // Only fallback to non-deleted seed quizzes if the store has no entries AND seed isn't tombstoned
+      list = SEED_DAILY_QUIZZES.filter(
+        (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
+      );
+    }
+
     if (list.length === 0) return null;
     const todayIso = new Date().toISOString().slice(0, 10);
     const exactDateMatch = list.find((q) => q.dateLabel === todayIso);
@@ -534,16 +544,23 @@ export default function MobileExplorePage() {
                 </div>
 
                 {chosenOptionId && (
-                  <div className={`p-2.5 rounded-lg border flex items-center justify-between gap-2.5 animate-rise ${
+                  <div className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-rise ${
                     isSolvedCorrect ? "bg-[#F0F6FF] border-[#D5E3F5]" : "bg-rose-50 border-rose-200"
                   }`}>
-                    <p className="text-xs text-[#0F1E36] leading-snug font-sans flex-1 min-w-0">
-                      <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
-                        {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
-                      </strong>{" "}
-                      {activeChallenge.verdictTitle}
-                    </p>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-[#0F1E36] leading-snug font-sans">
+                        <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
+                          {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
+                        </strong>{" "}
+                        {activeChallenge.verdictTitle}
+                      </p>
+                      {activeChallenge.explanation && activeChallenge.explanation !== activeChallenge.verdictTitle && (
+                        <p className="text-[11px] text-slate-600 mt-1 font-sans leading-relaxed">
+                          {activeChallenge.explanation}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0 self-start sm:self-auto">
                       1/1 Attempt Used
                     </span>
                   </div>

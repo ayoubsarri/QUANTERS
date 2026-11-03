@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import {
+  AlertCircle,
   BookOpen,
   Calendar,
   Check,
@@ -361,14 +362,20 @@ export default function AdminExplorePage() {
   const [quizDomain, setQuizDomain] = useState("ASTROPHYSICS · SPECTROSCOPY");
   const [quizIcon, setQuizIcon] = useState<FieldIconKey>("astronomy");
   const [quizQuestion, setQuizQuestion] = useState("");
-  const [optALabel, setOptALabel] = useState("");
-  const [optBLabel, setOptBLabel] = useState("");
-  const [optCLabel, setOptCLabel] = useState("");
-  const [quizCorrectId, setQuizCorrectId] = useState<"a" | "b" | "c">("a");
+  const [quizOptions, setQuizOptions] = useState<Array<{ id: string; label: string }>>([
+    { id: "a", label: "" },
+    { id: "b", label: "" },
+    { id: "c", label: "" },
+  ]);
+  const [quizCorrectId, setQuizCorrectId] = useState<string>("a");
   const [quizVerdictTitle, setQuizVerdictTitle] = useState("");
   const [quizExplanation, setQuizExplanation] = useState("");
   const [quizXpReward, setQuizXpReward] = useState<number>(15);
+  const [quizDateLabel, setQuizDateLabel] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
   const [quizPinToday, setQuizPinToday] = useState<boolean>(true);
+  const [quizFormError, setQuizFormError] = useState<string | null>(null);
 
   // --- TAB 3: QUOTES LIBRARY STATE ---
   const [editingQuote, setEditingQuote] = useState<DailyQuoteItem | null>(null);
@@ -492,64 +499,119 @@ export default function AdminExplorePage() {
     setCreateOpen(false);
   };
 
+  const openNewQuizModal = () => {
+    setEditingQuiz(null);
+    setQuizDomain("ASTROPHYSICS · SPECTROSCOPY");
+    setQuizIcon("astronomy");
+    setQuizXpReward(15);
+    setQuizQuestion("");
+    setQuizOptions([
+      { id: "a", label: "" },
+      { id: "b", label: "" },
+      { id: "c", label: "" },
+    ]);
+    setQuizCorrectId("a");
+    setQuizVerdictTitle("");
+    setQuizExplanation("");
+    setQuizDateLabel(new Date().toISOString().slice(0, 10));
+    setQuizPinToday(false);
+    setQuizFormError(null);
+    setQuizModalOpen(true);
+  };
+
+  const openEditQuizModal = (quiz: DailyQuizItem) => {
+    setEditingQuiz(quiz);
+    setQuizDomain(quiz.domain || "GENERAL SCIENCE");
+    setQuizIcon(quiz.icon || "science");
+    setQuizXpReward(quiz.xpReward || 15);
+    setQuizQuestion(quiz.question || "");
+    setQuizOptions(
+      quiz.options && quiz.options.length >= 2
+        ? quiz.options.map((o) => ({ id: o.id, label: o.label }))
+        : [
+            { id: "a", label: "" },
+            { id: "b", label: "" },
+          ]
+    );
+    setQuizCorrectId(quiz.correctId || quiz.options[0]?.id || "a");
+    setQuizVerdictTitle(quiz.verdictTitle || "");
+    setQuizExplanation(quiz.explanation || "");
+    setQuizDateLabel(quiz.dateLabel || new Date().toISOString().slice(0, 10));
+    setQuizPinToday(!!quiz.isPinnedToday);
+    setQuizFormError(null);
+    setQuizModalOpen(true);
+  };
+
+  const handleAddQuizOption = () => {
+    if (quizOptions.length >= 4) return;
+    const nextLetter = String.fromCharCode(97 + quizOptions.length);
+    setQuizOptions((prev) => [...prev, { id: nextLetter, label: "" }]);
+  };
+
+  const handleRemoveQuizOption = (indexToRemove: number) => {
+    if (quizOptions.length <= 2) return;
+    setQuizOptions((prev) => {
+      const filtered = prev.filter((_, idx) => idx !== indexToRemove);
+      const reindexed = filtered.map((opt, i) => ({
+        id: String.fromCharCode(97 + i),
+        label: opt.label,
+      }));
+      if (!reindexed.some((o) => o.id === quizCorrectId)) {
+        setQuizCorrectId(reindexed[0].id);
+      }
+      return reindexed;
+    });
+  };
+
   const handleCreateDailyQuiz = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !quizQuestion.trim() ||
-      !optALabel.trim() ||
-      !optBLabel.trim() ||
-      !optCLabel.trim()
-    ) {
+    setQuizFormError(null);
+
+    if (!quizQuestion.trim()) {
+      setQuizFormError("Please enter the quiz question.");
       return;
     }
-    const options = [
-      { id: "a", label: optALabel.trim() },
-      { id: "b", label: optBLabel.trim() },
-      { id: "c", label: optCLabel.trim() },
-    ];
+
+    const cleanedOptions = quizOptions
+      .map((o) => ({ id: o.id.trim().toLowerCase(), label: o.label.trim() }))
+      .filter((o) => o.label.length > 0);
+
+    if (cleanedOptions.length < 2) {
+      setQuizFormError("Please provide at least 2 non-empty options.");
+      return;
+    }
+
+    const matchingCorrect = cleanedOptions.find(
+      (o) => o.id === quizCorrectId.toLowerCase()
+    );
+    const finalCorrectId = matchingCorrect ? matchingCorrect.id : cleanedOptions[0].id;
+
+    const payload = {
+      domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
+      icon: quizIcon,
+      question: quizQuestion.trim(),
+      options: cleanedOptions,
+      correctId: finalCorrectId,
+      verdictTitle: quizVerdictTitle.trim() || "Verified Scientific Principle",
+      explanation:
+        quizExplanation.trim() ||
+        quizVerdictTitle.trim() ||
+        "Confirmed by verified scientific methodology.",
+      xpReward: Number(quizXpReward) || 15,
+      dateLabel: quizDateLabel.trim() || new Date().toISOString().slice(0, 10),
+      isPinnedToday: quizPinToday,
+      active: true,
+    };
 
     if (editingQuiz) {
-      updateDailyQuiz(editingQuiz.id, {
-        domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
-        icon: quizIcon,
-        question: quizQuestion.trim(),
-        options,
-        correctId: quizCorrectId,
-        verdictTitle: quizVerdictTitle.trim() || "Verified Scientific Principle",
-        explanation: quizExplanation.trim() || quizVerdictTitle.trim() || "Confirmed by experimental verification.",
-        xpReward: Number(quizXpReward) || 15,
-        isPinnedToday: quizPinToday,
-      });
+      updateDailyQuiz(editingQuiz.id, payload);
       setBanner(`Updated Daily Quiz '${quizQuestion.slice(0, 35)}...'!`);
       setEditingQuiz(null);
     } else {
-      createDailyQuiz({
-        domain: quizDomain.trim().toUpperCase() || "GENERAL SCIENCE",
-        icon: quizIcon,
-        question: quizQuestion.trim(),
-        options,
-        correctId: quizCorrectId,
-        verdictTitle:
-          quizVerdictTitle.trim() || "Verified Scientific Principle",
-        explanation:
-          quizExplanation.trim() ||
-          quizVerdictTitle.trim() ||
-          "Confirmed by experimental verification.",
-        xpReward: Number(quizXpReward) || 15,
-        dateLabel: "Daily Quiz",
-        isPinnedToday: quizPinToday,
-        active: true,
-      });
-      setBanner(
-        "New Daily Quiz published to the Member App Explore Quiz box!"
-      );
+      createDailyQuiz(payload);
+      setBanner("New Daily Quiz published and synced live to Member App!");
     }
-    setQuizQuestion("");
-    setOptALabel("");
-    setOptBLabel("");
-    setOptCLabel("");
-    setQuizVerdictTitle("");
-    setQuizExplanation("");
+
     setQuizModalOpen(false);
   };
 
@@ -621,7 +683,7 @@ export default function AdminExplorePage() {
               {activeTab === "quiz" && (
                 <button
                   type="button"
-                  onClick={() => setQuizModalOpen(true)}
+                  onClick={openNewQuizModal}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4 text-[#38BDF8]" />
@@ -909,16 +971,7 @@ export default function AdminExplorePage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingQuiz(null);
-                    setQuizDomain("");
-                    setQuizQuestion("");
-                    setOptALabel("");
-                    setOptBLabel("");
-                    setOptCLabel("");
-                    setQuizVerdictTitle("");
-                    setQuizModalOpen(true);
-                  }}
+                  onClick={openNewQuizModal}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
@@ -950,16 +1003,7 @@ export default function AdminExplorePage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingQuiz(null);
-                    setQuizDomain("");
-                    setQuizQuestion("");
-                    setOptALabel("");
-                    setOptBLabel("");
-                    setOptCLabel("");
-                    setQuizVerdictTitle("");
-                    setQuizModalOpen(true);
-                  }}
+                  onClick={openNewQuizModal}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:bg-[#101F38] transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 text-[#38BDF8]" />
@@ -986,6 +1030,11 @@ export default function AdminExplorePage() {
                             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0284C7]">
                               {quiz.domain}
                             </span>
+                            {quiz.dateLabel && (
+                              <span className="px-1.5 py-0.5 rounded bg-sky-50 border border-sky-200/80 text-sky-800 font-mono text-[10px] font-bold">
+                                {quiz.dateLabel}
+                              </span>
+                            )}
                             {quiz.isPinnedToday && (
                               <span className="px-2 py-0.5 rounded-md bg-[#182C4E] text-[#7DD3FC] font-mono text-[10px] font-bold uppercase">
                                 Pinned First Today
@@ -1016,20 +1065,7 @@ export default function AdminExplorePage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => {
-                            setEditingQuiz(quiz);
-                            setQuizDomain(quiz.domain);
-                            setQuizIcon(quiz.icon);
-                            setQuizXpReward(quiz.xpReward);
-                            setQuizQuestion(quiz.question);
-                            setOptALabel(quiz.options[0]?.label || "");
-                            setOptBLabel(quiz.options[1]?.label || "");
-                            setOptCLabel(quiz.options[2]?.label || "");
-                            setQuizCorrectId((quiz.correctId as "a" | "b" | "c") || "a");
-                            setQuizVerdictTitle(quiz.verdictTitle);
-                            setQuizPinToday(!!quiz.isPinnedToday);
-                            setQuizModalOpen(true);
-                          }}
+                          onClick={() => openEditQuizModal(quiz)}
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
                           title="Edit Quiz"
                         >
@@ -1099,9 +1135,17 @@ export default function AdminExplorePage() {
                     </div>
                   </div>
 
-                  <div className="pt-2.5 border-t border-slate-100 text-xs text-slate-500">
-                    <strong className="text-slate-700">Verdict Note:</strong>{" "}
-                    {quiz.verdictTitle}
+                  <div className="pt-2.5 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                    <div>
+                      <strong className="text-slate-700">Verdict Note:</strong>{" "}
+                      {quiz.verdictTitle}
+                    </div>
+                    {quiz.explanation && quiz.explanation !== quiz.verdictTitle && (
+                      <div className="text-[11px] text-slate-600 line-clamp-2">
+                        <strong className="text-slate-700">Scientific Rationale:</strong>{" "}
+                        {quiz.explanation}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1968,6 +2012,13 @@ export default function AdminExplorePage() {
               onSubmit={handleCreateDailyQuiz}
               className="p-6 space-y-4 max-h-[82vh] overflow-y-auto"
             >
+              {quizFormError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{quizFormError}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
@@ -1985,31 +2036,59 @@ export default function AdminExplorePage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Field Icon &amp; XP Reward
+                    Scheduled Date (YYYY-MM-DD)
                   </label>
                   <div className="flex items-center gap-2">
-                    <select
-                      value={quizIcon}
-                      onChange={(e) =>
-                        setQuizIcon(e.target.value as FieldIconKey)
-                      }
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                    >
-                      {ALL_FIELD_ICONS.map((item) => (
-                        <option key={item.key} value={item.key}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
                     <input
-                      type="number"
-                      min={5}
-                      max={50}
-                      value={quizXpReward}
-                      onChange={(e) => setQuizXpReward(Number(e.target.value))}
-                      className="w-20 px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono font-bold"
+                      type="date"
+                      value={quizDateLabel}
+                      onChange={(e) => setQuizDateLabel(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setQuizDateLabel(new Date().toISOString().slice(0, 10))}
+                      className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 transition"
+                      title="Set to Today"
+                    >
+                      Today
+                    </button>
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Field Icon
+                  </label>
+                  <select
+                    value={quizIcon}
+                    onChange={(e) =>
+                      setQuizIcon(e.target.value as FieldIconKey)
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  >
+                    {ALL_FIELD_ICONS.map((item) => (
+                      <option key={item.key} value={item.key}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    XP Reward (5-50 XP)
+                  </label>
+                  <input
+                    type="number"
+                    min={5}
+                    max={50}
+                    value={quizXpReward}
+                    onChange={(e) => setQuizXpReward(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono font-bold"
+                  />
                 </div>
               </div>
 
@@ -2028,17 +2107,23 @@ export default function AdminExplorePage() {
               </div>
 
               <div className="space-y-2.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  3 Answer Options (Select the Correct Option) *
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Answer Options (Select the Correct Option) *
+                  </label>
+                  {quizOptions.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={handleAddQuizOption}
+                      className="text-xs font-bold text-[#0284C7] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Option ({String.fromCharCode(65 + quizOptions.length)})</span>
+                    </button>
+                  )}
+                </div>
 
-                {(
-                  [
-                    { id: "a", label: "Option A", val: optALabel, set: setOptALabel },
-                    { id: "b", label: "Option B", val: optBLabel, set: setOptBLabel },
-                    { id: "c", label: "Option C", val: optCLabel, set: setOptCLabel },
-                  ] as const
-                ).map((item) => (
+                {quizOptions.map((item, idx) => (
                   <div key={item.id} className="flex items-center gap-2">
                     <input
                       type="radio"
@@ -2046,25 +2131,40 @@ export default function AdminExplorePage() {
                       checked={quizCorrectId === item.id}
                       onChange={() => setQuizCorrectId(item.id)}
                       className="w-4 h-4 accent-[#182C4E] cursor-pointer"
+                      title="Select as correct option"
                     />
                     <span className="w-6 text-xs font-mono font-bold text-slate-600 uppercase">
-                      {item.id}.
+                      {item.id.toUpperCase()}.
                     </span>
                     <input
                       type="text"
                       required
-                      value={item.val}
-                      onChange={(e) => item.set(e.target.value)}
-                      placeholder={`${item.label} text...`}
+                      value={item.label}
+                      onChange={(e) => {
+                        const next = [...quizOptions];
+                        next[idx] = { ...next[idx], label: e.target.value };
+                        setQuizOptions(next);
+                      }}
+                      placeholder={`Option ${item.id.toUpperCase()} text...`}
                       className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
                     />
+                    {quizOptions.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveQuizOption(idx)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        title="Remove this option"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Short Verdict / Explanation Note *
+                  Short Verdict / Headline *
                 </label>
                 <input
                   type="text"
@@ -2072,6 +2172,19 @@ export default function AdminExplorePage() {
                   value={quizVerdictTitle}
                   onChange={(e) => setQuizVerdictTitle(e.target.value)}
                   placeholder="e.g. Conservation of Angular Momentum Confirmed"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Scientific Explanation / Educational Note (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={quizExplanation}
+                  onChange={(e) => setQuizExplanation(e.target.value)}
+                  placeholder="Explain why this answer is scientifically correct for the member to learn..."
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm"
                 />
               </div>
