@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRight,
+  Award,
   Bookmark,
   Calendar,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -13,9 +15,11 @@ import {
   Clock,
   ExternalLink,
   Library,
+  Lock,
   RotateCcw,
   Search,
   Sparkles,
+  Trophy,
   X,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
@@ -146,98 +150,75 @@ export default function MobileExplorePage() {
     } catch {}
   }, [currentMemberId]);
 
-  const todayQuiz = React.useMemo(() => {
-    // 1. Quizzes currently in store that are active and not tombstoned
+  const [activeQuizIndex, setActiveQuizIndex] = useState(0);
+  const [reviewMode, setReviewMode] = useState(false);
+
+  // Today's full active challenge set
+  const todayQuizList = React.useMemo(() => {
     const activeQuizzes = (storeQuizzes || []).filter(
       (q) => q.active !== false && !isPersistentDeletedId("dailyQuizzes", q.id)
     );
+    if (activeQuizzes.length === 0) return [];
 
-    let list: DailyQuizItem[] = [];
-    if (activeQuizzes.length > 0) {
-      list = activeQuizzes;
-    } else if (!storeQuizzes || storeQuizzes.length === 0) {
-      // Only fallback to non-deleted seed quizzes if the store has no entries AND seed isn't tombstoned
-      list = SEED_DAILY_QUIZZES.filter(
-        (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
-      );
-    }
-
-    if (list.length === 0) return null;
     const todayIso = new Date().toISOString().slice(0, 10);
-    const exactDateMatch = list.find((q) => q.dateLabel === todayIso);
-    if (exactDateMatch) return exactDateMatch;
-    const pinned = list.find((q) => q.isPinnedToday);
-    if (pinned) return pinned;
-    const dayIdx = (getCurrentDayOfYear(0) - 1) % list.length;
-    return list[dayIdx] || list[0] || null;
+    const dateMatches = activeQuizzes.filter((q) => q.dateLabel === todayIso);
+    const candidateList = dateMatches.length > 0 ? dateMatches : activeQuizzes;
+
+    // Pin items first, keep order
+    return [...candidateList].sort((a, b) => (b.isPinnedToday ? 1 : 0) - (a.isPinnedToday ? 1 : 0));
   }, [storeQuizzes]);
-
-  // Always sort published posts so Important / Featured / Newest appear first
-  const publishedPosts = [...explorePosts]
-    .filter((p) => p.status === "Published")
-    .sort((a, b) => {
-      const prioDiff =
-        getPostPriorityMeta(b).rank - getPostPriorityMeta(a).rank;
-      if (prioDiff !== 0) return prioDiff;
-      return b.date.localeCompare(a.date);
-    });
-
-  const filteredPosts = publishedPosts.filter((p) => {
-    const matchesCat =
-      selectedCategory === "All" || p.category === selectedCategory;
-    const matchesQuery =
-      !searchQuery.trim() ||
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.tagLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.source.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesQuery;
-  });
-
-  const heroPost =
-    publishedPosts.length > 0
-      ? publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0]
-      : null;
-
-  const activeChallenge = todayQuiz;
 
   const currentMember = React.useMemo(
     () => members.find((m) => m.id === currentMemberId),
     [members, currentMemberId]
   );
 
+  // Map of attempts for all quizzes in today's set
+  const attemptedMap = React.useMemo(() => {
+    const map: Record<string, { optionId: string; correct: boolean; xpEarned: number }> = {};
+    for (const q of todayQuizList) {
+      const memberAttempt = currentMember?.quizAttempts?.[q.id];
+      if (memberAttempt) {
+        map[q.id] = memberAttempt;
+      } else if (selectedAnswers[q.id]) {
+        const isCorr = selectedAnswers[q.id] === q.correctId;
+        map[q.id] = {
+          optionId: selectedAnswers[q.id],
+          correct: isCorr,
+          xpEarned: isCorr ? (q.xpReward || 15) : 0,
+        };
+      }
+    }
+    return map;
+  }, [todayQuizList, currentMember?.quizAttempts, selectedAnswers]);
+
+  const totalQuizzesCount = todayQuizList.length;
+  const attemptedCount = Object.keys(attemptedMap).length;
+  const correctCount = Object.values(attemptedMap).filter((a) => a.correct).length;
+  const totalEarnedGameXp = Object.values(attemptedMap).reduce((acc, a) => acc + (a.xpEarned || 0), 0);
+  const isAllQuizFinished = totalQuizzesCount > 0 && attemptedCount >= totalQuizzesCount;
+
+  // Auto-focus on the first un-attempted quiz upon load
+  useEffect(() => {
+    if (todayQuizList.length > 0) {
+      const firstUnattempted = todayQuizList.findIndex((q) => !attemptedMap[q.id]);
+      if (firstUnattempted !== -1) {
+        setActiveQuizIndex(firstUnattempted);
+      }
+    }
+  }, [todayQuizList.length]);
+
+  const safeIndex = Math.max(0, Math.min(activeQuizIndex, Math.max(0, todayQuizList.length - 1)));
+  const activeChallenge = todayQuizList[safeIndex] || null;
+
   const recordedAttempt = React.useMemo(() => {
-    if (!activeChallenge || !currentMember) return null;
-    return currentMember.quizAttempts?.[activeChallenge.id] || null;
-  }, [activeChallenge, currentMember]);
+    if (!activeChallenge) return null;
+    return attemptedMap[activeChallenge.id] || null;
+  }, [activeChallenge, attemptedMap]);
 
-  const chosenOptionId =
-    recordedAttempt?.optionId ||
-    (activeChallenge ? selectedAnswers[activeChallenge.id] || null : null);
-
-  const isSolvedCorrect =
-    recordedAttempt !== null
-      ? recordedAttempt.correct
-      : activeChallenge
-      ? chosenOptionId === activeChallenge.correctId
-      : false;
-
-  const isAlreadyRewarded = React.useMemo(() => {
-    if (!activeChallenge || !currentMemberId) return false;
-    const inLedger = ledger.some(
-      (e) =>
-        e.memberId === currentMemberId &&
-        (e.ruleLabel?.includes(activeChallenge.id) ||
-          e.reason?.includes(activeChallenge.id) ||
-          e.ruleLabel?.includes(activeChallenge.verdictTitle) ||
-          e.reason?.includes(activeChallenge.verdictTitle))
-    );
-    return inLedger || rewardedRounds.includes(activeChallenge.id);
-  }, [ledger, activeChallenge, currentMemberId, rewardedRounds]);
-
-  const isAlreadyAttempted =
-    Boolean(recordedAttempt) ||
-    Boolean(activeChallenge && selectedAnswers[activeChallenge.id]) ||
-    isAlreadyRewarded;
+  const chosenOptionId = recordedAttempt?.optionId || null;
+  const isSolvedCorrect = recordedAttempt?.correct ?? false;
+  const isAlreadyAttempted = Boolean(recordedAttempt);
 
   const handleSelectOption = (optionId: string) => {
     if (!activeChallenge || isAlreadyAttempted) return;
@@ -268,6 +249,32 @@ export default function MobileExplorePage() {
     submitDailyQuizAnswer(activeChallenge.id, optionId);
   };
 
+  // Always sort published posts so Important / Featured / Newest appear first
+  const publishedPosts = [...explorePosts]
+    .filter((p) => p.status === "Published")
+    .sort((a, b) => {
+      const prioDiff =
+        getPostPriorityMeta(b).rank - getPostPriorityMeta(a).rank;
+      if (prioDiff !== 0) return prioDiff;
+      return b.date.localeCompare(a.date);
+    });
+
+  const filteredPosts = publishedPosts.filter((p) => {
+    const matchesCat =
+      selectedCategory === "All" || p.category === selectedCategory;
+    const matchesQuery =
+      !searchQuery.trim() ||
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.tagLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.source.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesQuery;
+  });
+
+  const heroPost =
+    publishedPosts.length > 0
+      ? publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0]
+      : null;
+
 // toggleSave defined above with localStorage persistence
 
   const getTagBadgeStyle = (post: ExplorePost) => {
@@ -279,8 +286,6 @@ export default function MobileExplorePage() {
     }
     return "bg-[#F0F6FF] text-[#182C4E] border-[#D5E3F5]";
   };
-
-  const totalEarnedGameXp = rewardedRounds.length * 15;
 
   return (
     <MobileAppShell>
@@ -432,42 +437,39 @@ export default function MobileExplorePage() {
           </div>
         )}
 
-        {/* SINGLE DAILY QUIZ BUTTON & COLLAPSIBLE CARD */}
-        {activeChallenge && (
+        {/* MULTI-QUIZ DAILY CHALLENGE STEPPER & SCORE LOCK CARD */}
+        {todayQuizList.length > 0 && activeChallenge && (
           <div
-            className="rounded-xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.05)] overflow-hidden animate-rise"
+            className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.06)] overflow-hidden animate-rise"
             style={{ animationDelay: "110ms" }}
           >
+            {/* Header bar */}
             <button
               type="button"
               onClick={() => setIsQuizExpanded((prev) => !prev)}
               aria-expanded={isQuizExpanded}
-              aria-label="Open Daily Quiz"
-              className="w-full px-3.5 py-2.5 bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white flex items-center justify-between gap-2 cursor-pointer select-none text-left transition hover:brightness-105"
+              aria-label="Toggle Daily Scientific Challenge"
+              className="w-full px-4 py-3 bg-gradient-to-r from-[#182C4E] via-[#152744] to-[#101F38] text-white flex items-center justify-between gap-2.5 cursor-pointer select-none text-left transition hover:brightness-105"
             >
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <FieldIcon field={activeChallenge.icon} size={18} />
-                <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
-                  Quiz
-                </span>
-                {isAlreadyAttempted ? (
-                  <span className={`px-2 py-0.5 rounded font-mono text-[10.5px] font-bold border shrink-0 ${
-                    isSolvedCorrect
-                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40"
-                      : "bg-rose-500/20 text-rose-300 border-rose-400/40"
-                  }`}>
-                    {isSolvedCorrect ? `+${activeChallenge.xpReward} XP Earned` : "Attempted (1/1)"}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <FieldIcon field={activeChallenge.icon} size={20} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
+                    Daily Challenge
                   </span>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded bg-[#0F1E36]/80 border border-[#38BDF8]/35 font-mono text-[11px] font-bold text-[#7DD3FC] tabular-nums shrink-0">
-                    +{activeChallenge.xpReward} XP
-                  </span>
-                )}
-                {!isQuizExpanded && (
-                  <span className="text-xs text-sky-100/85 font-sans truncate ml-1">
-                    {activeChallenge.question}
-                  </span>
-                )}
+                  {isAllQuizFinished ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shrink-0">
+                      <Lock className="w-3 h-3 text-emerald-300" />
+                      <span>{correctCount}/{totalQuizzesCount} Correct · +{totalEarnedGameXp} XP (Locked)</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0F1E36]/90 border border-[#38BDF8]/40 font-mono text-[11px] font-bold text-[#7DD3FC] shrink-0">
+                      <span>Quiz {safeIndex + 1}/{totalQuizzesCount}</span>
+                      <span className="text-slate-400">·</span>
+                      <span className="text-emerald-400">+{activeChallenge.xpReward} XP</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               <span className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
@@ -480,89 +482,233 @@ export default function MobileExplorePage() {
             </button>
 
             {isQuizExpanded && (
-              <div className="p-3.5 space-y-2.5 border-t border-[#2B4875]/30 animate-rise">
-                <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
-                  {activeChallenge.question}
-                </h3>
+              <div className="p-4 space-y-3.5 border-t border-[#2B4875]/30 animate-rise">
+                {/* CASE A: ALL QUIZZES COMPLETED & LOCKED (SUMMARY VIEW) */}
+                {isAllQuizFinished && !reviewMode ? (
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-[#0F1E36] via-[#182C4E] to-[#101F38] text-white border border-[#2B4875] space-y-4 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-amber-950 flex items-center justify-center mx-auto shadow-lg shadow-amber-400/20">
+                      <Trophy className="w-6 h-6" />
+                    </div>
 
-                <div className="space-y-1.5">
-                  {activeChallenge.options.map((opt, idx) => {
-                    const isSelected = chosenOptionId === opt.id;
-                    const isRightOption = opt.id === activeChallenge.correctId;
-                    const showResult = Boolean(chosenOptionId);
+                    <div>
+                      <h3 className="font-display text-lg font-black tracking-tight text-white">
+                        Daily Scientific Challenge Complete!
+                      </h3>
+                      <p className="text-xs text-sky-200 mt-1 max-w-md mx-auto">
+                        You have answered all {totalQuizzesCount} daily challenges for today. Your answers and score are securely locked in your profile dossier.
+                      </p>
+                    </div>
 
-                    let cardStyle =
-                      "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
-                    let badgeStyle = "bg-[#182C4E] text-white";
+                    {/* Score Statistics Cards */}
+                    <div className="grid grid-cols-3 gap-2 pt-1 text-left">
+                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
+                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">Accuracy</span>
+                        <span className="font-mono text-base font-black text-white">
+                          {correctCount}/{totalQuizzesCount}
+                        </span>
+                        <span className="block text-[10px] text-emerald-300 font-mono mt-0.5">
+                          {Math.round((correctCount / totalQuizzesCount) * 100)}%
+                        </span>
+                      </div>
 
-                    if (showResult) {
-                      if (isRightOption) {
-                        cardStyle =
-                          "bg-[#F0F6FF] border-[#0284C7] text-[#0F1E36]";
-                        badgeStyle = "bg-[#0284C7] text-white";
-                      } else if (isSelected && !isRightOption) {
-                        cardStyle =
-                          "bg-rose-50 border-rose-300 text-rose-900";
-                        badgeStyle = "bg-rose-600 text-white";
-                      } else {
-                        cardStyle =
-                          "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
-                        badgeStyle = "bg-slate-200 text-slate-500";
-                      }
-                    }
+                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
+                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">XP Awarded</span>
+                        <span className="font-mono text-base font-black text-amber-300">
+                          +{totalEarnedGameXp}
+                        </span>
+                        <span className="block text-[10px] text-sky-200 font-mono mt-0.5">
+                          Season XP
+                        </span>
+                      </div>
 
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        disabled={showResult}
-                        onClick={() => handleSelectOption(opt.id)}
-                        className={`w-full py-2 px-2.5 rounded-lg border text-left transition-all flex items-center gap-2.5 ${cardStyle} ${
-                          showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
+                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
+                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">Daily Lock</span>
+                        <span className="font-mono text-base font-black text-emerald-400 flex items-center justify-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>1/1</span>
+                        </span>
+                        <span className="block text-[10px] text-slate-300 font-mono mt-0.5">
+                          Attempt Used
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setReviewMode(true)}
+                      className="w-full py-2.5 px-4 rounded-xl bg-white/15 hover:bg-white/20 border border-white/20 text-xs font-bold font-display text-white transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Review All Questions &amp; Explanations</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#38BDF8]" />
+                    </button>
+                  </div>
+                ) : (
+                  /* CASE B: ACTIVE STEPPER QUESTION OR REVIEW MODE */
+                  <div className="space-y-3">
+                    {/* Stepper Progress Bar */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="font-bold text-[#0284C7] uppercase tracking-wider">
+                          {activeChallenge.domain}
+                        </span>
+                        <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold">
+                          {reviewMode && (
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px]">
+                              Review Mode
+                            </span>
+                          )}
+                          <span>
+                            Question {safeIndex + 1} of {totalQuizzesCount}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#0284C7] to-[#38BDF8] transition-all duration-300"
+                          style={{
+                            width: `${((safeIndex + (chosenOptionId ? 1 : 0)) / totalQuizzesCount) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Question Title */}
+                    <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
+                      {activeChallenge.question}
+                    </h3>
+
+                    {/* Options List */}
+                    <div className="space-y-1.5">
+                      {activeChallenge.options.map((opt, idx) => {
+                        const isSelected = chosenOptionId === opt.id;
+                        const isRightOption = opt.id === activeChallenge.correctId;
+                        const showResult = Boolean(chosenOptionId);
+
+                        let cardStyle =
+                          "bg-[#F8FAFC] hover:bg-[#F0F6FF] border-slate-200/90 hover:border-[#182C4E]/40 text-[#0F1E36]";
+                        let badgeStyle = "bg-[#182C4E] text-white";
+
+                        if (showResult) {
+                          if (isRightOption) {
+                            cardStyle = "bg-[#F0F6FF] border-[#0284C7] text-[#0F1E36]";
+                            badgeStyle = "bg-[#0284C7] text-white";
+                          } else if (isSelected && !isRightOption) {
+                            cardStyle = "bg-rose-50 border-rose-300 text-rose-900";
+                            badgeStyle = "bg-rose-600 text-white";
+                          } else {
+                            cardStyle = "bg-slate-50/70 border-slate-200/60 text-slate-400 opacity-65";
+                            badgeStyle = "bg-slate-200 text-slate-500";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            disabled={showResult}
+                            onClick={() => handleSelectOption(opt.id)}
+                            className={`w-full py-2.5 px-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${cardStyle} ${
+                              showResult ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
+                            }`}
+                          >
+                            <span
+                              className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
+                            >
+                              {showResult && isRightOption ? (
+                                <Check className="w-3 h-3" />
+                              ) : (
+                                String.fromCharCode(65 + idx)
+                              )}
+                            </span>
+                            <span className="flex-1 text-xs font-bold font-display leading-snug">
+                              {opt.label}
+                            </span>
+                            {showResult && isRightOption && (
+                              <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
+                                +{activeChallenge.xpReward} XP
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Verdict & Scientific Rationale */}
+                    {chosenOptionId && (
+                      <div
+                        className={`p-3 rounded-xl border flex flex-col gap-1.5 animate-rise ${
+                          isSolvedCorrect ? "bg-[#F0F6FF] border-[#D5E3F5]" : "bg-rose-50 border-rose-200"
                         }`}
                       >
-                        <span
-                          className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
-                        >
-                          {showResult && isRightOption ? (
-                            <Check className="w-3 h-3" />
-                          ) : (
-                            String.fromCharCode(65 + idx)
-                          )}
-                        </span>
-                        <span className="flex-1 text-xs font-bold font-display leading-snug">
-                          {opt.label}
-                        </span>
-                        {showResult && isRightOption && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
-                            +{activeChallenge.xpReward} XP
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-[#0F1E36] leading-snug font-sans">
+                            <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
+                              {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
+                            </strong>{" "}
+                            {activeChallenge.verdictTitle}
+                          </p>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0">
+                            1/1 Attempt Used
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                        </div>
 
-                {chosenOptionId && (
-                  <div className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-rise ${
-                    isSolvedCorrect ? "bg-[#F0F6FF] border-[#D5E3F5]" : "bg-rose-50 border-rose-200"
-                  }`}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-[#0F1E36] leading-snug font-sans">
-                        <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
-                          {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
-                        </strong>{" "}
-                        {activeChallenge.verdictTitle}
-                      </p>
-                      {activeChallenge.explanation && activeChallenge.explanation !== activeChallenge.verdictTitle && (
-                        <p className="text-[11px] text-slate-600 mt-1 font-sans leading-relaxed">
-                          {activeChallenge.explanation}
-                        </p>
+                        {activeChallenge.explanation && activeChallenge.explanation !== activeChallenge.verdictTitle && (
+                          <p className="text-[11px] text-slate-600 font-sans leading-relaxed pt-1 border-t border-slate-200/50">
+                            {activeChallenge.explanation}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Stepper Navigation Buttons */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        {safeIndex > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setActiveQuizIndex((prev) => Math.max(0, prev - 1))}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                            <span>Previous</span>
+                          </button>
+                        )}
+
+                        {reviewMode && isAllQuizFinished && (
+                          <button
+                            type="button"
+                            onClick={() => setReviewMode(false)}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                          >
+                            <span>Back to Score</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Advance Button */}
+                      {chosenOptionId && safeIndex < totalQuizzesCount - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveQuizIndex((prev) => Math.min(totalQuizzesCount - 1, prev + 1))}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display shadow-sm hover:brightness-110 transition cursor-pointer ml-auto"
+                        >
+                          <span>Next Question ({safeIndex + 2} of {totalQuizzesCount})</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-[#38BDF8]" />
+                        </button>
+                      )}
+
+                      {chosenOptionId && safeIndex === totalQuizzesCount - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setReviewMode(false)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-xs font-bold font-display shadow-sm hover:brightness-110 transition cursor-pointer ml-auto"
+                        >
+                          <Trophy className="w-3.5 h-3.5 text-amber-300" />
+                          <span>View Total Score &amp; Complete</span>
+                        </button>
                       )}
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0 self-start sm:self-auto">
-                      1/1 Attempt Used
-                    </span>
                   </div>
                 )}
               </div>

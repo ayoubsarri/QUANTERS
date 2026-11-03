@@ -916,7 +916,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   projectCategories: DEFAULT_PROJECT_CATEGORIES,
   proposals: SEED_PROPOSALS,
   explorePosts: SEED_EXPLORE_POSTS,
-  dailyQuizzes: SEED_DAILY_QUIZZES,
+  dailyQuizzes: [],
   dailyQuotes: SEED_DAILY_QUOTES_365,
   messages: SEED_MESSAGES.map((m) => ({ ...m, archived: m.archived ?? !m.unread })),
   accessGrants: SEED_ACCESS_GRANTS,
@@ -1686,9 +1686,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ? (parsed.dailyQuizzes as DailyQuizItem[]).filter(
                 (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
               )
-            : SEED_DAILY_QUIZZES.filter(
-                (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
-              ),
+            : [],
           dailyQuotes: mergedQuotes,
           messages: parsed.messages || get().messages,
           accessGrants: parsed.accessGrants || get().accessGrants,
@@ -1785,6 +1783,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         if (JSON.stringify(currentArr) !== JSON.stringify(merged)) {
           (patchState as Record<string, unknown>)[key] = merged;
           hasArrayChanges = true;
+        }
+      } else {
+        const currentArr = (current as unknown as Record<string, unknown>)[key];
+        if (Array.isArray(currentArr)) {
+          const filtered = currentArr.filter((item: any) => !isPersistentDeletedId(key, item?.id));
+          if (filtered.length !== currentArr.length) {
+            (patchState as Record<string, unknown>)[key] = filtered;
+            hasArrayChanges = true;
+          }
         }
       }
     }
@@ -1896,6 +1903,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 const currentArr = (current as unknown as Record<string, unknown>)[key];
                 if (JSON.stringify(currentArr) !== JSON.stringify(merged)) {
                   (patchState as Record<string, unknown>)[key] = merged;
+                }
+              } else {
+                const currentArr = (current as unknown as Record<string, unknown>)[key];
+                if (Array.isArray(currentArr)) {
+                  const filtered = currentArr.filter((item: any) => !isPersistentDeletedId(key, item?.id));
+                  if (filtered.length !== currentArr.length) {
+                    (patchState as Record<string, unknown>)[key] = filtered;
+                  }
                 }
               }
             }
