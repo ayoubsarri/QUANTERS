@@ -10,11 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Download,
   Edit3,
   Eye,
   Code2,
   Copy,
   FileCode2,
+  FileJson,
   HelpCircle,
   Newspaper,
   Pencil,
@@ -43,7 +45,7 @@ import {
 } from "lucide-react";
 import { MarkdownArticleRenderer } from "@/components/shared/MarkdownArticleRenderer";
 import { FieldIcon, ALL_FIELD_ICONS } from "@/components/shared/FieldIcon";
-import { useQuantersStore } from "@/lib/store/useQuantersStore";
+import { useQuantersStore, isPersistentDeletedId } from "@/lib/store/useQuantersStore";
 import { getActiveDailyQuote, getCurrentDayOfYear } from "@/lib/data/seed";
 import {
   DailyQuizItem,
@@ -356,6 +358,7 @@ export default function AdminExplorePage() {
   const [quizJsonModalOpen, setQuizJsonModalOpen] = useState(false);
   const [quizJsonInput, setQuizJsonInput] = useState("");
   const [quizJsonValidation, setQuizJsonValidation] = useState<{ count: number; error?: string } | null>(null);
+  const [quizJsonMode, setQuizJsonMode] = useState<"append" | "replace">("append");
 
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [quizSearch, setQuizSearch] = useState("");
@@ -419,14 +422,62 @@ export default function AdminExplorePage() {
     return matchesCat && matchesStatus && matchesSearch;
   });
 
+  const handleExportQuizzesJson = () => {
+    const list = dailyQuizzes.filter((q) => !isPersistentDeletedId("dailyQuizzes", q.id));
+    const cleanList = list.map((q) => ({
+      domain: q.domain,
+      icon: q.icon,
+      dateLabel: q.dateLabel || new Date().toISOString().slice(0, 10),
+      question: q.question,
+      options: q.options,
+      correctId: q.correctId || q.options[0]?.id || "a",
+      verdictTitle: q.verdictTitle,
+      explanation: q.explanation || q.verdictTitle,
+      xpReward: q.xpReward,
+      isPinnedToday: Boolean(q.isPinnedToday),
+      active: q.active !== false,
+    }));
+    const jsonStr = JSON.stringify(cleanList, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `quanters-daily-quizzes-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setBanner(`Exported ${cleanList.length} daily quizzes to JSON file!`);
+  };
+
+  const handleCopyQuizzesJson = () => {
+    const list = dailyQuizzes.filter((q) => !isPersistentDeletedId("dailyQuizzes", q.id));
+    const cleanList = list.map((q) => ({
+      domain: q.domain,
+      icon: q.icon,
+      dateLabel: q.dateLabel || new Date().toISOString().slice(0, 10),
+      question: q.question,
+      options: q.options,
+      correctId: q.correctId || q.options[0]?.id || "a",
+      verdictTitle: q.verdictTitle,
+      explanation: q.explanation || q.verdictTitle,
+      xpReward: q.xpReward,
+      isPinnedToday: Boolean(q.isPinnedToday),
+      active: q.active !== false,
+    }));
+    navigator.clipboard.writeText(JSON.stringify(cleanList, null, 2));
+    setBanner(`Copied ${cleanList.length} daily quizzes as JSON!`);
+  };
+
   // Filtered Quizzes
-  const filteredQuizzes = dailyQuizzes.filter(
-    (q) =>
-      !quizSearch.trim() ||
-      q.question.toLowerCase().includes(quizSearch.toLowerCase()) ||
-      q.domain.toLowerCase().includes(quizSearch.toLowerCase()) ||
-      q.verdictTitle.toLowerCase().includes(quizSearch.toLowerCase())
-  );
+  const filteredQuizzes = dailyQuizzes
+    .filter((q) => !isPersistentDeletedId("dailyQuizzes", q.id))
+    .filter(
+      (q) =>
+        !quizSearch.trim() ||
+        q.question.toLowerCase().includes(quizSearch.toLowerCase()) ||
+        q.domain.toLowerCase().includes(quizSearch.toLowerCase()) ||
+        q.verdictTitle.toLowerCase().includes(quizSearch.toLowerCase()) ||
+        (q.dateLabel && q.dateLabel.includes(quizSearch))
+    );
 
   // Filtered 365 Quotes
   const filteredQuotes = dailyQuotes.filter((q) => {
@@ -982,12 +1033,21 @@ export default function AdminExplorePage() {
                   onClick={() => {
                     setQuizJsonInput("");
                     setQuizJsonValidation(null);
+                    setQuizJsonMode("append");
                     setQuizJsonModalOpen(true);
                   }}
                   className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 text-indigo-700 transition cursor-pointer"
-                  title="Import Daily Quizzes from JSON"
+                  title="Import Daily Quizzes from JSON Format"
                 >
                   <Code2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportQuizzesJson}
+                  className="p-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-[#0284C7] transition cursor-pointer"
+                  title="Export All Daily Quizzes to JSON File"
+                >
+                  <Download className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -2351,14 +2411,14 @@ export default function AdminExplorePage() {
          ========================================================= */}
       {quizJsonModalOpen && (
         <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
             <div className="px-6 py-4 bg-[#182C4E] text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <FileCode2 className="w-5 h-5 text-[#38BDF8]" />
                 <div>
-                  <h2 className="text-base font-extrabold">Import Daily Quizzes (JSON Format)</h2>
+                  <h2 className="text-base font-extrabold">Import / Export Daily Quizzes (JSON)</h2>
                   <p className="text-xs text-sky-200">
-                    Paste raw JSON array of daily quiz questions.
+                    Paste raw JSON array or export active quiz questions
                   </p>
                 </div>
               </div>
@@ -2372,9 +2432,12 @@ export default function AdminExplorePage() {
             </div>
 
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <div className="p-3.5 rounded-2xl bg-slate-900 text-sky-100 text-xs font-mono space-y-2">
-                <div className="flex items-center justify-between text-slate-300">
-                  <span className="font-bold text-[#38BDF8]">Accepted JSON Format:</span>
+              {/* Quick Actions Bar */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                  JSON Schema &amp; Templates
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => {
@@ -2382,51 +2445,136 @@ export default function AdminExplorePage() {
                         {
                           domain: "QUANTUM OPTICS",
                           icon: "quantum",
-                          question: "What is photon entanglement?",
+                          dateLabel: new Date().toISOString().slice(0, 10),
+                          question: "What is quantum photon entanglement?",
                           options: [
-                            { id: "a", label: "Instantaneous correlation between states" },
-                            { id: "b", label: "Photons losing all momentum" },
-                            { id: "c", label: "Transformation into thermal radiation" }
+                            { id: "a", label: "Instantaneous correlation between quantum states" },
+                            { id: "b", label: "Photons losing all kinetic momentum" },
+                            { id: "c", label: "Transformation into thermal radiation" },
+                            { id: "d", label: "Decay into virtual leptons" }
                           ],
                           correctId: "a",
                           verdictTitle: "Quantum Entanglement Confirmed",
-                          xpReward: 25
+                          explanation: "Entangled photons remain correlated such that measuring one instantly determines the state of the other regardless of distance.",
+                          xpReward: 25,
+                          isPinnedToday: true,
+                          active: true
                         }
                       ], null, 2);
                       navigator.clipboard.writeText(sample);
-                      setBanner("Copied Sample Quiz JSON!");
+                      setBanner("Copied Standard JSON Template!");
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#7DD3FC] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3 text-[#0284C7]" />
+                    <span>Copy Template</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const compact = JSON.stringify([
+                        {
+                          domain: "ASTROPHYSICS",
+                          icon: "astronomy",
+                          dateLabel: new Date().toISOString().slice(0, 10),
+                          question: "What constitutes the boundary of a black hole where light cannot escape?",
+                          options: [
+                            "Event Horizon",
+                            "Photon Sphere",
+                            "Accretion Disk",
+                            "Ergosphere"
+                          ],
+                          correct: "a",
+                          verdict: "General Relativity Confirmed",
+                          explanation: "The event horizon marks the mathematical boundary beyond which escape velocity exceeds the speed of light.",
+                          xp: 20
+                        }
+                      ], null, 2);
+                      navigator.clipboard.writeText(compact);
+                      setBanner("Copied Compact String Array Sample!");
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3 text-emerald-600" />
+                    <span>Copy Simple Sample</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyQuizzesJson}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-[11px] font-bold text-[#0284C7] transition cursor-pointer"
                   >
                     <Copy className="w-3 h-3" />
-                    <span>Copy Sample</span>
+                    <span>Copy Current Quizzes ({filteredQuizzes.length})</span>
                   </button>
                 </div>
-                <pre className="text-[11px] overflow-x-auto text-emerald-300 leading-snug p-2 rounded-xl bg-slate-950 border border-slate-800">
+              </div>
+
+              {/* JSON Format Preview Box */}
+              <div className="p-3.5 rounded-2xl bg-slate-900 text-sky-100 text-xs font-mono space-y-2">
+                <div className="flex items-center justify-between text-slate-300">
+                  <span className="font-bold text-[#38BDF8]">Accepted JSON Format (Full Schema):</span>
+                  <span className="text-[10px] text-slate-400">Supports 2 to 4 options, string arrays or objects</span>
+                </div>
+                <pre className="text-[11px] overflow-x-auto text-emerald-300 leading-snug p-2.5 rounded-xl bg-slate-950 border border-slate-800">
 {`[
   {
     "domain": "QUANTUM OPTICS",
     "icon": "quantum",
-    "question": "What is photon entanglement?",
+    "dateLabel": "2026-11-03",
+    "question": "What is quantum photon entanglement?",
     "options": [
-      { "id": "a", "label": "Instantaneous correlation between states" },
-      { "id": "b", "label": "Photons losing all momentum" },
-      { "id": "c", "label": "Transformation into thermal radiation" }
+      { "id": "a", "label": "Instantaneous correlation between quantum states" },
+      { "id": "b", "label": "Photons losing all kinetic momentum" },
+      { "id": "c", "label": "Transformation into thermal radiation" },
+      { "id": "d", "label": "Decay into virtual leptons" }
     ],
     "correctId": "a",
     "verdictTitle": "Quantum Entanglement Confirmed",
-    "xpReward": 25
+    "explanation": "Entangled photons remain correlated such that measuring one determines the other.",
+    "xpReward": 25,
+    "isPinnedToday": true,
+    "active": true
   }
 ]`}
                 </pre>
               </div>
 
+              {/* Import Mode Selector */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-xs font-bold text-slate-700">Import Behavior:</span>
+                <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="quizImportMode"
+                      checked={quizJsonMode === "append"}
+                      onChange={() => setQuizJsonMode("append")}
+                      className="accent-[#182C4E]"
+                    />
+                    <span>Append (Keep existing {filteredQuizzes.length} quizzes)</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="quizImportMode"
+                      checked={quizJsonMode === "replace"}
+                      onChange={() => setQuizJsonMode("replace")}
+                      className="accent-rose-600"
+                    />
+                    <span className="text-rose-600 font-bold">Replace All (Wipe &amp; replace)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Input Textarea */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Paste JSON Array:
+                  Paste JSON Array Here:
                 </label>
                 <textarea
-                  rows={7}
+                  rows={8}
                   value={quizJsonInput}
                   onChange={(e) => {
                     const txt = e.target.value;
@@ -2438,73 +2586,149 @@ export default function AdminExplorePage() {
                     try {
                       const parsed = JSON.parse(txt);
                       if (!Array.isArray(parsed)) {
-                        setQuizJsonValidation({ count: 0, error: "Must be a JSON array [ {...} ]" });
+                        setQuizJsonValidation({ count: 0, error: "Must be a JSON array: [ {...}, {...} ]" });
                       } else {
-                        const valid = parsed.filter(item => item && item.question && item.options);
-                        setQuizJsonValidation(valid.length > 0 ? { count: valid.length } : { count: 0, error: "No valid quiz items found." });
+                        const valid = parsed.filter((item) => item && (item.question || item.q) && (item.options || item.opts));
+                        setQuizJsonValidation(
+                          valid.length > 0
+                            ? { count: valid.length }
+                            : { count: 0, error: "No valid quiz items found. Each item needs 'question' and 'options'." }
+                        );
                       }
                     } catch (err: any) {
-                      setQuizJsonValidation({ count: 0, error: err.message });
+                      setQuizJsonValidation({ count: 0, error: err.message || "Invalid JSON syntax" });
                     }
                   }}
                   placeholder="Paste JSON array here..."
-                  className="w-full px-3 py-2 text-xs font-mono bg-[#F8FAFC] border border-slate-200 rounded-xl focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-mono bg-[#F8FAFC] border border-slate-200 rounded-xl focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
 
               {quizJsonValidation && (
-                <div className={`p-2.5 rounded-xl text-xs font-bold ${quizJsonValidation.error ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
-                  {quizJsonValidation.error ? `Error: ${quizJsonValidation.error}` : `✓ Valid: ${quizJsonValidation.count} quizzes detected!`}
+                <div
+                  className={`p-2.5 rounded-xl text-xs font-bold ${
+                    quizJsonValidation.error
+                      ? "bg-rose-50 text-rose-700 border border-rose-200"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  }`}
+                >
+                  {quizJsonValidation.error ? (
+                    `Syntax Error: ${quizJsonValidation.error}`
+                  ) : (
+                    `✓ Valid JSON: ${quizJsonValidation.count} daily quiz items detected!`
+                  )}
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuizJsonModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  onClick={handleExportQuizzesJson}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#0284C7] hover:bg-sky-50 transition cursor-pointer"
                 >
-                  Cancel
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Active Quizzes (.json)</span>
                 </button>
-                <button
-                  type="button"
-                  disabled={!quizJsonValidation || quizJsonValidation.count === 0}
-                  onClick={() => {
-                    try {
-                      const parsed = JSON.parse(quizJsonInput);
-                      let added = 0;
-                      for (const q of parsed) {
-                        if (q && q.question) {
-                          const opts = Array.isArray(q.options)
-                            ? q.options.map((opt: any, idx: number) => {
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuizJsonModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!quizJsonValidation || quizJsonValidation.count === 0}
+                    onClick={() => {
+                      try {
+                        const parsed = JSON.parse(quizJsonInput);
+                        if (!Array.isArray(parsed)) return;
+
+                        if (quizJsonMode === "replace") {
+                          for (const oldQ of dailyQuizzes) {
+                            deleteDailyQuiz(oldQ.id);
+                          }
+                        }
+
+                        let added = 0;
+                        for (const q of parsed) {
+                          const questionText = String(q.question || q.q || "").trim();
+                          if (!questionText) continue;
+
+                          const rawOpts = q.options || q.opts;
+                          let opts: Array<{ id: string; label: string }> = [];
+
+                          if (Array.isArray(rawOpts)) {
+                            opts = rawOpts
+                              .map((opt: any, idx: number) => {
                                 if (typeof opt === "string") {
-                                  return { id: String.fromCharCode(97 + idx), label: opt };
+                                  return {
+                                    id: String.fromCharCode(97 + idx),
+                                    label: opt.trim(),
+                                  };
                                 }
-                                return opt;
+                                return {
+                                  id: String(opt.id || String.fromCharCode(97 + idx)).toLowerCase().trim(),
+                                  label: String(opt.label || opt.text || "").trim(),
+                                };
                               })
-                            : [];
+                              .filter((o) => o.label.length > 0);
+                          } else if (rawOpts && typeof rawOpts === "object") {
+                            opts = Object.entries(rawOpts)
+                              .map(([key, val]) => ({
+                                id: key.toLowerCase().trim(),
+                                label: String(val).trim(),
+                              }))
+                              .filter((o) => o.label.length > 0);
+                          }
+
+                          if (opts.length < 2) continue;
+
+                          const rawCorrect = String(
+                            q.correctId || q.correct || q.correctAnswer || q.answer || opts[0]?.id || "a"
+                          )
+                            .toLowerCase()
+                            .trim();
+
+                          const matchedCorrect = opts.find((o) => o.id === rawCorrect);
+                          const correctId = matchedCorrect ? matchedCorrect.id : opts[0].id;
+
                           createDailyQuiz({
-                            domain: (q.domain || "SCIENCE").toUpperCase(),
-                            icon: (q.icon || "quantum") as FieldIconKey,
-                            question: q.question,
+                            domain: String(q.domain || q.topic || q.category || "GENERAL SCIENCE").trim().toUpperCase(),
+                            icon: (q.icon || "science") as FieldIconKey,
+                            dateLabel: String(q.dateLabel || q.date || new Date().toISOString().slice(0, 10)).trim(),
+                            question: questionText,
                             options: opts,
-                            correctId: q.correctId || opts[0]?.id || "a",
-                            verdictTitle: q.verdictTitle || "Answer Verified",
-                            explanation: q.explanation || "Scientific principles verified.",
-                            xpReward: q.xpReward || 25,
-                            active: true,
+                            correctId,
+                            verdictTitle: String(q.verdictTitle || q.verdict || "Verified Scientific Principle").trim(),
+                            explanation: String(
+                              q.explanation || q.rationale || q.verdictTitle || "Confirmed by verified scientific methodology."
+                            ).trim(),
+                            xpReward: Math.max(5, Math.min(50, Number(q.xpReward || q.xp || q.points) || 15)),
+                            isPinnedToday: Boolean(q.isPinnedToday ?? q.pinned),
+                            active: q.active !== false,
                           });
                           added++;
                         }
+
+                        setQuizJsonModalOpen(false);
+                        setBanner(
+                          quizJsonMode === "replace"
+                            ? `Replaced quizzes with ${added} newly imported items!`
+                            : `Successfully appended ${added} daily quizzes from JSON!`
+                        );
+                      } catch (err: any) {
+                        setQuizJsonValidation({ count: 0, error: err.message || "Failed to process JSON." });
                       }
-                      setQuizJsonModalOpen(false);
-                      setBanner(`Imported ${added} daily quizzes from JSON!`);
-                    } catch {}
-                  }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
-                >
-                  Import Quizzes
-                </button>
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
+                  >
+                    {quizJsonMode === "replace" ? "Replace All & Import" : "Import Quizzes"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
