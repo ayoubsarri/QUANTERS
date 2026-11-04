@@ -20,6 +20,7 @@ interface MobileAppShellProps {
 }
 
 const PUBLIC_PATHS = ["/welcome", "/onboarding"];
+const CATALOG_PATHS = ["/workshops", "/explore", "/badges"];
 
 export function MobileAppShell({
   children,
@@ -29,6 +30,7 @@ export function MobileAppShell({
 }: MobileAppShellProps) {
   const pathname = usePathname() || "";
   const router = useRouter();
+  const isStoreHydrated = useQuantersStore((s) => s.isHydrated);
   const currentMemberId = useQuantersStore((s) => s.currentMemberId);
   const isAuthenticated = useQuantersStore((s) => s.isAuthenticated);
   const members = useQuantersStore((s) => s.members);
@@ -62,6 +64,9 @@ export function MobileAppShell({
   }, []);
 
   const isPublicRoute = PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+  const isCatalogRoute = CATALOG_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
 
@@ -108,12 +113,12 @@ export function MobileAppShell({
   }, [hydrated, isAuthenticated, currentMemberId, members, settings.forceLogoutAllAt, settings.revokedSessionMemberIds, sessionStartedAt, logout, router]);
 
   useEffect(() => {
-    if (hydrated && !isPublicRoute && !hasValidSession) {
+    if (hydrated && isStoreHydrated && !isPublicRoute && !isCatalogRoute && !hasValidSession) {
       router.replace("/welcome");
     }
-  }, [hydrated, isPublicRoute, hasValidSession, router]);
+  }, [hydrated, isStoreHydrated, isPublicRoute, isCatalogRoute, hasValidSession, router]);
 
-  if (hydrated && !isPublicRoute && !hasValidSession) {
+  if (hydrated && isStoreHydrated && !isPublicRoute && !isCatalogRoute && !hasValidSession) {
     return (
       <div className="min-h-dvh w-full bg-[#F4F7FB] flex items-center justify-center p-6">
         <div className="max-w-sm w-full rounded-xl bg-white border border-slate-200/90 p-6 text-center shadow-[0_12px_32px_rgba(15,30,54,0.08)] space-y-4">
@@ -184,7 +189,7 @@ export function MobileAppShell({
       )}
 
       {/* Responsive Multi-Viewport Container: Full-bleed on phones (360-640px), spacious on Tablet (768px) & PC (1440px) */}
-      <div
+      <main
         className={`flex-1 w-full flex flex-col ${
           darkStatus
             ? "min-h-dvh"
@@ -194,7 +199,7 @@ export function MobileAppShell({
         }`}
       >
         {children}
-      </div>
+      </main>
 
       {/* Standardized 5-Tab Bottom Navigation Bar (Home in Center) */}
       {!hideBottomNav && <BottomNavBar />}

@@ -18,9 +18,9 @@ import {
   Lock,
   RotateCcw,
   Search,
-  Sparkles,
   Trophy,
   X,
+  Zap,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
@@ -72,6 +72,7 @@ export default function MobileExplorePage() {
   >("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [carouselIdx, setCarouselIdx] = useState(0);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
   const [activeArticle, setActiveArticle] = useState<ExplorePost | null>(null);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [readArticleIds, setReadArticleIds] = useState<string[]>([]);
@@ -126,6 +127,7 @@ export default function MobileExplorePage() {
 
   // Interactive Daily Quiz State (Single Quiz of the Exact Day)
   const [isQuizExpanded, setIsQuizExpanded] = useState(true);
+  const [autoCloseCountdown, setAutoCloseCountdown] = useState<number | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
     {}
   );
@@ -198,6 +200,27 @@ export default function MobileExplorePage() {
   const totalEarnedGameXp = Object.values(attemptedMap).reduce((acc, a) => acc + (a.xpEarned || 0), 0);
   const isAllQuizFinished = totalQuizzesCount > 0 && attemptedCount >= totalQuizzesCount;
 
+  // Automatically keep quiz collapsed if all challenges are already completed
+  useEffect(() => {
+    if (isAllQuizFinished) {
+      setIsQuizExpanded(false);
+    }
+  }, [isAllQuizFinished]);
+
+  // Smooth auto-closing timer countdown after answering
+  useEffect(() => {
+    if (autoCloseCountdown === null) return;
+    if (autoCloseCountdown <= 0) {
+      setIsQuizExpanded(false);
+      setAutoCloseCountdown(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setAutoCloseCountdown((c) => (c !== null ? c - 1 : null));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [autoCloseCountdown]);
+
   // Auto-focus on the first un-attempted quiz upon load
   useEffect(() => {
     if (todayQuizList.length > 0) {
@@ -247,6 +270,11 @@ export default function MobileExplorePage() {
 
     // Submit attempt to store and Firestore (permanent one-time attempt)
     submitDailyQuizAnswer(activeChallenge.id, optionId);
+
+    // If this challenge completes today's set, start 3.5s auto-close timer
+    if (totalQuizzesCount <= 1 || attemptedCount + 1 >= totalQuizzesCount) {
+      setAutoCloseCountdown(4);
+    }
   };
 
   // Always sort published posts so Important / Featured / Newest appear first
@@ -270,9 +298,54 @@ export default function MobileExplorePage() {
     return matchesCat && matchesQuery;
   });
 
+  const featuredPosts = React.useMemo(() => {
+    const list = publishedPosts.filter(
+      (p) =>
+        p.featuredInCarousel ||
+        p.tagTone === "cyan" ||
+        p.category === "QUANTA News" ||
+        p.category === "Scientific News"
+    );
+    return (list.length > 0 ? list : publishedPosts).slice(0, 5);
+  }, [publishedPosts]);
+
+  const scrollToSlide = (idx: number) => {
+    if (!carouselRef.current) return;
+    const container = carouselRef.current;
+    const width = container.offsetWidth;
+    container.scrollTo({
+      left: idx * width,
+      behavior: "smooth",
+    });
+    setCarouselIdx(idx);
+  };
+
+  const handleCarouselScroll = () => {
+    if (!carouselRef.current) return;
+    const container = carouselRef.current;
+    const scrollLeft = container.scrollLeft;
+    const width = container.offsetWidth || 1;
+    const activeIndex = Math.round(scrollLeft / width);
+    if (activeIndex !== carouselIdx && activeIndex >= 0 && activeIndex < featuredPosts.length) {
+      setCarouselIdx(activeIndex);
+    }
+  };
+
+  const handlePrevSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextIdx = Math.max(0, carouselIdx - 1);
+    scrollToSlide(nextIdx);
+  };
+
+  const handleNextSlide = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextIdx = Math.min(featuredPosts.length - 1, carouselIdx + 1);
+    scrollToSlide(nextIdx);
+  };
+
   const heroPost =
-    publishedPosts.length > 0
-      ? publishedPosts[carouselIdx % publishedPosts.length] || publishedPosts[0]
+    featuredPosts.length > 0
+      ? featuredPosts[carouselIdx % featuredPosts.length] || featuredPosts[0]
       : null;
 
 // toggleSave defined above with localStorage persistence
@@ -361,78 +434,117 @@ export default function MobileExplorePage() {
           })}
         </div>
 
-        {/* Featured Editorial Hero Carousel Card */}
-        {heroPost && (
+        {/* Featured Editorial Hero Carousel Track (Scrollable Left and Right) */}
+        {featuredPosts.length > 0 && (
           <div
-            className="space-y-2 animate-rise"
+            className="space-y-2 animate-rise relative"
             style={{ animationDelay: "80ms" }}
           >
-            <button
-              type="button"
-              onClick={() => handleOpenArticle(heroPost)}
-              className="relative w-full h-[215px] sm:h-[250px] rounded-2xl overflow-hidden shadow-[0_14px_34px_rgba(15,30,54,0.16)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-[#2B4875]/30"
-            >
-              <img
-                src={heroPost.imageUrl}
-                alt={heroPost.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/95 via-[#101F38]/55 to-transparent" />
-
-              {/* Top Tag Pill */}
-              <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-[#182C4E]/90 text-[#7DD3FC] border border-[#38BDF8]/40 backdrop-blur-md font-mono flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-                    <span>FEATURED</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-white/95 text-[#0F1E36] font-mono shadow-2xs">
-                    {heroPost.tagLabel}
-                  </span>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#0F1E36]/80 text-sky-100 backdrop-blur-md border border-white/15 shrink-0 font-mono">
-                  {heroPost.readTime}
-                </span>
-              </div>
-
-              {/* Bottom Headline & Meta */}
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <h2 className="font-display text-base sm:text-xl font-black leading-snug line-clamp-2 text-white">
-                  {heroPost.title}
-                </h2>
-                <div className="mt-2 flex items-center justify-between gap-2 text-xs text-sky-100/90 font-medium font-sans">
-                  <span className="truncate">
-                    {heroPost.source} · {heroPost.date}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-[#7DD3FC] font-bold text-xs font-mono shrink-0">
-                    <span>Read</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            </button>
-
-            {/* 5 Pagination Dots */}
-            <div className="flex items-center justify-center gap-1.5">
-              {Array.from({ length: Math.min(5, publishedPosts.length || 1) }).map(
-                (_, i) => {
-                  const isCurrent =
-                    i === carouselIdx % Math.min(5, publishedPosts.length || 1);
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setCarouselIdx(i)}
-                      aria-label={`Slide ${i + 1}`}
-                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                        isCurrent
-                          ? "w-6 bg-[#182C4E]"
-                          : "w-1.5 bg-slate-300 hover:bg-slate-400"
-                      }`}
-                    />
-                  );
-                }
+            {/* Carousel Container with Arrows and Snap Track */}
+            <div className="relative group/carousel">
+              {/* Left Arrow Button */}
+              {carouselIdx > 0 && (
+                <button
+                  type="button"
+                  onClick={handlePrevSlide}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-[#0B1528]/85 hover:bg-[#0B1528] text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg active:scale-95 cursor-pointer"
+                  aria-label="Previous article"
+                >
+                  <ChevronLeft className="w-4 h-4 text-[#7DD3FC]" />
+                </button>
               )}
+
+              {/* Right Arrow Button */}
+              {carouselIdx < featuredPosts.length - 1 && (
+                <button
+                  type="button"
+                  onClick={handleNextSlide}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-[#0B1528]/85 hover:bg-[#0B1528] text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition shadow-lg active:scale-95 cursor-pointer"
+                  aria-label="Next article"
+                >
+                  <ChevronRight className="w-4 h-4 text-[#7DD3FC]" />
+                </button>
+              )}
+
+              {/* Scrollable Track */}
+              <div
+                ref={carouselRef}
+                onScroll={handleCarouselScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory gap-3 no-scrollbar scroll-smooth rounded-2xl"
+                style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+              >
+                {featuredPosts.map((post, idx) => (
+                  <div
+                    key={post.id || idx}
+                    className="w-full shrink-0 snap-center snap-always"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleOpenArticle(post)}
+                      className="relative w-full h-[215px] sm:h-[250px] rounded-2xl overflow-hidden shadow-[0_14px_34px_rgba(15,30,54,0.16)] text-left group block focus:outline-none active:scale-[0.99] transition cursor-pointer border border-[#2B4875]/30"
+                    >
+                      <img
+                        src={post.imageUrl}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528]/95 via-[#101F38]/55 to-transparent" />
+
+                      {/* Top Tag Pill */}
+                      <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-[#182C4E]/90 text-[#7DD3FC] border border-[#38BDF8]/40 backdrop-blur-md font-sans flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+                            <span>FEATURED</span>
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-white/95 text-[#0F1E36] font-sans shadow-2xs">
+                            {post.tagLabel}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#0F1E36]/80 text-sky-100 backdrop-blur-md border border-white/15 shrink-0 font-sans">
+                          {post.readTime}
+                        </span>
+                      </div>
+
+                      {/* Bottom Headline & Meta */}
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <h2 className="font-display text-base sm:text-xl font-black leading-snug line-clamp-2 text-white drop-shadow-sm">
+                          {post.title}
+                        </h2>
+                        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-sky-100/90 font-medium font-sans">
+                          <span className="truncate">
+                            {post.source} · {post.date}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-[#7DD3FC] font-bold text-xs font-sans shrink-0">
+                            <span>Read</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Synchronized Pagination Dots */}
+            <div className="flex items-center justify-center gap-1.5 pt-0.5">
+              {featuredPosts.map((_, i) => {
+                const isCurrent = i === carouselIdx;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => scrollToSlide(i)}
+                    aria-label={`Go to slide ${i + 1}`}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      isCurrent
+                        ? "w-6 bg-[#0284C7] shadow-xs"
+                        : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                    }`}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -440,120 +552,134 @@ export default function MobileExplorePage() {
         {/* MULTI-QUIZ DAILY CHALLENGE STEPPER & SCORE LOCK CARD */}
         {todayQuizList.length > 0 && activeChallenge && (
           <div
-            className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_rgba(15,30,54,0.06)] overflow-hidden animate-rise"
+            className="rounded-2xl bg-white border border-slate-200/90 shadow-xs overflow-hidden animate-rise"
             style={{ animationDelay: "110ms" }}
           >
             {/* Header bar */}
             <button
               type="button"
-              onClick={() => setIsQuizExpanded((prev) => !prev)}
+              onClick={() => {
+                setAutoCloseCountdown(null);
+                setIsQuizExpanded((prev) => !prev);
+              }}
               aria-expanded={isQuizExpanded}
               aria-label="Toggle Daily Scientific Challenge"
-              className="w-full px-4 py-3 bg-gradient-to-r from-[#182C4E] via-[#152744] to-[#101F38] text-white flex items-center justify-between gap-2.5 cursor-pointer select-none text-left transition hover:brightness-105"
+              className="w-full px-4 py-3 bg-[#182C4E] hover:bg-[#12233F] text-white flex items-center justify-between gap-2.5 cursor-pointer select-none text-left transition"
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <FieldIcon field={activeChallenge.icon} size={20} />
+                <FieldIcon field={activeChallenge.icon} size={18} />
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-display text-sm font-black tracking-tight text-white shrink-0">
-                    Daily Challenge
+                  <span className="font-sans text-sm font-black tracking-tight text-white shrink-0">
+                    Daily Scientific Challenge
                   </span>
                   {isAllQuizFinished ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shrink-0">
-                      <Lock className="w-3 h-3 text-emerald-300" />
-                      <span>{correctCount}/{totalQuizzesCount} Correct · +{totalEarnedGameXp} XP (Locked)</span>
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-sans text-[11px] font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                      <span>Completed · {correctCount}/{totalQuizzesCount} Correct (+{totalEarnedGameXp} XP)</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0F1E36]/90 border border-[#38BDF8]/40 font-mono text-[11px] font-bold text-[#7DD3FC] shrink-0">
-                      <span>Quiz {safeIndex + 1}/{totalQuizzesCount}</span>
-                      <span className="text-slate-400">·</span>
-                      <span className="text-emerald-400">+{activeChallenge.xpReward} XP</span>
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 font-sans text-[11px] font-bold text-sky-200 shrink-0">
+                      <span>Question {safeIndex + 1}/{totalQuizzesCount}</span>
+                      <span className="text-white/30">·</span>
+                      <span className="text-emerald-300">+{activeChallenge.xpReward} XP</span>
                     </span>
                   )}
                 </div>
               </div>
 
-              <span className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
-                {isQuizExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-[#7DD3FC]" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-[#7DD3FC]" />
-                )}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                  {isQuizExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-sky-200" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-sky-200" />
+                  )}
+                </span>
+              </div>
             </button>
 
             {isQuizExpanded && (
-              <div className="p-4 space-y-3.5 border-t border-[#2B4875]/30 animate-rise">
+              <div className="p-4 space-y-3.5 border-t border-slate-100 animate-rise">
                 {/* CASE A: ALL QUIZZES COMPLETED & LOCKED (SUMMARY VIEW) */}
                 {isAllQuizFinished && !reviewMode ? (
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-[#0F1E36] via-[#182C4E] to-[#101F38] text-white border border-[#2B4875] space-y-4 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-amber-950 flex items-center justify-center mx-auto shadow-lg shadow-amber-400/20">
-                      <Trophy className="w-6 h-6" />
+                  <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 space-y-3.5 text-center">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
+                      <CheckCircle2 className="w-6 h-6" />
                     </div>
 
                     <div>
-                      <h3 className="font-display text-lg font-black tracking-tight text-white">
-                        Daily Scientific Challenge Complete!
+                      <h3 className="font-sans text-base font-black tracking-tight text-[#0F1E36]">
+                        Daily Challenge Complete
                       </h3>
-                      <p className="text-xs text-sky-200 mt-1 max-w-md mx-auto">
-                        You have answered all {totalQuizzesCount} daily challenges for today. Your answers and score are securely locked in your profile dossier.
+                      <p className="text-xs text-slate-500 mt-0.5 max-w-md mx-auto">
+                        Your answer has been verified and XP recorded to your club profile.
                       </p>
                     </div>
 
                     {/* Score Statistics Cards */}
                     <div className="grid grid-cols-3 gap-2 pt-1 text-left">
-                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
-                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">Accuracy</span>
-                        <span className="font-mono text-base font-black text-white">
+                      <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-center">
+                        <span className="block text-[10px] font-sans text-slate-400 uppercase font-bold">Accuracy</span>
+                        <span className="font-sans text-sm font-black text-[#0F1E36]">
                           {correctCount}/{totalQuizzesCount}
                         </span>
-                        <span className="block text-[10px] text-emerald-300 font-mono mt-0.5">
+                        <span className="block text-[10px] text-emerald-600 font-sans font-bold mt-0.5">
                           {Math.round((correctCount / totalQuizzesCount) * 100)}%
                         </span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
-                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">XP Awarded</span>
-                        <span className="font-mono text-base font-black text-amber-300">
-                          +{totalEarnedGameXp}
+                      <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-center">
+                        <span className="block text-[10px] font-sans text-slate-400 uppercase font-bold">Earned</span>
+                        <span className="font-sans text-sm font-black text-[#0284C7]">
+                          +{totalEarnedGameXp} XP
                         </span>
-                        <span className="block text-[10px] text-sky-200 font-mono mt-0.5">
-                          Season XP
+                        <span className="block text-[10px] text-slate-400 font-sans mt-0.5">
+                          Recorded
                         </span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-white/10 border border-white/10 text-center">
-                        <span className="block text-[10px] font-mono text-slate-300 uppercase font-bold">Daily Lock</span>
-                        <span className="font-mono text-base font-black text-emerald-400 flex items-center justify-center gap-1">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>1/1</span>
+                      <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 text-center">
+                        <span className="block text-[10px] font-sans text-slate-400 uppercase font-bold">Status</span>
+                        <span className="font-sans text-sm font-black text-emerald-600 flex items-center justify-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Done</span>
                         </span>
-                        <span className="block text-[10px] text-slate-300 font-mono mt-0.5">
-                          Attempt Used
+                        <span className="block text-[10px] text-slate-400 font-sans mt-0.5">
+                          Locked
                         </span>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setReviewMode(true)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white/15 hover:bg-white/20 border border-white/20 text-xs font-bold font-display text-white transition flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span>Review All Questions &amp; Explanations</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#38BDF8]" />
-                    </button>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setReviewMode(true)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Review Explanation</span>
+                        <ArrowRight className="w-3 h-3 text-slate-400" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsQuizExpanded(false)}
+                        className="py-2 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
+                      >
+                        Collapse Card
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   /* CASE B: ACTIVE STEPPER QUESTION OR REVIEW MODE */
                   <div className="space-y-3">
                     {/* Stepper Progress Bar */}
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="font-bold text-[#0284C7] uppercase tracking-wider">
+                      <div className="flex items-center justify-between text-xs font-sans">
+                        <span className="font-bold text-[#0284C7] uppercase tracking-wide">
                           {activeChallenge.domain}
                         </span>
-                        <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold">
+                        <div className="flex items-center gap-2 text-slate-500 text-[11px] font-semibold">
                           {reviewMode && (
-                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px]">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-sans text-[10px] font-bold">
                               Review Mode
                             </span>
                           )}
@@ -574,7 +700,7 @@ export default function MobileExplorePage() {
                     </div>
 
                     {/* Question Title */}
-                    <h3 className="text-xs sm:text-sm font-extrabold font-display text-[#0F1E36] leading-snug">
+                    <h3 className="text-xs sm:text-sm font-black font-sans text-[#0F1E36] leading-snug">
                       {activeChallenge.question}
                     </h3>
 
@@ -613,7 +739,7 @@ export default function MobileExplorePage() {
                             }`}
                           >
                             <span
-                              className={`w-5 h-5 rounded font-mono text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
+                              className={`w-5 h-5 rounded font-sans text-xs font-bold flex items-center justify-center shrink-0 ${badgeStyle}`}
                             >
                               {showResult && isRightOption ? (
                                 <Check className="w-3 h-3" />
@@ -621,11 +747,11 @@ export default function MobileExplorePage() {
                                 String.fromCharCode(65 + idx)
                               )}
                             </span>
-                            <span className="flex-1 text-xs font-bold font-display leading-snug">
+                            <span className="flex-1 text-xs font-bold font-sans leading-snug">
                               {opt.label}
                             </span>
                             {showResult && isRightOption && (
-                              <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-mono text-xs font-bold shrink-0">
+                              <span className="px-1.5 py-0.5 rounded bg-[#182C4E] text-[#7DD3FC] font-sans text-xs font-bold shrink-0">
                                 +{activeChallenge.xpReward} XP
                               </span>
                             )}
@@ -643,13 +769,13 @@ export default function MobileExplorePage() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-xs text-[#0F1E36] leading-snug font-sans">
-                            <strong className={`font-mono ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
-                              {isSolvedCorrect ? "✓ Correct:" : "✕ Attempted · Solution:"}
+                            <strong className={`font-sans font-bold ${isSolvedCorrect ? "text-[#0284C7]" : "text-rose-600"}`}>
+                              {isSolvedCorrect ? "✓ Correct:" : "✕ Solution:"}
                             </strong>{" "}
                             {activeChallenge.verdictTitle}
                           </p>
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0">
-                            1/1 Attempt Used
+                          <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-600 shrink-0">
+                            Recorded
                           </span>
                         </div>
 
@@ -658,6 +784,23 @@ export default function MobileExplorePage() {
                             {activeChallenge.explanation}
                           </p>
                         )}
+
+                        {/* Auto-Close Notice & Manual Button */}
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-black/5">
+                          <span className="font-sans">
+                            {autoCloseCountdown !== null ? `Auto-closing in ${autoCloseCountdown}s...` : "Response locked in profile"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsQuizExpanded(false);
+                              setAutoCloseCountdown(null);
+                            }}
+                            className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[#182C4E] font-bold text-[10px] transition cursor-pointer"
+                          >
+                            Collapse card
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -690,8 +833,11 @@ export default function MobileExplorePage() {
                       {chosenOptionId && safeIndex < totalQuizzesCount - 1 && (
                         <button
                           type="button"
-                          onClick={() => setActiveQuizIndex((prev) => Math.min(totalQuizzesCount - 1, prev + 1))}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-display shadow-sm hover:brightness-110 transition cursor-pointer ml-auto"
+                          onClick={() => {
+                            setAutoCloseCountdown(null);
+                            setActiveQuizIndex((prev) => Math.min(totalQuizzesCount - 1, prev + 1));
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold shadow-xs hover:bg-[#101F38] transition cursor-pointer ml-auto"
                         >
                           <span>Next Question ({safeIndex + 2} of {totalQuizzesCount})</span>
                           <ArrowRight className="w-3.5 h-3.5 text-[#38BDF8]" />
@@ -701,11 +847,14 @@ export default function MobileExplorePage() {
                       {chosenOptionId && safeIndex === totalQuizzesCount - 1 && (
                         <button
                           type="button"
-                          onClick={() => setReviewMode(false)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-xs font-bold font-display shadow-sm hover:brightness-110 transition cursor-pointer ml-auto"
+                          onClick={() => {
+                            setAutoCloseCountdown(null);
+                            setReviewMode(false);
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer ml-auto"
                         >
-                          <Trophy className="w-3.5 h-3.5 text-amber-300" />
-                          <span>View Total Score &amp; Complete</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          <span>View Summary</span>
                         </button>
                       )}
                     </div>
@@ -732,7 +881,7 @@ export default function MobileExplorePage() {
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
+                <Zap className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>{isRtl ? "الجديد" : "Latest"}</span>
               </button>
 
@@ -823,13 +972,13 @@ export default function MobileExplorePage() {
                             </span>
                           )}
                           {priorityBadge === "NEW" && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0369A1] font-mono text-xs font-bold uppercase tracking-wider">
-                              <Sparkles className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0369A1] font-sans text-xs font-bold uppercase tracking-wider">
+                              <Zap className="w-3 h-3" />
                               <span>NEW</span>
                             </span>
                           )}
                           <span
-                            className={`px-2.5 py-0.5 rounded-md font-mono text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
+                            className={`px-2.5 py-0.5 rounded-md font-sans text-xs font-bold uppercase tracking-wider border ${getTagBadgeStyle(
                               post
                             )}`}
                           >
@@ -916,7 +1065,7 @@ export default function MobileExplorePage() {
                     onClick={() => setFeedTab("latest")}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold hover:brightness-110 cursor-pointer transition shadow-xs"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                    <Zap className="w-3.5 h-3.5 text-sky-400" />
                     <span>Browse Latest Dispatches</span>
                   </button>
                 </div>

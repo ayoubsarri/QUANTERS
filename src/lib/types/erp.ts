@@ -390,6 +390,7 @@ export interface Member {
   eventsAttendedCount: number;
   statusHistory: StatusHistoryEntry[];
   placementHistory: PlacementHistoryEntry[];
+  updatedAt?: string;
 }
 
 export type InvitationState = "Sent" | "Opened" | "Completed" | "Expired" | "Cancelled";

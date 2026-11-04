@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Edit3,
   FileText,
@@ -86,6 +86,24 @@ export default function AdminMessagesPage() {
   const [title, setTitle] = useState<string>("");
   const [body, setBody] = useState<string>("");
   const [banner, setBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedGrievance(null);
+        setEditingMessage(null);
+        setDeleteConfirmMessage(null);
+      }
+    };
+    if (selectedGrievance || editingMessage || deleteConfirmMessage) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [selectedGrievance, editingMessage, deleteConfirmMessage]);
 
   const pendingGrievances = grievances.filter(
     (g) => g.status === "Pending HR Review" || g.status === "Under Investigation"
@@ -409,7 +427,8 @@ export default function AdminMessagesPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedGrievance(null)}
-                    className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                    aria-label="Close grievance details"
+                    className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -487,13 +506,13 @@ export default function AdminMessagesPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedGrievance(null)}
-                        className="flex-1 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition"
+                        className="flex-1 h-11 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 h-9 rounded-xl bg-[#182C4E] hover:brightness-110 text-white font-extrabold text-xs cursor-pointer transition shadow-xs"
+                        className="flex-1 h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:brightness-110 text-white font-extrabold text-xs cursor-pointer transition shadow-sm"
                       >
                         Save HR Resolution
                       </button>
@@ -1001,7 +1020,8 @@ export default function AdminMessagesPage() {
                     <button
                       type="button"
                       onClick={() => setEditingMessage(null)}
-                      className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      aria-label="Close edit broadcast notice dialog"
+                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1078,13 +1098,13 @@ export default function AdminMessagesPage() {
                       <button
                         type="button"
                         onClick={() => setEditingMessage(null)}
-                        className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                        className="h-11 min-h-[44px] px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-xs transition cursor-pointer"
+                        className="h-11 min-h-[44px] px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-sm transition cursor-pointer"
                       >
                         Save Changes
                       </button>
@@ -1130,7 +1150,7 @@ export default function AdminMessagesPage() {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmMessage(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -1141,7 +1161,7 @@ export default function AdminMessagesPage() {
                   setBanner(`Message "${deleteConfirmMessage.title}" has been permanently purged from all inboxes.`);
                   setDeleteConfirmMessage(null);
                 }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-xs transition cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-sm transition cursor-pointer"
               >
                 Delete from Everyone
               </button>

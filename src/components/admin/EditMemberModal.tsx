@@ -134,6 +134,20 @@ export function EditMemberModal({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (!member || !isOpen) return;
     setFullName(member.fullName || "");
     setQuanterId(member.quanterId || "");
@@ -294,14 +308,15 @@ export function EditMemberModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+            aria-label="Close dialog"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 px-4 py-2 bg-slate-100/80 border-b border-slate-200 overflow-x-auto">
+        <div role="tablist" aria-label="Member edit tabs" className="flex items-center gap-1.5 px-4 py-2 bg-slate-100/80 border-b border-slate-200 overflow-x-auto scrollbar-none">
           {[
             { id: "identity", label: "Identity & Contact", icon: User },
             { id: "academic", label: "Academics & Seniority", icon: GraduationCap },
@@ -314,9 +329,11 @@ export function EditMemberModal({
             return (
               <button
                 key={t.id}
+                role="tab"
+                aria-selected={isSelected}
                 type="button"
                 onClick={() => setActiveTab(t.id as any)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[42px] rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer active:scale-98 ${
                   isSelected
                     ? "bg-white text-[#0F1E36] shadow-xs border border-slate-200/80"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"

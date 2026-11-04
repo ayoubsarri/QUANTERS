@@ -9,7 +9,7 @@ import {
   ExternalLink,
   FolderGit2,
   Plus,
-  Sparkles,
+  Send,
   Users,
   X,
 } from "lucide-react";
@@ -353,7 +353,7 @@ export default function SubmitProjectPage() {
             type="submit"
             className="w-full h-11 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 active:scale-[0.98] text-white font-display font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
-            <Sparkles className="w-4 h-4 text-[#38E4FF]" />
+            <Send className="w-4 h-4 text-[#38E4FF]" />
             <span>Submit Project for Review</span>
           </button>
         </form>

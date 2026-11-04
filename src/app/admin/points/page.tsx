@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   Award,
@@ -89,6 +89,29 @@ export default function AdminPointsPage() {
   );
 
   const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setManualOpen(false);
+        setReversingEntryId(null);
+        setRuleModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const isAnyOpen = manualOpen || Boolean(reversingEntryId) || ruleModalOpen;
+    if (isAnyOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+    document.body.style.overflow = "";
+  }, [manualOpen, reversingEntryId, ruleModalOpen]);
 
   const toggleMotmSelect = (id: string) => {
     setSelectedMotmIds((prev) =>
@@ -254,13 +277,19 @@ export default function AdminPointsPage() {
       )}
 
       {/* 4-Tab Switcher */}
-      <div className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-wrap gap-1.5">
+      <div
+        role="tablist"
+        aria-label="Points and Honours Navigation"
+        className="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-wrap gap-1.5"
+      >
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "ledger"}
           onClick={() => setActiveTab("ledger")}
-          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 min-h-[42px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "ledger"
-              ? "bg-[#182C4E] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm ring-1 ring-[#182C4E]/20"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -270,10 +299,12 @@ export default function AdminPointsPage() {
 
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "rules"}
           onClick={() => setActiveTab("rules")}
-          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 min-h-[42px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "rules"
-              ? "bg-[#182C4E] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm ring-1 ring-[#182C4E]/20"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -283,10 +314,12 @@ export default function AdminPointsPage() {
 
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "appeals"}
           onClick={() => setActiveTab("appeals")}
-          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 min-h-[42px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "appeals"
-              ? "bg-[#182C4E] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm ring-1 ring-[#182C4E]/20"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -301,10 +334,12 @@ export default function AdminPointsPage() {
 
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "motm"}
           onClick={() => setActiveTab("motm")}
-          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 min-h-[42px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
             activeTab === "motm"
-              ? "bg-[#182C4E] text-white shadow-sm"
+              ? "bg-[#182C4E] text-white shadow-sm ring-1 ring-[#182C4E]/20"
               : "text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -1016,7 +1051,8 @@ export default function AdminPointsPage() {
               <button
                 type="button"
                 onClick={() => setManualOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                aria-label="Close manual point entry dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1097,13 +1133,13 @@ export default function AdminPointsPage() {
                 <button
                   type="button"
                   onClick={() => setManualOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-sm font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Append Ledger Entry
                 </button>
@@ -1130,7 +1166,8 @@ export default function AdminPointsPage() {
               <button
                 type="button"
                 onClick={() => setReversingEntryId(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                aria-label="Close reverse entry dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1155,13 +1192,13 @@ export default function AdminPointsPage() {
                 <button
                   type="button"
                   onClick={() => setReversingEntryId(null)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition cursor-pointer shadow-sm"
                 >
                   Confirm Audited Reversal
                 </button>
@@ -1187,7 +1224,8 @@ export default function AdminPointsPage() {
               <button
                 type="button"
                 onClick={() => setRuleModalOpen(false)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close point rule dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1254,13 +1292,13 @@ export default function AdminPointsPage() {
                 <button
                   type="button"
                   onClick={() => setRuleModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white font-extrabold transition cursor-pointer shadow-xs"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 text-white font-extrabold transition cursor-pointer shadow-sm"
                 >
                   {editingRuleId ? "Save Changes" : "Create Rule"}
                 </button>

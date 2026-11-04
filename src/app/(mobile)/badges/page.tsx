@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
+  Award,
   CheckCircle2,
   Clock,
   FileCheck2,
   FolderGit2,
-  Sparkles,
+  Target,
   Users,
   X,
 } from "lucide-react";
@@ -101,8 +102,8 @@ export default function MobileBadgesPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#0B1528]/96 via-[#101F38]/76 to-transparent pointer-events-none" />
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div className="max-w-[68%]">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-xs font-bold font-mono text-[#7DD3FC] mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#182C4E]/90 backdrop-blur-md border border-[#38BDF8]/35 text-xs font-bold font-sans text-[#7DD3FC] mb-2">
+                <Award className="w-3.5 h-3.5 text-[#38BDF8]" />
                 <span>{isRtl ? "الشارات والاعتمادات" : "SKILL CREDENTIALS"}</span>
               </div>
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">
@@ -134,61 +135,81 @@ export default function MobileBadgesPage() {
           </Link>
         </div>
 
-        {/* Row 1: Status Pills */}
-        <div
-          className="flex items-center gap-1.5 overflow-x-auto pb-0.5 animate-rise"
-          style={{ animationDelay: "40ms" }}
-        >
-          {STATUS_PILLS.map((pill) => {
-            const active = statusFilter === pill.key;
-            const pillDisplay = isRtl
-              ? pill.key === "All"
-                ? "الكل"
-                : pill.key === "Unlocked"
-                ? "مكتسبة"
-                : pill.key === "In Progress"
-                ? "قيد الإنجاز"
-                : "مغلقة"
-              : pill.label;
-            return (
-              <button
-                key={pill.key}
-                type="button"
-                onClick={() => setStatusFilter(pill.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
-                  active
-                    ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60"
-                    : "bg-white text-slate-600 border border-slate-200/90 hover:bg-[#F0F6FF] hover:text-[#0F1E36]"
-                }`}
-              >
-                {pillDisplay}
-              </button>
-            );
-          })}
-        </div>
+        {/* Unified Credentials Filter: Status Segmented Control + Domain Track Strip */}
+        <div className="space-y-2 animate-rise" style={{ animationDelay: "30ms" }}>
+          {/* Segmented Control for Status */}
+          <div className="p-1 rounded-xl bg-slate-100/90 border border-slate-200/70 grid grid-cols-4 gap-1">
+            {STATUS_PILLS.map((pill) => {
+              const active = statusFilter === pill.key;
+              const count =
+                pill.key === "All"
+                  ? activeBadges.length
+                  : pill.key === "Unlocked"
+                  ? unlockedCount
+                  : pill.key === "Locked"
+                  ? lockedCount
+                  : activeBadges.filter((b) => b.memberState === "In Progress").length;
+              const pillLabel = isRtl
+                ? pill.key === "All"
+                  ? "الكل"
+                  : pill.key === "Unlocked"
+                  ? "مكتسبة"
+                  : pill.key === "In Progress"
+                  ? "قيد الإنجاز"
+                  : "مغلقة"
+                : pill.label;
 
-        {/* Row 2: Category Pills */}
-        <div
-          className="flex items-center gap-1.5 overflow-x-auto pb-0.5 animate-rise"
-          style={{ animationDelay: "60ms" }}
-        >
-          {CATEGORY_PILLS.map((cat) => {
-            const active = categoryFilter === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
-                  active
-                    ? "bg-[#F0F6FF] text-[#182C4E] border border-[#38BDF8]/60 shadow-2xs"
-                    : "bg-white/80 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-[#0F1E36]"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => setStatusFilter(pill.key)}
+                  className={`py-1.5 px-1 rounded-lg text-xs font-bold font-display transition-all cursor-pointer text-center truncate ${
+                    active
+                      ? "bg-white text-[#0F1E36] shadow-xs border border-slate-200/80 font-black"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <span className="truncate">{pillLabel}</span>
+                  <span className={`text-[10px] font-mono ml-1 ${active ? "text-[#0284C7] font-bold" : "text-slate-400"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Clean Domain Track Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+            {CATEGORY_PILLS.map((cat) => {
+              const active = categoryFilter === cat;
+              const displayLabel =
+                cat === "All"
+                  ? isRtl ? "كل المسارات" : "All Tracks"
+                  : cat === "Hard Skills"
+                  ? isRtl ? "مهارات تقنية" : "Hard Skills"
+                  : cat === "Soft Skills"
+                  ? isRtl ? "مهارات شخصية" : "Soft Skills"
+                  : cat === "Science"
+                  ? isRtl ? "علوم" : "Science"
+                  : isRtl ? "تكنولوجيا" : "Technology";
+
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategoryFilter(cat)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold font-display whitespace-nowrap active:scale-[0.98] transition-all cursor-pointer ${
+                    active
+                      ? "bg-[#182C4E] text-white shadow-2xs border border-[#2B4875]"
+                      : "bg-white text-slate-600 border border-slate-200/90 hover:bg-[#F0F6FF]"
+                  }`}
+                >
+                  {displayLabel}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Hexagonal Badge Grid Container */}
@@ -253,7 +274,7 @@ export default function MobileBadgesPage() {
 
               <div className="p-3.5 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] space-y-1">
                 <div className="font-extrabold text-[#0F1E36] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Verification Criteria</span>
                 </div>
                 <p className="text-xs text-slate-600">
@@ -310,7 +331,7 @@ export default function MobileBadgesPage() {
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                        <Target className="w-3.5 h-3.5 text-indigo-600" />
                         <span>Dual Requirements (Both Needed)</span>
                       </span>
                       <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">

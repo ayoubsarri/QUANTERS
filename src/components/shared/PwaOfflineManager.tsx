@@ -280,8 +280,8 @@ export function PwaOfflineManager() {
 
   if (showPermPrompt) {
     return (
-      <div className="fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-[100] px-3 w-full max-w-[420px] pointer-events-auto transition-all duration-300">
-        <div className="bg-[#0B192E]/95 backdrop-blur-xl text-white border border-[#38BDF8]/40 rounded-2xl p-3 shadow-[0_16px_40px_rgba(2,132,199,0.35)] flex items-center justify-between gap-3 animate-slide-down">
+      <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[90] px-3 w-full max-w-[420px] pointer-events-none transition-all duration-300">
+        <div className="bg-[#0B192E]/95 backdrop-blur-xl text-white border border-[#38BDF8]/40 rounded-2xl p-3 shadow-[0_16px_40px_rgba(2,132,199,0.35)] flex items-center justify-between gap-3 animate-rise pointer-events-auto">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="w-8 h-8 rounded-xl bg-[#0284C7]/25 border border-[#38BDF8]/40 flex items-center justify-center text-[#7DD3FC] shrink-0">
               <Bell className="w-4 h-4 animate-bounce" />

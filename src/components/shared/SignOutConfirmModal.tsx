@@ -17,6 +17,20 @@ export function SignOutConfirmModal({
 }: SignOutConfirmModalProps) {
   const { isRtl } = useTranslation();
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -45,14 +59,14 @@ export function SignOutConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold font-display transition cursor-pointer active:scale-98"
+            className="w-full h-11 min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold font-display transition cursor-pointer active:scale-98"
           >
             {isRtl ? "إلغاء" : "Cancel"}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold font-display transition cursor-pointer active:scale-98 shadow-sm"
+            className="w-full h-11 min-h-[44px] flex items-center justify-center rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold font-display transition cursor-pointer active:scale-98 shadow-sm"
           >
             {isRtl ? "تأكيد الخروج" : "Sign Out"}
           </button>

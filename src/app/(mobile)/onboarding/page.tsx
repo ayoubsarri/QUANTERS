@@ -32,7 +32,6 @@ import {
   Scale,
   Search,
   ShieldCheck,
-  Sparkles,
   Timer,
   UserCheck,
   Users,
@@ -815,11 +814,11 @@ export default function OnboardingWizardPage() {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-sky-500/15 border border-amber-300/60 text-[10px] font-mono font-extrabold text-amber-800 shadow-2xs">
-                <Sparkles className="w-2.5 h-2.5 text-amber-600 animate-pulse" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-sky-500/15 border border-amber-300/60 text-[10px] font-sans font-bold text-amber-800 shadow-2xs">
+                <Zap className="w-2.5 h-2.5 text-amber-600" />
                 <span>+30 XP</span>
               </span>
-              <span className="text-[11px] font-mono font-black text-[#0284C7] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-lg tabular-nums">
+              <span className="text-[11px] font-sans font-black text-[#0284C7] bg-[#F0F6FF] border border-[#D5E3F5] px-2 py-0.5 rounded-lg tabular-nums">
                 {step}/{maxStep}
               </span>
             </div>
@@ -912,10 +911,10 @@ export default function OnboardingWizardPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-[#0F1E36]">
-                      Full Name (Official Student ID Record)
+                      Full Name
                     </label>
                     <span className="text-[10px] font-mono text-slate-500 font-semibold">
-                      First &amp; Last Name
+                      First &amp; Last
                     </span>
                   </div>
                   <input
@@ -943,7 +942,7 @@ export default function OnboardingWizardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
                       <Mail className="w-4 h-4 text-[#0284C7]" />
-                      <span>Registered Account Email</span>
+                      <span>Account Email</span>
                     </label>
                     <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
                       <Lock className="w-3 h-3" />
@@ -963,7 +962,7 @@ export default function OnboardingWizardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
                       <Phone className="w-4 h-4 text-[#0284C7]" />
-                      <span>Phone Number (WhatsApp / Emergency)</span>
+                      <span>Phone Number</span>
                     </label>
                     {phoneValidation.carrier && (
                       <span
@@ -1054,10 +1053,10 @@ export default function OnboardingWizardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-[#0F1E36] flex items-center gap-1.5">
                       <MapPin className="w-4 h-4 text-[#0284C7]" />
-                      <span>Commune / Municipality</span>
+                      <span>Commune</span>
                     </label>
                     <span className="text-[10px] font-mono text-slate-500 font-semibold">
-                      Required for club logistics
+                      Required
                     </span>
                   </div>
 
@@ -1314,7 +1313,7 @@ export default function OnboardingWizardPage() {
                 <div>
                   <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center gap-1.5">
                     <Landmark className="w-4 h-4 text-[#0284C7]" />
-                    <span>University / Higher Education Institution</span>
+                    <span>University / Higher School</span>
                   </label>
                   <select
                     value={selectedUniversity}
@@ -1362,11 +1361,11 @@ export default function OnboardingWizardPage() {
                   </div>
                 ) : (
                   <>
-                    {/* Faculty of Sciences & Tech Specialty */}
+                    {/* Specialty & Major */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="block text-xs font-bold text-[#0F1E36]">
-                          Faculty of Sciences &amp; Tech Specialty
+                          Specialty / Major
                         </label>
                         <span className="text-[10px] font-mono font-bold text-[#0284C7]">
                           {filteredSpecialties.length} majors
@@ -1419,10 +1418,10 @@ export default function OnboardingWizardPage() {
 
                     <div>
                       <label className="block text-xs font-bold text-[#0F1E36] mb-1.5 flex items-center justify-between">
-                        <span>Academic Study Level</span>
+                        <span>Academic Level</span>
                         {!academicYear && (
                           <span className="text-[10px] font-mono text-amber-600 font-bold">
-                            Please select level
+                            Select level
                           </span>
                         )}
                       </label>
@@ -1510,10 +1509,10 @@ export default function OnboardingWizardPage() {
                 <label className="flex items-center justify-between p-4 rounded-2xl bg-[#F0F6FF]/80 border border-[#D5E3F5] cursor-pointer">
                   <div className="pr-2">
                     <span className="text-xs font-extrabold text-[#0F1E36] block">
-                      Do you have a personal Laptop or PC you can bring to workshops?
+                      Personal Laptop available for workshops?
                     </span>
                     <span className="text-[11px] text-slate-600">
-                      Used by organizers to allocate lab workstations
+                      For hands-on technical sessions
                     </span>
                   </div>
                   <input
@@ -1526,7 +1525,7 @@ export default function OnboardingWizardPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                    Extra Equipment &amp; Hardware
+                    Available Hardware &amp; Tools
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {EXTRA_EQUIPMENT_OPTIONS.map((eq) => {
@@ -1557,10 +1556,10 @@ export default function OnboardingWizardPage() {
                 <div className="space-y-2.5 pt-2.5 border-t border-slate-100">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-[#0F1E36]">
-                      Digital Portfolio &amp; Professional Links
+                      Professional Links
                     </label>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                      <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                      <Zap className="w-2.5 h-2.5 text-amber-500" />
                       <span>+30 XP Bonus</span>
                     </span>
                   </div>
@@ -1728,7 +1727,7 @@ export default function OnboardingWizardPage() {
                 <label className="flex items-start justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/70 to-indigo-50/70 border border-amber-200/80 cursor-pointer">
                   <div className="pr-2 space-y-0.5">
                     <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                      <Award className="w-4 h-4 text-amber-600 shrink-0" />
                       <span className="text-xs font-extrabold text-[#0F1E36]">
                         Open to Mentoring QUANTA Student Members
                       </span>
@@ -1798,12 +1797,12 @@ export default function OnboardingWizardPage() {
               </div>
             )}
 
-            {/* STEP 5: Placement & 7-Day Availability (For Students) */}
+            {/* STEP 5: Placement & Availability (For Students) */}
             {step === 5 && !isAlumni && (
               <div className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                    Operational Department (Select 1 of 6)
+                    Operational Department
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {departments.map((dept) => {
@@ -1831,7 +1830,7 @@ export default function OnboardingWizardPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-[#0F1E36] mb-1.5">
-                    Scientific Research Team (Optional)
+                    Scientific Team (Optional)
                   </label>
                   <select
                     value={teamId || ""}
@@ -1857,10 +1856,10 @@ export default function OnboardingWizardPage() {
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-1.5">
                     <div>
                       <span className="text-xs font-bold text-[#0F1E36] block">
-                        7-Day Study &amp; Free Hours Matrix (08:00 – 20:00)
+                        Weekly Availability (08:00 – 20:00)
                       </span>
                       <span className="text-[11px] text-slate-500">
-                        Tap your free hours between classes
+                        Select free time slots
                       </span>
                     </div>
                     <span className="text-[11px] font-mono font-extrabold text-[#182C4E] bg-[#F0F6FF] border border-[#D5E3F5] px-2.5 py-0.5 rounded-lg tabular-nums">
@@ -1942,7 +1941,7 @@ export default function OnboardingWizardPage() {
                         <h3 className="font-display font-black text-sm text-white truncate">
                           {fullName || "QUANTA Alumnus"}
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/40 text-[9.5px] font-mono font-black uppercase tracking-wider shrink-0">
+                        <span className="px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-300/40 text-[9.5px] font-sans font-bold uppercase tracking-wider shrink-0">
                           Fellow '{graduationYear ? graduationYear.slice(-2) : "23"}
                         </span>
                       </div>
@@ -2030,10 +2029,10 @@ export default function OnboardingWizardPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-extrabold text-[#0F1E36]">
-                      Passions, Volunteering &amp; Background
+                      Interests &amp; Activities
                     </label>
                     <span className="text-[10px] font-mono text-slate-500">
-                      Tap tags or describe
+                      Select tags or write note
                     </span>
                   </div>
 

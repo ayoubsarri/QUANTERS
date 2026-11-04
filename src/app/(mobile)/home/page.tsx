@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Archive,
   ArrowRight,
+  Atom,
   Calendar,
   Check,
   CheckCircle2,
@@ -14,6 +15,7 @@ import {
   Clock,
   Download,
   GraduationCap,
+  Lock,
   MapPin,
   Pause,
   Play,
@@ -29,6 +31,7 @@ import { FALLBACK_SESSION_MEMBER } from "@/lib/data/seed";
 import { DEFAULT_RANK_LEVELS } from "@/lib/types/erp";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { isMessageEligibleForRecipient } from "@/lib/utils/messageUtils";
 
 export default function MobileHomeHubPage() {
   const members = useQuantersStore((s) => s.members);
@@ -133,6 +136,11 @@ export default function MobileHomeHubPage() {
 
   const unreadCount = messages.filter(
     (m) =>
+      isMessageEligibleForRecipient(m, activeMember, {
+        isSuperOrExecutive: isAdmin,
+        departments,
+        teams,
+      }) &&
       !m.archived &&
       m.unread &&
       !(currentMemberId && Array.isArray(m.readMemberIds) && m.readMemberIds.includes(currentMemberId))
@@ -401,35 +409,42 @@ export default function MobileHomeHubPage() {
         {!isAppInstalled && (
           <div
             data-testid="pwa-install-box"
-            className="flex items-center justify-between gap-2.5 rounded-xl bg-[#0C0F17] border border-orange-500/35 px-3 py-2 text-white shadow-sm animate-rise"
+            className="flex items-center justify-between gap-2.5 rounded-xl bg-gradient-to-r from-[#0C1527] via-[#101F38] to-[#12233E] border border-[#2B4875]/80 px-3 py-2 text-white shadow-[0_4px_16px_rgba(11,21,40,0.22)] animate-rise"
             style={{ animationDelay: "20ms" }}
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-black shrink-0">
-                ⚡
-              </span>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-xs text-white truncate">
-                    {isRtl ? "تطبيق كوانترز" : "QUANTERS App"}
-                  </span>
-                  <span className="px-1.5 py-0.2 rounded font-mono text-[8px] font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30 shrink-0">
-                    {isRtl ? "سريع" : "Offline"}
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 truncate">
-                  {isRtl ? "تسجيل الحضور بنقرة واحدة" : "1-tap optical check-in"}
-                </p>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#1B3257] to-[#0E1A2E] border border-[#38BDF8]/40 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(56,189,248,0.25)]">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="text-[#38BDF8]">
+                  <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M12 7V17M7 12H17" stroke="#7DD3FC" strokeWidth="1.8" strokeLinecap="round" />
+                  <circle cx="12" cy="12" r="2.2" fill="#38BDF8" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-display font-black text-xs text-white tracking-tight truncate">
+                  {isRtl ? "تطبيق كوانترز" : "QUANTERS App"}
+                </span>
+                <span className="text-[11px] text-sky-200/80 font-medium truncate hidden xs:inline">
+                  {isRtl ? "· وصول فوري" : "· Instant 1-Tap Access"}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleInstallApp}
+                  className="h-6 px-2.5 ml-0.5 rounded-md bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:brightness-110 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition flex items-center gap-1 shrink-0 cursor-pointer border border-[#38BDF8]/40"
+                >
+                  <Download className="w-3 h-3 stroke-[2.2]" />
+                  <span>{isRtl ? "تثبيت" : "Install"}</span>
+                </button>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={handleInstallApp}
-              className="h-7 px-3 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-white font-display font-black text-[11px] shadow-sm active:scale-95 transition flex items-center gap-1 shrink-0 cursor-pointer"
+              onClick={markInstalledManually}
+              className="text-slate-400 hover:text-white p-1 cursor-pointer shrink-0 transition-colors"
+              title="Dismiss"
             >
-              <Download className="w-3 h-3 stroke-[2.4]" />
-              <span>{isRtl ? "تثبيت" : "Install"}</span>
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -485,7 +500,7 @@ export default function MobileHomeHubPage() {
                     Membership Paused (Frozen)
                   </span>
                   {member.suspensionEndDate && (
-                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-black bg-amber-200 text-amber-950 border border-amber-300">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-sans font-bold bg-amber-200 text-amber-950 border border-amber-300">
                       Duration: {member.suspensionEndDate}
                     </span>
                   )}
@@ -524,50 +539,40 @@ export default function MobileHomeHubPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#030812]/96 via-[#040B1B]/72 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#030812]/90 to-transparent pointer-events-none" />
 
-          <div className="relative z-10 max-w-[66%]">
-            <div className="flex items-center gap-1.5 whitespace-nowrap">
-              <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]" />
-              <span className="font-mono text-xs font-bold tracking-[0.12em] text-[#7DD3FC] uppercase">
-                {isAlumni ? `FELLOW ’${member.graduationYear?.slice(-2) || "26"}` : `RANK 0${member.level}`}
-              </span>
-              <span className="text-white/30 text-xs">·</span>
-              <span className="font-mono text-xs text-slate-300 uppercase tracking-wider">
-                {leadershipTitle || member.status}
-              </span>
-            </div>
-
-            <div className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
-                {(member.levelTitle || "Wooden Quanter").split(" ")[0] || "Wooden"}
-              </span>
-              <span className="font-editorial italic font-normal text-2xl sm:text-[26px] text-[#7DD3FC] leading-none">
-                {(member.levelTitle || "Wooden Quanter").split(" ").slice(1).join(" ") || "Quanter"}
-              </span>
+          <div className="relative z-10 max-w-[62%]">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#0F284E]/90 border border-[#38BDF8]/40 text-[#7DD3FC] text-[11px] font-sans font-bold tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#38BDF8] shadow-[0_0_6px_#38BDF8]" />
+              <span>{isAlumni ? `Fellow ’${member.graduationYear?.slice(-2) || "26"}` : `Level 0${member.level}`}</span>
             </div>
 
             <div className="mt-2 flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="text-3xl sm:text-4xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none">
-                {(isAlumni ? member.xpTotal : member.xpSeason).toLocaleString()}
+              <span className="text-3xl sm:text-4xl font-black font-display text-white tracking-[-0.03em] tabular-nums leading-none drop-shadow-sm">
+                {((isAlumni ? member.xpTotal : member.xpSeason) ?? 0).toLocaleString()}
               </span>
-              <span className="text-xs font-black font-mono tracking-[0.16em] text-[#7DD3FC] uppercase">
-                {isAlumni ? "LIFETIME XP" : "XP"}
+              <span className="text-xs font-black font-sans tracking-wide text-[#38BDF8] uppercase">
+                {isAlumni ? "Lifetime XP" : "XP"}
               </span>
             </div>
 
-            <p className="mt-1 font-mono text-xs text-slate-300/95">
+            <div className="mt-1.5 flex items-center gap-1.5 font-sans text-xs text-sky-200/90 leading-tight">
               {isAlumni ? (
-                <span>
-                  {member.alumniPosition || "Doctoral Researcher · Former President"}
+                <span className="truncate">
+                  {member.alumniPosition || "Alumni Contributor"}
                 </span>
               ) : (
                 <>
                   <span className="text-white font-bold tabular-nums">
                     {xpProgressPct}%
-                  </span>{" "}
-                  · {xpToNext > 0 ? `${xpToNext.toLocaleString()} XP to Lv. ${(currentTier?.level || member.level) + 1}` : "Max Rank Achieved"}
+                  </span>
+                  <span className="text-white/40">·</span>
+                  <span className="truncate">
+                    {xpToNext > 0
+                      ? `${(xpToNext || 0).toLocaleString()} XP to Lv. ${(currentTier?.level || member.level || 1) + 1}`
+                      : "Max Level Achieved"}
+                  </span>
                 </>
               )}
-            </p>
+            </div>
           </div>
 
           <div className="relative z-10 mt-3.5 pt-0.5">
@@ -592,7 +597,7 @@ export default function MobileHomeHubPage() {
             className="flex flex-col items-start px-2.5 first:pl-1 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
             <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.badgeIds.length}
+              {(member.badgeIds || []).length}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               {isRtl ? "الشارات" : "Badges"}
@@ -604,7 +609,7 @@ export default function MobileHomeHubPage() {
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
             <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.workshopsCompletedCount}
+              {member.workshopsCompletedCount ?? 0}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               {isRtl ? "الورشات" : "Sessions"}
@@ -616,7 +621,7 @@ export default function MobileHomeHubPage() {
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
             <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.projectsCompletedCount}
+              {member.projectsCompletedCount ?? 0}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               {isRtl ? "المشاريع" : "Projects"}
@@ -628,7 +633,7 @@ export default function MobileHomeHubPage() {
             className="flex flex-col items-start px-2.5 hover:translate-x-0.5 transition-transform cursor-pointer group"
           >
             <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.xpTotal.toLocaleString()}
+              {(member.xpTotal ?? 0).toLocaleString()}
             </span>
             <span className="text-xs font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               {isRtl ? "النقاط" : "Total XP"}
@@ -828,41 +833,52 @@ export default function MobileHomeHubPage() {
           className="space-y-2 animate-rise"
           style={{ animationDelay: "220ms" }}
         >
-          {/* Compact Single-Row Live Session Check-In Strip */}
-          <Link
-            href="/checkin"
-            className="w-full px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] border border-[#2B4875]/65 text-white flex items-center justify-between gap-2 shadow-[0_6px_18px_rgba(16,31,56,0.16)] hover:brightness-110 active:scale-[0.99] transition group cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-white/10 border border-[#7DD3FC]/35 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 8V5.5C4 4.7 4.7 4 5.5 4H8M16 4H18.5C19.3 4 20 4.7 20 5.5V8M20 16V18.5C20 19.3 19.3 20 18.5 20H16M8 20H5.5C4.7 20 4 19.3 4 18.5V16"
-                    stroke="#7DD3FC"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                  />
-                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" stroke="#FFFFFF" strokeWidth="1.5" />
-                  <path d="M5 12H19" stroke="#38BDF8" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xs font-black font-display tracking-tight text-white">
-                    {isRtl ? "تسجيل الحضور المباشر" : "Live Check-In"}
+          {/* Dual Action Strip: Live QR Scan (Side 1) & Activities Hub (Side 2 - Unlocked) */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+            {/* Side 1: QR Scan */}
+            <Link
+              href="/checkin"
+              className="p-3 rounded-xl bg-gradient-to-br from-[#12223D] via-[#182C4E] to-[#1D355E] border border-[#2B4875]/70 text-white flex items-center justify-between gap-2 shadow-[0_6px_18px_rgba(16,31,56,0.16)] hover:brightness-110 active:scale-[0.98] transition group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center shrink-0 text-[#7DD3FC] group-hover:scale-105 transition-transform">
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-black font-display tracking-tight text-white block truncate">
+                    {isRtl ? "مسح QR" : "Scan QR"}
                   </span>
-                  <span className="text-white/30 text-xs">·</span>
-                  <span className="font-mono text-[11px] text-slate-300">
-                    {isRtl ? "رمز QR أو كود من 6 أرقام" : "QR or 6-digit code"}
+                  <span className="text-[11px] text-slate-300 font-medium block truncate">
+                    {isRtl ? "تسجيل الحضور" : "Check-in"}
                   </span>
                 </div>
               </div>
-            </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 border border-[#7DD3FC]/30 font-mono text-[11px] font-bold text-[#7DD3FC] group-hover:translate-x-0.5 transition-transform shrink-0">
-              <span>{isRtl ? "مسح" : "SCAN"}</span>
-              <ArrowRight className="w-3 h-3 rtl:rotate-180" />
-            </span>
-          </Link>
+              <ArrowRight className="w-3.5 h-3.5 text-[#7DD3FC] rtl:rotate-180 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+
+            {/* Side 2: Activities (Unlocked, with clean subtle lock indicator and Atom icon) */}
+            <Link
+              href="/workshops"
+              className="p-3 rounded-xl bg-gradient-to-br from-[#0B1528] via-[#101F38] to-[#162B4D] border border-[#2B4875]/70 text-white flex items-center justify-between gap-2 shadow-[0_6px_18px_rgba(16,31,56,0.16)] hover:brightness-110 active:scale-[0.98] transition group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center shrink-0 text-[#7DD3FC] group-hover:scale-105 transition-transform">
+                  <Atom className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-black font-display tracking-tight text-white block truncate">
+                    {isRtl ? "الأنشطة" : "Activities"}
+                  </span>
+                  <span className="text-[11px] text-slate-300 font-medium block truncate">
+                    {isRtl ? "مختبرات وفعاليات" : "Scientific Labs & Events"}
+                  </span>
+                </div>
+              </div>
+              <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-white transition-colors shrink-0" title={isRtl ? "قفل" : "Members Only"}>
+                <Lock className="w-3.5 h-3.5" />
+              </div>
+            </Link>
+          </div>
 
           {/* Compact 3-Column Tool Trio: Skill Exams / Projects / Proposals (Zero 01/02/03 Numeration) */}
           <div className="grid grid-cols-3 gap-2">
@@ -949,22 +965,24 @@ export default function MobileHomeHubPage() {
             className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_18px_rgba(15,30,54,0.05)] animate-rise"
             style={{ animationDelay: "280ms" }}
           >
-            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#101F38]">
-                  {isRtl ? "المهام الموكلة" : "ASSIGNED TASKS"}
+                <h2 className="text-sm font-bold font-display text-[#0F1E36]">
+                  {isRtl ? "المهام الموكلة" : "Assigned Tasks"}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full bg-sky-50 text-[#0284C7] text-[10px] font-mono font-extrabold border border-sky-200/80">
-                  {isRtl ? "مهام قيد الإنجاز" : "Active Missions"}
+                <span className="text-xs font-semibold text-slate-500">
+                  · {activeTasks.length} {isRtl ? "نشطة" : "active"}
                 </span>
               </div>
 
               {/* Segmented Toggle: Active (N) | Icon-Only Archive */}
-              <div className="inline-flex items-center p-0.5 rounded-lg bg-[#F0F6FF] border border-[#D5E3F5]">
+              <div role="tablist" aria-label="Task status tabs" className="inline-flex items-center p-1 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5]">
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={taskTab === "active"}
                   onClick={() => setTaskTab("active")}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer ${
+                  className={`px-3.5 py-2 min-h-[40px] rounded-lg text-xs font-bold font-display active:scale-[0.98] transition cursor-pointer flex items-center justify-center ${
                     taskTab === "active"
                       ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900"
@@ -974,16 +992,18 @@ export default function MobileHomeHubPage() {
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={taskTab === "done"}
                   onClick={() => setTaskTab("done")}
                   title="Done & Archive"
                   aria-label="Done & Archive"
-                  className={`p-1.5 rounded-md active:scale-[0.98] transition cursor-pointer flex items-center justify-center ${
+                  className={`min-w-[40px] min-h-[40px] p-2 rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center ${
                     taskTab === "done"
                       ? "bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Archive className="w-3.5 h-3.5" />
+                  <Archive className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -1215,28 +1235,29 @@ export default function MobileHomeHubPage() {
 
       {/* 1-Tap Deliver Task Proof Modal */}
       {deliverModalTaskId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4 pb-16 sm:pb-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4 pb-16 sm:pb-4 animate-fade-in">
           <div
             data-modal="true"
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-[380px] rounded-xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise"
+            className="w-full max-w-[420px] rounded-2xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 animate-rise"
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-sm font-extrabold font-display text-[#0F1E36]">
                 Deliver Task Proof
               </h3>
               <button
                 type="button"
                 onClick={() => setDeliverModalTaskId(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                aria-label="Close delivery modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleDeliverSubmit} className="space-y-3">
+            <form onSubmit={handleDeliverSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Deliverable Link or Completion Summary
                 </label>
                 <textarea
@@ -1244,21 +1265,21 @@ export default function MobileHomeHubPage() {
                   required
                   value={proofText}
                   onChange={(e) => setProofText(e.target.value)}
-                  placeholder="Paste GitHub/Drive link or describe completed work..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#182C4E]"
+                  placeholder="Paste GitHub repository, Drive document, or describe completed work..."
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#182C4E] focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setDeliverModalTaskId(null)}
-                  className="h-9 px-3.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer"
+                  className="h-11 min-h-[44px] px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition cursor-pointer flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold border border-[#2B4875]/60 active:scale-[0.98] transition cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold border border-[#2B4875]/60 hover:opacity-95 active:scale-[0.98] transition cursor-pointer flex items-center justify-center shadow-xs"
                 >
                   Submit Delivery
                 </button>

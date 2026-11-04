@@ -280,7 +280,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
             <button
               type="button"
               onClick={onCloseMobile}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+              className="lg:hidden w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-95 cursor-pointer"
               aria-label="Close sidebar"
             >
               <X className="w-4 h-4" />
@@ -357,7 +357,7 @@ export function AdminSidebar({ mobileOpen = false, onCloseMobile }: AdminSidebar
                       key={item.href}
                       href={item.href}
                       onClick={onCloseMobile}
-                      className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-display font-bold transition-all ${
+                      className={`flex items-center justify-between min-h-[42px] px-3 py-2.5 rounded-xl text-xs font-display font-bold transition-all ${
                         isActive
                           ? "bg-gradient-to-r from-[#182C4E] to-[#122340] text-white border border-[#38BDF8]/40 shadow-[0_4px_14px_rgba(3,8,18,0.45)]"
                           : "text-slate-300/90 hover:bg-[#132441]/60 hover:text-white border border-transparent"

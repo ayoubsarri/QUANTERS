@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -32,6 +32,23 @@ export default function AdminFormerMembersPage() {
   const [targetTeamId, setTargetTeamId] = useState("");
   const [reactivateReason, setReactivateReason] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setReactivatingMember(null);
+        setPurgingMember(null);
+      }
+    };
+    if (reactivatingMember || purgingMember) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [reactivatingMember, purgingMember]);
 
   const formerMembers = useMemo(() => {
     return members.filter((m) => m.status === "Resigned" || m.status === "Removed");
@@ -443,7 +460,8 @@ export default function AdminFormerMembersPage() {
               <button
                 type="button"
                 onClick={() => setReactivatingMember(null)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close reactivate modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -550,7 +568,7 @@ export default function AdminFormerMembersPage() {
               <button
                 type="button"
                 onClick={() => setReactivatingMember(null)}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -558,7 +576,7 @@ export default function AdminFormerMembersPage() {
                 type="button"
                 disabled={!reactivateReason.trim()}
                 onClick={handleConfirmReactivate}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs transition cursor-pointer shadow-xs"
+                className="h-11 min-h-[44px] px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs transition cursor-pointer shadow-sm"
               >
                 Confirm Reactivation
               </button>
@@ -581,7 +599,8 @@ export default function AdminFormerMembersPage() {
               <button
                 type="button"
                 onClick={() => setPurgingMember(null)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close purge modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -613,7 +632,7 @@ export default function AdminFormerMembersPage() {
               <button
                 type="button"
                 onClick={() => setPurgingMember(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -629,7 +648,7 @@ export default function AdminFormerMembersPage() {
                   setPurgingMember(null);
                   setTimeout(() => setToastMsg(null), 3500);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition cursor-pointer"
               >
                 Purge &amp; Release Email
               </button>

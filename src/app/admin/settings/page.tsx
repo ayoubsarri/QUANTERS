@@ -178,6 +178,22 @@ export default function AdminSettingsPage() {
     setRankModalOpen(true);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setRankModalOpen(false);
+      }
+    };
+    if (rankModalOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [rankModalOpen]);
+
   const handleSaveRankLevel = (e: React.FormEvent) => {
     e.preventDefault();
     let updated: RankLevelThreshold[];
@@ -1712,9 +1728,10 @@ export default function AdminSettingsPage() {
               <button
                 type="button"
                 onClick={() => setRankModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                aria-label="Close rank level modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1832,13 +1849,13 @@ export default function AdminSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setRankModalOpen(false)}
-                  className="px-4 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-xs cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold shadow-sm transition cursor-pointer"
                 >
                   {editingRankLevel ? "Save Rank Level" : "Create Rank Level"}
                 </button>

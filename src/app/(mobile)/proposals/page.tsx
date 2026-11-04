@@ -15,7 +15,6 @@ import {
   Scale,
   Search,
   Send,
-  Sparkles,
   UserCheck,
   X,
 } from "lucide-react";
@@ -567,7 +566,7 @@ export default function ProposalsPage() {
             <div className="p-3.5 rounded-xl bg-white border border-slate-200/90 space-y-3">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span className="text-[11px] font-extrabold text-[#182C4E] uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>{selectedType} Specific Details</span>
                 </span>
                 <span className="text-[10px] font-semibold text-slate-400">

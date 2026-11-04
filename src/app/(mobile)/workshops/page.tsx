@@ -92,7 +92,7 @@ export default function MobileWorkshopsPage() {
           <img
             src="/brand/mascot_workshops.png"
             alt="QUANTERS Cosmic Lab Banner"
-            className="absolute inset-0 w-full h-full object-cover object-right opacity-90 select-none pointer-events-none animate-zero-g"
+            className="absolute inset-0 w-full h-full object-cover object-right opacity-90 select-none pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0B1528]/96 via-[#101F38]/78 to-transparent pointer-events-none" />
           <div className="relative z-10 flex items-end justify-between gap-3">
@@ -192,7 +192,7 @@ export default function MobileWorkshopsPage() {
                           <>
                             <span className="text-slate-300">·</span>
                             <span className="inline-flex items-center gap-1 text-[#0284C7]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] shadow-[0_0_6px_#38BDF8]" />
                               <span>LIVE</span>
                             </span>
                           </>

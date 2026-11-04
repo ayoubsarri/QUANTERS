@@ -199,6 +199,31 @@ function AdminMembersContent() {
     setTargetMember(null);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setDeleteModalOpen(false);
+        setTargetMember(null);
+        setAddMemberOpen(false);
+        setEditModalOpen(false);
+        setEditingMember(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (deleteModalOpen || addMemberOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [deleteModalOpen, addMemberOpen]);
+
   // Sync URL query parameters (tab, dept, team, status, day, slot)
   useEffect(() => {
     const params =
@@ -1011,9 +1036,10 @@ function AdminMembersContent() {
                   setDeleteModalOpen(false);
                   setTargetMember(null);
                 }}
-                className="text-slate-400 hover:text-slate-600 p-1 text-base font-bold cursor-pointer"
+                aria-label="Close deletion dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 cursor-pointer transition active:scale-95"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1106,14 +1132,14 @@ function AdminMembersContent() {
                   setDeleteModalOpen(false);
                   setTargetMember(null);
                 }}
-                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                className="h-11 min-h-[44px] px-4 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer transition active:scale-95 flex items-center justify-center"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer transition ${
+                className={`h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer transition active:scale-95 flex items-center justify-center ${
                   deleteMode === "permanent"
                     ? "bg-rose-600 hover:bg-rose-700"
                     : "bg-[#182C4E] hover:bg-[#101F38]"
@@ -1147,9 +1173,10 @@ function AdminMembersContent() {
               <button
                 type="button"
                 onClick={() => setAddMemberOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                aria-label="Close member enrolment form"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 transition cursor-pointer active:scale-95"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1327,13 +1354,13 @@ function AdminMembersContent() {
                 <button
                   type="button"
                   onClick={() => setAddMemberOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                  className="h-11 min-h-[44px] px-4 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#0284C7] hover:bg-[#0369A1] shadow-xs cursor-pointer transition active:scale-95"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-white bg-[#0284C7] hover:bg-[#0369A1] shadow-xs cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Save &amp; Enrol Member
                 </button>

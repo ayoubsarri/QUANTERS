@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Search,
-  Sparkles,
   Target,
   X,
 } from "lucide-react";
@@ -135,7 +134,7 @@ export default function ExamsHubPage() {
           </span>
           <span className="text-white/40">·</span>
           <span className="inline-flex items-center gap-1.5 text-[#7DD3FC]">
-            <Sparkles className="w-4 h-4 shrink-0" />
+            <Award className="w-4 h-4 shrink-0" />
             <span>Instant Badge + XP</span>
           </span>
         </div>

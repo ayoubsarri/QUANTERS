@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowLeft,
+  Award,
   Calendar,
   Camera,
   CameraOff,
@@ -12,7 +13,6 @@ import {
   Clock,
   MapPin,
   QrCode,
-  Sparkles,
   Zap,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
@@ -175,7 +175,7 @@ export default function WorkshopCheckInScannerPage() {
           <div className="flex items-center justify-between">
             <Link
               href="/home"
-              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] active:scale-[0.98] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-600 hover:text-[#182C4E] min-h-[44px] min-w-[44px] py-2.5 px-2 -ml-2 rounded-lg active:scale-[0.98] transition"
             >
               <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
               <span>{t.common.back}</span>
@@ -218,8 +218,8 @@ export default function WorkshopCheckInScannerPage() {
             </div>
           </div>
 
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10.5px] font-mono font-extrabold shrink-0 tabular-nums">
-            <Sparkles className="w-3 h-3 text-[#0284C7]" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10.5px] font-sans font-extrabold shrink-0 tabular-nums">
+            <Award className="w-3 h-3 text-[#0284C7]" />
             <span>+{liveWorkshop.xpReward} XP</span>
           </span>
         </div>
@@ -251,7 +251,7 @@ export default function WorkshopCheckInScannerPage() {
 
             {/* Active Camera Live Badge */}
             {isCameraActive && (
-              <div className="absolute top-2.5 px-2.5 py-0.5 rounded-full bg-emerald-500/90 text-slate-950 font-mono text-[9px] font-black uppercase tracking-wider z-20 shadow-xs flex items-center gap-1">
+              <div className="absolute top-2.5 px-2 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-sans text-[9px] font-bold uppercase tracking-wider z-20 shadow-xs flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />
                 <span>LIVE OPTICAL CAM</span>
               </div>
@@ -287,7 +287,7 @@ export default function WorkshopCheckInScannerPage() {
               <button
                 type="button"
                 onClick={startCamera}
-                className="h-10 px-5 rounded-lg bg-[#38BDF8] hover:bg-[#7DD3FC] text-[#0F1E36] font-display font-black text-xs active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="h-11 min-h-[44px] px-5 rounded-lg bg-[#38BDF8] hover:bg-[#7DD3FC] text-[#0F1E36] font-display font-black text-xs active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <Camera className="w-4 h-4" />
                 <span>Scan Session QR Code</span>
@@ -297,7 +297,7 @@ export default function WorkshopCheckInScannerPage() {
                 <button
                   type="button"
                   onClick={handleVerifyScan}
-                  className="h-10 px-4 rounded-lg bg-[#34D399] hover:bg-[#6EE7B7] text-[#062419] font-display font-black text-xs active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  className="h-11 min-h-[44px] px-4 rounded-lg bg-[#34D399] hover:bg-[#6EE7B7] text-[#062419] font-display font-black text-xs active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <Zap className="w-4 h-4" />
                   <span>Verify QR Code</span>
@@ -305,7 +305,7 @@ export default function WorkshopCheckInScannerPage() {
                 <button
                   type="button"
                   onClick={stopCamera}
-                  className="h-10 px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-display font-bold text-xs active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="h-11 min-h-[44px] px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-display font-bold text-xs active:scale-[0.98] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CameraOff className="w-4 h-4" />
                   <span>Close Cam</span>
@@ -333,13 +333,13 @@ export default function WorkshopCheckInScannerPage() {
               value={sixDigitCode}
               onChange={(e) => setSixDigitCode(e.target.value)}
               placeholder={isRtl ? "أدخل الرمز السداسي للورشة..." : "Enter 6-digit projector code"}
-              className="flex-1 h-10 px-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-mono font-bold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition-all text-center tracking-[0.2em]"
+              className="flex-1 h-11 min-h-[44px] px-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 text-xs font-mono font-bold text-[#0F1E36] placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E] focus:bg-white transition-all text-center tracking-[0.2em]"
             />
             <button
               type="submit"
               disabled={sixDigitCode.trim().length !== 6}
               aria-label="Verify 6-digit code"
-              className="h-10 px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-bold active:scale-[0.98] transition shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed font-cairo"
+              className="h-11 min-h-[44px] px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] border border-[#2B4875]/60 hover:opacity-95 text-white text-xs font-bold active:scale-[0.98] transition shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed font-cairo"
             >
               {t.checkin.verifyButton}
             </button>

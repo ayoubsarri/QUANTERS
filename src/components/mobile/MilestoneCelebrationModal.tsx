@@ -1,12 +1,28 @@
 "use client";
 
 import React from "react";
-import { Award, Code2, Crown, Share2, Sparkles, X } from "lucide-react";
+import { Award, Code2, Crown, Share2, Trophy, X } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 
 export function MilestoneCelebrationModal() {
   const celebration = useQuantersStore((s) => s.celebration);
   const triggerCelebration = useQuantersStore((s) => s.triggerCelebration);
+
+  const isOpen = Boolean(celebration && celebration.open);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") triggerCelebration(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, triggerCelebration]);
 
   if (!celebration || !celebration.open) return null;
 
@@ -19,7 +35,8 @@ export function MilestoneCelebrationModal() {
         <button
           type="button"
           onClick={() => triggerCelebration(null)}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-200 transition"
+          aria-label="Close milestone celebration"
+          className="absolute top-4 right-4 w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-200 transition cursor-pointer active:scale-95"
         >
           <X className="w-4 h-4" />
         </button>
@@ -32,7 +49,7 @@ export function MilestoneCelebrationModal() {
         <span className="absolute bottom-32 right-8 w-2.5 h-2.5 rotate-12 bg-[#FBB03B]" />
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-[#38E4FF] text-[11px] font-bold uppercase tracking-wider mb-2">
-          <Sparkles className="w-3.5 h-3.5" /> QUANTA Milestone
+          <Trophy className="w-3.5 h-3.5" /> QUANTA Milestone
         </div>
 
         <h2 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">

@@ -37,6 +37,20 @@ export function PersonalQRModal({
 
   useEffect(() => {
     if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
 
     QRCode.toDataURL(verificationUrl, {
       margin: 1,
@@ -239,10 +253,10 @@ export function PersonalQRModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+              className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
               aria-label="Close Digital ID"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -269,7 +283,7 @@ export function PersonalQRModal({
                 {member.quanterId}
               </span>
               <span className="text-white/30 text-[10px]">·</span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-[10.5px] font-bold">
                 <Shield className="w-2.5 h-2.5 text-emerald-400" />
                 <span>{member.status}</span>
               </span>
@@ -296,7 +310,7 @@ export function PersonalQRModal({
             )}
           </div>
 
-          <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#101F38] border border-[#2B4875]/70 text-[10px] font-mono text-[#7DD3FC]">
+          <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#101F38] border border-[#2B4875]/70 text-xs font-medium text-[#7DD3FC]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#38E4FF] animate-pulse" />
             <span>SCAN TO VERIFY PASS</span>
           </div>

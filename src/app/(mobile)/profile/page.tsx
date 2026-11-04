@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,6 +8,7 @@ import {
   Award,
   Bell,
   BookOpen,
+  Bookmark,
   Building2,
   CalendarDays,
   Check,
@@ -35,9 +36,9 @@ import {
   Quote,
   RotateCcw,
   Scale,
+  Shield,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Star,
   UserMinus,
   Users,
@@ -57,6 +58,7 @@ import {
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
 import { signInWithFirebaseGooglePopup } from "@/lib/firebase/auth";
 import { sanitizeExternalUrl } from "@/lib/utils/authSecurity";
+import { getEffectiveMemberAvatar } from "@/lib/utils/avatarUtils";
 import { DEFAULT_AVAILABILITY, FALLBACK_SESSION_MEMBER, getActiveDailyQuote } from "@/lib/data/seed";
 import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
 import { EditMemberModal } from "@/components/admin/EditMemberModal";
@@ -283,6 +285,26 @@ export default function MobileProfilePage() {
   const [grvAnonymous, setGrvAnonymous] = useState(false);
   const [grvError, setGrvError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setQrOpen(false);
+        setTraineeTrackerOpen(false);
+        setLedgerModalOpen(false);
+        setAvatarModalOpen(false);
+        setSignOutModalOpen(false);
+        setEditHrModalOpen(false);
+        setAdminEditModalOpen(false);
+        setScheduleModalOpen(false);
+        setPasswordModalOpen(false);
+        setPauseResignModalOpen(false);
+        setGrievanceModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const activeQuote = getActiveDailyQuote(dailyQuotes, settings);
 
   // HR & Residence / Links Edit State
@@ -478,38 +500,47 @@ export default function MobileProfilePage() {
       )}
 
       <div className="px-4 pt-2 pb-6 space-y-3.5 animate-rise">
-        {/* Top Title & Quick Actions — Editorial Header */}
-        <div className="flex items-end justify-between gap-2 pb-2 border-b border-slate-200/90">
-          <div className="min-w-0">
-            <span className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-[#0284C7] block">
-              {member.status === "Alumni" ? "ALUMNI DOSSIER" : "DOSSIER"} · {member.quanterId}
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black font-display text-[#0F1E36] tracking-tight leading-none mt-1">
-              Profile{" "}
-              <span className="font-editorial italic font-normal text-slate-500 text-xl">
-                &amp; Credentials
-              </span>
+        {/* Top Title & Quick Actions — Clean Human Header */}
+        <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/90">
+          <div>
+            <h1 className="text-2xl font-black font-display text-[#0F1E36] tracking-tight leading-none">
+              {isRtl ? "الملف الشخصي" : "Profile"}
             </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {member.fullName} · {member.handle}
+            </p>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {isSuperAdmin && (
               <button
                 type="button"
                 onClick={() => setAdminEditModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold font-mono tracking-wider uppercase shadow-xs border border-amber-400 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
-                title="Edit Full Member Dossier & Season XP (Super Admin)"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#182C4E] hover:bg-[#101F38] border border-amber-400/50 text-amber-300 flex items-center justify-center transition active:scale-95 shadow-2xs cursor-pointer"
+                title="Super Admin Edit Member Profile"
+                aria-label="Super Admin Edit Profile"
               >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>Edit Profile</span>
+                <Shield className="w-5 h-5 text-amber-400" />
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => setQrOpen(true)}
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#182C4E] hover:bg-[#101F38] border border-[#2B4875]/80 text-white flex items-center justify-center transition active:scale-95 shadow-2xs cursor-pointer"
+              title="Personal Digital ID QR"
+              aria-label="Personal QR"
+            >
+              <QrCode className="w-5 h-5 text-[#7DD3FC]" />
+            </button>
+
             <button
               type="button"
               onClick={() => setLedgerModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-[0_4px_12px_rgba(16,31,56,0.2)] border border-[#2B4875]/60 hover:brightness-105 active:scale-[0.98] cursor-pointer transition shrink-0 whitespace-nowrap"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#182C4E] hover:bg-[#101F38] border border-[#2B4875]/80 text-white flex items-center justify-center transition active:scale-95 shadow-2xs cursor-pointer"
+              title="XP Ledger & History"
+              aria-label="XP Ledger"
             >
-              <History className="w-3.5 h-3.5 text-[#7DD3FC]" />
-              <span>XP Ledger</span>
+              <History className="w-5 h-5 text-[#7DD3FC]" />
             </button>
           </div>
         </div>
@@ -527,7 +558,7 @@ export default function MobileProfilePage() {
                     Membership Paused (Frozen)
                   </span>
                   {member.suspensionEndDate && (
-                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-black bg-amber-200 text-amber-950 border border-amber-300">
+                    <span className="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-200 text-amber-950 border border-amber-300">
                       Duration: {member.suspensionEndDate}
                     </span>
                   )}
@@ -555,205 +586,188 @@ export default function MobileProfilePage() {
           </div>
         )}
 
-        {/* Member Identity Dossier — Clean Architectural Card */}
-        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <button
-                type="button"
-                onClick={() => setAvatarModalOpen(true)}
-                className="relative shrink-0 group cursor-pointer active:scale-[0.98]"
-                title="Change avatar"
-              >
-                <img
-                  src={member.avatarUrl}
-                  alt={member.fullName}
-                  className="w-14 h-14 rounded-xl object-cover border-2 border-[#182C4E]/25 shadow-xs"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#38BDF8] border-2 border-white" />
-              </button>
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg sm:text-xl font-black font-display text-[#0F1E36] truncate tracking-tight">
-                    {member.fullName}
-                  </h2>
-                </div>
-                <p className="text-xs font-mono font-bold text-[#0284C7] mt-0.5">
-                  {member.handle}{" "}
-                  <span className="text-slate-400">· {member.quanterId}</span>
-                </p>
-                <p className="text-xs font-medium text-slate-500 mt-0.5 font-sans">
-                  {member.major} · {member.university}
-                </p>
-
-                {/* Prominent Seniority Level & Tenure Badge */}
-                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-200/90 text-[11px] font-mono font-bold shadow-2xs">
-                    <Award className="w-3 h-3 text-[#0284C7]" />
-                    <span>Level {member.level} · {member.levelTitle}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-mono font-semibold">
-                    {typeof member.yearsInClub === "number" && member.yearsInClub > 0
-                      ? `${member.yearsInClub} Year${member.yearsInClub === 1 ? "" : "s"} in Club`
-                      : member.tenure || (member.level === 3 ? "2+ Years" : member.level === 2 ? "1 Year" : "New Member")}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold ${
-                      member.status === "Active"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : member.status === "Alumni"
-                        ? "bg-purple-50 text-purple-700 border border-purple-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}
-                  >
-                    {member.status === "Active" ? "Confirmed Active" : member.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Mini QR Button -> Opens PersonalQRModal */}
-            <button
-              type="button"
-              onClick={() => setQrOpen(true)}
-              aria-label="Show Personal Digital ID QR"
-              className="w-10 h-10 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] border border-[#D5E3F5] active:scale-[0.97] flex items-center justify-center text-[#182C4E] shrink-0 shadow-xs transition cursor-pointer"
-            >
-              <QrCode className="w-4.5 h-4.5" />
-            </button>
-          </div>
-
-          <div className="mt-3.5 pt-3.5 border-t border-slate-100/90 flex items-start gap-3">
-            <Quote className="w-5 h-5 text-[#0284C7] shrink-0 mt-0.5 opacity-90" />
-            <div className="space-y-1 min-w-0 flex-1">
-              <p className="text-sm sm:text-base font-editorial font-medium italic text-slate-800 leading-relaxed tracking-wide">
-                &ldquo;{lang === "ar" && activeQuote.textAr ? activeQuote.textAr : activeQuote.text}&rdquo;
-              </p>
-              <div className="text-xs font-sans font-bold text-[#0284C7] flex items-center gap-1.5 flex-wrap">
-                <span>—</span>
-                <span>{lang === "ar" && activeQuote.authorAr ? activeQuote.authorAr : activeQuote.author}</span>
-                <span className="text-[10.5px] font-mono font-normal text-slate-400">· {activeQuote.category}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Nano Banana Cosmic Crocheted Astronaut & Cyan Spiral Galaxy Hero Card (Zero Obstruction on Right) */}
-        <div className="relative rounded-xl p-5 sm:p-6 text-white overflow-hidden bg-[#0B1528] border border-[#2B4875]/60 shadow-[0_16px_38px_rgba(11,21,40,0.26)] group">
-          {/* Static Nano Banana Artwork with Subtle Zero-G Drift */}
+        {/* Unified Member Profile Card with Official Mascot Banner */}
+        <div className="relative rounded-2xl p-4 sm:p-4.5 text-white overflow-hidden bg-[#071326] border border-[#2B4875]/80 shadow-[0_16px_36px_rgba(7,19,38,0.28)] animate-rise">
+          {/* Official Profile Crocheted Astronaut Mascot Background (Atmospheric Edge Blend) */}
           <img
             src="/brand/mascot_profile.png"
-            alt="QUANTERS Crocheted Astronaut & Cyan Spiral Galaxy"
-            className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none animate-zero-g"
+            alt="QUANTA Mascot"
+            className="absolute inset-0 w-full h-full object-cover object-right select-none pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0B1528]/96 via-[#101F38]/76 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#0B1528]/90 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#071326] via-[#071326]/90 via-55% to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#071326]/85 to-transparent pointer-events-none" />
 
-          <div className="relative z-10 max-w-[60%]">
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  member.status === "Trainee"
-                    ? "bg-[#7DD3FC] shadow-[0_0_8px_#7DD3FC]"
-                    : "bg-[#38BDF8] shadow-[0_0_8px_#38BDF8]"
-                }`}
+          {/* Member Identity Top Block — Pro Fitted Structure */}
+          <div className="relative z-10 flex items-center gap-3.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => setAvatarModalOpen(true)}
+              className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden border-2 border-[#38BDF8]/40 shadow-md group cursor-pointer active:scale-95 transition bg-[#0F1E36]"
+              title="Change avatar"
+            >
+              <img
+                src={getEffectiveMemberAvatar(member)}
+                alt={member.fullName}
+                className="w-full h-full object-cover select-none"
               />
-              <span className="text-xs font-black tracking-[0.14em] font-mono text-[#7DD3FC] uppercase">
-                LEVEL 0{member.level} · {member.levelTitle}
-              </span>
-              <span className="text-white/30 text-xs">·</span>
-              <span className="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">
-                {member.status === "Active" ? "Active" : member.status}
-              </span>
+              <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-[#38BDF8] border-2 border-[#071326] shadow-[0_0_6px_#38BDF8]" />
+            </button>
+
+            <div className="min-w-0 flex-1 space-y-1">
+              <div>
+                <h2 className="text-base sm:text-lg font-black font-display text-white truncate tracking-tight leading-tight">
+                  {member.fullName}
+                </h2>
+                <p className="text-xs text-sky-200/90 font-medium truncate leading-tight mt-0.5">
+                  {member.handle} {dept ? `· ${dept.shortName}` : ""}
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-300 font-sans leading-tight mt-0.5">
+                  {team ? team.name : member.major}
+                </p>
+              </div>
+
+              {/* Status & Role Badges — Side-by-Side Under Identity Text */}
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-wide shadow-2xs shrink-0 ${
+                    member.status === "Active"
+                      ? "bg-[#064E3B] text-emerald-200 border border-emerald-500/40"
+                      : member.status === "Alumni"
+                      ? "bg-[#3B0764] text-purple-200 border border-purple-500/40"
+                      : "bg-[#78350F] text-amber-200 border border-amber-500/40"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      member.status === "Active"
+                        ? "bg-emerald-400"
+                        : member.status === "Alumni"
+                        ? "bg-purple-400"
+                        : "bg-amber-400"
+                    }`}
+                  />
+                  <span>{member.status === "Active" ? (isRtl ? "عضو نشط" : "Active Member") : member.status}</span>
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#0F284E] text-[#BAE6FD] border border-[#38BDF8]/40 text-[10px] sm:text-xs font-bold tracking-wide shadow-2xs shrink-0">
+                  <Bookmark className="w-3 h-3 text-[#38BDF8]" />
+                  <span>{member.roles[0] || member.levelTitle}</span>
+                </span>
+              </div>
             </div>
-
-            <p className="mt-1 text-sm sm:text-base font-editorial italic text-sky-100/95 tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              Tenure: {typeof member.yearsInClub === "number" && member.yearsInClub > 0
-                ? `${member.yearsInClub} Year${member.yearsInClub === 1 ? "" : "s"} in Club`
-                : member.tenure || (member.level === 3 ? "2+ Years" : member.level === 2 ? "1 Year" : "New Member")}
-            </p>
-
-            <div className="mt-3 flex items-baseline gap-1.5 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)]">
-              <span className="text-4xl sm:text-5xl font-black font-display text-white tracking-tight tabular-nums leading-none">
-                {member.xpSeason.toLocaleString()}
-              </span>
-              <span className="text-xs font-black font-mono tracking-[0.18em] text-[#7DD3FC] uppercase">
-                XP
-              </span>
-            </div>
-
-            <p className="mt-1.5 text-xs font-mono text-slate-300/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              <span className="text-white font-bold tabular-nums">
-                {xpProgressPct}%
-              </span>{" "}
-              · {xpToNext > 0 ? `${xpToNext.toLocaleString()} XP to Lv. ${(currentTier?.level || member.level) + 1}` : "Max Rank Achieved"}
-            </p>
-          </div>
-
-          {/* Hairline Architectural Progress Track */}
-          <div className="relative z-10 mt-4 pt-2.5 border-t border-white/10 flex items-center gap-3">
-            <div className="relative h-[4px] flex-1 bg-white/15 rounded-full overflow-visible">
-              <div
-                className="h-full bg-gradient-to-r from-[#0EA5E9] via-[#38BDF8] to-[#E0F2FE] rounded-full shadow-[0_0_10px_rgba(56,189,248,0.65)] transition-all duration-700"
-                style={{ width: `${xpProgressPct}%` }}
-              />
-              <span
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#38BDF8]"
-                style={{ left: `${xpProgressPct}%` }}
-              />
-            </div>
-            <span className="text-xs font-mono font-bold tracking-widest text-sky-200/90 tabular-nums shrink-0">
-              {currentScore.toLocaleString()} / {typeof currentTier?.maxXp === "number" ? currentTier.maxXp.toLocaleString() : "MAX"} XP
-            </span>
           </div>
         </div>
 
-        {/* Open Architectural Specification Strip — Unboxed Swiss Grid (Zero 01..04 Numeration) */}
-        <div className="border-y border-slate-200/90 py-2.5 grid grid-cols-4 divide-x divide-slate-200/80">
-          <Link
-            href="/badges"
-            className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
-          >
-            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.badgeIds.length}
-            </span>
-            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
-              Badges
-            </span>
-          </Link>
+        {/* Separated Performance & XP Box (Dedicated Container with Badges, Sessions, Projects & Tenure) */}
+        <div className="rounded-2xl p-3 sm:p-3.5 bg-white border border-slate-200/90 shadow-[0_4px_20px_rgba(15,30,54,0.06)] animate-rise space-y-2.5">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans block">
+                {isRtl ? "مستوى العضوية والتقدم" : "Performance & Progression"}
+              </span>
+              <h3 className="text-sm sm:text-base font-black font-display text-[#0F1E36] tracking-tight mt-0.5">
+                Lv. {member.level} · {member.levelTitle}
+              </h3>
+            </div>
+            <div className="text-right rtl:text-left">
+              <span className="px-2 py-0.5 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-black font-display tabular-nums shadow-2xs">
+                {isAlumni ? "Alumni Lifetime" : `${Math.round(xpProgressPct)}% to Lv. ${member.level + 1}`}
+              </span>
+            </div>
+          </div>
 
-          <Link
-            href="/workshops"
-            className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
-          >
-            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.workshopsCompletedCount}
-            </span>
-            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
-              Sessions
-            </span>
-          </Link>
+          {/* XP Dual Showcase: Blue Gradient + Creative Graphic + Reversed Color Text */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-[#0B2347] via-[#103366] to-[#16498C] border border-[#38BDF8]/40 shadow-[0_4px_16px_rgba(16,51,102,0.22)] text-white group">
+              {/* Creative Quantum Graphic Accent */}
+              <div className="absolute -right-3 -bottom-3 w-14 h-14 rounded-full bg-[#38BDF8]/15 blur-lg pointer-events-none" />
+              <svg className="absolute right-2 bottom-1.5 w-9 h-9 text-white/[0.08] pointer-events-none select-none" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12 3v18M3 12h18" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+              </svg>
+              <span className="relative z-10 text-[11px] font-semibold text-sky-200 block">
+                {isRtl ? "نقاط الموسم" : "Season XP"}
+              </span>
+              <div className="relative z-10 flex items-baseline gap-1 mt-0.5">
+                <span className="text-xl sm:text-2xl font-black font-display text-white tabular-nums tracking-tight drop-shadow-sm">
+                  {(member.xpSeason ?? 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-[#7DD3FC]">XP</span>
+              </div>
+            </div>
 
-          <Link
-            href="/projects/submit"
-            className="flex flex-col items-start px-2.5 py-0.5 hover:opacity-75 active:scale-[0.98] transition-all cursor-pointer group"
-          >
-            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
-              {member.projectsCompletedCount}
-            </span>
-            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
-              Projects
-            </span>
-          </Link>
+            <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-[#0B2347] via-[#103366] to-[#16498C] border border-[#38BDF8]/40 shadow-[0_4px_16px_rgba(16,51,102,0.22)] text-white group">
+              {/* Creative Starburst Graphic Accent */}
+              <div className="absolute -right-3 -bottom-3 w-14 h-14 rounded-full bg-[#38BDF8]/15 blur-lg pointer-events-none" />
+              <svg className="absolute right-2 bottom-1.5 w-9 h-9 text-white/[0.08] pointer-events-none select-none" viewBox="0 0 24 24" fill="none">
+                <polygon points="12,2 15,8.5 22,9.3 17,14.1 18.2,21 12,17.7 5.8,21 7,14.1 2,9.3 9,8.5" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+              <span className="relative z-10 text-[11px] font-semibold text-sky-200 block">
+                {isRtl ? "إجمالي النقاط" : "Total XP"}
+              </span>
+              <div className="relative z-10 flex items-baseline gap-1 mt-0.5">
+                <span className="text-xl sm:text-2xl font-black font-display text-white tabular-nums tracking-tight drop-shadow-sm">
+                  {(member.xpTotal ?? 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-[#7DD3FC]">XP</span>
+              </div>
+            </div>
+          </div>
+          {/* Hairline Progress Bar */}
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#0284C7] to-[#38BDF8] rounded-full transition-all duration-700"
+              style={{ width: `${isAlumni ? 100 : xpProgressPct}%` }}
+            />
+          </div>
 
-          <div className="flex flex-col items-start px-2.5 py-0.5">
-            <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight">
-              {member.xpTotal.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
-              Total XP
-            </span>
+          {/* Integrated 4-Column Architectural Data: Badges, Sessions, Projects, Tenure */}
+          <div className="border-t border-slate-100 pt-2 grid grid-cols-4 divide-x divide-slate-100">
+            <Link
+              href="/badges"
+              className="flex flex-col items-start px-2 hover:opacity-80 active:scale-[0.98] transition-all cursor-pointer group"
+            >
+              <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
+                {(member.badgeIds || []).length}
+              </span>
+              <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
+                {isRtl ? "الشارات" : "Badges"}
+              </span>
+            </Link>
+
+            <Link
+              href="/workshops"
+              className="flex flex-col items-start px-2 hover:opacity-80 active:scale-[0.98] transition-all cursor-pointer group"
+            >
+              <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
+                {member.workshopsCompletedCount ?? 0}
+              </span>
+              <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
+                {isRtl ? "الورشات" : "Sessions"}
+              </span>
+            </Link>
+
+            <Link
+              href="/projects/submit"
+              className="flex flex-col items-start px-2 hover:opacity-80 active:scale-[0.98] transition-all cursor-pointer group"
+            >
+              <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight group-hover:text-[#0284C7] transition-colors">
+                {member.projectsCompletedCount ?? 0}
+              </span>
+              <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
+                {isRtl ? "المشاريع" : "Projects"}
+              </span>
+            </Link>
+
+            <div className="flex flex-col items-start px-2">
+              <span className="text-lg sm:text-xl font-black font-display text-[#0F1E36] tabular-nums leading-tight">
+                {typeof member.yearsInClub === "number" && member.yearsInClub > 0 ? `${member.yearsInClub}y` : "1y"}
+              </span>
+              <span className="text-xs font-medium font-sans text-slate-500 leading-tight mt-0.5">
+                {isRtl ? "الأقدمية" : "Tenure"}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -811,13 +825,13 @@ export default function MobileProfilePage() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#0284C7] block">
-                  Club Seniority &amp; Standing
+                  Club Standing &amp; Roadmap
                 </span>
                 <p className="text-sm font-extrabold font-display text-[#0F1E36]">
-                  Level {member.level} ({member.levelTitle}) · {typeof member.yearsInClub === "number" && member.yearsInClub > 0 ? `${member.yearsInClub} Year${member.yearsInClub === 1 ? "" : "s"} in Club` : (member.tenure || "Active")}
+                  {member.status === "Active" ? "Confirmed Active Quanter" : `${member.status} Status`} · Since {member.statusSince}
                 </p>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {member.status === "Active" ? "Confirmed Active Quanter" : `${member.status} Member`} · Since {member.statusSince}
+                  Track requirements, competencies &amp; milestones
                 </p>
               </div>
             </div>
@@ -833,26 +847,21 @@ export default function MobileProfilePage() {
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36] flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-[#0284C7]" />
-              <span>Residence &amp; Professional Links</span>
+              <span>Residence &amp; Links</span>
             </h3>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setEditHrModalOpen(true)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition cursor-pointer"
-              >
-                <Pencil className="w-3 h-3" />
-                <span>Edit Details</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setEditHrModalOpen(true)}
+              title="Edit Residence & Links"
+              aria-label="Edit Details"
+              className="w-7 h-7 rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] flex items-center justify-center hover:bg-[#E0F2FE] active:scale-[0.95] transition cursor-pointer shadow-2xs"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {/* Residence & Commute Row */}
           <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200/80 space-y-1">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
-              <MapPin className="w-3 h-3 text-[#0284C7]" />
-              <span>Residence &amp; Commute Logistics</span>
-            </div>
             <p className="text-xs font-extrabold text-[#0F1E36]">
               {displayCommune} · {displayWilaya}
             </p>
@@ -862,7 +871,7 @@ export default function MobileProfilePage() {
                 {displayHousing}
               </span>
               <span className="px-2 py-0.5 rounded-md bg-[#F0F6FF] border border-[#D5E3F5] text-xs font-bold text-[#182C4E]">
-                Commute: {displayCommute}
+                {displayCommute}
               </span>
             </div>
           </div>
@@ -916,7 +925,7 @@ export default function MobileProfilePage() {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-500 font-display">
                 <CalendarDays className="w-3.5 h-3.5 text-[#0284C7]" />
-                <span>Weekly Club Availability</span>
+                <span>Weekly Schedule</span>
               </div>
               <button
                 type="button"
@@ -924,21 +933,17 @@ export default function MobileProfilePage() {
                   setEditAvailability(member.availability || {});
                   setScheduleModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[#182C4E] text-xs font-bold font-display hover:bg-[#F0F6FF] active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                title="Edit Weekly Schedule"
+                aria-label="Edit Schedule"
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-[#182C4E] flex items-center justify-center hover:bg-[#F0F6FF] active:scale-[0.95] transition cursor-pointer shadow-2xs"
               >
-                <Pencil className="w-3 h-3" />
-                <span>Edit Schedule</span>
+                <Pencil className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-black font-display tabular-nums">
                 {totalFreeSlots} slots free
-              </span>
-              <span className="text-xs font-medium text-slate-500 font-sans">
-                {totalFreeSlots >= 8
-                  ? "Optimal for weekend labs & team missions"
-                  : "Part-time availability registered"}
               </span>
             </div>
 
@@ -973,23 +978,15 @@ export default function MobileProfilePage() {
           </div>
         </div>
 
-        {/* Skills Section with + Add */}
+        {/* Skills Section with inline + beside skills */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)]">
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2.5">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F1E36]">
               Skills &amp; Competencies
             </h3>
-            <button
-              type="button"
-              onClick={() => setAddingSkill((v) => !v)}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold hover:bg-[#E0F2FE] active:scale-[0.98] transition cursor-pointer"
-            >
-              <Plus className="w-3 h-3" />
-              <span>Add</span>
-            </button>
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex items-center flex-wrap gap-1.5">
             {(member.skills || []).map((skill) => (
               <span
                 key={skill}
@@ -998,6 +995,15 @@ export default function MobileProfilePage() {
                 {skill}
               </span>
             ))}
+            <button
+              type="button"
+              onClick={() => setAddingSkill((v) => !v)}
+              aria-label="Add skill"
+              title="Add skill"
+              className="w-7 h-7 rounded-lg bg-[#F0F6FF] hover:bg-[#E0F2FE] text-[#182C4E] border border-[#D5E3F5] flex items-center justify-center transition active:scale-95 cursor-pointer shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {addingSkill && (
@@ -1020,7 +1026,7 @@ export default function MobileProfilePage() {
         </div>
 
         {/* Account & Session Controls */}
-        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-[0_4px_16px_rgba(15,30,54,0.04)] space-y-2.5">
           <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
               Signed-in Account
@@ -1030,24 +1036,25 @@ export default function MobileProfilePage() {
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOldEmailVerify("");
-              setNewEmailOptional("");
-              setNewPasswordVal("");
-              setConfirmPasswordVal("");
-              setPasswordError(null);
-              setPasswordModalOpen(true);
-            }}
-            className="w-full h-10 rounded-xl bg-[#F0F6FF] hover:bg-[#E2EEFC] border border-[#D5E3F5] text-[#182C4E] text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.99] transition cursor-pointer"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.profile.changePassword}</span>
-          </button>
+          {/* Change Password, Grievance, and Membership on the same line */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setOldEmailVerify("");
+                setNewEmailOptional("");
+                setNewPasswordVal("");
+                setConfirmPasswordVal("");
+                setPasswordError(null);
+                setPasswordModalOpen(true);
+              }}
+              className="h-10 px-2 rounded-xl bg-[#F0F6FF] hover:bg-[#E2EEFC] border border-[#D5E3F5] text-[#182C4E] text-[11px] sm:text-xs font-extrabold flex items-center justify-center gap-1.5 active:scale-[0.98] transition cursor-pointer shadow-2xs truncate"
+              title="Change Password"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
+              <span className="truncate">{isRtl ? "كلمة المرور" : "Password"}</span>
+            </button>
 
-          {/* Horizontally Aligned Member Governance Actions: English only, Icon + 1 Word */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
@@ -1059,10 +1066,11 @@ export default function MobileProfilePage() {
                 setGrvError(null);
                 setGrievanceModalOpen(true);
               }}
-              className="h-10 px-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 hover:brightness-95 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer shadow-2xs truncate"
+              className="h-10 px-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 hover:brightness-95 border border-amber-200 text-amber-900 text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition cursor-pointer shadow-2xs truncate"
+              title="Submit Grievance"
             >
-              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-              <span className="truncate">Grievance</span>
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="truncate">{isRtl ? "شكوى" : "Grievance"}</span>
             </button>
 
             <button
@@ -1081,7 +1089,7 @@ export default function MobileProfilePage() {
                 setPrError(null);
                 setPauseResignModalOpen(true);
               }}
-              className={`h-10 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer truncate ${
+              className={`h-10 px-2 rounded-xl border text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition cursor-pointer shadow-2xs truncate ${
                 member.status === "Inactive"
                   ? "bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-2xs font-extrabold"
                   : "bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700"
@@ -1101,51 +1109,36 @@ export default function MobileProfilePage() {
             </button>
           </div>
 
-          {/* Creative Language Switcher Card (English / العربية) */}
-          <div className="w-full rounded-2xl bg-gradient-to-b from-white to-[#F8FAFC] border border-[#E2E8F0] p-3.5 shadow-sm space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD] flex items-center justify-center text-[#0284C7] shadow-xs">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-[#0F172A] leading-tight">
-                    {lang === "ar" ? "لغة المنصة والواجهة" : "Platform Language"}
-                  </p>
-                  <p className="text-[10px] text-[#64748B] font-medium leading-tight">
-                    {lang === "ar" ? "تبديل فوري بين العربية والإنجليزية" : "Instant Arabic & English toggle"}
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                {lang.toUpperCase()}
+          {/* Minimalist Platform Language Switcher */}
+          <div className="w-full flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+            <div className="flex items-center gap-2 pl-1.5">
+              <Globe className="w-4 h-4 text-[#0284C7]" />
+              <span className="text-xs font-bold text-slate-800">
+                {lang === "ar" ? "لغة المنصة" : "Language"}
               </span>
             </div>
-
-            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0]">
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100">
               <button
                 type="button"
                 onClick={() => setLanguage("en")}
-                className={`h-8 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`h-7 px-2.5 rounded-md text-xs font-bold transition cursor-pointer ${
                   lang === "en"
-                    ? "bg-white text-[#0F172A] shadow-xs border border-slate-200 font-extrabold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <span>🇬🇧</span>
-                <span>English</span>
+                English
               </button>
               <button
                 type="button"
                 onClick={() => setLanguage("ar")}
-                className={`h-8 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer font-cairo ${
+                className={`h-7 px-2.5 rounded-md text-xs font-bold transition cursor-pointer font-cairo ${
                   lang === "ar"
-                    ? "bg-gradient-to-r from-[#0369A1] to-[#0284C7] text-white shadow-xs font-extrabold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-[#0284C7] text-white shadow-2xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <span>🇩🇿</span>
-                <span>العربية</span>
+                العربية
               </button>
             </div>
           </div>
@@ -1179,10 +1172,10 @@ export default function MobileProfilePage() {
               <span>System Push Notifications</span>
             </div>
             <span
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
                 notifsActive
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  : "bg-slate-100 text-slate-500 border border-slate-200"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : "bg-slate-100 text-slate-600 border border-slate-200"
               }`}
             >
               <span
@@ -1190,7 +1183,7 @@ export default function MobileProfilePage() {
                   notifsActive ? "bg-emerald-500" : "bg-slate-400"
                 }`}
               />
-              <span>{notifsActive ? "Active" : "Inactive"}</span>
+              <span>{notifsActive ? (isRtl ? "مفعل" : "Active") : (isRtl ? "معطل" : "Inactive")}</span>
             </span>
           </button>
 
@@ -1232,7 +1225,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setPasswordModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
+                aria-label="Close password modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1367,24 +1361,21 @@ export default function MobileProfilePage() {
       {/* Pause or Resign Membership Modal */}
       {pauseResignModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-[420px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="w-full max-w-[400px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                  Internal Governance · Art. 12
-                </span>
                 <h3 className="text-base font-black font-display text-slate-900 leading-tight">
-                  Pause or Resign Membership
+                  Membership Standing
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Temporary pause or voluntary departure
+                  Pause or update your club membership
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setPauseResignModalOpen(false)}
                 aria-label="Close modal"
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0 active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1406,7 +1397,7 @@ export default function MobileProfilePage() {
                   setPrError(
                     prAction === "resume"
                       ? "Please write a brief note for returning."
-                      : "Please write a reason (motif) for this action."
+                      : "Please write a reason for this action."
                   );
                   return;
                 }
@@ -1415,7 +1406,7 @@ export default function MobileProfilePage() {
                   return;
                 }
                 if (!prConfirmed) {
-                  setPrError("Please check the confirmation box below to proceed.");
+                  setPrError("Please confirm your request to proceed.");
                   return;
                 }
 
@@ -1447,143 +1438,128 @@ export default function MobileProfilePage() {
                       setPrAction("resume");
                       if (!prMotif) setPrMotif("Ready to return to active club participation");
                     }}
-                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                       prAction === "resume"
-                        ? "bg-emerald-600 text-white shadow-xs font-black"
+                        ? "bg-emerald-600 text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <span>Resume Active</span>
+                    Resume
                   </button>
                   <button
                     type="button"
                     onClick={() => setPrAction("pause")}
-                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                       prAction === "pause"
                         ? "bg-white text-amber-900 shadow-xs border border-amber-200"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <span>Adjust Pause</span>
+                    Pause
                   </button>
                   <button
                     type="button"
                     onClick={() => setPrAction("resign")}
-                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    className={`py-2 px-1 rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                       prAction === "resign"
                         ? "bg-white text-rose-900 shadow-xs border border-rose-200"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <span>Resign</span>
+                    Resign
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl">
                   <button
                     type="button"
                     onClick={() => setPrAction("pause")}
-                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                       prAction === "pause"
                         ? "bg-white text-amber-900 shadow-xs border border-amber-200"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <span>Pause Membership</span>
+                    Pause
                   </button>
                   <button
                     type="button"
                     onClick={() => setPrAction("resign")}
-                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex flex-col items-center justify-center ${
+                    className={`py-2 px-2.5 rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                       prAction === "resign"
                         ? "bg-white text-rose-900 shadow-xs border border-rose-200"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <span>Resign from Club</span>
+                    Resign
                   </button>
                 </div>
               )}
 
-              {prAction === "resume" ? (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
-                  <div className="font-extrabold text-emerald-900 flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Resume Active Status</span>
-                  </div>
-                  <p className="text-[11.5px] text-emerald-800 leading-relaxed font-medium">
-                    This will immediately lift your pause/freeze, restore full Active Member status, and resume your workshop attendance &amp; team tasks.
-                  </p>
-                </div>
-              ) : prAction === "pause" ? (
-                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
-                  <p className="text-[11.5px] text-amber-900 leading-relaxed font-medium">
-                    Pausing temporarily suspends mandatory attendance and tasks
-                    (ideal during university exams or personal leave). Your
-                    record and badges remain saved.
-                  </p>
-                  <div>
-                    <label className="block text-[10.5px] font-bold uppercase tracking-wider text-amber-800 mb-1">
-                      Expected Return / Pause Duration
-                    </label>
-                    <select
-                      value={prPauseDuration}
-                      onChange={(e) => setPrPauseDuration(e.target.value)}
-                      className="w-full h-8 px-2.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-slate-800 focus:outline-none"
-                    >
-                      <option value="15 Days">15 Days (15 Jours)</option>
-                      <option value="1 Month">1 Month</option>
-                      <option value="2 Months">2 Months</option>
-                      <option value="3 Months">3 Months</option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-xl bg-rose-50/80 border border-rose-200 space-y-1">
-                  <p className="text-[11.5px] text-rose-900 leading-relaxed font-medium">
-                    Voluntary resignation formally removes your active membership
-                    and assigned club roles. Your earned badges and history will
-                    be archived in the alumni / former registry.
-                  </p>
+              {/* Action Description Strip */}
+              <div
+                className={`p-2.5 rounded-xl border text-[11px] leading-relaxed ${
+                  prAction === "resume"
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                    : prAction === "pause"
+                    ? "bg-amber-50 text-amber-900 border-amber-200"
+                    : "bg-rose-50 text-rose-900 border-rose-200"
+                }`}
+              >
+                {prAction === "resume"
+                  ? "Restores full active member status and participation in workshops and team missions."
+                  : prAction === "pause"
+                  ? "Freezes attendance and task requirements. Your XP, badges, and records remain safe."
+                  : "Voluntary departure. Your record and achievements will be archived in the club alumni registry."}
+              </div>
+
+              {prAction === "pause" && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Pause Duration
+                  </label>
+                  <select
+                    value={prPauseDuration}
+                    onChange={(e) => setPrPauseDuration(e.target.value)}
+                    className="w-full h-9 px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#182C4E]"
+                  >
+                    <option value="15 Days">15 Days</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="2 Months">2 Months</option>
+                    <option value="3 Months">3 Months</option>
+                  </select>
                 </div>
               )}
 
-              {/* Motif / Reason (Required) */}
+              {/* Reason Input */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Reason / Motif (Required)
+                  Reason (Required)
                 </label>
                 <textarea
                   required
-                  rows={3}
+                  rows={2}
                   value={prMotif}
                   onChange={(e) => setPrMotif(e.target.value)}
                   placeholder={
                     prAction === "resume"
-                      ? "e.g., Finished exams, returning to regular club sessions..."
+                      ? "Ready to return to club sessions..."
                       : prAction === "pause"
-                      ? "e.g., Final exam preparation, engineering project deadline, medical leave..."
-                      : "e.g., Graduation, moving out of Algiers, personal reasons..."
+                      ? "Exams, project deadlines, personal leave..."
+                      : "Graduation, relocation, personal reasons..."
                   }
                   className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
 
-              {/* Identity Verification: Password or 1-Tap Google Re-Auth */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-bold text-slate-700">
-                    Confirm Account Authorization
-                  </label>
-                  {prGoogleVerified && (
-                    <span className="text-[10.5px] font-mono font-bold text-emerald-600 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Verified
-                    </span>
-                  )}
-                </div>
+              {/* Identity Verification */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-700">
+                  Verification
+                </label>
 
                 {!prGoogleVerified ? (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <input
                       type="password"
                       value={prPassword}
@@ -1591,14 +1567,6 @@ export default function MobileProfilePage() {
                       placeholder="Enter account password"
                       className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#182C4E]"
                     />
-
-                    <div className="flex items-center gap-2 py-0.5">
-                      <span className="h-px flex-1 bg-slate-200" />
-                      <span className="text-[9.5px] font-mono uppercase tracking-wider text-slate-400">
-                        OR VERIFY WITH
-                      </span>
-                      <span className="h-px flex-1 bg-slate-200" />
-                    </div>
 
                     <button
                       type="button"
@@ -1620,17 +1588,17 @@ export default function MobileProfilePage() {
                           );
                         }
                       }}
-                      className="w-full h-9 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-2xs"
+                      className="w-full h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
                     >
                       <GoogleLogoSvg className="w-3.5 h-3.5" />
-                      <span>Verify with Google Account ({member.email})</span>
+                      <span>Or verify with Google</span>
                     </button>
                   </div>
                 ) : (
                   <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                      <GoogleLogoSvg className="w-4 h-4" />
-                      <span>Verified via Google ({member.email})</span>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Verified via Google</span>
                     </div>
                     <button
                       type="button"
@@ -1646,32 +1614,16 @@ export default function MobileProfilePage() {
                 )}
               </div>
 
-              {/* Checkbox Confirmation */}
-              <label className="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              {/* Confirmation Checkbox */}
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={prConfirmed}
                   onChange={(e) => setPrConfirmed(e.target.checked)}
-                  className="mt-0.5 rounded border-slate-300 text-[#0284C7] focus:ring-0"
+                  className="rounded border-slate-300 text-[#0284C7] focus:ring-0"
                 />
-                <span className="text-[11px] text-slate-700 leading-tight">
-                  I confirm that I understand this action and wish to{" "}
-                  <strong
-                    className={
-                      prAction === "resume"
-                        ? "text-emerald-700"
-                        : prAction === "resign"
-                        ? "text-rose-600"
-                        : "text-amber-700"
-                    }
-                  >
-                    {prAction === "resume"
-                      ? "resume my active membership"
-                      : prAction === "pause"
-                      ? "pause"
-                      : "resign from"}
-                  </strong>{" "}
-                  in QUANTA Club.
+                <span className="text-[11px] text-slate-700 font-medium">
+                  I confirm this membership change.
                 </span>
               </label>
 
@@ -1694,10 +1646,10 @@ export default function MobileProfilePage() {
                   }`}
                 >
                   {prAction === "resume"
-                    ? "Confirm Resume Active"
+                    ? "Confirm Resume"
                     : prAction === "pause"
                     ? "Confirm Pause"
-                    : "Confirm Resignation"}
+                    : "Confirm Resign"}
                 </button>
               </div>
             </form>
@@ -1708,18 +1660,18 @@ export default function MobileProfilePage() {
       {/* Confidential HR Grievance Modal */}
       {grievanceModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-[440px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="w-full max-w-[420px] rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-rise max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-600 shrink-0">
                   <ShieldAlert className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-black font-display text-slate-900 leading-tight">
-                    Submit Confidential Grievance
+                    Confidential Grievance
                   </h3>
-                  <p className="text-[11px] text-[#C2410C] font-semibold">
-                    Encrypted direct channel to HR Department
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Direct channel to HR Head &amp; Executive Bureau
                   </p>
                 </div>
               </div>
@@ -1727,22 +1679,17 @@ export default function MobileProfilePage() {
                 type="button"
                 onClick={() => setGrievanceModalOpen(false)}
                 aria-label="Close modal"
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition cursor-pointer shrink-0 active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Privacy Guarantee Banner */}
-            <div className="p-3 rounded-xl bg-slate-900 text-white space-y-1 mb-3">
-              <div className="flex items-center gap-1.5 text-[#38E4FF] font-mono text-[10px] font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Strictly Confidential · HR Eyes Only</span>
-              </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                This grievance is encrypted and strictly accessible only by the HR
-                Head and Executive Bureau. Department managers, co-managers, and team
-                leaders have ZERO access to view or inspect this submission.
+            {/* Privacy Trust Banner */}
+            <div className="p-2.5 rounded-xl bg-slate-900 text-white flex items-center gap-2.5 mb-3">
+              <ShieldCheck className="w-4 h-4 text-[#38BDF8] shrink-0" />
+              <p className="text-[11px] text-slate-200 leading-snug">
+                <strong className="text-white">Encrypted &amp; Confidential:</strong> Strictly accessible to HR Head only.
               </p>
             </div>
 
@@ -1759,7 +1706,7 @@ export default function MobileProfilePage() {
                 setGrvError(null);
 
                 if (!grvSubject.trim() || !grvDetails.trim()) {
-                  setGrvError("Please fill in both the subject and description of your complaint.");
+                  setGrvError("Please fill in both the subject and description.");
                   return;
                 }
 
@@ -1785,25 +1732,23 @@ export default function MobileProfilePage() {
               {/* Anonymous Toggle */}
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                 <div>
-                  <span className="block font-bold text-slate-800 text-[11.5px]">
+                  <span className="block font-bold text-slate-800 text-xs">
                     Submit Anonymously
                   </span>
                   <span className="block text-[10.5px] text-slate-500">
-                    {grvAnonymous
-                      ? "Your name and Quanter ID will be completely hidden from HR."
-                      : "HR will see your name to contact you directly if needed."}
+                    {grvAnonymous ? "Your identity is completely hidden" : "HR will see your name to follow up"}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setGrvAnonymous(!grvAnonymous)}
-                  className={`w-11 h-6 rounded-full transition cursor-pointer relative shrink-0 ${
+                  className={`w-10 h-6 rounded-full transition cursor-pointer relative shrink-0 ${
                     grvAnonymous ? "bg-[#0284C7]" : "bg-slate-300"
                   }`}
                 >
                   <span
-                    className={`block w-5 h-5 rounded-full bg-white shadow-xs transition transform ${
-                      grvAnonymous ? "translate-x-5" : "translate-x-0.5"
+                    className={`block w-4.5 h-4.5 rounded-full bg-white shadow-xs transition transform ${
+                      grvAnonymous ? "translate-x-4.5" : "translate-x-0.5"
                     }`}
                   />
                 </button>
@@ -1812,13 +1757,14 @@ export default function MobileProfilePage() {
               {/* Subject */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Subject / Topic                </label>
+                  Topic / Subject
+                </label>
                 <input
                   type="text"
                   required
                   value={grvSubject}
                   onChange={(e) => setGrvSubject(e.target.value)}
-                  placeholder="e.g. Unfair task distribution / Schedule conflict"
+                  placeholder="Brief summary of the issue..."
                   className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
@@ -1827,24 +1773,26 @@ export default function MobileProfilePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
-                    Category                  </label>
+                    Category
+                  </label>
                   <select
                     value={grvCategory}
                     onChange={(e) => setGrvCategory(e.target.value as GrievanceCategory)}
                     className="w-full h-8 px-2 rounded-lg border border-slate-200 text-[11px] text-slate-800 font-semibold focus:outline-none"
                   >
                     <option value="Workload & Tasks">Workload &amp; Tasks</option>
-                    <option value="Interpersonal & Respect">Interpersonal &amp; Respect</option>
-                    <option value="Fairness & Evaluation">Fairness &amp; Evaluation</option>
-                    <option value="Misconduct / Harassment">Misconduct / Harassment</option>
-                    <option value="Governance Conflict">Governance Conflict</option>
+                    <option value="Interpersonal & Respect">Interpersonal</option>
+                    <option value="Fairness & Evaluation">Evaluation</option>
+                    <option value="Misconduct / Harassment">Misconduct</option>
+                    <option value="Governance Conflict">Governance</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[10.5px] font-bold text-slate-700 mb-1">
-                    Urgency                  </label>
+                    Urgency
+                  </label>
                   <select
                     value={grvUrgency}
                     onChange={(e) => setGrvUrgency(e.target.value as GrievanceUrgency)}
@@ -1860,13 +1808,14 @@ export default function MobileProfilePage() {
               {/* Details */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Detailed Grievance                </label>
+                  Description
+                </label>
                 <textarea
                   required
-                  rows={4}
+                  rows={3}
                   value={grvDetails}
                   onChange={(e) => setGrvDetails(e.target.value)}
-                  placeholder="Please describe the issue clearly with dates, context, and any relevant details..."
+                  placeholder="Describe what occurred with context and dates..."
                   className="w-full p-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#182C4E]"
                 />
               </div>
@@ -1883,8 +1832,8 @@ export default function MobileProfilePage() {
                   type="submit"
                   className="flex-1 h-9 rounded-xl bg-[#09192F] hover:bg-[#132C4E] text-white font-extrabold text-xs transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                 >
-                  <ShieldAlert className="w-3.5 h-3.5 text-[#38E4FF]" />
-                  <span>Submit to HR Desk</span>
+                  <ShieldAlert className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <span>Submit to HR</span>
                 </button>
               </div>
             </form>
@@ -1912,7 +1861,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setEditHrModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
+                aria-label="Close modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2047,7 +1997,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setAvatarModalOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
+                aria-label="Close modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2076,7 +2027,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setScheduleModalOpen(false)}
-                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
+                aria-label="Close schedule modal"
+                className="absolute top-3.5 right-3.5 w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2215,7 +2167,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setTraineeTrackerOpen(false)}
-                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
+                aria-label="Close qualification tracker"
+                className="absolute top-3.5 right-3.5 w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer active:scale-95 transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2410,7 +2363,8 @@ export default function MobileProfilePage() {
               <button
                 type="button"
                 onClick={() => setLedgerModalOpen(false)}
-                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"
+                aria-label="Close verified points ledger"
+                className="absolute top-3 right-3 w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2465,9 +2419,9 @@ export default function MobileProfilePage() {
                           setAppealEntryId(entry.id);
                           setAppealReason(entry.appealReason || "");
                         }}
-                        className="px-2.5 py-1 rounded-md bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-[10px] font-bold flex items-center gap-1 hover:bg-[#E0F2FE] active:scale-[0.98] cursor-pointer"
+                        className="px-3 py-1.5 min-h-[36px] rounded-lg bg-[#F0F6FF] text-[#182C4E] border border-[#D5E3F5] text-xs font-bold flex items-center gap-1.5 hover:bg-[#E0F2FE] active:scale-[0.98] cursor-pointer transition"
                       >
-                        <Scale className="w-3 h-3 text-[#0284C7]" />
+                        <Scale className="w-3.5 h-3.5 text-[#0284C7]" />
                         <span>48h Appeal</span>
                       </button>
                     </div>
@@ -2495,13 +2449,13 @@ export default function MobileProfilePage() {
                     <button
                       type="button"
                       onClick={() => setAppealEntryId(null)}
-                      className="h-7 px-2.5 rounded-lg border border-slate-300 bg-white text-[10px] font-bold active:scale-[0.98] cursor-pointer"
+                      className="h-9 min-h-[36px] px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-bold active:scale-[0.98] cursor-pointer hover:bg-slate-50 transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="h-7 px-3 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-[10px] font-extrabold active:scale-[0.98] cursor-pointer"
+                      className="h-9 min-h-[36px] px-4 rounded-lg bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-extrabold active:scale-[0.98] cursor-pointer shadow-sm hover:brightness-110 transition"
                     >
                       Submit Appeal
                     </button>
@@ -2518,6 +2472,10 @@ export default function MobileProfilePage() {
           member={member}
           isOpen={adminEditModalOpen}
           onClose={() => setAdminEditModalOpen(false)}
+          onSaved={(savedName) => {
+            setScheduleToast(`Profile for ${savedName || member.fullName} updated and synchronized!`);
+            setTimeout(() => setScheduleToast(null), 4000);
+          }}
         />
       )}
     </MobileAppShell>

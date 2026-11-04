@@ -28,7 +28,6 @@ import {
   RotateCcw,
   Send,
   Shield,
-  Sparkles,
   StickyNote,
   Users,
   X,
@@ -560,6 +559,52 @@ export default function MobileManagerWorkspacePage() {
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
 
   const [toastBanner, setToastBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    const isAnyModalOpen =
+      taskFormModalOpen ||
+      !!scoringTaskModal ||
+      !!portfolioMember ||
+      noteModalOpen ||
+      !!editingTeamModal ||
+      messageModalOpen ||
+      scanModalOpen;
+
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [
+    taskFormModalOpen,
+    scoringTaskModal,
+    portfolioMember,
+    noteModalOpen,
+    editingTeamModal,
+    messageModalOpen,
+    scanModalOpen,
+  ]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTaskFormModalOpen(false);
+        setEditingTask(null);
+        setScoringTaskModal(null);
+        setPortfolioMember(null);
+        setNoteModalOpen(false);
+        setEditingNote(null);
+        setEditingTeamModal(null);
+        setMessageModalOpen(false);
+        setScanModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Keep assignees in sync with current scope
   useEffect(() => {
@@ -1130,7 +1175,11 @@ export default function MobileManagerWorkspacePage() {
         </div>
 
         {/* 5 Sub-Tabs: Overview | Tasks | Members | Teams | Notes */}
-        <div className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div
+          role="tablist"
+          aria-label="Manager Workspace Tabs"
+          className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs"
+        >
           {(
             [
               "Overview",
@@ -1145,11 +1194,13 @@ export default function MobileManagerWorkspacePage() {
               <button
                 key={tab}
                 type="button"
+                role="tab"
+                aria-selected={active}
                 onClick={() => setSubTab(tab)}
-                className={`py-1.5 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition cursor-pointer ${
+                className={`min-h-[42px] sm:min-h-[44px] py-2 px-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold transition cursor-pointer flex items-center justify-center ${
                   active
-                    ? "bg-[#182C4E] text-white shadow-2xs"
-                    : "text-[#475569] hover:text-[#0F172A]"
+                    ? "bg-[#182C4E] text-white shadow-2xs ring-1 ring-[#182C4E]/20"
+                    : "text-[#475569] hover:text-[#0F172A] hover:bg-slate-50"
                 }`}
               >
                 {tab}
@@ -1264,11 +1315,17 @@ export default function MobileManagerWorkspacePage() {
 
             {/* Compact Active vs Icon-Only Archive Toggle + Category Filter */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="inline-flex items-center rounded-lg bg-[#F4F7FB] p-0.5 border border-slate-200/70">
+              <div
+                role="tablist"
+                aria-label="Task Status Filter"
+                className="inline-flex items-center rounded-lg bg-[#F4F7FB] p-0.5 border border-slate-200/70"
+              >
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={taskViewTab === "active"}
                   onClick={() => setTaskViewTab("active")}
-                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 min-h-[38px] rounded-md text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                     taskViewTab === "active"
                       ? "bg-[#182C4E] text-white shadow-2xs"
                       : "text-[#475569] hover:text-[#0F172A]"
@@ -1278,16 +1335,18 @@ export default function MobileManagerWorkspacePage() {
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={taskViewTab === "done"}
                   onClick={() => setTaskViewTab("done")}
                   title="Done & Archive"
                   aria-label="Done & Archive"
-                  className={`p-1.5 rounded-md transition cursor-pointer flex items-center justify-center ${
+                  className={`w-9 h-9 min-w-[36px] min-h-[36px] rounded-md transition cursor-pointer flex items-center justify-center ${
                     taskViewTab === "done"
                       ? "bg-[#182C4E] text-white shadow-2xs"
                       : "text-[#475569] hover:text-[#0F172A]"
                   }`}
                 >
-                  <Archive className="w-3.5 h-3.5" />
+                  <Archive className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1828,7 +1887,8 @@ export default function MobileManagerWorkspacePage() {
                   setTaskFormModalOpen(false);
                   setEditingTask(null);
                 }}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close task form"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1964,7 +2024,7 @@ export default function MobileManagerWorkspacePage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs transition cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs transition cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] flex items-center justify-center"
             >
               {editingTask ? "Save Task Changes" : "Create & Assign Task"}
             </button>
@@ -1996,13 +2056,14 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setScoringTaskModal(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close task scoring dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Score Type">
               {(["Full", "Partial", "Bonus"] as const).map((t) => (
                 <button
                   key={t}
@@ -2010,10 +2071,10 @@ export default function MobileManagerWorkspacePage() {
                   onClick={() =>
                     handleScoreTypeChange(t, scoringTaskModal.proposedScore)
                   }
-                  className={`py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  className={`min-h-[40px] py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center ${
                     scoreType === t
-                      ? "bg-[#182C4E] text-white border-[#182C4E]"
-                      : "bg-[#F8FAFC] text-[#475569] border-slate-200"
+                      ? "bg-[#182C4E] text-white border-[#182C4E] shadow-2xs"
+                      : "bg-[#F8FAFC] text-[#475569] border-slate-200 hover:bg-slate-100"
                   }`}
                 >
                   {t} Score
@@ -2050,9 +2111,9 @@ export default function MobileManagerWorkspacePage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <Award className="w-3.5 h-3.5 text-[#38BDF8]" />
               <span>Validate &amp; Award +{customScore} XP</span>
             </button>
           </form>
@@ -2094,7 +2155,8 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setPortfolioMember(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer shrink-0"
+                aria-label="Close member portfolio"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer shrink-0 transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2159,10 +2221,10 @@ export default function MobileManagerWorkspacePage() {
             {/* Unlocked Badges */}
             <div>
               <span className="text-[10px] font-mono font-bold uppercase text-[#64748B] block mb-1.5">
-                Earned Badges ({portfolioMember.badgeIds.length})
+                Earned Badges ({(portfolioMember.badgeIds || []).length})
               </span>
               <div className="flex flex-wrap gap-1.5">
-                {portfolioMember.badgeIds.map((bid) => {
+                {(portfolioMember.badgeIds || []).map((bid) => {
                   const bObj = badges.find((b) => b.id === bid);
                   return (
                     <span
@@ -2244,7 +2306,7 @@ export default function MobileManagerWorkspacePage() {
                     setPortfolioMember(null);
                     openDirectMessageModal(target);
                   }}
-                  className="flex-1 py-2 rounded-lg bg-[#182C4E] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] rounded-xl bg-[#182C4E] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-[#38BDF8]" />
                   <span>Message {portfolioMember.fullName.split(" ")[0]}</span>
@@ -2253,7 +2315,7 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setPortfolioMember(null)}
-                className="px-4 py-2 rounded-lg bg-slate-100 text-[#0F172A] text-xs font-bold cursor-pointer"
+                className="px-5 h-11 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-bold cursor-pointer transition active:scale-[0.98] flex items-center justify-center"
               >
                 Close
               </button>
@@ -2292,7 +2354,8 @@ export default function MobileManagerWorkspacePage() {
                   setNoteModalOpen(false);
                   setEditingNote(null);
                 }}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close note dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2362,7 +2425,7 @@ export default function MobileManagerWorkspacePage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center"
             >
               {editingNote ? "Update Note" : "Save Note"}
             </button>
@@ -2394,7 +2457,8 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setEditingTeamModal(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close team editing dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2441,7 +2505,7 @@ export default function MobileManagerWorkspacePage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center"
             >
               Save Team Details
             </button>
@@ -2481,23 +2545,24 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setMessageModalOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close message dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Message Priority">
               {(["Info", "Official notice", "Action needed"] as const).map(
                 (p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setMessagePriority(p)}
-                    className={`py-1.5 px-2 rounded-lg text-[10.5px] font-bold border transition cursor-pointer ${
+                    className={`min-h-[40px] py-1.5 px-2 rounded-xl text-[10.5px] font-bold border transition cursor-pointer flex items-center justify-center text-center ${
                       messagePriority === p
-                        ? "bg-[#182C4E] text-white border-[#182C4E]"
-                        : "bg-[#F8FAFC] text-[#475569] border-slate-200"
+                        ? "bg-[#182C4E] text-white border-[#182C4E] shadow-2xs"
+                        : "bg-[#F8FAFC] text-[#475569] border-slate-200 hover:bg-slate-100"
                     }`}
                   >
                     {p}
@@ -2535,7 +2600,7 @@ export default function MobileManagerWorkspacePage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition"
             >
               <Send className="w-3.5 h-3.5 text-[#38BDF8]" />
               <span>Send Notification</span>
@@ -2567,7 +2632,8 @@ export default function MobileManagerWorkspacePage() {
               <button
                 type="button"
                 onClick={() => setScanModalOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[#475569] cursor-pointer"
+                aria-label="Close QR scanner dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[#475569] cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2625,7 +2691,7 @@ export default function MobileManagerWorkspacePage() {
             <button
               type="button"
               onClick={handleOrganizerQrScan}
-              className="w-full py-2.5 rounded-lg bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full h-11 min-h-[44px] rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition"
             >
               <QrCode className="w-3.5 h-3.5 text-[#38BDF8]" />
               <span>Verify Member QR &amp; Credit XP</span>

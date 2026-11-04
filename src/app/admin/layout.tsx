@@ -41,6 +41,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+        setSearchFocused(false);
+        setSignOutModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
     useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
     if (isFirestoreQuotaExhausted()) {
       setShowQuotaBanner(true);

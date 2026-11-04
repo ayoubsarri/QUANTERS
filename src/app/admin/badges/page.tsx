@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Archive,
   Award,
@@ -205,6 +205,47 @@ export default function AdminBadgesPage() {
       (ex.category || "").toLowerCase().includes(q)
     );
   });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCreateOpen(false);
+        setEditingBadge(null);
+        setExamModalOpen(false);
+        setJsonModalOpen(false);
+        setAssigningBadge(null);
+        setManageCategoriesOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const isAnyOpen =
+      createOpen ||
+      !!editingBadge ||
+      examModalOpen ||
+      jsonModalOpen ||
+      !!assigningBadge ||
+      manageCategoriesOpen;
+
+    if (isAnyOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [
+    createOpen,
+    editingBadge,
+    examModalOpen,
+    jsonModalOpen,
+    assigningBadge,
+    manageCategoriesOpen,
+  ]);
 
   // Handle Create Badge Submit
   const handleCreateBadgeSubmit = (e: React.FormEvent) => {
@@ -590,13 +631,19 @@ export default function AdminBadgesPage() {
       </div>
 
       {/* Primary Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200/90 pb-3">
+      <div
+        role="tablist"
+        aria-label="Badges and Exams Management"
+        className="flex items-center gap-2 border-b border-slate-200/90 pb-3"
+      >
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "library"}
           onClick={() => setActiveTab("library")}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
             activeTab === "library"
-              ? "bg-[#182C4E] text-white shadow-xs"
+              ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
               : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
           }`}
         >
@@ -606,10 +653,12 @@ export default function AdminBadgesPage() {
 
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "exams"}
           onClick={() => setActiveTab("exams")}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
             activeTab === "exams"
-              ? "bg-[#182C4E] text-white shadow-xs"
+              ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
               : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
           }`}
         >
@@ -619,10 +668,12 @@ export default function AdminBadgesPage() {
 
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === "projects"}
           onClick={() => setActiveTab("projects")}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
             activeTab === "projects"
-              ? "bg-[#182C4E] text-white shadow-xs"
+              ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
               : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
           }`}
         >
@@ -1246,7 +1297,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close create badge dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1483,13 +1535,13 @@ export default function AdminBadgesPage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Create Badge
                 </button>
@@ -1515,7 +1567,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setEditingBadge(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close edit badge dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1647,13 +1700,13 @@ export default function AdminBadgesPage() {
                 <button
                   type="button"
                   onClick={() => setEditingBadge(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Save Changes
                 </button>
@@ -1681,7 +1734,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setExamModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close exam editor dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2014,13 +2068,13 @@ export default function AdminBadgesPage() {
                 <button
                   type="button"
                   onClick={() => setExamModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   {editingExamId ? "Save Exam Changes" : "Publish Exam"}
                 </button>
@@ -2049,7 +2103,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setJsonModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close MCQ import dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2142,7 +2197,7 @@ export default function AdminBadgesPage() {
                 <button
                   type="button"
                   onClick={() => setJsonModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
@@ -2150,7 +2205,7 @@ export default function AdminBadgesPage() {
                   type="button"
                   disabled={!jsonValidationMsg || jsonValidationMsg.count === 0}
                   onClick={applyJsonImport}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Load Questions into Exam
                 </button>
@@ -2181,7 +2236,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setAssigningBadge(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close assign badge dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2241,13 +2297,13 @@ export default function AdminBadgesPage() {
                 <button
                   type="button"
                   onClick={() => setAssigningBadge(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Award Badge
                 </button>
@@ -2275,7 +2331,8 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setManageCategoriesOpen(false)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close manage categories dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2376,7 +2433,7 @@ export default function AdminBadgesPage() {
                     addBadgeCategory(newCategoryInput.trim());
                     setNewCategoryInput("");
                   }}
-                  className="h-9 px-3.5 rounded-xl bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer"
+                  className="h-11 min-h-[44px] px-4 rounded-xl bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Add
                 </button>
@@ -2387,7 +2444,7 @@ export default function AdminBadgesPage() {
               <button
                 type="button"
                 onClick={() => setManageCategoriesOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                className="h-11 min-h-[44px] px-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer active:scale-95 flex items-center justify-center"
               >
                 Done
               </button>

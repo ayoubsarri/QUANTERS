@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CheckCircle2,
   FileText,
@@ -43,6 +43,22 @@ export default function AdminProposalsPage() {
   const [reviewingProposal, setReviewingProposal] = useState<Proposal | null>(null);
   const [reviewComment, setReviewComment] = useState<string>("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setReviewingProposal(null);
+      }
+    };
+    if (reviewingProposal) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [reviewingProposal]);
 
   const filteredProposals = proposals.filter((p) => {
     const matchesType = typeFilter === "All" || p.type === typeFilter;
@@ -275,7 +291,8 @@ export default function AdminProposalsPage() {
               <button
                 type="button"
                 onClick={() => setReviewingProposal(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close proposal review dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -321,7 +338,7 @@ export default function AdminProposalsPage() {
                       type="button"
                       disabled={!reviewComment.trim()}
                       onClick={() => handleDecision("Rejected", false)}
-                      className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                      className="h-11 min-h-[44px] px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold disabled:opacity-40 transition cursor-pointer"
                     >
                       Reject
                     </button>
@@ -329,7 +346,7 @@ export default function AdminProposalsPage() {
                       type="button"
                       disabled={!reviewComment.trim()}
                       onClick={() => handleDecision("Changes Requested", false)}
-                      className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                      className="h-11 min-h-[44px] px-4 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold disabled:opacity-40 transition cursor-pointer"
                     >
                       Request Changes
                     </button>
@@ -337,7 +354,7 @@ export default function AdminProposalsPage() {
                       type="button"
                       disabled={!reviewComment.trim()}
                       onClick={() => handleDecision("Approved", false)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
+                      className="h-11 min-h-[44px] px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-40 transition cursor-pointer shadow-sm"
                     >
                       Approve {reviewingProposal.type}
                     </button>
@@ -347,7 +364,7 @@ export default function AdminProposalsPage() {
                         type="button"
                         disabled={!reviewComment.trim()}
                         onClick={() => handleDecision("Approved", true)}
-                        className="px-4 py-2 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
+                        className="h-11 min-h-[44px] px-5 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold disabled:opacity-40 transition cursor-pointer shadow-sm flex items-center gap-1.5"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                         <span>Approve & Convert to Workshop</span>

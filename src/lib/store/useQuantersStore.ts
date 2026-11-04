@@ -93,6 +93,7 @@ export interface CelebrationPayload {
 
 interface QuantersStoreState {
   // Active session & authentication context
+  isHydrated: boolean;
   isAuthenticated: boolean;
   currentMemberId: string;
   activeAdminRole: RoleTemplateName;
@@ -791,14 +792,25 @@ function mergeRemoteWithUnsyncedLocal(
         }
         mergedById.set(id, localItem);
       }
-    } else if (prevMap) {
-      const baselineJson = prevMap.get(id);
-      const localJson = JSON.stringify(localItem);
-      // If local state diverged from baseline, keep local edit
-      if (baselineJson && baselineJson !== localJson) {
-        mergedById.set(id, localItem);
+    } else {
+      const localTime = localItem.updatedAt
+        ? new Date(localItem.updatedAt as string).getTime()
+        : 0;
+      const remoteTime = remoteItem.updatedAt
+        ? new Date(remoteItem.updatedAt as string).getTime()
+        : 0;
+
+      // Concurrency & Persistence: Newer local edit or diverging edit always wins
+      if (localTime > 0 && localTime >= remoteTime) {
+        mergedById.set(id, { ...remoteItem, ...localItem });
+      } else if (prevMap) {
+        const baselineJson = prevMap.get(id);
+        const localJson = JSON.stringify(localItem);
+        // If local state diverged from baseline, keep local edit
+        if (baselineJson && baselineJson !== localJson) {
+          mergedById.set(id, { ...remoteItem, ...localItem });
+        }
       }
-      // If local state equals baseline (unmodified), remoteItem remains in mergedById!
     }
   }
 
@@ -884,6 +896,7 @@ export const DEFAULT_BADGE_CATEGORIES: string[] = [
 ];
 
 export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
+  isHydrated: false,
   isAuthenticated: false,
   currentMemberId: "",
   activeAdminRole: "Member",
@@ -903,7 +916,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   teams: SEED_TEAMS,
   members: SEED_MEMBERS,
   invitations: SEED_INVITATIONS,
-  workshops: [],
+  workshops: SEED_WORKSHOPS,
   workshopCategories: DEFAULT_WORKSHOP_CATEGORIES,
   tasks: SEED_TASKS,
   pointRules: SEED_POINT_RULES,
@@ -1603,6 +1616,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           document.documentElement.lang = resolvedLang;
         }
         set({
+          isHydrated: true,
           activeLanguage: resolvedLang,
           userLowDataMode: lowDataRaw ? lowDataRaw === "1" : false,
         });
@@ -1652,6 +1666,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         }
 
         set({
+          isHydrated: true,
           activeLanguage: resolvedLang,
           isAuthenticated: validAuth,
           currentMemberId: validAuth ? parsed.currentMemberId : "",
@@ -1694,9 +1709,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           grievances: parsed.grievances || get().grievances,
           settings: sanitizeSystemSettings({ ...get().settings, ...(parsed.settings || {}) }),
         });
+      } else {
+        set({ isHydrated: true });
       }
     } catch {
-      // Ignore parse error
+      set({ isHydrated: true });
     }
   },
 
@@ -2027,6 +2044,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     const buildFirestoreSnapshot = () => {
       const currentSnap = get();
       const tombstones = getPersistentDeletedIds();
+      const activeMember = currentSnap.members.find((m) => m.id === currentSnap.currentMemberId);
+      const isSuper =
+        currentSnap.activeAdminRole === "Super Admin" ||
+        currentSnap.activeAdminRole === "Executive" ||
+        currentSnap.activeAdminRole === "HR Head" ||
+        (activeMember && (isSuperAdminEmail(activeMember.email) || activeMember.roles.includes("Super Admin")));
+
       const sanitizeMemberList = (list: Member[]) =>
         list
           .filter((m) => !tombstones.members?.includes(m.id))
@@ -2036,6 +2060,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           });
 
       const fullMap: Record<string, unknown> = {
+        _isAdmin: isSuper,
+        _actorEmail: activeMember?.email || "quantaclubdz@gmail.com",
         departments: currentSnap.departments,
         teams: currentSnap.teams,
         members: sanitizeMemberList(currentSnap.members),
@@ -2064,7 +2090,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
       const changedCollectionKeys = Object.keys(itemDeltas);
       if (lastSyncedBaselineMap && (changedCollectionKeys.length > 0 || settingsPatch)) {
-        const deltaPayload: Record<string, unknown> = {};
+        const deltaPayload: Record<string, unknown> = {
+          _isAdmin: isSuper,
+          _actorEmail: activeMember?.email || "quantaclubdz@gmail.com",
+        };
         for (const k of changedCollectionKeys) {
           if (k in fullMap) {
             deltaPayload[k] = fullMap[k];
@@ -2904,7 +2933,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         "onboardingTicks",
         "birthDate",
       ]);
-      const sanitizedUpdates: Record<string, unknown> = {};
+      const nowIso = new Date().toISOString();
+      const sanitizedUpdates: Record<string, unknown> = { updatedAt: nowIso };
       for (const [k, v] of Object.entries(updates)) {
         if (allowedKeys.has(k)) {
           sanitizedUpdates[k] = v;
@@ -2961,7 +2991,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           return m;
         }
 
-        const merged: Member = { ...m, ...updates };
+        const nowIso = new Date().toISOString();
+        const merged: Member = { ...m, ...updates, updatedAt: nowIso };
 
         // Recalculate levelTitle and level if tenure/seniority or XP changed and wasn't explicitly overridden
         if (updates.tenure && !updates.levelTitle) {
@@ -3088,15 +3119,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       );
       if (alreadyDelivered) return state;
 
-      const rawTitle = state.settings.welcomeMessageTitle || "🎉 Welcome to QUANTA! Your Admission is Approved";
+      const rawTitle = (state.settings.welcomeMessageTitle || "").trim() || "🎉 Welcome to QUANTA! Your Admission is Approved";
       const rawBody =
-        state.settings.welcomeMessageBody ||
+        (state.settings.welcomeMessageBody || "").trim() ||
         "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces.";
       const senderLabel = state.settings.welcomeMessageSenderLabel || "QUANTA Executive Bureau";
       const senderRole = state.settings.welcomeMessageSenderRole || "Executive";
 
-      const formattedTitle = rawTitle.replace(/\{name\}/gi, member.fullName);
-      const formattedBody = rawBody.replace(/\{name\}/gi, member.fullName);
+      const memberName = (member.fullName || "").trim() || "Quanter";
+      const formattedTitle = (rawTitle.replace(/\{name\}/gi, memberName)).trim() || "🎉 Welcome to QUANTA! Your Admission is Approved";
+      const formattedBody = (rawBody.replace(/\{name\}/gi, memberName)).trim() || "Congratulations! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau.";
 
       const welcomeNotice: ClubMessage = {
         id: `msg-welcome-${member.id}-${Date.now()}`,
@@ -3161,15 +3193,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       let newMessages = state.messages;
 
       if (welcomeEnabled) {
-        const rawTitle = state.settings.welcomeMessageTitle || "🎉 Welcome to QUANTA! Your Admission is Approved";
+        const rawTitle = (state.settings.welcomeMessageTitle || "").trim() || "🎉 Welcome to QUANTA! Your Admission is Approved";
         const rawBody =
-          state.settings.welcomeMessageBody ||
+          (state.settings.welcomeMessageBody || "").trim() ||
           "Congratulations {name}! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau. You now have full access to workshops, projects, quizzes, and community spaces.";
         const senderLabel = state.settings.welcomeMessageSenderLabel || actorName || "QUANTA Executive Bureau";
         const senderRole = state.settings.welcomeMessageSenderRole || "Executive";
 
-        const formattedTitle = rawTitle.replace(/\{name\}/gi, member.fullName);
-        const formattedBody = rawBody.replace(/\{name\}/gi, member.fullName);
+        const memberName = (member.fullName || "").trim() || "Quanter";
+        const formattedTitle = (rawTitle.replace(/\{name\}/gi, memberName)).trim() || "🎉 Welcome to QUANTA! Your Admission is Approved";
+        const formattedBody = (rawBody.replace(/\{name\}/gi, memberName)).trim() || "Congratulations! Your membership application and onboarding dossier have been formally reviewed and approved by the Executive Bureau.";
 
         const admissionNotice: ClubMessage = {
           id: `msg-adm-${member.id}-${Date.now()}`,
@@ -5585,17 +5618,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
 
   sendClubMessage: ({ recipientScope, priority, title, body, inApp, email, targetMemberId, targetDepartmentId, targetTeamId }) =>
     set((state) => {
+      if (!title?.trim() && !body?.trim()) return state;
+      const cleanTitle = (title || "").trim() || "Notification";
+      const cleanBody = (body || "").trim() || "No content provided.";
       const newMsg: ClubMessage = {
         id: `msg-${Date.now()}`,
         senderLabel: state.activeAdminRole === "HR Head" ? "HR Team" : state.activeAdminRole,
         senderRole: state.activeAdminRole.includes("HR") ? "HR" : "Executive",
         recipientScope,
         priority,
-        title,
-        body,
+        title: cleanTitle,
+        body: cleanBody,
         timeAgo: "Just now",
         unread: true,
+        archived: false,
         channels: { inApp, email },
+        targetMemberId,
+        targetDepartmentId,
+        targetTeamId,
+        readMemberIds: [],
         stats: {
           totalRecipients: state.members.length,
           inAppReadCount: 0,
@@ -5658,11 +5699,24 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   archiveClubMessage: (messageId) => {
-    set((state) => ({
-      messages: state.messages.map((m) =>
-        m.id === messageId ? { ...m, archived: true } : m
-      ),
-    }));
+    set((state) => {
+      const curMember = state.currentMemberId;
+      return {
+        messages: state.messages.map((m) => {
+          if (m.id !== messageId) return m;
+          const reads = Array.isArray(m.readMemberIds) ? [...m.readMemberIds] : [];
+          if (curMember && !reads.includes(curMember)) {
+            reads.push(curMember);
+          }
+          return {
+            ...m,
+            archived: true,
+            unread: false,
+            readMemberIds: reads,
+          };
+        }),
+      };
+    });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
   },

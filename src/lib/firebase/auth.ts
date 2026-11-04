@@ -573,7 +573,7 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
     if (membersSnap && membersSnap.exists()) {
       const shardData = membersSnap.data() as Record<string, any>;
       if (Array.isArray(shardData.members)) {
-        data.members = mergeCollectionArraysById(shardData.members, data.members || [], undefined, "members");
+        data.members = mergeCollectionArraysById(shardData.members, data.members || [], undefined, "members", true);
       }
     }
 

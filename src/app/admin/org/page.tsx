@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -93,6 +93,25 @@ export default function AdminOrgStructurePage() {
   );
 
   const managingTeam = teams.find((t) => t.id === managingTeamId) || null;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setExecModalOpen(false);
+        setEditingDept(null);
+        setTeamModalOpen(false);
+        setManagingTeamId(null);
+      }
+    };
+    if (execModalOpen || editingDept || teamModalOpen || managingTeam) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [execModalOpen, editingDept, teamModalOpen, managingTeam]);
 
   const minSize = settings.teamSizeMin || 5;
   const maxSize = settings.teamSizeMax || 8;
@@ -558,7 +577,8 @@ export default function AdminOrgStructurePage() {
               <button
                 type="button"
                 onClick={() => setExecModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close executive bureau modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -637,13 +657,13 @@ export default function AdminOrgStructurePage() {
                 <button
                   type="button"
                   onClick={() => setExecModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer shadow-sm"
                 >
                   Save Executive Bureau
                 </button>
@@ -662,7 +682,8 @@ export default function AdminOrgStructurePage() {
               <button
                 type="button"
                 onClick={() => setEditingDept(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close department managers modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -718,13 +739,13 @@ export default function AdminOrgStructurePage() {
                 <button
                   type="button"
                   onClick={() => setEditingDept(null)}
-                  className="flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer shadow-sm"
                 >
                   Save Changes
                 </button>
@@ -745,7 +766,8 @@ export default function AdminOrgStructurePage() {
               <button
                 type="button"
                 onClick={() => setTeamModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close scientific team modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -823,13 +845,13 @@ export default function AdminOrgStructurePage() {
                 <button
                   type="button"
                   onClick={() => setTeamModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white rounded-xl transition cursor-pointer shadow-sm"
                 >
                   Save Team
                 </button>
@@ -855,7 +877,8 @@ export default function AdminOrgStructurePage() {
               <button
                 type="button"
                 onClick={() => setManagingTeamId(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close team members modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -884,7 +907,7 @@ export default function AdminOrgStructurePage() {
                   addMemberToTeam(selectedAddMemberId, managingTeam.id);
                   triggerToast(`Added member to ${managingTeam.name}`);
                 }}
-                className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-11 min-h-[44px] px-5 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white text-xs font-bold transition cursor-pointer shadow-sm shrink-0"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Add</span>
@@ -976,7 +999,7 @@ export default function AdminOrgStructurePage() {
               <button
                 type="button"
                 onClick={() => setManagingTeamId(null)}
-                className="px-4 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
+                className="h-11 min-h-[44px] px-6 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
               >
                 Done
               </button>

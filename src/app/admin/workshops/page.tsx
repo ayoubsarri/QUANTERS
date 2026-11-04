@@ -199,16 +199,47 @@ export default function AdminWorkshopsPage() {
     return () => clearInterval(interval);
   }, [projectorWorkshop]);
 
-  // Lock body scroll when Projector Display is open
+  // Global Escape key listener to close any open modal
   useEffect(() => {
-    if (projectorWorkshop) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCreateOpen(false);
+        setProjectorWorkshopId(null);
+        setRosterWorkshopId(null);
+        setManageCategoriesOpen(false);
+        setEditingWorkshop(null);
+        setDeletingWorkshop(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    const isAnyOpen =
+      Boolean(projectorWorkshop) ||
+      Boolean(rosterWorkshop) ||
+      createOpen ||
+      manageCategoriesOpen ||
+      Boolean(editingWorkshop) ||
+      Boolean(deletingWorkshop);
+
+    if (isAnyOpen) {
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = "";
       };
     }
     document.body.style.overflow = "";
-  }, [projectorWorkshop]);
+  }, [
+    projectorWorkshop,
+    rosterWorkshop,
+    createOpen,
+    manageCategoriesOpen,
+    editingWorkshop,
+    deletingWorkshop,
+  ]);
 
   // Real Camera-Scannable QR Code Generation
   useEffect(() => {
@@ -1099,7 +1130,8 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setRosterWorkshopId(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close roster dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1189,7 +1221,7 @@ export default function AdminWorkshopsPage() {
                       "Manual Admin Correction"
                     );
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-[#182C4E] text-white text-xs font-bold cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Save
                 </button>
@@ -1210,7 +1242,8 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close create workshop dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1521,13 +1554,13 @@ export default function AdminWorkshopsPage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#182C4E] text-white text-xs font-bold cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl bg-[#182C4E] hover:bg-[#101F38] text-white text-xs font-bold cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Publish Workshop
                 </button>
@@ -1553,7 +1586,8 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setManageCategoriesOpen(false)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close manage categories dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1661,7 +1695,7 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setManageCategoriesOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                className="h-11 min-h-[44px] px-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer active:scale-95 flex items-center justify-center"
               >
                 Done
               </button>
@@ -1691,7 +1725,8 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setEditingWorkshop(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close edit workshop dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2001,13 +2036,13 @@ export default function AdminWorkshopsPage() {
                 <button
                   type="button"
                   onClick={() => setEditingWorkshop(null)}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200"
+                  className="h-11 min-h-[44px] px-5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200 transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold cursor-pointer hover:brightness-110 shadow-xs"
+                  className="h-11 min-h-[44px] px-6 rounded-xl bg-gradient-to-b from-[#182C4E] to-[#101F38] text-white text-xs font-bold cursor-pointer hover:brightness-110 shadow-xs transition active:scale-95 flex items-center justify-center"
                 >
                   Save Changes
                 </button>
@@ -2038,7 +2073,8 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setDeletingWorkshop(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                aria-label="Close delete workshop dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2120,14 +2156,14 @@ export default function AdminWorkshopsPage() {
               <button
                 type="button"
                 onClick={() => setDeletingWorkshop(null)}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200"
+                className="h-11 min-h-[44px] px-5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer hover:bg-slate-200 transition active:scale-95 flex items-center justify-center"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className={`px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer transition shadow-xs ${
+                className={`h-11 min-h-[44px] px-6 rounded-xl text-white text-xs font-bold cursor-pointer transition shadow-xs active:scale-95 flex items-center justify-center ${
                   deleteIsPermanent
                     ? "bg-rose-600 hover:bg-rose-700"
                     : "bg-amber-600 hover:bg-amber-700"

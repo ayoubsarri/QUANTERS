@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -51,6 +51,23 @@ export default function AdminAccessPage() {
   const [keepMySessionOnGlobal, setKeepMySessionOnGlobal] = useState<boolean>(true);
   const [showGlobalConfirmModal, setShowGlobalConfirmModal] = useState<boolean>(false);
   const [sessionSearch, setSessionSearch] = useState<string>("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setGrantModalOpen(false);
+        setShowGlobalConfirmModal(false);
+      }
+    };
+    if (grantModalOpen || showGlobalConfirmModal) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [grantModalOpen, showGlobalConfirmModal]);
 
   if (activeAdminRole !== "Super Admin" && activeAdminRole !== "Executive") {
     return (
@@ -209,11 +226,13 @@ export default function AdminAccessPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-1">
+        <div role="tablist" aria-label="Access management tabs" className="flex items-center gap-2 border-b border-slate-200/80 pb-1">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === "roles"}
             onClick={() => setActiveTab("roles")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
               activeTab === "roles"
                 ? "bg-[#182C4E] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -225,8 +244,10 @@ export default function AdminAccessPage() {
 
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === "sessions"}
             onClick={() => setActiveTab("sessions")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
               activeTab === "sessions"
                 ? "bg-[#182C4E] text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -597,7 +618,8 @@ export default function AdminAccessPage() {
               <button
                 type="button"
                 onClick={() => setGrantModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700"
+                aria-label="Close grant role modal"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -646,13 +668,13 @@ export default function AdminAccessPage() {
                 <button
                   type="button"
                   onClick={() => setGrantModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-bold bg-slate-100 text-slate-700 rounded-xl"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 text-xs font-bold bg-[#182C4E] text-white rounded-xl cursor-pointer"
+                  className="flex-1 h-11 min-h-[44px] text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white rounded-xl transition cursor-pointer shadow-sm"
                 >
                   Confirm Grant
                 </button>
@@ -694,7 +716,7 @@ export default function AdminAccessPage() {
                 type="button"
                 onClick={() => setShowGlobalConfirmModal(false)}
                 disabled={revokeProcessing}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -702,7 +724,7 @@ export default function AdminAccessPage() {
                 type="button"
                 onClick={handleExecuteGlobalLogout}
                 disabled={revokeProcessing}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                className="h-11 min-h-[44px] px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
               >
                 {revokeProcessing ? "Executing..." : "Revoke All Sessions"}
               </button>

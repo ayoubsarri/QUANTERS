@@ -23,7 +23,6 @@ import {
   Monitor,
   ShieldCheck,
   Smartphone,
-  Sparkles,
   User,
   X,
   Zap,
@@ -1163,7 +1162,7 @@ export default function WelcomeSplashPage() {
                 <button
                   type="button"
                   onClick={handleDownloadAppClick}
-                  className="w-full flex items-center justify-between gap-2 border-b border-white/12 py-1.5 px-0.5 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
+                  className="w-full min-h-[44px] flex items-center justify-between gap-2 border-b border-white/12 py-2.5 px-1 active:scale-[0.99] transition-all cursor-pointer group drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]"
                 >
                   <span className="font-editorial italic text-sm sm:text-base text-slate-200 group-hover:text-white transition-colors whitespace-nowrap leading-none">
                     Available for phone &amp; desktop
@@ -1700,7 +1699,7 @@ export default function WelcomeSplashPage() {
                       <div className="space-y-3">
                         <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs space-y-1">
                           <div className="font-extrabold flex items-center gap-1.5 text-amber-300">
-                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            <ShieldCheck className="w-4 h-4 text-amber-400" />
                             <span>Google Account Identified</span>
                           </div>
                           <p className="text-[11px] leading-relaxed">
@@ -1753,7 +1752,7 @@ export default function WelcomeSplashPage() {
                           {forgotPasswordStatus.type === "success" ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                           ) : forgotPasswordStatus.type === "google_account" ? (
-                            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
                           ) : (
                             <X className="w-4 h-4 text-rose-400 shrink-0" />
                           )}
@@ -2387,7 +2386,7 @@ export default function WelcomeSplashPage() {
 
             {/* Title & Badge */}
             <div className="space-y-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-sans font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
                 {lang === "ar" ? "حساب مستبعد ومحذوف" : "Account Deactivated & Deleted"}
               </span>

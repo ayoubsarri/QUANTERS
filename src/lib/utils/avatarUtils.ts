@@ -20,7 +20,7 @@ const AVATAR_PALETTES = [
 
 /**
  * Generates a crisp, responsive SVG Data URI avatar featuring the first letter
- * of the member's name with an elegant circular accent border.
+ * of the member's name in a clean curved rectangle (squircle).
  */
 export function generateInitialsAvatar(name?: string): string {
   const clean = (name || "Quanter").trim();
@@ -31,9 +31,8 @@ export function generateInitialsAvatar(name?: string): string {
   const palette = AVATAR_PALETTES[charCode % AVATAR_PALETTES.length];
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-    <circle cx="64" cy="64" r="64" fill="${palette.bg}"/>
-    <circle cx="64" cy="64" r="60" fill="none" stroke="${palette.border}" stroke-width="3.5" stroke-opacity="0.8"/>
-    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="${palette.text}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="58" letter-spacing="-1">${letter}</text>
+    <rect width="128" height="128" rx="26" fill="${palette.bg}"/>
+    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" fill="${palette.text}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="56">${letter}</text>
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -59,6 +58,19 @@ export function isDefaultOrPlaceholderAvatar(avatarUrl?: string | null): boolean
 
   // Generic placeholder paths
   if (trimmed.toLowerCase().includes("default-avatar") || trimmed.toLowerCase().includes("placeholder")) {
+    return true;
+  }
+
+  // Legacy circular avatars (user requested curved rectangle/squircle only, zero circle inside rectangle)
+  if (
+    trimmed.includes("%3Ccircle") ||
+    trimmed.includes("<circle") ||
+    trimmed.includes("%253Ccircle") ||
+    trimmed.includes("cx%3D") ||
+    trimmed.includes("cx=") ||
+    trimmed.includes("UklGR") ||
+    trimmed.startsWith("data:image/webp")
+  ) {
     return true;
   }
 

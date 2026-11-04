@@ -63,7 +63,7 @@ export const FALLBACK_SESSION_MEMBER: Member = {
   email: "",
   fullName: "Guest",
   phone: "",
-  avatarUrl: "/icons/icon-192.png",
+  avatarUrl: "",
   bio: "",
   major: "Computer Science (Informatique Générale)",
   university: "University of Algiers 1",
@@ -325,14 +325,53 @@ export const SUPER_ADMIN_MEMBER: Member = {
   },
   statusHistory: [],
   placementHistory: [],
-  avatarUrl: "/icons/icon-192.png",
+  avatarUrl: "",
 };
 
 // Transactional collections for production launch: Super Admin ONLY
 export const SEED_MEMBERS: Member[] = [SUPER_ADMIN_MEMBER];
 
 // Authentic QUANTA Workshops & Scientific Labs
-export const SEED_WORKSHOPS: Workshop[] = [];
+export const SEED_WORKSHOPS: Workshop[] = [
+  {
+    id: "ws-timimoun-media-lab-2026",
+    title: "Timimoun Film & Media Lab: Field Cinematography, Sound Engineering & Short-Form Storytelling",
+    activityType: "Workshop",
+    category: "Scientific",
+    iconType: "audiovisual",
+    level: "Intermediate",
+    instructor: "TISFF Masterclass Mentors & QUANTA Media Guild",
+    dateLabel: "Thu, 05 Nov 2026",
+    timeRange: "10:00 - 18:00",
+    eventDate: "2026-11-05",
+    planningOpenDate: "2026-11-01",
+    startTime: "10:00",
+    endTime: "18:00",
+    location: "Gourara Cultural Palace & Hotel Gourara, Timimoun, Algeria",
+    capacity: 50,
+    seatsLeft: 18,
+    xpReward: 45,
+    status: "Published",
+    description: "Field masterclass session organized in coordination with the 2nd Edition of the Timimoun International Short Film Festival. Covers natural lighting cinematography, desert wind acoustic audio capture, and mobile Ciné-Pocket short editing.",
+    objectives: [
+      "Master multi-track desert audio recording and wind suppression acoustics.",
+      "Direct actors in high-contrast natural Saharan lighting.",
+      "Participate in the Anis Djaad Gourara Lab script breakdown.",
+      "Produce an ultra-short film entry for the Ciné-Pocket competition."
+    ],
+    materials: [
+      "Digital cinema cameras / smartphones",
+      "Directional shotgun microphones & deadcats",
+      "Storyboarding notebooks",
+      "Portable neutral density (ND) filters"
+    ],
+    liveQrToken: "live-qr-timimoun-2026",
+    liveSixDigitCode: "514206",
+    registeredMemberIds: [],
+    waitlistMemberIds: [],
+    attendanceRecords: []
+  }
+];
 export const SEED_BADGES: Badge[] = [];
 export const SEED_EXAMS: BadgeExam[] = [];
 export const SEED_TASKS: ClubTask[] = [];
@@ -841,6 +880,157 @@ export const SEED_POINT_RULES: PointRule[] = [
 
 // High-Standard Peer-Reviewed Scientific Dispatches (Dans les Normes)
 export const SEED_EXPLORE_POSTS: ExplorePost[] = [
+  {
+    id: "exp-handy-offline-stt",
+    title: "Handy: Open-Source Local-First Speech-to-Text Built with Rust & Tauri",
+    summary: "A privacy-first cross-platform desktop application delivering instant, offline Whisper and Parakeet speech-to-text with global push-to-talk and zero cloud dependencies.",
+    content: `# Handy: Local-First, Offline Speech-to-Text with Rust & Tauri
+
+## 1. The Architecture of Local Audio Inference
+In an era where voice data is routinely routed through cloud APIs, **Handy** (\`cjpais/handy\`) presents a clean, open-source paradigm: completely offline, real-time speech transcription that never transmits audio packets off the local machine.
+
+Built with a lightweight **Rust backend** and **Tauri (TypeScript/React)** frontend, Handy bypasses heavy Chromium/Electron runtimes to deliver near-zero memory footprint and instantaneous global response.
+
+> *"Your voice stays entirely on your computer. Zero cloud tokens, zero latency spikes, zero privacy compromises."*
+
+## 2. Core Technical Capabilities
+- **On-Device Whisper & Parakeet Models:** Evaluates multi-lingual acoustic and language models locally, leveraging CPU SIMD and GPU hardware acceleration (Metal, DirectML, CUDA).
+- **Global Push-to-Talk / Hotkey Listener:** Low-level OS hotkey hooks capture speech system-wide and automatically type/paste the recognized output into the active cursor context of any app (VS Code, Obsidian, Slack, Browser).
+- **LLM Cleanup Pipeline:** Optional post-processing hooks pipe raw transcriptions into local small language models to purge filler syllables, fix punctuation, and format code snippets in real time.
+- **Cross-Platform Compilation:** Native binaries for macOS, Linux, and Windows with minimal system footprint.
+
+## 3. Engineering Benchmark Summary
+| Metric | Cloud API (Whisper v3) | Handy (Local On-Device) |
+|---|---|---|
+| **Privacy / Data Egress** | Transmitted to 3rd party | **100% On-Device (Zero Egress)** |
+| **Median Latency** | 850 – 1400 ms | **180 – 320 ms (Local Buffer)** |
+| **Offline Reliability** | Requires Internet | **100% Functional Air-Gapped** |
+| **RAM Footprint** | Browser dependent | **< 65 MB base (Tauri/Rust)** |
+
+## 4. QUANTA Lab Deployment
+QUANTA Computer Science & AI members can inspect the repository, build custom phonetic dictionary extensions, and benchmark execution profiles during the upcoming Systems & Rust workshop track.`,
+    category: "Scientific News",
+    tagLabel: "AI & OPEN SOURCE",
+    tagTone: "cyan",
+    source: "GitHub Open Source (cjpais/handy)",
+    readTime: "4 min read",
+    date: "Nov 04, 2026",
+    imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1200&q=80",
+    featuredInCarousel: true,
+    status: "Published",
+    externalUrl: "https://github.com/cjpais/handy"
+  },
+  {
+    id: "exp-google-gemini-carbon",
+    title: "Google Gemini 4 Carbon: Breakthrough SOTA in Cybersecurity, Agentic Coding & Reasoning",
+    summary: "Debuting at #1 on the Artificial Analysis Intelligence Index with an 88.2% SEC-bench score, Google's Carbon architecture sets a new watermark for automated vulnerability discovery and long-horizon coding.",
+    content: `# Google Gemini 4 Carbon: Benchmarks & Cybersecurity Evaluation
+
+## 1. Breakthrough Across Frontier Industry Leaderboards
+Google announced **Gemini 4 Carbon**, establishing top rankings across major independent AI benchmarks. Most notably, Carbon secured the **#1 overall position on the Artificial Analysis Intelligence Index (v5.0)** with an index rating of **59**, surpassing competitive frontier models in structured multi-step reasoning.
+
+Across 17 rigorous evaluation suites, Carbon ranked first in 15 categories, marking an architectural leap in test-time compute scaling and autonomous software verification.
+
+## 2. Quantitative Cybersecurity Performance
+A defining characteristic of Carbon is its specialized capability in offensive and defensive cybersecurity evaluation:
+- **SEC-bench Pro (Vulnerability Discovery):** **88.2%** success rate identifying zero-day memory corruption, logic bugs, and authorization bypasses.
+- **ExploitGym (Controlled Exploit Generation):** **54.8%**, demonstrating autonomous proof-of-concept construction.
+- **CWE-bench (Automated Patch Synthesis):** **71.0%**, generating verified secure patches that resolve root causes without breaking test suites.
+- **Secure Code Generation:** Produces verified vulnerability-free code at more than twice the success rate of the Argon generation.
+
+> *"Carbon was evaluated under rigorous safety guardrails through Google's Fairwind Program, partnering with cybersecurity defenders to stress-test automated vulnerability mitigation."*
+
+## 3. Agentic Software Engineering Leaderboard
+| Benchmark Suite | Metric | Gemini 4 Carbon | Prior SOTA Baseline |
+|---|---|---|---|
+| **Artificial Analysis Index (v5.0)** | Composite Score | **59 (#1)** | 58 |
+| **Terminal-Bench 4.0** | CLI Task Execution | **64.0%** | 52.4% |
+| **FrontierCode v1.1** | Complex Algorithmic Code | **51.0%** | 43.8% |
+| **SEC-bench Pro** | Bug Identification | **88.2%** | 69.1% |
+| **CWE-bench** | Patching Verified Fixes | **71.0%** | 56.5% |
+
+## 4. Architectural Significance for QUANTA Researchers
+The emergence of agentic models capable of multi-hour terminal workflows without state drift validates our platform's emphasis on formal verification, typed sandboxes, and automated audit logging.`,
+    category: "Scientific News",
+    tagLabel: "FRONTIER AI & BENCHMARKS",
+    tagTone: "indigo",
+    source: "Google DeepMind & Artificial Analysis",
+    readTime: "5 min read",
+    date: "Nov 04, 2026",
+    imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
+    featuredInCarousel: true,
+    status: "Published",
+    externalUrl: "https://blog.google"
+  },
+  {
+    id: "exp-optogenetics-senolytics-nature",
+    title: "Cellular Rejuvenation & Neural Circuit Control: Optogenetics and Targeted Senolytics in Nature",
+    summary: "Landmark papers published in Nature and Science showcase light-sensitive microbial channelrhodopsins restoring visual circuits, paired with selective senolytic clearing of inflammatory 'zombie' cells.",
+    content: `# Cellular Rejuvenation & Precision Neural Control: 2026 Biology Milestones
+
+## 1. Optogenetics Enters Clinical Restoration
+Work recognized in contemporary biological physics has elevated **optogenetics**—the genetic insertion of light-activated algal opsins into mammalian neurons—from laboratory circuit mapping to direct therapeutic translation.
+
+Recent clinical milestones reported in *Nature* demonstrate targeted channelrhodopsin gene therapies restoring functional contrast perception and visual evoke potentials in patients with end-stage retinal degeneration. By optically pacing dormant retinal ganglion cells with micro-LED arrays, scientists achieve spatial resolution exceeding classical electrode implants by an order of magnitude.
+
+## 2. Targeting Senescent "Zombie" Cells
+Concurrently, research published in *Science* has detailed selective metabolic vulnerabilities in senescent cells—damaged cells that irreversibly arrest replication yet remain hypermetabolic, continuously secreting the destructive **Senescence-Associated Secretory Phenotype (SASP)**:
+- **Targeted Proteolysis:** New senolytic conjugates selectively trigger apoptosis in $p16^{\\text{INK4a}}$-positive cells while leaving healthy somatic neighbors intact.
+- **SASP Quenching:** Systemic clearance in mammalian models reduced circulating IL-6 and TNF-α, resulting in significant improvements in cardiovascular elasticity, osteogenic density, and cognitive stamina.
+
+> *"Selective senolysis demonstrates that biological aging is not merely stochastic wear-and-tear, but an active biochemical signaling loop that can be therapeutically disrupted."*
+
+## 3. Label-Free Live-Cell Interferometric Nanoscopy
+Complementing these molecular therapies, breakthroughs in high-resolution label-free microscopy enable structural biologists to track macromolecular viral capsid self-assembly in real time. By measuring refractive index gradients rather than relying on phototoxic fluorescent dyes, scientists observed spontaneous trial-and-error pentameric clustering across living cell membranes without perturbing thermodynamic equilibrium.`,
+    category: "Scientific News",
+    tagLabel: "BIOLOGY & MEDICINE",
+    tagTone: "sky",
+    source: "Nature & Science Research Portals",
+    readTime: "5 min read",
+    date: "Nov 04, 2026",
+    imageUrl: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1200&q=80",
+    featuredInCarousel: true,
+    status: "Published",
+    externalUrl: "https://www.nature.com"
+  },
+  {
+    id: "exp-timimoun-short-film-festival-2026",
+    title: "Timimoun International Short Film Festival 2026 (2nd Edition): Cinema, Gourara Lab & Media Masterclasses",
+    summary: "From November 5 to 10, the red oasis of Timimoun hosts 63 short films from 39 nations, featuring 6 professional masterclasses, the Anis Djaad script residency, and smartphone youth film awards.",
+    content: `# 2nd Edition of the Timimoun International Short Film Festival (TISFF)
+
+## 1. The Red Oasis as a Global Cinematic Stage
+Taking place from **November 5 to 10, 2026**, the historic Gourara oasis of **Timimoun, Algeria**, hosts the second edition of the **Timimoun International Short Film Festival (TISFF)**. Selected from over a thousand global submissions, the festival convenes filmmakers from **39 countries** showcasing **63 selected short films**.
+
+The official competition evaluates **37 films** across three dedicated categories:
+- **Fiction Shorts:** 16 international entries exploring contemporary narratives.
+- **Documentary Films:** 13 works chronicling indigenous heritage and environmental frontiers.
+- **Animated Works:** 8 animated shorts, highlighted by the opening screening of Alberto Segre's *"La Question"*.
+
+## 2. Six Professional Masterclasses for Southern Youth
+In partnership with vocational training centers across southern Algerian wilayas, TISFF delivers intensive hands-on technical masterclasses:
+1. **Directing Actors & Scene Choreography:** Guiding authentic performances in naturalistic settings.
+2. **Desert Cinematography & Optical Lighting:** Managing extreme dynamic ranges and harsh Saharan sun without washing out skin tones.
+3. **Field Sound Engineering:** Wind suppression, boom handling, and spatial acoustics in open dune environments.
+4. **Cinematic Editing & Rhythm:** Pacing short-form storytelling under 15-minute runtime caps.
+5. **Color Grading & Digital Imaging Technician (DIT) Pipelines.**
+6. **Mobile Filmmaking (Ciné-Pocket Yamina Chouikh):** A dedicated competition empowering young local creators to shoot, cut, and premiere 5-minute films entirely on smartphones.
+
+## 3. Gourara Lab: The Anis Djaad Residency
+Dedicated to the memory of Algerian screenwriter and director Anis Djaad, the **Gourara Lab** runs alongside the festival as a national fiction incubator. Selected young writers receive one-on-one mentorship from veteran script doctors and producers, refining screenplays before pitching to regional production funds.
+
+> *"TISFF bridges heritage architecture with cutting-edge visual technology, proving that cinematic excellence thrives at the heart of the Sahara."*`,
+    category: "Events",
+    tagLabel: "SAHARAN CINEMA & MEDIA",
+    tagTone: "amber",
+    source: "DZEvent & Timimoun Cultural Commission",
+    readTime: "4 min read",
+    date: "Nov 04, 2026",
+    imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200&q=80",
+    featuredInCarousel: true,
+    status: "Published",
+    externalUrl: "https://www.dzevent.com/events/timimoun-international-short-film-festival-2nd-edition-mvpy67ym"
+  },
   {
     "id": "exp-neural-operators-fluids",
     "title": "Fourier Neural Operators: Zero-Shot Super-Resolution in Non-Linear Fluid Dynamics",

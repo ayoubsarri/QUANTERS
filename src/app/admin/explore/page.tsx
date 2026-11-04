@@ -410,6 +410,47 @@ export default function AdminExplorePage() {
   );
   const [newQuotePinNow, setNewQuotePinNow] = useState<boolean>(true);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCreateOpen(false);
+        setQuizModalOpen(false);
+        setQuizJsonModalOpen(false);
+        setQuoteJsonModalOpen(false);
+        setQuoteModalOpen(false);
+        setEditingQuote(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const isAnyModalOpen =
+      createOpen ||
+      quizModalOpen ||
+      quizJsonModalOpen ||
+      quoteJsonModalOpen ||
+      quoteModalOpen ||
+      !!editingQuote;
+
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [
+    createOpen,
+    quizModalOpen,
+    quizJsonModalOpen,
+    quoteJsonModalOpen,
+    quoteModalOpen,
+    editingQuote,
+  ]);
+
   // Filtered Articles
   const filteredPosts = explorePosts.filter((p) => {
     const matchesCat =
@@ -755,13 +796,19 @@ export default function AdminExplorePage() {
           </div>
 
           {/* 3-Tab Navigation Bar */}
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+          <div
+            role="tablist"
+            aria-label="Explore CMS Modules"
+            className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100"
+          >
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "articles"}
               onClick={() => setActiveTab("articles")}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "articles"
-                  ? "bg-[#182C4E] text-white shadow-xs"
+                  ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -771,10 +818,12 @@ export default function AdminExplorePage() {
 
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "quiz"}
               onClick={() => setActiveTab("quiz")}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "quiz"
-                  ? "bg-[#182C4E] text-white shadow-xs"
+                  ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -784,10 +833,12 @@ export default function AdminExplorePage() {
 
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "quotes"}
               onClick={() => setActiveTab("quotes")}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`inline-flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "quotes"
-                  ? "bg-[#182C4E] text-white shadow-xs"
+                  ? "bg-[#182C4E] text-white shadow-xs ring-1 ring-[#182C4E]/20"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -1544,7 +1595,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close article editor"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2030,13 +2082,13 @@ export default function AdminExplorePage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white shadow-xs cursor-pointer transition active:scale-95 justify-center"
                 >
                   <Newspaper className="w-3.5 h-3.5 text-sky-400" />
                   <span>{editingPostId ? "Save Article Changes" : "Publish Article to Feed"}</span>
@@ -2062,7 +2114,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setQuizModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                aria-label="Close daily quiz dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2262,13 +2315,13 @@ export default function AdminExplorePage() {
                 <button
                   type="button"
                   onClick={() => setQuizModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-sm font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   {editingQuiz ? "Save Quiz Changes" : "Publish Daily Quiz"}
                 </button>
@@ -2294,7 +2347,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setEditingQuote(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close quote edit dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2390,13 +2444,13 @@ export default function AdminExplorePage() {
                 <button
                   type="button"
                   onClick={() => setEditingQuote(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Save Changes
                 </button>
@@ -2425,7 +2479,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setQuizJsonModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close quiz JSON import dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2724,7 +2779,7 @@ export default function AdminExplorePage() {
                         setQuizJsonValidation({ count: 0, error: err.message || "Failed to process JSON." });
                       }
                     }}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
+                    className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                   >
                     {quizJsonMode === "replace" ? "Replace All & Import" : "Import Quizzes"}
                   </button>
@@ -2754,7 +2809,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setQuoteJsonModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close quote JSON import dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2870,7 +2926,7 @@ export default function AdminExplorePage() {
                       setBanner(`Imported ${added} quotes from JSON!`);
                     } catch {}
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#182C4E] disabled:opacity-50 text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-[#182C4E] hover:bg-[#101F38] disabled:opacity-50 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Import Quotes
                 </button>
@@ -2898,7 +2954,8 @@ export default function AdminExplorePage() {
               <button
                 type="button"
                 onClick={() => setQuoteModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                aria-label="Close add quote dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -3012,13 +3069,13 @@ export default function AdminExplorePage() {
                 <button
                   type="button"
                   onClick={() => setQuoteModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-sm font-bold bg-[#182C4E] hover:bg-[#101F38] text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Save Quote
                 </button>

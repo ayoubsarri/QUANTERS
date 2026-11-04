@@ -12,7 +12,6 @@ import {
   HelpCircle,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { FieldIcon } from "@/components/shared/FieldIcon";
@@ -242,7 +241,7 @@ export default function BadgeExamPage() {
 
               {/* Interactive Assessment Notice Card */}
               <div className="p-3.5 rounded-xl bg-[#F0F6FF] border border-[#D5E3F5] flex items-start gap-2.5">
-                <Sparkles className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
+                <Award className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
                 <p className="text-[11px] text-[#182C4E] leading-relaxed font-medium">
                   <span className="font-bold text-[#0F1E36]">
                     Interactive Assessment Ready:

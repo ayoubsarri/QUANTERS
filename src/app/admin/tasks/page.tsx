@@ -226,6 +226,29 @@ export default function AdminTasksPage() {
     return () => window.removeEventListener("keydown", handleGlobalLetterKey);
   }, [createOpen, bulkOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCreateOpen(false);
+        setValidatingItem(null);
+        setBulkOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const isAnyOpen = createOpen || Boolean(validatingItem) || bulkOpen;
+    if (isAnyOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+    document.body.style.overflow = "";
+  }, [createOpen, validatingItem, bulkOpen]);
+
   const isTaskDoneOrArchived = (t: ClubTask) =>
     Boolean(t.archived) ||
     t.urgencyLabel === "Completed" ||
@@ -433,11 +456,17 @@ export default function AdminTasksPage() {
         {/* View Switcher, Lifecycle Segmented Tab Bar & Department Filter */}
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex p-1 rounded-xl bg-[#F4F7FB] border border-slate-200/90">
+            <div
+              role="tablist"
+              aria-label="Task Lifecycle Status"
+              className="inline-flex p-1 rounded-xl bg-[#F4F7FB] border border-slate-200/90"
+            >
               <button
                 type="button"
+                role="tab"
+                aria-selected={lifecycleTab === "active"}
                 onClick={() => setLifecycleTab("active")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                className={`px-4 py-2 min-h-[38px] rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                   lifecycleTab === "active"
                     ? "bg-[#182C4E] text-white shadow-sm"
                     : "text-slate-600 hover:text-[#0F1E36]"
@@ -447,8 +476,10 @@ export default function AdminTasksPage() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={lifecycleTab === "archived"}
                 onClick={() => setLifecycleTab("archived")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                className={`px-4 py-2 min-h-[38px] rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                   lifecycleTab === "archived"
                     ? "bg-[#182C4E] text-white shadow-sm"
                     : "text-slate-600 hover:text-[#0F1E36]"
@@ -458,8 +489,10 @@ export default function AdminTasksPage() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={lifecycleTab === "all"}
                 onClick={() => setLifecycleTab("all")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                className={`px-4 py-2 min-h-[38px] rounded-lg text-xs font-extrabold transition cursor-pointer flex items-center justify-center ${
                   lifecycleTab === "all"
                     ? "bg-[#182C4E] text-white shadow-sm"
                     : "text-slate-600 hover:text-[#0F1E36]"
@@ -837,7 +870,8 @@ export default function AdminTasksPage() {
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close create task dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1108,13 +1142,13 @@ export default function AdminTasksPage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Assign Task ({selectedAssigneeIds.length} Member(s))
                 </button>
@@ -1138,7 +1172,8 @@ export default function AdminTasksPage() {
               <button
                 type="button"
                 onClick={() => setValidatingItem(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close validation dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1199,13 +1234,13 @@ export default function AdminTasksPage() {
                 <button
                   type="button"
                   onClick={() => setValidatingItem(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Approve &amp; Credit +{awardedScore} XP
                 </button>
@@ -1229,7 +1264,8 @@ export default function AdminTasksPage() {
               <button
                 type="button"
                 onClick={() => setBulkOpen(false)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Close bulk scoring dialog"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1301,13 +1337,13 @@ export default function AdminTasksPage() {
                 <button
                   type="button"
                   onClick={() => setBulkOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="h-11 min-h-[44px] px-5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer transition active:scale-95 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer"
+                  className="h-11 min-h-[44px] px-6 rounded-xl text-xs font-bold bg-gradient-to-b from-[#182C4E] to-[#101F38] hover:brightness-110 border border-[#2B4875]/65 text-white cursor-pointer transition active:scale-95 flex items-center justify-center shadow-xs"
                 >
                   Credit +{bulkPoints} XP to {bulkMemberIds.length} Members
                 </button>
