@@ -383,6 +383,316 @@ export const SEED_INVITATIONS: Invitation[] = [];
 export const SEED_ACCESS_GRANTS: AccessGrant[] = [];
 export const SEED_AUDIT_LOGS: AuditLogEntry[] = [];
 export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [
+{
+    "id": "quiz-sys-raft-01",
+    "domain": "أنظمة موزعة (Distributed Systems)",
+    "icon": "git-open-source",
+    "question": "في خوارزمية التوافق الموزع Raft، عندما ينتهي مؤقت الانتخاب (Election Timeout) لعقدة تابعة (Follower) دون تلقي Heartbeat من القائد، ما هو الإجراء الأول الذي تقوم به؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "زيادة رقم الدورة (Term) محلياً بمقدار 1 والتحول إلى حالة مرشح (Candidate) وإرسال طلبات تصويت RequestVote"
+      },
+      {
+        "id": "b",
+        "label": "إرسال رسالة إلغاء فوري للقائد السابق وإعادة تهيئة السجل (Log) بالكامل"
+      },
+      {
+        "id": "c",
+        "label": "الانتظار حتى تقوم جميع العقد الأخرى بإنهاء اتصال الشبكة وإعادة تشغيل الخادم"
+      },
+      {
+        "id": "d",
+        "label": "التحول مباشرة إلى قائد (Leader) وبدء إرسال رسائل AppendEntries دون تصويت"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "بروتوكول انتخاب القائد في Raft Consensus",
+    "explanation": "في خوارزمية Raft، تبدأ العقدة التابعة عند نفاد مؤقت الانتخاب (Election Timeout) بالانتقال إلى حالة Candidate، وتزيد رقم الدورة الحالي (currentTerm++)، وتصوت لنفسها، ثم تبث رسائل RequestVote لجميع العقد الأخرى في الشبكة لتحقيق الأغلبية (Quorum).",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-ai-attention-scaling-02",
+    "domain": "الذكاء الاصطناعي وتعلم الآلة",
+    "icon": "deep-learning",
+    "question": "في المعمارية القياسية لشبكات Transformer (Vaswani et al., 2017)، كيف يتناسب التعقيد الحسابي والذاكراتي لآلية الانتباه الذاتي القياسية (Scaled Dot-Product Attention) مع طول التسلسل المدخل N؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "خطياً مع طول التسلسل O(N)"
+      },
+      {
+        "id": "b",
+        "label": "تربيعياً مع طول التسلسل O(N²)"
+      },
+      {
+        "id": "c",
+        "label": "لوغاريتمياً O(log N)"
+      },
+      {
+        "id": "d",
+        "label": "أسياً O(2^N)"
+      }
+    ],
+    "correctId": "b",
+    "verdictTitle": "تعقيد مصفوفة الانتباه QK^T التربيعي",
+    "explanation": "ينشأ التعقيد التربيعي O(N²) في آلية الانتباه الذاتي من حساب جداء مصفوفة الاستعلام (Q) بمصفوفة المفاتيح منقولة (K^T)، مما ينتج مصفوفة انتباه بأبعاد N × N لمقارنة كل توكن بجميع التوكنز الأخرى في السياق.",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-quantum-no-cloning-03",
+    "domain": "الحوسبة والمعلوماتية الكمومية",
+    "icon": "quantum",
+    "question": "وفقاً لمبرهنة عدم الاستنساخ الكمومي (No-Cloning Theorem) في ميكانيكا الكم، ما هي النتيجة الرياضية والفيزيائية المباشرة المترتبة على خطية المؤثرات الأحادية (Unitary Operators)؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "استحالة إنشاء نسخة متطابقة تماماً من حالة كمومية عشوائية غير معروفة وغير متعامدة دون تدميرها"
+      },
+      {
+        "id": "b",
+        "label": "استحالة قياس طاقة أي جسيم دون ذري بدقة تتجاوز مبدأ هايزنبرغ"
+      },
+      {
+        "id": "c",
+        "label": "قدرة أي حاسوب كمومي على استنساخ البتات الكلاسيكية في زمن صفري O(0)"
+      },
+      {
+        "id": "d",
+        "label": "إمكانية نقل المعلومات أسرع من الضوء عبر التشابك الكمومي المستمر"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "مبرهنة عدم الاستنساخ وحفظ المعلومات الكمية",
+    "explanation": "تثبت مبرهنة عدم الاستنساخ الكمومي (Wootters & Zurek, 1982) أنه لا يمكن وجود أي مؤثر أحادي (Unitary Operator U) يمكنه نسخ أي حالة كمومية عشوائية غير معلومة |ψ⟩|0⟩ -> |ψ⟩|ψ⟩، وذلك كنتيجة مباشرة لخطية (Linearity) ميكانيكا الكم، وهو ما يشكل الأساس النظري للتشفير الكمومي (QKD).",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-bio-crispr-pam-04",
+    "domain": "التكنولوجيا الحيوية والهندسة الوراثية",
+    "icon": "biotech",
+    "question": "في نظام التحرير الجيني CRISPR-Cas9 المشتق من بكتيريا Streptococcus pyogenes (SpCas9)، ما هو تسلسل PAM الإلزامي المجاور للهدف الذي يشترطه الإنزيم للتعرف والقطع؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "5'-NGG-3' مباشرة بعد التسلسل المستهدف (Protospacer)"
+      },
+      {
+        "id": "b",
+        "label": "5'-TATA-3' في منطقة صندوق تاتا (TATA box)"
+      },
+      {
+        "id": "c",
+        "label": "5'-AAAA-3' في ذيل البولي أدينين الطرفي"
+      },
+      {
+        "id": "d",
+        "label": "5'-CC-3' في بداية الكروموسوم حصرياً"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "تسلسل PAM في استهداف إنزيم SpCas9",
+    "explanation": "يشترط إنزيم SpCas9 وجود تسلسل PAM (Protospacer Adjacent Motif) ذي الصيغة 5'-NGG-3' (حيث N أي قاعدة نيتروجينية متبوعة بقاعدتي غوانين) عند النهاية 3' للتسلسل المستهدف لتمكين فك التفاف الحمض النووي وقطع السلسلتين المزدوجتين (DSB).",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-sec-post-quantum-05",
+    "domain": "الأمن السيبراني وعلم التعمية",
+    "icon": "cybersecurity",
+    "question": "في معايير التشفير ما بعد الكمي (PQC) المعتمدة حديثاً من NIST (مثل معيار ML-KEM / CRYSTALS-Kyber)، ما هي المسألة الرياضية الصلبة التي تبنى عليها قوة التشفير ضد الحواسيب الكمومية؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "مسألة التعلم بالأخطاء في الشبيكات (Learning With Errors - LWE / Module-LWE)"
+      },
+      {
+        "id": "b",
+        "label": "مسألة تحليل الأعداد الصحيحة الكبيرة إلى عواملها الأولية (Prime Factorization)"
+      },
+      {
+        "id": "c",
+        "label": "مسألة اللوغاريتم المنفصل على المنحنيات الإهليلجية (ECDLP)"
+      },
+      {
+        "id": "d",
+        "label": "مسألة التحقق من التجزئة الخطية بتصادمات دالة SHA-256"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "شبيكات التعلم بالأخطاء (LWE) وأمن PQC",
+    "explanation": "تعتمد خوارزمية ML-KEM (Kyber) على صعوبة مسألة Module Learning With Errors (M-LWE) في الشبيكات الرياضية، وهي مسألة رياضية لا تستطيع خوارزمية شور (Shor's Algorithm) الكمومية حلها في زمن متعدد الحدود (Polynomial Time)، على عكس RSA و ECC.",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-astro-transit-depth-06",
+    "domain": "الفيزياء الفلكية وعلوم الفضاء",
+    "icon": "astrophysics",
+    "question": "في قياس الضوء لعبور الكواكب خارج المجموعة الشمسية (Transit Photometry)، ما هي العلاقة الرياضية التي تحدد عمق انخفاض تدفق الضوء (Transit Depth: ΔF / F) أثناء عبور الكوكب أمام نجمه الأم؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "النسبة المئوية التقريبية تساوي مربع نسبة نصف قطر الكوكب إلى نصف قطر النجم (Rp / R*)²"
+      },
+      {
+        "id": "b",
+        "label": "النسبة تساوي مكعب المسافة المدارية مقسوماً على سرعة الضوء في الفراغ"
+      },
+      {
+        "id": "c",
+        "label": "النسبة تتناسب طردياً مع الكتلة المغناطيسية للنجم فقط دون اعتبار لحجم الكوكب"
+      },
+      {
+        "id": "d",
+        "label": "النسبة تساوي دائماً 50% من شدة إشعاع النجم بغض النظر عن الأبعاد الهندسية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "قياس عمق العبور الضوئي للكواكب الخارجية",
+    "explanation": "يمثل عمق العبور الضوئي نسبة المساحة الظاهرية لقرص الكوكب المحتجب إلى مساحة قرص النجم المشع: ΔF / F = (π Rp²) / (π R*²) = (Rp / R*)²، مما يسمح بحساب نصف قطر الكوكب الخارجي بدقة متناهية.",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-rust-borrow-checker-07",
+    "domain": "هندسة البرمجيات ولغات الأنظمة (Rust)",
+    "icon": "python",
+    "question": "في نظام الملكية والاستعارة (Ownership & Borrowing) بلغة Rust، ما هي القاعدة الصارمة التي يفرضها مدقق الاستعارة (Borrow Checker) لمنع سباق البيانات (Data Races) في زمن التجميع؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "يُسمح بأي عدد من المراجع الثابتة (&T) أو بمرجع واحد فقط قابل للتعديل (&mut T) في نفس النطاق، لكن لا يمكن الجمع بينهما أبداً"
+      },
+      {
+        "id": "b",
+        "label": "يُسمح بوجود عدة مراجع قابلة للتعديل (&mut T) معاً بشرط أن تكون داخل دوال غير متزامنة"
+      },
+      {
+        "id": "c",
+        "label": "يتم تحرير الذاكرة فقط عند استدعاء جامع القمامة (Garbage Collector) يدوياً"
+      },
+      {
+        "id": "d",
+        "label": "لا يمكن تمرير أي متغير كمعامل للدوال إلا بعد نسخه (Clone) الكامل"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "قاعدة الاستعارة الحصرية (Aliasing XOR Mutability)",
+    "explanation": "تتبع لغة Rust قاعدة الاستعارة الأساسية: إما عدد غير محدود من القراء (المراجع غير القابلة للتعديل &T) أو كاتب وحيد حصري (المرجع القابل للتعديل &mut T) في النطاق الزمني المعين، مما يضمن أمان الذاكرة وتفادي سباقات البيانات في وقت التجميع بدون الحاجة لجامع قمامة.",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-math-svd-decomposition-08",
+    "domain": "الرياضيات التطبيقية والجبر الخطي",
+    "icon": "mathematics",
+    "question": "في تحليل القيمة المفردة (Singular Value Decomposition - SVD) لمصفوفة حقيقية A بأبعاد m × n، كيف تُرتب القيم المفردة (Singular Values: σ₁) على القطر الرئيسي للمصفوفة Σ؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "أعداد حقيقية غير سالبة مرتبة ترتيباً تنازلياً: σ₁ ≥ σ₂ ≥ ... ≥ σᵣ ≥ 0"
+      },
+      {
+        "id": "b",
+        "label": "أعداد مركبة ذات جزء تخيلي دائم التعامد مع الفضاء الجزئي"
+      },
+      {
+        "id": "c",
+        "label": "قيم متذبذبة بين الموجب والسالب يتم اختيارها عشوائياً"
+      },
+      {
+        "id": "d",
+        "label": "قيم مساوية دائماً للصفر في جميع الحالات العملية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "ترتيب القيم المفردة في تفكيك SVD",
+    "explanation": "في صيغة A = U Σ V^T، تمثل القيم المفردة σᵢ الجذور التربيعية للقيم الذاتية للمصفوفة المتناظرة A^T A، وتكون دائماً أعداداً حقيقية موجبة أو معدومة (σᵢ ≥ 0) وتُرتب اصطلاحاً بترتيب تنازلي على القطر الرئيسي لتسهيل تقريب الرتبة المنخفضة (Low-Rank Approximation).",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-iot-i2c-bus-09",
+    "domain": "الأنظمة المضمنة وإنترنت الأشياء (IoT)",
+    "icon": "iot-embedded",
+    "question": "في بروتوكول الاتصال التسلسلي المتزامن I2C (Inter-Integrated Circuit)، ما هما الخطان الفيزيائيان ثنائيا الاتجاه المستخدمان لنقل البيانات ومزامنة الساعة؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "خط البيانات التسلسلي (SDA) وخط نبضات الساعة التسلسلي (SCL)، مع مقاومات رفع (Pull-up Resistors)"
+      },
+      {
+        "id": "b",
+        "label": "خط MOSI وخط MISO فقط مع إشارة تمكين العبد (SS)"
+      },
+      {
+        "id": "c",
+        "label": "خط الإرسال TX وخط الاستقبال RX غير المتزامنين دون إشارة توقيت"
+      },
+      {
+        "id": "d",
+        "label": "كابل رباعي الأزواج المجدولة مزود بمحول PoE كهربائي"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الطبقة الفيزيائية لبروتوكول I2C (SDA / SCL)",
+    "explanation": "يستخدم بروتوكول I2C خطين ماديين فقط من نوع المجمع المفتوح (Open-Drain): خط SDA (Serial Data) لنقل البيانات ثنائي الاتجاه، وخط SCL (Serial Clock) لنبضات المزامنة، وتتطلب كلا الإشارتين مقاومات رفع (Pull-up Resistors) إلى جهد VCC لضمان استقرار الحالة المنطقية المرتفعة.",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
+  {
+    "id": "quiz-open-science-green-oa-10",
+    "domain": "المنهجية العلمية والوصول الحر (Open Science)",
+    "icon": "scientific-writing",
+    "question": "في منظومة النشر الأكاديمي والبحث العلمي، ما هو التعريف الدقيق لمسار 'الوصول الحر الأخضر' (Green Open Access / Self-Archiving)؟",
+    "options": [
+      {
+        "id": "a",
+        "label": "قيام الباحث بإيداع نسخته من البحث (Preprint أو Postprint المقبول) في مستودع مؤسسي أو موضوعي مفتوح دون دفع رسوم معالجة المقال (APC)"
+      },
+      {
+        "id": "b",
+        "label": "نشر البحث حصرياً في مجلات تجارية مغلقة خلف جدار دفع مالي دائم دون أي نسخة إيداع"
+      },
+      {
+        "id": "c",
+        "label": "شراء ترخيص حقوق الملكية الفكرية من دار النشر وإلغاء اسم الباحث الأصلي"
+      },
+      {
+        "id": "d",
+        "label": "اشتراط طباعة البحث على أوراق معاد تدويرها حصرياً لدعم الاستدامة البيئية"
+      }
+    ],
+    "correctId": "a",
+    "verdictTitle": "الأرشفة الذاتية في الوصول الحر الأخضر",
+    "explanation": "يمثل Green Open Access (الأرشفة الذاتية) مساراً يتيح للباحثين إيداع نسخ أبحاثهم (سواء مسودة ما قبل التحكيم Preprint أو النسخة المقبولة Postprint) في مستودعات مفتوحة مثل arXiv أو المستودعات الجامعية، مما يتيح القراءة المجانية للجميع دون تكبيل الباحث برسوم نشر باهظة (Article Processing Charges).",
+    "xpReward": 5,
+    "dateLabel": "2026-11-06",
+    "isPinnedToday": false,
+    "active": true
+  },
   {
     "id": "quiz-nov1-01",
     "domain": "بيان أول نوفمبر 1954",
@@ -406,7 +716,7 @@ export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [
     "verdictTitle": "تأكيد مبادئ بيان أول نوفمبر 1954 الخالد",
     "explanation": "نص بيان أول نوفمبر 1954 صراحة على إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية.",
     "xpReward": 25,
-    "isPinnedToday": true,
+    "isPinnedToday": false,
     "active": true
   },
   {
@@ -880,6 +1190,66 @@ export const SEED_POINT_RULES: PointRule[] = [
 
 // High-Standard Peer-Reviewed Scientific Dispatches (Dans les Normes)
 export const SEED_EXPLORE_POSTS: ExplorePost[] = [
+{
+    "id": "exp-vllm-pagedattention-breakdown",
+    "title": "vLLM Deep Dive: Architecture of PagedAttention, KV Cache Virtualization & High-Throughput LLM Serving",
+    "summary": "A comprehensive architectural breakdown of vLLM (vllm-project/vllm): solving memory fragmentation via OS-inspired virtual memory paging, continuous batching, and deploying quantized 8B–14B models on QUANTA hardware.",
+    "content": "# vLLM Deep Dive: Architecture of PagedAttention & High-Throughput LLM Serving\n\n## 1. The Bottleneck: The KV Cache Memory Crisis\nIn autoregressive Large Language Model (LLM) inference, generating each token requires computing Key and Value tensors for all previous tokens in the sequence. In naive HuggingFace Transformers implementations:\n- Key and Value tensors must reside in contiguous physical VRAM allocations.\n- Memory must be pre-allocated for the maximum anticipated sequence length (e.g., 4096 or 8192 tokens) before generation begins.\n- As a result, **60% to 80% of GPU memory is lost to fragmentation and over-allocation**, capping concurrency at low single-digit requests even on enterprise GPUs.\n\n## 2. PagedAttention: OS Virtual Memory Applied to Transformers\nDeveloped by researchers at UC Berkeley and open-sourced in **vLLM** (`vllm-project/vllm`), **PagedAttention** introduces a paradigm shift directly inspired by virtual memory paging in operating systems:\n\n- **Logical to Physical Block Mapping:** Instead of allocating contiguous VRAM, KV cache tensors are partitioned into fixed-size blocks (e.g., 16 or 32 tokens per block).\n- **Block Table Architecture:** A lightweight centralized scheduler maintains a dynamic block table mapping logical token sequences to arbitrary non-contiguous physical memory blocks across VRAM.\n- **Near-Zero Memory Waste:** Memory fragmentation is reduced from >60% down to under **4%**, bounded strictly by the final incomplete block of a sequence.\n\n```\nLogical Tokens:   [Token 0-15]  -> Block Table -> [Physical Block #42 in VRAM]\n                  [Token 16-31] -> Block Table -> [Physical Block #07 in VRAM]\n```\n\n## 3. Continuous Batching & Iteration-Level Scheduling\nTraditional inference runtimes rely on *static batching*: requests in a batch wait until the longest sequence completes generation before new requests are admitted.\n\nvLLM implements **continuous (iteration-level) batching**:\n1. At every single forward pass (iteration), the scheduler dynamically evacuates completed sequences.\n2. New incoming requests are spliced immediately into the active matrix multiplication batch.\n3. This eliminates idle compute bubbles, driving hardware utilization from ~20% up to >85%.\n\n| Metric | Vanilla HuggingFace TGI | vLLM (PagedAttention) | Improvement |\n|---|---|---|---|\n| **Memory Fragmentation** | 60% – 80% | **< 4%** | **15x – 20x reduction** |\n| **Serving Throughput** | 120 – 180 tokens/sec | **550 – 850 tokens/sec** | **3.5x – 4.5x faster** |\n| **Concurrent Requests (24GB VRAM)** | 2 – 4 parallel streams | **18 – 32 parallel streams** | **8x concurrency** |\n| **Prefix Caching Latency** | Full recompute | **O(1) hash lookup** | **Zero TTFT penalty** |\n\n## 4. QUANTA Lab Deployment Guide\nQUANTA members can deploy high-throughput local models on university and club workstations using the following optimized setup:\n\n```bash\n# 1. Install vLLM with CUDA acceleration\npip install vllm\n\n# 2. Launch production OpenAI-compatible API server with AWQ 4-bit quantization\npython -m vllm.entrypoints.openai.api_server \\\n    --model Qwen/Qwen2.5-Coder-7B-Instruct-AWQ \\\n    --quantization awq \\\n    --gpu-memory-utilization 0.90 \\\n    --max-model-len 8192 \\\n    --port 8000\n```\n\nQUANTA AI & Software Engineering members can consume this endpoint directly across local code assistants, autonomous agent workflows, and hackathon prototypes.",
+    "category": "Scientific News",
+    "tagLabel": "GITHUB BREAKDOWN",
+    "tagTone": "cyan",
+    "source": "GitHub Engineering (vllm-project/vllm)",
+    "readTime": "6 min read",
+    "date": "Nov 06, 2026",
+    "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
+    "featuredInCarousel": true,
+    "status": "Published"
+  },
+  {
+    "id": "exp-gnome-materials-deepmind",
+    "title": "GNoME & Autonomous Robotic Synthesis: DeepMind’s Discovery of 2.2M Crystals and the A-Lab Paradigm",
+    "summary": "How Google DeepMind's Graph Networks for Materials Exploration (GNoME) expanded known stable crystalline structures by an order of magnitude, paired with Berkeley’s A-Lab autonomous robotic solid-state synthesis.",
+    "content": "# GNoME & Autonomous Robotic Synthesis: Scaling Materials Discovery\n\n## 1. Expanding the Known Crystal Universe by 10x\nFor centuries, humanity cataloged approximately **20,000 experimentally verified stable inorganic crystalline structures** (recorded in the ICSD). Discovering a single novel functional material typically required months of trial-and-error solid-state synthesis and density functional theory (DFT) simulations.\n\nGoogle DeepMind’s **GNoME (Graph Networks for Materials Exploration)** published in *Nature* shattered this ceiling by predicting:\n- **2.2 million novel crystalline structures**.\n- **380,000 thermodynamically stable materials** lying directly on the convex hull of stability ($\\Delta E_{\\text{hull}} \\le 0 \\text{ meV/atom}$).\n- Expanding the cumulative sum of human crystal knowledge by an order of magnitude in a single computational campaign.\n\n## 2. Equivariant Graph Neural Networks (EGNN)\nGNoME operates on message-passing graph neural networks that respect Euclidean SE(3) symmetries (rotation, translation, and reflection invariance):\n- **Nodes** represent atoms parameterized by nuclear charge, valence states, and fractional coordinates.\n- **Edges** represent interatomic distances and chemical bonds up to a radial cutoff.\n- The model recursively refines structural geometries through active learning, validating candidate structures via high-throughput DFT relaxation until total ground-state energy converges.\n\n$\\mathbf{h}_i^{(l+1)} = \\phi_v \\left( \\mathbf{h}_i^{(l)}, \\sum_{j \\in \\mathcal{N}(i)} \\phi_e (\\mathbf{h}_i^{(l)}, \\mathbf{h}_j^{(l)}, \\| \\mathbf{r}_i - \\mathbf{r}_j \\|^2) \\right)$\n\n## 3. The A-Lab: Closed-Loop Autonomous Robotic Synthesis\nPredicting stability computationally is only half the battle. To validate physical reality, Berkeley Lab developed the **A-Lab**: an autonomous, robotic dry-lab facility driven by AI:\n1. **Robotic Powder Dispensing:** Automated robotic arms mill and measure stoichiometric precursor powders.\n2. **Furnace Heating Schedules:** Autonomous control of calcination and sintering ramps under controlled atmospheric environments.\n3. **In-Situ Powder X-Ray Diffraction (PXRD):** Robotic sample loaders scan the resulting ceramic pellets and run automated Rietveld phase refinement.\n4. **Active Learning Feedback Loop:** If impurities or unreacted precursors are detected, the system modifies chemical pathways in real time without human intervention.\n\n> In its inaugural 17-day autonomous campaign, the A-Lab successfully synthesized **41 novel out of 58 target inorganic compounds**—a success rate exceeding **71%**.\n\n## 4. Strategic Impact for QUANTA Physics & Materials\nThis paradigm opens transformative opportunities for solid-state battery electrolytes (superionic Li/Na conductors), high-temperature superconductors, and advanced thermoelectric harvesters. QUANTA members in Physics and Chemistry can leverage open-source crystallographic databases (Materials Project, OPTIMADE, COD) to simulate these candidate phases using club computing resources.",
+    "category": "Scientific News",
+    "tagLabel": "FRONTIER SCIENCE",
+    "tagTone": "indigo",
+    "source": "Nature (Materials Science & AI)",
+    "readTime": "7 min read",
+    "date": "Nov 06, 2026",
+    "imageUrl": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1200&q=80",
+    "featuredInCarousel": true,
+    "status": "Published"
+  },
+  {
+    "id": "exp-agentic-pair-programming-paradigm",
+    "title": "The Agentic Pair-Programming Paradigm: Typed TDD, Subagent Sandboxing & Zero-Hallucination Engineering",
+    "summary": "Moving past naive chat prompts: how modern software engineers build production systems using deterministic type contracts, Red-Green-Refactor test loops, and autonomous subagent delegation.",
+    "content": "# The Agentic Pair-Programming Paradigm: Typed TDD & Deterministic Agentic Engineering\n\n## 1. The Post-Chat Era in Software Engineering\nThe era of pasting code blocks into conversational web chatbots and hoping for the best is officially obsolete. In professional engineering environments, non-deterministic AI generation without architectural guardrails leads to:\n- Subtle state mutations and silent security regressions.\n- Hallucinated APIs that pass visual inspection but fail in runtime edge cases.\n- Massive technical debt and compounding architectural drift.\n\nThe **Agentic Pair-Programming Paradigm** treats autonomous AI agents not as oracle answer-generators, but as **high-velocity execution engines operating within mathematically verified constraints**.\n\n## 2. The Three Foundations of Industrial Agentic Development\n\n### I. Schema-First & Strict Type Contracts\nBefore writing a single line of business logic, define strict, immutable TypeScript interfaces, Rust structs, or Pydantic models. \n- Types are non-negotiable compile-time boundary gates.\n- When an agent works against an exhaustive type system with strict null checks, compiler feedback acts as an infallible error-correction loop.\n\n### II. Red-Green-Refactor TDD Harnesses\nNever allow an agent to write implementation code before a failing test exists:\n1. **Red Stage:** Agent writes a focused integration or unit test specifying the exact required behavior. Run test suite — verify it fails with expected assertion.\n2. **Green Stage:** Agent implements the minimal code required to satisfy the failing test.\n3. **Refactor Stage:** Clean up architecture, eliminate boilerplate, and verify zero regressions.\n\n### III. Sandboxed Specialized Subagents\nDecompose complex software challenges across isolated, specialized agents:\n- **Architect Subagent:** Analyzes dependencies, data schemas, and API contracts.\n- **Implementation Subagent:** Writes idiomatic code inside the task scope.\n- **Security & Forensic Auditor:** Audits code against OWASP Top 10, memory leaks, and authorization bypasses.\n\n## 3. The Model Context Protocol (MCP) Revolution\nBy exposing standardized RPC tools (such as database queries, git worktrees, and headless browser assertions) via **MCP (Model Context Protocol)**, agents interact directly with the real execution substrate rather than imagining system states.\n\n## 4. Action Plan for QUANTA Engineers\nAll QUANTA software teams, hackathon participants, and research developers are encouraged to implement this standard across club repositories:\n- Enforce strict typing (`strict: true` in `tsconfig.json`).\n- Adopt automated CI/CD verification gates.\n- Pair program with agentic CLI workflows to maximize cognitive leverage while preserving absolute code integrity.",
+    "category": "QUANTA News",
+    "tagLabel": "TECH PARADIGM",
+    "tagTone": "sky",
+    "source": "QUANTA IT & Tech Directorate",
+    "readTime": "5 min read",
+    "date": "Nov 06, 2026",
+    "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80",
+    "featuredInCarousel": true,
+    "status": "Published"
+  },
+  {
+    "id": "exp-global-fellowships-grants-2027",
+    "title": "Global & African Fellowships 2026/2027: GSoC Roadmap, CERN Summer Students & Indaba Research Grants",
+    "summary": "Curated, high-impact research, engineering, and open-source funding opportunities for Algerian and African university students, complete with application timelines, eligibility criteria, and preparation milestones.",
+    "content": "# Global & African Fellowships 2026/2027: Opportunities, Stipends & Preparation Guide\n\n## 1. Executive Summary\nOne of the core missions of **QUANTA Club** is to provide ambitious STEM and computing students with direct access to prestigious international research institutes, global open-source fellowships, and funded travel grants.\n\nBelow is the verified strategic roadmap for major 2026/2027 funding programs open to Algerian university students (Licence, Master, and Engineering cycles).\n\n---\n\n## 2. Google Summer of Code (GSoC) 2027\n**Target Audience:** Software developers, scientific computing practitioners, and open-source contributors.\n- **Stipend:** $1,500 to $3,000+ USD (adjusted by purchasing power parity for Algeria).\n- **Format:** 12 to 22 weeks of remote, 1-on-1 mentored development with global open-source foundations.\n- **Key Organizations:**\n  - **Machine Learning & AI:** *vLLM, PyTorch Ecosystem, Hugging Face, OpenVINO*.\n  - **Scientific Computing:** *NumFOCUS, SciPy, SymPy, CERN-HSF, JuliaLang*.\n  - **Systems & OS:** *Linux Foundation, Apache Software Foundation, FreeBSD, Rust Foundation*.\n- **Application Timeline:**\n  - *Dec 2026 – Jan 2027:* Select target organization, join developer IRC/Discord, resolve beginner \"good first issues\".\n  - *Feb – Mar 2027:* Official organization list announced; draft and submit a detailed 10-page technical proposal.\n  - *May 2027:* Official contributor selections announced.\n\n---\n\n## 3. CERN Summer Student Programme (Geneva, Switzerland)\n**Target Audience:** Undergraduate and Master students in Physics, Computing, Electrical, and Mechanical Engineering.\n- **Funding:** **Full travel allowance + ~90 CHF / day living allowance (~2,700 CHF / month)** covering accommodation and dining in Geneva.\n- **Duration:** 8 to 13 weeks on-site at the European Organization for Nuclear Research (LHC).\n- **Core Activities:** Hands-on scientific research with international experimental collaborations (ATLAS, CMS, ALICE, LHCb, or CERN IT Data Center).\n- **Eligibility:** Enrolled in at least 3rd year of university studies with strong academic standing and proficiency in English or French.\n- **Application Window:** Opens November 2026, deadline typically late January 2027.\n\n---\n\n## 4. Deep Learning Indaba Research Grants & Travel Awards\n**Target Audience:** African researchers, graduate students, and AI practitioners.\n- **Benefits:** Full travel grant (flights, accommodation, registration) to attend the premier annual pan-African AI conference, plus project micro-grants for outstanding research posters.\n- **Focus Areas:** NLP for African languages, computer vision for agriculture, climate modeling, and foundational machine learning theory.\n- **Application Window:** Early 2027.\n\n---\n\n## 5. QUANTA Fellowship Mentorship Office Hours\nTo maximize acceptance rates among QUANTA members, the club’s Academic & External Affairs Committee is launching dedicated support sessions:\n- **Proposal Auditing:** Peer review of GSoC draft proposals and open-source PR portfolios.\n- **Statement of Purpose (SOP) Polish:** Aligning academic narratives to CERN and international standards.\n- **Mock Interviews:** Technical and behavioral interview preparation with club alumni studying and working abroad.",
+    "category": "Opportunities",
+    "tagLabel": "OPPORTUNITY",
+    "tagTone": "amber",
+    "source": "QUANTA Academic Affairs & External Relations",
+    "readTime": "6 min read",
+    "date": "Nov 06, 2026",
+    "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80",
+    "featuredInCarousel": true,
+    "status": "Published"
+  },
   {
     id: "exp-handy-offline-stt",
     title: "Handy: Open-Source Local-First Speech-to-Text Built with Rust & Tauri",
@@ -917,7 +1287,7 @@ QUANTA Computer Science & AI members can inspect the repository, build custom ph
     date: "Nov 04, 2026",
     imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1200&q=80",
     featuredInCarousel: true,
-    status: "Published",
+    status: "Archived",
     externalUrl: "https://github.com/cjpais/handy"
   },
   {
@@ -959,7 +1329,7 @@ The emergence of agentic models capable of multi-hour terminal workflows without
     date: "Nov 04, 2026",
     imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
     featuredInCarousel: true,
-    status: "Published",
+    status: "Archived",
     externalUrl: "https://blog.google"
   },
   {
@@ -990,7 +1360,7 @@ Complementing these molecular therapies, breakthroughs in high-resolution label-
     date: "Nov 04, 2026",
     imageUrl: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1200&q=80",
     featuredInCarousel: true,
-    status: "Published",
+    status: "Archived",
     externalUrl: "https://www.nature.com"
   },
   {
@@ -1028,7 +1398,7 @@ Dedicated to the memory of Algerian screenwriter and director Anis Djaad, the **
     date: "Nov 04, 2026",
     imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200&q=80",
     featuredInCarousel: true,
-    status: "Published",
+    status: "Archived",
     externalUrl: "https://www.dzevent.com/events/timimoun-international-short-film-festival-2nd-edition-mvpy67ym"
   },
   {

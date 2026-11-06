@@ -929,7 +929,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   projectCategories: DEFAULT_PROJECT_CATEGORIES,
   proposals: SEED_PROPOSALS,
   explorePosts: SEED_EXPLORE_POSTS,
-  dailyQuizzes: [],
+  dailyQuizzes: SEED_DAILY_QUIZZES,
   dailyQuotes: SEED_DAILY_QUOTES_365,
   messages: SEED_MESSAGES.map((m) => ({ ...m, archived: m.archived ?? !m.unread })),
   accessGrants: SEED_ACCESS_GRANTS,
