@@ -66,6 +66,48 @@ const TENURE_OPTIONS = [
 
 const ACADEMIC_YEARS = ["L1", "L2", "L3", "M1", "M2", "Doctorate", "Graduated"] as const;
 
+export const OFFICIAL_LEVEL_TITLES: {
+  title: string;
+  level: number;
+  category: "Seniority" | "Rank";
+}[] = [
+  // Seniority & Leadership Hierarchy
+  { title: "Novice Quanter", level: 1, category: "Seniority" },
+  { title: "1 Year Member", level: 2, category: "Seniority" },
+  { title: "2 Years Member", level: 3, category: "Seniority" },
+  { title: "3 Years Member", level: 3, category: "Seniority" },
+  { title: "Executive Quanter", level: 3, category: "Seniority" },
+  { title: "Senior Quanter", level: 4, category: "Seniority" },
+  { title: "Lead Researcher", level: 5, category: "Seniority" },
+  { title: "Principal Fellow", level: 6, category: "Seniority" },
+  { title: "Distinguished Quanter", level: 7, category: "Seniority" },
+  { title: "Quanta Laureate", level: 8, category: "Seniority" },
+  // XP & Mineral Milestone Tiers
+  { title: "🪵 Wooden Quanter", level: 1, category: "Rank" },
+  { title: "🪨 Stone Observer", level: 2, category: "Rank" },
+  { title: "🟤 Copper Researcher", level: 3, category: "Rank" },
+  { title: "⚙️ Iron Expert", level: 4, category: "Rank" },
+  { title: "🥇 Gold Pioneer", level: 5, category: "Rank" },
+  { title: "💎 Emerald Scholar", level: 6, category: "Rank" },
+  { title: "💠 Sapphire Explorer", level: 7, category: "Rank" },
+  { title: "🔮 Amethyst Inventor", level: 8, category: "Rank" },
+  { title: "💎 Diamond Legend", level: 9, category: "Rank" },
+  { title: "👑 Quantum Master", level: 10, category: "Rank" },
+];
+
+const DEFAULT_TITLE_BY_LEVEL: Record<number, string> = {
+  1: "Novice Quanter",
+  2: "1 Year Member",
+  3: "Executive Quanter",
+  4: "Senior Quanter",
+  5: "Lead Researcher",
+  6: "Principal Fellow",
+  7: "Distinguished Quanter",
+  8: "Quanta Laureate",
+  9: "💎 Diamond Legend",
+  10: "👑 Quantum Master",
+};
+
 export function EditMemberModal({
   member,
   isOpen,
@@ -209,6 +251,65 @@ export function EditMemberModal({
     }
   };
 
+  const handleStatusChange = (newStatus: MemberStatus) => {
+    setStatus(newStatus);
+    if (newStatus === "Active") {
+      setRoles((prev) => {
+        const filtered = prev.filter((r) => r !== "Alumni");
+        return filtered.length > 0 ? filtered : ["Member"];
+      });
+      setTenure((prev) => (prev === "QUANTA Alumni" ? "2+ Years" : prev || "1 Year"));
+      setAcademicYear((prev) => (prev === "Graduated" ? "M2" : prev || "L3"));
+      setAlumniAccessEnabled(false);
+      setAlumniPosition("");
+    } else if (newStatus === "Alumni") {
+      setRoles((prev) => (prev.includes("Alumni") ? prev : [...prev, "Alumni"]));
+      setAcademicYear("Graduated");
+      setTenure("QUANTA Alumni");
+      setAlumniAccessEnabled(true);
+      if (!levelTitle || levelTitle === "Member" || levelTitle === "Novice Quanter") {
+        setLevelTitle("Quanta Laureate");
+        setLevel(8);
+      }
+    }
+  };
+
+  const handleAcademicYearChange = (newYear: string) => {
+    setAcademicYear(newYear);
+    if (newYear !== "Graduated" && status === "Alumni") {
+      handleStatusChange("Active");
+    } else if (newYear === "Graduated" && status === "Active") {
+      handleStatusChange("Alumni");
+    }
+  };
+
+  const handleTenureChange = (newTenure: string) => {
+    setTenure(newTenure);
+    if (newTenure === "QUANTA Alumni" && status !== "Alumni") {
+      handleStatusChange("Alumni");
+    } else if (newTenure !== "QUANTA Alumni" && status === "Alumni") {
+      handleStatusChange("Active");
+    }
+  };
+
+  const handleLevelNumberChange = (newLevel: number) => {
+    setLevel(newLevel);
+    const prevDefault = DEFAULT_TITLE_BY_LEVEL[level];
+    if (!levelTitle || levelTitle === prevDefault || levelTitle === "Member") {
+      if (DEFAULT_TITLE_BY_LEVEL[newLevel]) {
+        setLevelTitle(DEFAULT_TITLE_BY_LEVEL[newLevel]);
+      }
+    }
+  };
+
+  const handleLevelTitleSelect = (newTitle: string) => {
+    setLevelTitle(newTitle);
+    const matched = OFFICIAL_LEVEL_TITLES.find((t) => t.title === newTitle);
+    if (matched && matched.level) {
+      setLevel(matched.level);
+    }
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) return;
@@ -224,6 +325,28 @@ export function EditMemberModal({
         .map((s) => s.trim())
         .filter(Boolean);
 
+      // Strict defensive reconciliation to guarantee consistency
+      let finalRoles = [...roles];
+      let finalStatus = status;
+      let finalTenure = tenure.trim();
+      let finalAcademicYear = academicYear;
+      let finalAlumniAccess = alumniAccessEnabled;
+      let finalAlumniPos = alumniPosition.trim();
+
+      if (finalStatus === "Active") {
+        finalRoles = finalRoles.filter((r) => r !== "Alumni");
+        if (finalRoles.length === 0) finalRoles = ["Member"];
+        if (finalTenure === "QUANTA Alumni") finalTenure = "2+ Years";
+        if (finalAcademicYear === "Graduated") finalAcademicYear = "M2";
+        finalAlumniAccess = false;
+        finalAlumniPos = "";
+      } else if (finalStatus === "Alumni") {
+        if (!finalRoles.includes("Alumni")) finalRoles.push("Alumni");
+        if (finalAcademicYear !== "Graduated") finalAcademicYear = "Graduated";
+        finalTenure = "QUANTA Alumni";
+        finalAlumniAccess = true;
+      }
+
       const updates: Partial<Member> = {
         fullName: fullName.trim(),
         quanterId: quanterId.trim(),
@@ -233,8 +356,8 @@ export function EditMemberModal({
 
         university: university.trim(),
         major: major.trim(),
-        academicYear: (academicYear as any) || undefined,
-        tenure: tenure.trim(),
+        academicYear: (finalAcademicYear as any) || undefined,
+        tenure: finalTenure,
         yearsInClub: Number(yearsInClub) || 0,
         clubJoinYear: Number(clubJoinYear) || 2026,
 
@@ -245,12 +368,12 @@ export function EditMemberModal({
         xpMonth: Number(xpMonth) || 0,
         healthScore: Number(healthScore) || 0,
 
-        status,
+        status: finalStatus,
         departmentId,
         teamId: teamId || undefined,
         buddyId: buddyId || undefined,
         isBureauMember,
-        roles: roles.length > 0 ? roles : ["Member"],
+        roles: finalRoles,
 
         wilaya: wilaya.trim(),
         commune: commune.trim(),
@@ -269,9 +392,9 @@ export function EditMemberModal({
         declaresOtherStudentOrg,
         skills,
 
-        alumniPosition: alumniPosition.trim(),
+        alumniPosition: finalAlumniPos,
         graduationYear: graduationYear.trim(),
-        alumniAccessEnabled,
+        alumniAccessEnabled: finalAlumniAccess,
       };
 
       updateMemberFullAdmin(member.id, updates, auditReason || "Super Admin profile update");
@@ -305,14 +428,44 @@ export function EditMemberModal({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Quick Status Control Bar */}
+            <div className="flex items-center gap-1.5 bg-slate-900/60 border border-slate-700/80 px-2.5 py-1 rounded-xl">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                Status:
+              </span>
+              <select
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value as MemberStatus)}
+                aria-label="Membership Status"
+                className={`text-xs font-black px-2 py-0.5 rounded-lg border cursor-pointer transition ${
+                  status === "Active"
+                    ? "bg-emerald-500/25 text-emerald-300 border-emerald-400/50"
+                    : status === "Alumni"
+                    ? "bg-purple-500/25 text-purple-300 border-purple-400/50"
+                    : status === "Trainee"
+                    ? "bg-amber-500/25 text-amber-300 border-amber-400/50"
+                    : "bg-slate-700 text-slate-300 border-slate-600"
+                }`}
+              >
+                {ALL_STATUSES.map((st) => (
+                  <option key={st} value={st} className="bg-[#0F1E36] text-white">
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close dialog"
+              className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -406,6 +559,31 @@ export function EditMemberModal({
                     className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Membership Status <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => handleStatusChange(e.target.value as MemberStatus)}
+                    className={`w-full px-3 py-2 border rounded-xl font-bold text-xs ${
+                      status === "Active"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : status === "Alumni"
+                        ? "bg-purple-50 text-purple-800 border-purple-300"
+                        : status === "Trainee"
+                        ? "bg-amber-50 text-amber-800 border-amber-300"
+                        : "bg-[#F8FAFD] text-slate-900 border-slate-200"
+                    }`}
+                  >
+                    {ALL_STATUSES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -466,7 +644,7 @@ export function EditMemberModal({
                   </label>
                   <select
                     value={academicYear}
-                    onChange={(e) => setAcademicYear(e.target.value)}
+                    onChange={(e) => handleAcademicYearChange(e.target.value)}
                     className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900"
                   >
                     {ACADEMIC_YEARS.map((yr) => (
@@ -483,7 +661,7 @@ export function EditMemberModal({
                   </label>
                   <select
                     value={tenure}
-                    onChange={(e) => setTenure(e.target.value)}
+                    onChange={(e) => handleTenureChange(e.target.value)}
                     className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900"
                   >
                     {TENURE_OPTIONS.map((opt) => (
@@ -531,29 +709,68 @@ export function EditMemberModal({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Rank Level (1–8)
+                      Rank Level (1–10)
                     </label>
                     <input
                       type="number"
                       min="1"
-                      max="8"
+                      max="10"
                       value={level}
-                      onChange={(e) => setLevel(parseInt(e.target.value, 10) || 1)}
+                      onChange={(e) => handleLevelNumberChange(parseInt(e.target.value, 10) || 1)}
                       className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-mono font-bold text-slate-900"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Level Title
-                    </label>
-                    <input
-                      type="text"
-                      value={levelTitle}
-                      onChange={(e) => setLevelTitle(e.target.value)}
-                      placeholder="e.g. 1 Year Member"
-                      className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900"
-                    />
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-bold text-slate-700">
+                        Level Title (Official Hierarchy List)
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">Select or enter title</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      <select
+                        value={OFFICIAL_LEVEL_TITLES.some((t) => t.title === levelTitle) ? levelTitle : "__custom__"}
+                        onChange={(e) => {
+                          if (e.target.value !== "__custom__") {
+                            handleLevelTitleSelect(e.target.value);
+                          }
+                        }}
+                        className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900 text-xs cursor-pointer"
+                      >
+                        <optgroup label="Seniority & Leadership Hierarchy">
+                          {OFFICIAL_LEVEL_TITLES.filter((t) => t.category === "Seniority").map((t) => (
+                            <option key={t.title} value={t.title}>
+                              {t.title} (Level {t.level})
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Official XP & Milestone Tiers">
+                          {OFFICIAL_LEVEL_TITLES.filter((t) => t.category === "Rank").map((t) => (
+                            <option key={t.title} value={t.title}>
+                              {t.title} (Tier {t.level})
+                            </option>
+                          ))}
+                        </optgroup>
+                        <option value="__custom__">Custom / Bespoke Title...</option>
+                      </select>
+
+                      <input
+                        type="text"
+                        list="official-level-titles-datalist"
+                        value={levelTitle}
+                        onChange={(e) => setLevelTitle(e.target.value)}
+                        placeholder="e.g. Executive Quanter, Senior Quanter"
+                        className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-semibold text-slate-900 text-xs"
+                      />
+                      <datalist id="official-level-titles-datalist">
+                        {OFFICIAL_LEVEL_TITLES.map((t) => (
+                          <option key={t.title} value={t.title}>
+                            {t.category}: Level {t.level}
+                          </option>
+                        ))}
+                      </datalist>
+                    </div>
                   </div>
 
                   <div>
@@ -620,7 +837,7 @@ export function EditMemberModal({
                   </label>
                   <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as MemberStatus)}
+                    onChange={(e) => handleStatusChange(e.target.value as MemberStatus)}
                     className="w-full px-3 py-2 bg-[#F8FAFD] border border-slate-200 rounded-xl font-bold text-slate-900"
                   >
                     {ALL_STATUSES.map((st) => (

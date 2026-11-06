@@ -2994,6 +2994,32 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         const nowIso = new Date().toISOString();
         const merged: Member = { ...m, ...updates, updatedAt: nowIso };
 
+        // If academic year was edited to active student (L1-M2) and status wasn't explicitly passed, auto-reconcile to Active
+        if (
+          updates.academicYear &&
+          updates.academicYear !== "Graduated" &&
+          !updates.status &&
+          m.status === "Alumni"
+        ) {
+          merged.status = "Active";
+        }
+
+        // Ensure status, tenure, academicYear and roles remain strictly consistent
+        if (merged.status === "Active") {
+          merged.roles = (merged.roles || []).filter((r) => r !== "Alumni");
+          if (merged.roles.length === 0) merged.roles = ["Member"];
+          if (merged.tenure === "QUANTA Alumni") merged.tenure = "2+ Years";
+          if (merged.academicYear === "Graduated") merged.academicYear = "M2";
+          merged.alumniAccessEnabled = false;
+        } else if (merged.status === "Alumni") {
+          if (!merged.roles.includes("Alumni")) {
+            merged.roles = [...merged.roles, "Alumni"];
+          }
+          if (!merged.tenure || !merged.tenure.toLowerCase().includes("alumni")) {
+            merged.tenure = "QUANTA Alumni";
+          }
+        }
+
         // Recalculate levelTitle and level if tenure/seniority or XP changed and wasn't explicitly overridden
         if (updates.tenure && !updates.levelTitle) {
           const cleanTenure = String(updates.tenure).trim().toLowerCase();
