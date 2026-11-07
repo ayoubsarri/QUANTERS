@@ -376,700 +376,257 @@ export const SEED_BADGES: Badge[] = [];
 export const SEED_EXAMS: BadgeExam[] = [];
 export const SEED_TASKS: ClubTask[] = [];
 export const SEED_LEDGER: PointsLedgerEntry[] = [];
-export const SEED_MESSAGES: ClubMessage[] = [];
+export const SEED_MESSAGES: ClubMessage[] = [
+{
+  "id": "msg-quiz-launch-1794071237331",
+  "senderLabel": "QUANTA Administration",
+  "senderRole": "Executive",
+  "recipientScope": "All Members",
+  "priority": "Official notice",
+  "title": "⚡ تحديات اليوم العلمية الميسرة (+10 XP) متاحة الآن لجميع الأعضاء!",
+  "body": "تحية علمية طيبة لجميع أعضاء نادي كوانتا،\n\nيسر إدارة النادي الإعلان عن إطلاق حزمة التحديات اليومية الجديدة لليوم (07 نوفمبر 2026) بنظام مكافآت مضاعف يمنح 10 نقاط خبرة (+10 XP) لكل إجابة صحيحة!\n\nلقد صُممت أسئلة اليوم لتكون ميسرة، تثقيفية وتفاعلية، وتغطي ركائز الحوسبة والعلوم الأساسية (أدوات Git، بايثون، الويب، الذكاء الاصطناعي، الأمن السيبراني، الفلك، وعتاد الحواسيب) بهدف إتاحة الفرصة لجميع الأعضاء بمختلف مستوياتهم لجمع النقاط وترقية تصنيفاتهم في النادي.\n\nكما نلفت انتباهكم لنشر مقال علمي وتقني متميز في قسم الاستكشاف بعنوان:\n\"The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories\"\nيستعرض أهم 10 مستودعات برمجية لا غنى عنها لكل مطور وباحث.\n\nسارعوا بدخول قسم الاستكشاف (Explore) والإجابة على التحديات الآن!",
+  "timeAgo": "Just now",
+  "unread": true,
+  "archived": false,
+  "channels": {
+    "inApp": true,
+    "email": false
+  },
+  "readMemberIds": [],
+  "stats": {
+    "totalRecipients": 25,
+    "inAppReadCount": 0,
+    "emailSentCount": 0,
+    "emailFailedCount": 0
+  },
+  "actionLink": "/explore"
+}
+];
 export const SEED_PROPOSALS: Proposal[] = [];
 export const SEED_PROJECT_SUBMISSIONS: ProjectSubmission[] = [];
 export const SEED_INVITATIONS: Invitation[] = [];
 export const SEED_ACCESS_GRANTS: AccessGrant[] = [];
 export const SEED_AUDIT_LOGS: AuditLogEntry[] = [];
 export const SEED_DAILY_QUIZZES: DailyQuizItem[] = [
-{
-    "id": "quiz-sys-raft-01",
-    "domain": "أنظمة موزعة (Distributed Systems)",
+  {
+    "id": "quiz-easy-git-01",
+    "domain": "أدوات التطوير والبرمجيات الحرة (Git)",
     "icon": "git-open-source",
-    "question": "في خوارزمية التوافق الموزع Raft، عندما ينتهي مؤقت الانتخاب (Election Timeout) لعقدة تابعة (Follower) دون تلقي Heartbeat من القائد، ما هو الإجراء الأول الذي تقوم به؟",
+    "question": "ما هو الأمر البرمجي الأساسي في أداة Git المستخدم لتحميل نسخة من مستودع بعيد من GitHub إلى جهازك المحلي لأول مرة؟",
     "options": [
       {
         "id": "a",
-        "label": "زيادة رقم الدورة (Term) محلياً بمقدار 1 والتحول إلى حالة مرشح (Candidate) وإرسال طلبات تصويت RequestVote"
+        "label": "git clone <url>"
       },
       {
         "id": "b",
-        "label": "إرسال رسالة إلغاء فوري للقائد السابق وإعادة تهيئة السجل (Log) بالكامل"
+        "label": "git push origin main"
       },
       {
         "id": "c",
-        "label": "الانتظار حتى تقوم جميع العقد الأخرى بإنهاء اتصال الشبكة وإعادة تشغيل الخادم"
+        "label": "git merge --abort"
       },
       {
         "id": "d",
-        "label": "التحول مباشرة إلى قائد (Leader) وبدء إرسال رسائل AppendEntries دون تصويت"
+        "label": "git delete repository"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "بروتوكول انتخاب القائد في Raft Consensus",
-    "explanation": "في خوارزمية Raft، تبدأ العقدة التابعة عند نفاد مؤقت الانتخاب (Election Timeout) بالانتقال إلى حالة Candidate، وتزيد رقم الدورة الحالي (currentTerm++)، وتصوت لنفسها، ثم تبث رسائل RequestVote لجميع العقد الأخرى في الشبكة لتحقيق الأغلبية (Quorum).",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
+    "verdictTitle": "استنساخ المستودعات البرمجية باستخدام Git Clone",
+    "explanation": "يُستخدم الأمر `git clone` لتحميل كامل تاريخ وملفات المستودع البعيد من منصات مثل GitHub إلى المجلد المحلي على جهاز المطور، بينما يُستخدم `git push` لرفع التعديلات المحلية.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-ai-attention-scaling-02",
-    "domain": "الذكاء الاصطناعي وتعلم الآلة",
-    "icon": "deep-learning",
-    "question": "في المعمارية القياسية لشبكات Transformer (Vaswani et al., 2017)، كيف يتناسب التعقيد الحسابي والذاكراتي لآلية الانتباه الذاتي القياسية (Scaled Dot-Product Attention) مع طول التسلسل المدخل N؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "خطياً مع طول التسلسل O(N)"
-      },
-      {
-        "id": "b",
-        "label": "تربيعياً مع طول التسلسل O(N²)"
-      },
-      {
-        "id": "c",
-        "label": "لوغاريتمياً O(log N)"
-      },
-      {
-        "id": "d",
-        "label": "أسياً O(2^N)"
-      }
-    ],
-    "correctId": "b",
-    "verdictTitle": "تعقيد مصفوفة الانتباه QK^T التربيعي",
-    "explanation": "ينشأ التعقيد التربيعي O(N²) في آلية الانتباه الذاتي من حساب جداء مصفوفة الاستعلام (Q) بمصفوفة المفاتيح منقولة (K^T)، مما ينتج مصفوفة انتباه بأبعاد N × N لمقارنة كل توكن بجميع التوكنز الأخرى في السياق.",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-quantum-no-cloning-03",
-    "domain": "الحوسبة والمعلوماتية الكمومية",
-    "icon": "quantum",
-    "question": "وفقاً لمبرهنة عدم الاستنساخ الكمومي (No-Cloning Theorem) في ميكانيكا الكم، ما هي النتيجة الرياضية والفيزيائية المباشرة المترتبة على خطية المؤثرات الأحادية (Unitary Operators)؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "استحالة إنشاء نسخة متطابقة تماماً من حالة كمومية عشوائية غير معروفة وغير متعامدة دون تدميرها"
-      },
-      {
-        "id": "b",
-        "label": "استحالة قياس طاقة أي جسيم دون ذري بدقة تتجاوز مبدأ هايزنبرغ"
-      },
-      {
-        "id": "c",
-        "label": "قدرة أي حاسوب كمومي على استنساخ البتات الكلاسيكية في زمن صفري O(0)"
-      },
-      {
-        "id": "d",
-        "label": "إمكانية نقل المعلومات أسرع من الضوء عبر التشابك الكمومي المستمر"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "مبرهنة عدم الاستنساخ وحفظ المعلومات الكمية",
-    "explanation": "تثبت مبرهنة عدم الاستنساخ الكمومي (Wootters & Zurek, 1982) أنه لا يمكن وجود أي مؤثر أحادي (Unitary Operator U) يمكنه نسخ أي حالة كمومية عشوائية غير معلومة |ψ⟩|0⟩ -> |ψ⟩|ψ⟩، وذلك كنتيجة مباشرة لخطية (Linearity) ميكانيكا الكم، وهو ما يشكل الأساس النظري للتشفير الكمومي (QKD).",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-bio-crispr-pam-04",
-    "domain": "التكنولوجيا الحيوية والهندسة الوراثية",
-    "icon": "biotech",
-    "question": "في نظام التحرير الجيني CRISPR-Cas9 المشتق من بكتيريا Streptococcus pyogenes (SpCas9)، ما هو تسلسل PAM الإلزامي المجاور للهدف الذي يشترطه الإنزيم للتعرف والقطع؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "5'-NGG-3' مباشرة بعد التسلسل المستهدف (Protospacer)"
-      },
-      {
-        "id": "b",
-        "label": "5'-TATA-3' في منطقة صندوق تاتا (TATA box)"
-      },
-      {
-        "id": "c",
-        "label": "5'-AAAA-3' في ذيل البولي أدينين الطرفي"
-      },
-      {
-        "id": "d",
-        "label": "5'-CC-3' في بداية الكروموسوم حصرياً"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "تسلسل PAM في استهداف إنزيم SpCas9",
-    "explanation": "يشترط إنزيم SpCas9 وجود تسلسل PAM (Protospacer Adjacent Motif) ذي الصيغة 5'-NGG-3' (حيث N أي قاعدة نيتروجينية متبوعة بقاعدتي غوانين) عند النهاية 3' للتسلسل المستهدف لتمكين فك التفاف الحمض النووي وقطع السلسلتين المزدوجتين (DSB).",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-sec-post-quantum-05",
-    "domain": "الأمن السيبراني وعلم التعمية",
-    "icon": "cybersecurity",
-    "question": "في معايير التشفير ما بعد الكمي (PQC) المعتمدة حديثاً من NIST (مثل معيار ML-KEM / CRYSTALS-Kyber)، ما هي المسألة الرياضية الصلبة التي تبنى عليها قوة التشفير ضد الحواسيب الكمومية؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "مسألة التعلم بالأخطاء في الشبيكات (Learning With Errors - LWE / Module-LWE)"
-      },
-      {
-        "id": "b",
-        "label": "مسألة تحليل الأعداد الصحيحة الكبيرة إلى عواملها الأولية (Prime Factorization)"
-      },
-      {
-        "id": "c",
-        "label": "مسألة اللوغاريتم المنفصل على المنحنيات الإهليلجية (ECDLP)"
-      },
-      {
-        "id": "d",
-        "label": "مسألة التحقق من التجزئة الخطية بتصادمات دالة SHA-256"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "شبيكات التعلم بالأخطاء (LWE) وأمن PQC",
-    "explanation": "تعتمد خوارزمية ML-KEM (Kyber) على صعوبة مسألة Module Learning With Errors (M-LWE) في الشبيكات الرياضية، وهي مسألة رياضية لا تستطيع خوارزمية شور (Shor's Algorithm) الكمومية حلها في زمن متعدد الحدود (Polynomial Time)، على عكس RSA و ECC.",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-astro-transit-depth-06",
-    "domain": "الفيزياء الفلكية وعلوم الفضاء",
-    "icon": "astrophysics",
-    "question": "في قياس الضوء لعبور الكواكب خارج المجموعة الشمسية (Transit Photometry)، ما هي العلاقة الرياضية التي تحدد عمق انخفاض تدفق الضوء (Transit Depth: ΔF / F) أثناء عبور الكوكب أمام نجمه الأم؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "النسبة المئوية التقريبية تساوي مربع نسبة نصف قطر الكوكب إلى نصف قطر النجم (Rp / R*)²"
-      },
-      {
-        "id": "b",
-        "label": "النسبة تساوي مكعب المسافة المدارية مقسوماً على سرعة الضوء في الفراغ"
-      },
-      {
-        "id": "c",
-        "label": "النسبة تتناسب طردياً مع الكتلة المغناطيسية للنجم فقط دون اعتبار لحجم الكوكب"
-      },
-      {
-        "id": "d",
-        "label": "النسبة تساوي دائماً 50% من شدة إشعاع النجم بغض النظر عن الأبعاد الهندسية"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "قياس عمق العبور الضوئي للكواكب الخارجية",
-    "explanation": "يمثل عمق العبور الضوئي نسبة المساحة الظاهرية لقرص الكوكب المحتجب إلى مساحة قرص النجم المشع: ΔF / F = (π Rp²) / (π R*²) = (Rp / R*)²، مما يسمح بحساب نصف قطر الكوكب الخارجي بدقة متناهية.",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-rust-borrow-checker-07",
-    "domain": "هندسة البرمجيات ولغات الأنظمة (Rust)",
+    "id": "quiz-easy-python-02",
+    "domain": "أساسيات لغة بايثون (Python)",
     "icon": "python",
-    "question": "في نظام الملكية والاستعارة (Ownership & Borrowing) بلغة Rust، ما هي القاعدة الصارمة التي يفرضها مدقق الاستعارة (Borrow Checker) لمنع سباق البيانات (Data Races) في زمن التجميع؟",
+    "question": "في لغة البرمجة بايثون (Python)، أي من أنواع البيانات التالية يعتبر غير قابل للتعديل بعد إنشائه (Immutable)؟",
     "options": [
       {
         "id": "a",
-        "label": "يُسمح بأي عدد من المراجع الثابتة (&T) أو بمرجع واحد فقط قابل للتعديل (&mut T) في نفس النطاق، لكن لا يمكن الجمع بينهما أبداً"
+        "label": "الصف أو المجموعة الثابتة (Tuple)"
       },
       {
         "id": "b",
-        "label": "يُسمح بوجود عدة مراجع قابلة للتعديل (&mut T) معاً بشرط أن تكون داخل دوال غير متزامنة"
+        "label": "القائمة (List)"
       },
       {
         "id": "c",
-        "label": "يتم تحرير الذاكرة فقط عند استدعاء جامع القمامة (Garbage Collector) يدوياً"
+        "label": "القاموس (Dictionary)"
       },
       {
         "id": "d",
-        "label": "لا يمكن تمرير أي متغير كمعامل للدوال إلا بعد نسخه (Clone) الكامل"
+        "label": "المجموعة القابلة للتعديل (Set)"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "قاعدة الاستعارة الحصرية (Aliasing XOR Mutability)",
-    "explanation": "تتبع لغة Rust قاعدة الاستعارة الأساسية: إما عدد غير محدود من القراء (المراجع غير القابلة للتعديل &T) أو كاتب وحيد حصري (المرجع القابل للتعديل &mut T) في النطاق الزمني المعين، مما يضمن أمان الذاكرة وتفادي سباقات البيانات في وقت التجميع بدون الحاجة لجامع قمامة.",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
+    "verdictTitle": "خاصية الثبات (Immutability) في لغة Python",
+    "explanation": "في بايثون، تعتبر كائنات الـ `tuple` غير قابلة للتعديل (Immutable) بعد إنشائها، بينما القوائم `list` والقواميس `dict` والمجموعات `set` كائنات مرنة قابلة للتعديل والإضافة والحذف في الذاكرة.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-math-svd-decomposition-08",
-    "domain": "الرياضيات التطبيقية والجبر الخطي",
-    "icon": "mathematics",
-    "question": "في تحليل القيمة المفردة (Singular Value Decomposition - SVD) لمصفوفة حقيقية A بأبعاد m × n، كيف تُرتب القيم المفردة (Singular Values: σ₁) على القطر الرئيسي للمصفوفة Σ؟",
+    "id": "quiz-easy-web-03",
+    "domain": "تطوير الويب والواجهات (Web Dev)",
+    "icon": "web-dev",
+    "question": "ما هي لغة الترميز الأساسية المستخدمة لبناء وتحديد هيكل وصفحات الويب (Web Pages) في المتصفح؟",
     "options": [
       {
         "id": "a",
-        "label": "أعداد حقيقية غير سالبة مرتبة ترتيباً تنازلياً: σ₁ ≥ σ₂ ≥ ... ≥ σᵣ ≥ 0"
+        "label": "HTML (HyperText Markup Language)"
       },
       {
         "id": "b",
-        "label": "أعداد مركبة ذات جزء تخيلي دائم التعامد مع الفضاء الجزئي"
+        "label": "CSS (Cascading Style Sheets)"
       },
       {
         "id": "c",
-        "label": "قيم متذبذبة بين الموجب والسالب يتم اختيارها عشوائياً"
+        "label": "SQL (Structured Query Language)"
       },
       {
         "id": "d",
-        "label": "قيم مساوية دائماً للصفر في جميع الحالات العملية"
+        "label": "Docker Engine"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "ترتيب القيم المفردة في تفكيك SVD",
-    "explanation": "في صيغة A = U Σ V^T، تمثل القيم المفردة σᵢ الجذور التربيعية للقيم الذاتية للمصفوفة المتناظرة A^T A، وتكون دائماً أعداداً حقيقية موجبة أو معدومة (σᵢ ≥ 0) وتُرتب اصطلاحاً بترتيب تنازلي على القطر الرئيسي لتسهيل تقريب الرتبة المنخفضة (Low-Rank Approximation).",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
+    "verdictTitle": "هيكلية الويب القياسية بواسطة HTML",
+    "explanation": "تعتبر HTML لغة الترميز القياسية التي تبني الهيكل الأساسي لمحتوى صفحات الويب وعناصرها، بينما تتولى لغة CSS تنسيق المظهر والألوان، ولغة JavaScript التفاعل والمنطق الديناميكي.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-iot-i2c-bus-09",
-    "domain": "الأنظمة المضمنة وإنترنت الأشياء (IoT)",
-    "icon": "iot-embedded",
-    "question": "في بروتوكول الاتصال التسلسلي المتزامن I2C (Inter-Integrated Circuit)، ما هما الخطان الفيزيائيان ثنائيا الاتجاه المستخدمان لنقل البيانات ومزامنة الساعة؟",
+    "id": "quiz-easy-ai-04",
+    "domain": "أساسيات الذكاء الاصطناعي (AI & ML)",
+    "icon": "ai-ml",
+    "question": "في تعلم الآلة (Machine Learning)، ما هو المصطلح الذي يطلق على مرحلة تعديل أوزان النموذج الإحصائي ليتعلم من البيانات المدخلة؟",
     "options": [
       {
         "id": "a",
-        "label": "خط البيانات التسلسلي (SDA) وخط نبضات الساعة التسلسلي (SCL)، مع مقاومات رفع (Pull-up Resistors)"
+        "label": "مرحلة التدريب (Model Training)"
       },
       {
         "id": "b",
-        "label": "خط MOSI وخط MISO فقط مع إشارة تمكين العبد (SS)"
+        "label": "مرحلة الحذف التلقائي (Model Deletion)"
       },
       {
         "id": "c",
-        "label": "خط الإرسال TX وخط الاستقبال RX غير المتزامنين دون إشارة توقيت"
+        "label": "فك الضغط الأرشيفي (Decompression)"
       },
       {
         "id": "d",
-        "label": "كابل رباعي الأزواج المجدولة مزود بمحول PoE كهربائي"
+        "label": "إيقاف التشغيل الكامل (System Shutdown)"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "الطبقة الفيزيائية لبروتوكول I2C (SDA / SCL)",
-    "explanation": "يستخدم بروتوكول I2C خطين ماديين فقط من نوع المجمع المفتوح (Open-Drain): خط SDA (Serial Data) لنقل البيانات ثنائي الاتجاه، وخط SCL (Serial Clock) لنبضات المزامنة، وتتطلب كلا الإشارتين مقاومات رفع (Pull-up Resistors) إلى جهد VCC لضمان استقرار الحالة المنطقية المرتفعة.",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
+    "verdictTitle": "مرحلة تدريب النماذج في الذكاء الاصطناعي",
+    "explanation": "مرحلة التدريب (Training) هي العملية التي يمر فيها النموذج على بيانات التدريب لتعديل الأوزان الرياضية (Weights & Biases) بهدف تقليل دالة الخسارة (Loss Function) وزيادة دقة التنبؤ.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-open-science-green-oa-10",
-    "domain": "المنهجية العلمية والوصول الحر (Open Science)",
-    "icon": "scientific-writing",
-    "question": "في منظومة النشر الأكاديمي والبحث العلمي، ما هو التعريف الدقيق لمسار 'الوصول الحر الأخضر' (Green Open Access / Self-Archiving)؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "قيام الباحث بإيداع نسخته من البحث (Preprint أو Postprint المقبول) في مستودع مؤسسي أو موضوعي مفتوح دون دفع رسوم معالجة المقال (APC)"
-      },
-      {
-        "id": "b",
-        "label": "نشر البحث حصرياً في مجلات تجارية مغلقة خلف جدار دفع مالي دائم دون أي نسخة إيداع"
-      },
-      {
-        "id": "c",
-        "label": "شراء ترخيص حقوق الملكية الفكرية من دار النشر وإلغاء اسم الباحث الأصلي"
-      },
-      {
-        "id": "d",
-        "label": "اشتراط طباعة البحث على أوراق معاد تدويرها حصرياً لدعم الاستدامة البيئية"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "الأرشفة الذاتية في الوصول الحر الأخضر",
-    "explanation": "يمثل Green Open Access (الأرشفة الذاتية) مساراً يتيح للباحثين إيداع نسخ أبحاثهم (سواء مسودة ما قبل التحكيم Preprint أو النسخة المقبولة Postprint) في مستودعات مفتوحة مثل arXiv أو المستودعات الجامعية، مما يتيح القراءة المجانية للجميع دون تكبيل الباحث برسوم نشر باهظة (Article Processing Charges).",
-    "xpReward": 5,
-    "dateLabel": "2026-11-06",
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-01",
-    "domain": "بيان أول نوفمبر 1954",
-    "icon": "legal-charter",
-    "question": "ما هو المبدأ الأساسي الذي أعلنه بيان أول نوفمبر 1954 كهدف أسمى للثورة التحريرية الجزائرية؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية"
-      },
-      {
-        "id": "b",
-        "label": "المطالبة بحكم ذاتي وإصلاحات إدارية محدودة مع البقاء تحت السيادة الاستعمارية"
-      },
-      {
-        "id": "c",
-        "label": "الاندماج السياسي المشروط في الجمعية الوطنية الفرنسية"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "تأكيد مبادئ بيان أول نوفمبر 1954 الخالد",
-    "explanation": "نص بيان أول نوفمبر 1954 صراحة على إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية.",
-    "xpReward": 25,
-    "isPinnedToday": false,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-02",
-    "domain": "هندسة الاتصالات وشبكات الثورة",
-    "icon": "electronics",
-    "question": "كيف نجح مهندسو ومجاهدو الاتصالات في إطلاق إذاعة 'صوت الجزائر الحرة المكافحة' عام 1956 رغم التشويش الاستعماري؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "استخدام أجهزة إرسال لاسلكية متحركة على متن شاحنات وتقنية التنقل الترددي (Frequency Hopping)"
-      },
-      {
-        "id": "b",
-        "label": "الاعتماد الحصري على الكابلات البحرية السلكية بين الجزائر وفرنسا"
-      },
-      {
-        "id": "c",
-        "label": "استعمال أبراج البث التلفزيوني الاستعمارية العامة في العاصمة فقط"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "عبقرية هندسة الاتصالات اللاسلكية الثورية",
-    "explanation": "اعتمدت شبكة الاتصالات اللاسلكية لجبهة التحرير الوطني على أجهزة إرسال متنقلة عالية التردد لتفادي الرصد والتثليث الراديوي من قبل جيش الاحتلال.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-03",
-    "domain": "الطلبة والثورة التحريرية",
-    "icon": "scientific-writing",
-    "question": "ما هو التاريخ المفصلي الذي أعلن فيه الطلبة الجزائريون إضرابهم التاريخي والتحاقهم الجماعي بجيش التحرير الوطني؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "19 ماي 1956 تحت شعار: بشهادة واحدة لا نصنع وطناً، ولكن بوطن نصنع آلاف الشهادات"
-      },
-      {
-        "id": "b",
-        "label": "11 ديسمبر 1960 خلال المظاهرات الشعبية"
-      },
-      {
-        "id": "c",
-        "label": "05 جويلية 1962 يوم الاستقلال الوطني"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "نداء 19 ماي 1956: سلاح العلم في معركة التحرير",
-    "explanation": "أصدر الاتحاد العام للطلبة المسلمين الجزائريين (UGEMA) نداء الإضراب العام في 19 ماي 1956، ملتحقين بصفوف الثورة كأطباء، مهندسين، وإعلاميين.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-04",
-    "domain": "التنظيم العسكري والجغرافي",
-    "icon": "leadership",
-    "question": "كم كان عدد المناطق العسكرية (الولايات التاريخية) التي قُسمت إليها الجزائر في مؤتمر الصومام 1956؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "6 ولايات تاريخية بعد إضافة الولاية السادسة (الصحراء)"
-      },
-      {
-        "id": "b",
-        "label": "3 ولايات فقط (الشرق، الوسط، والغرب)"
-      },
-      {
-        "id": "c",
-        "label": "12 ولاية مستقلة دون قيادة موحدة"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "الهيكلة الاستراتيجية الموحدة للتراب الوطني",
-    "explanation": "قسم مؤتمر الصومام عام 1956 الوطن إلى ست ولايات تاريخية تحت قيادة أركان موحدة وتنظيم عسكري ولوجستي متكامل.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-05",
-    "domain": "التشفير والأمن السيبراني الثوري",
+    "id": "quiz-easy-security-05",
+    "domain": "الأمن السيبراني والشبكات (Cybersecurity)",
     "icon": "cybersecurity",
-    "question": "كيف كانت تُنقل الأوامر والرسائل الاستراتيجية السرية بين قيادة جيش التحرير والولايات التاريخية لتأمينها ضد فك الشفرات؟",
+    "question": "عند تصفح الإنترنت، ما هو البروتوكول المشفر والآمن الذي يرمز له بالقفل لضمان سرية البيانات بين المتصفح والخادم؟",
     "options": [
       {
         "id": "a",
-        "label": "استخدام جداول استبدال مشفرة وشبكات فدائيين بريديين بنظام المسافات المتقطعة وحيدة الاستعمال"
+        "label": "HTTPS (Hypertext Transfer Protocol Secure)"
       },
       {
         "id": "b",
-        "label": "إرسالها عبر مكاتب البريد العادي الاستعماري دون أي حماية"
+        "label": "HTTP غير المشفر (نص واضح)"
       },
       {
         "id": "c",
-        "label": "نشرها علناً في الصحف الفرنسية عبر إعلانات تجارية وهمية"
+        "label": "FTP القديم غير المحمي"
+      },
+      {
+        "id": "d",
+        "label": "Telnet عبر المنفذ 23"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "بروتوكول الأمان والتشفير البشري الثوري",
-    "explanation": "اعتمد جيش التحرير الوطني على شفرات أبجدية ورقمية معقدة يتم تغيير مفاتيحها دورياً مع شبكة بريديين فدائيين لا يعرف كل حلقة فيها سوى سابقتها.",
-    "xpReward": 25,
+    "verdictTitle": "التشفير الآمن عبر بروتوكول HTTPS",
+    "explanation": "يستخدم بروتوكول HTTPS طبقة تشفير أمان النقل (TLS/SSL) لتأمين وحماية البيانات الحساسة وكلمات المرور ومنع التنصت (Man-in-the-Middle) أثناء انتقال البيانات عبر الإنترنت.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-nov1-06",
-    "domain": "الطب الثوري وإنقاذ الأرواح",
-    "icon": "health",
-    "question": "من هو الطبيب والمفكر الجزائري الذي وظّف الطب النفسي لتحليل آثار الاستعمار وكرّس قلمه وعلاجه لخدمة الثورة التحريرية؟",
+    "id": "quiz-easy-space-06",
+    "domain": "الفلك وعلوم الفضاء (Astronomy)",
+    "icon": "astronomy",
+    "question": "ما هو أقرب كوكب إلى الشمس في المجموعة الشمسية؟",
     "options": [
       {
         "id": "a",
-        "label": "فرانز فانون (Frantz Fanon) في كتابه معذبو الأرض والطب النفسي في البليدة"
+        "label": "عطارد (Mercury)"
       },
       {
         "id": "b",
-        "label": "لويس باستور في أبحاث الجراثيم"
+        "label": "المريخ (Mars)"
       },
       {
         "id": "c",
-        "label": "رينيه لاينك مخترع السماعة الطبية"
+        "label": "المشتري (Jupiter)"
+      },
+      {
+        "id": "d",
+        "label": "نبتون (Neptune)"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "الطب النفسي التحرري وتفكيك الصدمات الاستعمارية",
-    "explanation": "انضم الدكتور فرانز فانون إلى جبهة التحرير الوطني وعالج مجاهدي جيش التحرير ووثق في مؤلفاته الفكرية الآثار النفسية العميقة للعنف الاستعماري.",
-    "xpReward": 25,
+    "verdictTitle": "كوكب عطارد أقرب كواكب المجموعة الشمسية",
+    "explanation": "عطارد هو الكوكب الأقرب للشمس بمسافة متوسطة تبلغ حوالي 58 مليون كيلومتر، وهو أيضاً أصغر كواكب المجموعة الشمسية حجماً ويكمل دورته حول الشمس في 88 يوماً أرضياً فقط.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   },
   {
-    "id": "quiz-nov1-07",
-    "domain": "الدبلوماسية وتدويل القضية",
-    "icon": "journal-club",
-    "question": "ما هو المؤتمر الدولي الأول الذي نجحت فيه جبهة التحرير الوطني في إدراج القضية الجزائرية على الساحة الدولية عام 1955؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "مؤتمر باندونغ (Bandung) لحركة عدم الانحياز في إندونيسيا"
-      },
-      {
-        "id": "b",
-        "label": "مؤتمر يالطا في القرم"
-      },
-      {
-        "id": "c",
-        "label": "قمة جنيف للسلام العالمي"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "الانتصار الدبلوماسي في مؤتمر باندونغ 1955",
-    "explanation": "حضر وفد جبهة التحرير الوطني مؤتمر باندونغ في أبريل 1955، مما مهد لطرح القضية رسمياً في الجمعية العامة للأمم المتحدة.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-08",
-    "domain": "الهندسة العكسية وتصنيع السلاح",
+    "id": "quiz-easy-hardware-07",
+    "domain": "عتاد الحاسوب والأنظمة المضمنة (Hardware)",
     "icon": "circuit-design",
-    "question": "ما هي الورشات التقنية السرية التي أسسها جيش التحرير الوطني لتصنيع الأسلحة وتطوير القنابل والذخائر محلياً؟",
+    "question": "ما هي الوحدة المسؤولة عن معالجة وتنفيذ الأوامر والعمليات الحسابية والمنطقية الأساسية في الحاسوب وتعتبر بمثابة عقله المدبر؟",
     "options": [
       {
         "id": "a",
-        "label": "مصانع الأسلحة السرية بقيادة عبد الحفيظ بوصوف ومسعود زقار عبر الحدود"
+        "label": "وحدة المعالجة المركزية (CPU - Central Processing Unit)"
       },
       {
         "id": "b",
-        "label": "شراء الأسلحة الجاهزة بالكامل دون أي تعديل أو تصنيع محلي"
+        "label": "القرص الصلب الميكانيكي (Hard Disk)"
       },
       {
         "id": "c",
-        "label": "استيراد الذخائر حصراً عبر الطيران المدني الدولي"
+        "label": "كابل الطاقة الكهربائية"
+      },
+      {
+        "id": "d",
+        "label": "قارئ الأقراص الضوئية (DVD-ROM)"
       }
     ],
     "correctId": "a",
-    "verdictTitle": "التصنيع الحربي والهندسة الميدانية للثورة",
-    "explanation": "أقامت قيادة الثورة ورشات ومصانع سرية أنتجت مدافع الهاون وقذائف 'البازوكا' والعبوات الموجهة بكفاءة تقنية عالية.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-09",
-    "domain": "مظاهرات الشعب والشرعية الدولية",
-    "icon": "leadership",
-    "question": "ما هي المظاهرات الشعبية التاريخية التي حسمت أمام لجان الأمم المتحدة رغبة الشعب الجزائري المطلقة في الاستقلال التام؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "مظاهرات 11 ديسمبر 1960 التي رفعت فيها الأعلام الوطنية في وجه الدبابات"
-      },
-      {
-        "id": "b",
-        "label": "مظاهرات 14 جويلية في باريس"
-      },
-      {
-        "id": "c",
-        "label": "مسيرات عيد العمال عام 1940"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "ملحمة 11 ديسمبر 1960 والاستفتاء الشعبي الميداني",
-    "explanation": "أثبتت مظاهرات 11 ديسمبر 1960 للعالم بأسره أن جبهة التحرير الوطني هي الممثل الشرعي والوحيد للشعب الجزائري.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-10",
-    "domain": "العلوم والرياضيات في الإمداد الثوري",
-    "icon": "mathematics",
-    "question": "كيف ساهمت الحسابات الرياضية والفيزيائية في اختراق خطي 'شارل' و'موريس' المكهربين على الحدود؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "حسابات المقاومة والجهد الكهربائي، وتوقيت الدوريات، وتفجير الفجوات بأنابيب البنغالور المتزامنة"
-      },
-      {
-        "id": "b",
-        "label": "المرور العشوائي دون دراسة للتيار والجهد الكهربائي للأسلاك الشائكة"
-      },
-      {
-        "id": "c",
-        "label": "انتظار انقطاع التيار الكهربائي الطبيعي في جميع أرجاء الخطوط"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "الهندسة الطبوغرافية والفيزيائية في اختراق الأسلاك المكهربة",
-    "explanation": "اعتمد مهندسو جيش التحرير على دراسة دقيقة لقيم الجهد والتيار ومجسات الاهتزاز لاختراق خطي موريس وشارل وتمرير قوافل السلاح.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-11",
-    "domain": "مفاوضات إيفيان ووحدة التراب الوطني",
-    "icon": "legal-charter",
-    "question": "ما هو المبدأ الجغرافي والسيادي الذي تمسك به الوفد الجزائري المفاوض في إيفيان ورفض المساومة عليه إطلاقاً؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "وحدة التراب الوطني ورفض فصل الصحراء الجزائرية عن شمال الوطن"
-      },
-      {
-        "id": "b",
-        "label": "التنازل عن الحقول النفطية والمناجم مقابل استقلال المدن الساحلية"
-      },
-      {
-        "id": "c",
-        "label": "تقسيم الجزائر إلى دويلات فيدرالية متباعدة"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "صلابة الوفد المفاوض: الجزائر كلٌ لا يتجزأ",
-    "explanation": "أصر الوفد المفاوض برئاسة كريم بلقاسم على أن الصحراء الجزائرية جزء لا يتجزأ من السيادة الوطنية، مما أحبط مخططات الاستعمار لفصل الجنوب وثرواته.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-12",
-    "domain": "أبطال الفكر والتضحية",
-    "icon": "leadership",
-    "question": "من هو الشهيد القائد الرمز الذي قال عبارته التاريخية: 'ألقوا بالثورة إلى الشارع يحتضنها الشعب'؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "الشهيد البطل العربي بن مهيدي"
-      },
-      {
-        "id": "b",
-        "label": "الشهيد زيغود يوسف"
-      },
-      {
-        "id": "c",
-        "label": "الشهيد ديدوش مراد"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "حكمة الشهيد العربي بن مهيدي الخالدة",
-    "explanation": "جسد العربي بن مهيدي فلسفة الثورة الشعبية الشاملة، مبيناً أن إرادة الشعب هي المحرك الأساسي والحاضن الأعظم للتحرر والاستقلال.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-13",
-    "domain": "المرأة الجزائرية في الثورة",
-    "icon": "optics",
-    "question": "ما هو الدور الاستراتيجي الذي أدته المجاهدات والممرضات الجزائريات (مثل جميلة بوحيرد وفضيلة سعدان) في معركة الجزائر والجبال؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "نقل الرسائل والأسلحة، التمريض الميداني، والتنسيق الاستخباراتي في قلب شبكات المدن والجبال"
-      },
-      {
-        "id": "b",
-        "label": "الاقتصار على الأدوار الإدارية المكتبية خارج أرض الوطن"
-      },
-      {
-        "id": "c",
-        "label": "عدم المشاركة في العمليات الميدانية للثورة"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "شجاعة وتضحيات المرأة الجزائرية المجاهدة",
-    "explanation": "كانت المجاهدة الجزائرية في طليعة الفدائيين، قادت شبكات الاتصال ونقلت التموين والأسلحة وشاركت في أصعب المواجهات البطولية.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-14",
-    "domain": "السيادة العلمية بعد الاستقلال",
-    "icon": "energy",
-    "question": "ما هو القرار السيادي التاريخي المتخذ في 24 فيفري 1971 الذي رسخ الاستقلال الاقتصادي والعلمي للجزائر؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "تأميم المحروقات واسترجاع الثروات الطبيعية بسواعد المهندسين الجزائريين"
-      },
-      {
-        "id": "b",
-        "label": "توقيع اتفاقيات التبعية النفطية للشركات الأجنبية"
-      },
-      {
-        "id": "c",
-        "label": "إلغاء الجامعات والمعاهد التكنولوجية الوطنية"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "معركة تأميم المحروقات وبناء الإطارات الوطنية",
-    "explanation": "أعلن تأميم المحروقات في 24 فيفري 1971، مما أتاح للكوادر والمهندسين الجزائريين قيادة قطاع الطاقة والتصنيع الوطني بكفاءة واقتدار.",
-    "xpReward": 25,
-    "active": true
-  },
-  {
-    "id": "quiz-nov1-15",
-    "domain": "مسؤولية جيل اليوم: علم وعمل",
-    "icon": "quantum",
-    "question": "كيف يُواصل الطالب والباحث الجزائري اليوم في نادي QUANTERS أمانة شهداء أول نوفمبر 1954؟",
-    "options": [
-      {
-        "id": "a",
-        "label": "بالتفوق في العلوم المتقدمة، البرمجة، والبحث التطبيقي لبناء سيادة تكنولوجية واقتصادية متينة"
-      },
-      {
-        "id": "b",
-        "label": "بالاكتفاء بالدراسة النظرية دون ابتكار أو خدمة للمجتمع"
-      },
-      {
-        "id": "c",
-        "label": "بالانتظار والاعتماد الدائم على التقنيات المستوردة دون تطوير محلي"
-      }
-    ],
-    "correctId": "a",
-    "verdictTitle": "عهد الشهداء: السيادة التكنولوجية بسواعد الباحثين والعلماء",
-    "explanation": "الثورة المعاصرة هي ثورة الذكاء، الفيزياء، البرمجيات، والابتكار الوطني لحماية استقلال الجزائر وصون مكانتها بين الأمم.",
-    "xpReward": 25,
+    "verdictTitle": "وحدة المعالجة المركزية CPU",
+    "explanation": "تعتبر وحدة المعالجة المركزية (CPU) العقل المدبر للحاسوب، حيث تقوم بجلب التعليمات البرمجية من الذاكرة وفك شفرتها وتنفيذ العمليات الحسابية والمنطقية والتحكم في تدفق البيانات عبر النظام.",
+    "xpReward": 10,
+    "dateLabel": "2026-11-07",
+    "isPinnedToday": true,
     "active": true
   }
 ];
+
 export const SEED_GRIEVANCES: MemberGrievance[] = [];
 
 // 16 Official Club Point Rules
@@ -1191,6 +748,21 @@ export const SEED_POINT_RULES: PointRule[] = [
 // High-Standard Peer-Reviewed Scientific Dispatches (Dans les Normes)
 export const SEED_EXPLORE_POSTS: ExplorePost[] = [
 {
+  "id": "exp-top-10-developer-repositories-2026",
+  "title": "The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories",
+  "summary": "A curated executive selection of the most impactful open-source tools: from autonomous coding agents and visual RAG builders to local LLM engines, web crawlers, and free-tier infrastructure catalogs.",
+  "content": "# The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories\n\n## 1. Executive Overview\nIn modern software engineering and applied AI research, developer velocity depends heavily on selecting the right open-source foundation. Rather than reinventing distributed agents, custom scraping engines, or hosting budgets, engineering teams leverage battle-tested open-source repositories to accelerate production timelines.\n\nBelow is the official curated reference guide compiled by the **QUANTA Open Source & Developer Directorate**, detailing the ten most versatile repositories every student, software engineer, and researcher in the club should bookmark and leverage.\n\n---\n\n## 2. Core Repository Reference Matrix\n\n| Repository | What it does | Useful for |\n|:---|:---|:---|\n| [**OpenHands**](https://github.com/OpenHands/OpenHands) | A workspace for coding agents that can write code, run tests, fix errors, and automate development tasks. | **AI-assisted software development** |\n| [**Langflow**](https://github.com/langflow-ai/langflow) | A visual builder for AI agents and workflows. Supports RAG—answering questions using your documents—and publishing workflows through API or MCP. | **Building chatbots and AI workflows** |\n| [**Ollama**](https://github.com/ollama/ollama) | Runs supported language models locally and provides an API for your applications. Models need separate downloads. | **Local AI and experimenting without per-request API fees** |\n| [**Free-for-dev**](https://github.com/ripienaar/free-for-dev) | A directory of developer services offering free tiers, including hosting, databases, authentication, and APIs. | **Finding services for a low-budget project** |\n| [**Scrapling**](https://github.com/D4Vinci/Scrapling) | A Python framework for fetching webpages, extracting information, and building web crawlers. | **Collecting website data** |\n| [**Awesome**](https://github.com/sindresorhus/awesome) | A large directory of curated resource lists covering programming, science, design, and many other subjects. | **Discovering tools and learning resources** |\n| [**Awesome LLM Apps**](https://github.com/Shubhamsaboo/awesome-llm-apps) | A collection of example AI agents, skills, and RAG applications with source code. Individual examples may require paid APIs. | **Learning from working examples and adapting them** |\n| [**Open Design**](https://github.com/nexu-io/open-design) | An open-source AI design workspace for prototypes, websites, presentations, and other creative work. | **Combining design work with AI agents** |\n| [**Awesome MCP Servers**](https://github.com/punkpeye/awesome-mcp-servers) | A directory of MCP servers: connectors that let compatible AI assistants interact with tools and data sources. | **Finding integrations for AI assistants** |\n| [**Public APIs**](https://github.com/public-apis/public-apis) | A categorized directory of public APIs. Authentication requirements, free allowances, and restrictions vary by service. | **Finding data and services for an app** |\n\n---\n\n## 3. Deep-Dive: Strategic Tool Categorization\n\n### I. Autonomous AI & Local Execution\n- **OpenHands (`OpenHands/OpenHands`):** Provides a sandboxed runtime environment (with Docker isolation) where autonomous agents interact directly with bash terminals, file trees, and git commits. Ideal for automated testing and refactoring pipelines.\n- **Langflow (`langflow-ai/langflow`):** A node-based visual drag-and-drop workspace for LangChain and LlamaIndex architectures. Enables rapid prototyping of multi-turn conversational agents with Retrieval-Augmented Generation (RAG) and instant MCP tool publishing.\n- **Ollama (`ollama/ollama`):** Bundles Llama 3, Qwen 2.5, DeepSeek, and Mistral models into a single native binary command. Exposes an OpenAI-compatible REST endpoint on localhost (`http://localhost:11434`), eliminating API token expenditure during local research and development.\n\n### II. Infrastructure on a Zero-Dollar Budget\n- **Free-for-dev (`ripienaar/free-for-dev`):** The gold standard catalog for student and indie projects. Covers free tiers across cloud hosting (Vercel, Cloudflare, Netlify), managed PostgreSQL/Redis databases (Supabase, Neon, Upstash), and serverless auth providers.\n- **Public APIs (`public-apis/public-apis`):** A comprehensive categorized directory of free REST endpoints spanning astronomy, weather, finance, biology, translation, and open government data.\n\n### III. Data Harvesting & Web Automation\n- **Scrapling (`D4Vinci/Scrapling`):** A modern, high-speed Python web extraction framework that handles dynamic JavaScript rendering, anti-scraping bypasses, and CSS/XPath querying with minimal memory overhead.\n\n### IV. Agent Tooling & Knowledge Hubs\n- **Awesome MCP Servers (`punkpeye/awesome-mcp-servers`):** Curated directory of Model Context Protocol (MCP) servers connecting LLM coding assistants to GitHub, PostgreSQL, Docker, Figma, and local filesystems.\n- **Awesome LLM Apps (`Shubhamsaboo/awesome-llm-apps`):** End-to-end reference implementations of autonomous AI researchers, legal assistants, coding agents, and multimodal vision analyzers.\n- **Open Design (`nexu-io/open-design`):** Open-source canvas workspace connecting visual design workflows with generative agents.\n\n---\n\n## 4. Recommendations for QUANTA Hackathons & Research\nQUANTA members participating in upcoming university hackathons, graduation projects (PFE), or club workshops are strongly advised to leverage **Free-for-dev** and **Ollama** to eliminate hosting costs, and deploy **Langflow** or **OpenHands** for rapid AI feature integration.",
+  "category": "Scientific News",
+  "tagLabel": "DEVELOPER TOOLS",
+  "tagTone": "cyan",
+  "source": "QUANTA Open Source & Developer Office",
+  "readTime": "6 min read",
+  "date": "Nov 07, 2026",
+  "imageUrl": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80",
+  "featuredInCarousel": true,
+  "status": "Published"
+},
+{
     "id": "exp-vllm-pagedattention-breakdown",
     "title": "vLLM Deep Dive: Architecture of PagedAttention, KV Cache Virtualization & High-Throughput LLM Serving",
     "summary": "A comprehensive architectural breakdown of vLLM (vllm-project/vllm): solving memory fragmentation via OS-inspired virtual memory paging, continuous batching, and deploying quantized 8B–14B models on QUANTA hardware.",
@@ -1203,7 +775,7 @@ export const SEED_EXPLORE_POSTS: ExplorePost[] = [
     "date": "Nov 06, 2026",
     "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
     "featuredInCarousel": true,
-    "status": "Published"
+    "status": "Archived"
   },
   {
     "id": "exp-gnome-materials-deepmind",
