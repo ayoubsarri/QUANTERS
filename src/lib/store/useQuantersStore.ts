@@ -442,6 +442,12 @@ interface QuantersStoreState {
     broadcastAnnouncement?: boolean
   ) => void;
   removeMonthlyHonours: (memberId?: string) => void;
+  rolloverMonthlyCycle: (
+    targetNewMonth: string,
+    recalculateFromLedger?: boolean,
+    actorName?: string
+  ) => void;
+  syncMonthlyScoresWithLedger: (targetMonth?: string) => void;
 
   // §M6: Badges, Exams & Project Submissions
   addBadgeCategory: (category: string) => void;
@@ -5135,6 +5141,160 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ? { activeMotmMonth: undefined, activeMotmCitation: undefined }
             : {}),
         },
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  rolloverMonthlyCycle: (targetNewMonth, recalculateFromLedger = true, actorName = "HR Administration") => {
+    set((state) => {
+      const priorMonth = state.settings.activeMotmMonth || "October 2026";
+      const priorCrowned = state.members.filter((m) =>
+        m.recognitionLabels?.includes("Member of the Month")
+      );
+
+      const archiveRecord =
+        priorCrowned.length > 0
+          ? {
+              month: priorMonth,
+              memberIds: priorCrowned.map((m) => m.id),
+              memberNames: priorCrowned.map((m) => m.fullName),
+              citation:
+                state.settings.activeMotmCitation ||
+                `Honoured as Member of the Month for ${priorMonth}`,
+              bonusXp: 50,
+              crownedAt: new Date().toISOString(),
+            }
+          : null;
+
+      const existingHistory = state.settings.monthlyHonoursHistory || [];
+      const updatedHistory = archiveRecord
+        ? [archiveRecord, ...existingHistory.filter((h) => h.month !== priorMonth)]
+        : existingHistory;
+
+      const monthMap: Record<string, string> = {
+        january: "01",
+        february: "02",
+        march: "03",
+        april: "04",
+        may: "05",
+        june: "06",
+        july: "07",
+        august: "08",
+        september: "09",
+        october: "10",
+        november: "11",
+        december: "12",
+      };
+      const cleanMonth = targetNewMonth.toLowerCase();
+      let datePrefix = "";
+      for (const [name, num] of Object.entries(monthMap)) {
+        if (cleanMonth.includes(name)) {
+          const yearMatch = targetNewMonth.match(/\d{4}/);
+          const year = yearMatch ? yearMatch[0] : new Date().getFullYear().toString();
+          datePrefix = `${year}-${num}`;
+          break;
+        }
+      }
+
+      const updatedMembers = state.members.map((m) => {
+        let newXpMonth = 0;
+        if (recalculateFromLedger && datePrefix) {
+          const monthEntries = state.ledger.filter(
+            (l) =>
+              l.memberId === m.id &&
+              (l.date || "").startsWith(datePrefix) &&
+              !l.reversedByEntryId
+          );
+          newXpMonth = Math.max(0, monthEntries.reduce((sum, e) => sum + (e.amount || 0), 0));
+        }
+
+        const nextLabels = (m.recognitionLabels || []).filter(
+          (l) => l !== "Member of the Month" && l !== "Department Champion"
+        );
+
+        return {
+          ...m,
+          recognitionLabels: nextLabels,
+          xpMonth: newXpMonth,
+        };
+      });
+
+      const audit: AuditLogEntry = {
+        id: `aud-${Date.now()}`,
+        actorName,
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Settings Changed",
+        targetLabel: `Monthly Cycle Rollover to ${targetNewMonth}`,
+        oldValue: `Active Month: ${priorMonth}`,
+        newValue: `Active Month: ${targetNewMonth} (Scores Rolled Over)`,
+        reason: `Archived ${priorMonth} honours, stripped active titles, and initialized ${targetNewMonth} monthly scores.`,
+      };
+
+      return {
+        members: updatedMembers,
+        settings: {
+          ...state.settings,
+          activeMotmMonth: targetNewMonth,
+          activeMotmMemberIds: [],
+          activeMotmCitation: undefined,
+          monthlyHonoursHistory: updatedHistory,
+        },
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  syncMonthlyScoresWithLedger: (targetMonth) => {
+    set((state) => {
+      const monthStr = targetMonth || state.settings.activeMotmMonth || "November 2026";
+      const monthMap: Record<string, string> = {
+        january: "01",
+        february: "02",
+        march: "03",
+        april: "04",
+        may: "05",
+        june: "06",
+        july: "07",
+        august: "08",
+        september: "09",
+        october: "10",
+        november: "11",
+        december: "12",
+      };
+      const cleanMonth = monthStr.toLowerCase();
+      let datePrefix = "";
+      for (const [name, num] of Object.entries(monthMap)) {
+        if (cleanMonth.includes(name)) {
+          const yearMatch = monthStr.match(/\d{4}/);
+          const year = yearMatch ? yearMatch[0] : new Date().getFullYear().toString();
+          datePrefix = `${year}-${num}`;
+          break;
+        }
+      }
+
+      if (!datePrefix) return state;
+
+      const updatedMembers = state.members.map((m) => {
+        const monthEntries = state.ledger.filter(
+          (l) =>
+            l.memberId === m.id &&
+            (l.date || "").startsWith(datePrefix) &&
+            !l.reversedByEntryId
+        );
+        const ledgerSum = Math.max(0, monthEntries.reduce((sum, e) => sum + (e.amount || 0), 0));
+        return {
+          ...m,
+          xpMonth: ledgerSum,
+        };
+      });
+
+      return {
+        members: updatedMembers,
       };
     });
     get().saveToLocalCache();

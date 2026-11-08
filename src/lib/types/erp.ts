@@ -913,6 +913,16 @@ export interface SystemSettings {
   activeMotmMonth?: string;
   activeMotmMemberIds?: string[];
   activeMotmCitation?: string;
+  monthlyHonoursHistory?: MonthlyHonoursArchiveRecord[];
+}
+
+export interface MonthlyHonoursArchiveRecord {
+  month: string;
+  memberIds: string[];
+  memberNames: string[];
+  citation?: string;
+  bonusXp: number;
+  crownedAt: string;
 }
 
 export interface RankLevelThreshold {

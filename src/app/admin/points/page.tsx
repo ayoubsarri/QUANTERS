@@ -50,6 +50,8 @@ export default function AdminPointsPage() {
   const deletePointRule = useQuantersStore((s) => s.deletePointRule);
   const publishMonthlyHonours = useQuantersStore((s) => s.publishMonthlyHonours);
   const removeMonthlyHonours = useQuantersStore((s) => s.removeMonthlyHonours);
+  const rolloverMonthlyCycle = useQuantersStore((s) => s.rolloverMonthlyCycle);
+  const syncMonthlyScoresWithLedger = useQuantersStore((s) => s.syncMonthlyScoresWithLedger);
 
   const [activeTab, setActiveTab] = useState<"ledger" | "rules" | "appeals" | "motm">("ledger");
   const [banner, setBanner] = useState<string | null>(null);
@@ -108,6 +110,10 @@ export default function AdminPointsPage() {
   const [broadcastNotif, setBroadcastNotif] = useState<boolean>(true);
   const [motmSearchQuery, setMotmSearchQuery] = useState<string>("");
   const [memberPickerOpen, setMemberPickerOpen] = useState<boolean>(false);
+  const [rolloverModalOpen, setRolloverModalOpen] = useState(false);
+  const [rolloverTargetMonth, setRolloverTargetMonth] = useState("November 2026");
+  const [rolloverRecalculate, setRolloverRecalculate] = useState(true);
+  const [showHonoursArchive, setShowHonoursArchive] = useState(false);
   const [motmCitation, setMotmCitation] = useState<string>(
     `Recognized for outstanding scientific dedication, peer collaboration, and exemplary club contribution in ${settings?.activeMotmMonth || "November 2026"}.`
   );
@@ -784,6 +790,110 @@ export default function AdminPointsPage() {
       {/* TAB 4: MONTHLY "MEMBER OF THE MONTH" & "6 DEPARTMENT CHAMPIONS" DESK */}
       {activeTab === "motm" && (
         <div className="space-y-4">
+          {/* Monthly Cycle Management & Ledger Sync Bar */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0284C7] to-[#0369A1] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <Calendar className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-display font-black text-sm sm:text-base text-[#0F1E36]">
+                    Monthly Scoring Cycle
+                  </h3>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+                    Active: {settings?.activeMotmMonth || selectedMonth}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Monthly scores (<code className="font-mono">xpMonth</code>) calculate member activity and determine Department Nominees. Total &amp; Season XP are permanently safe.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  syncMonthlyScoresWithLedger(selectedMonth);
+                  setBanner(
+                    `✓ Recalculated and synchronized all members' Monthly XP from the verified ${selectedMonth} ledger!`
+                  );
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+                title="Recalculate all members' Monthly XP directly from verified ledger entries"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Audit &amp; Sync with Ledger</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRolloverTargetMonth(
+                    (settings?.activeMotmMonth || selectedMonth) === "October 2026"
+                      ? "November 2026"
+                      : "December 2026"
+                  );
+                  setRolloverModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:brightness-110 text-white text-xs font-display font-extrabold shadow-sm transition cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Start New Month Cycle</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Historical Laureates Archive (if past months exist) */}
+          {settings?.monthlyHonoursHistory && settings.monthlyHonoursHistory.length > 0 && (
+            <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowHonoursArchive((v) => !v)}
+                className="w-full flex items-center justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  <span className="text-xs font-bold text-slate-800">
+                    Past Honours Archive ({settings.monthlyHonoursHistory.length} Month{settings.monthlyHonoursHistory.length > 1 ? "s" : ""})
+                  </span>
+                </div>
+                <span className="text-[11px] font-bold text-[#0284C7]">
+                  {showHonoursArchive ? "Hide Archive" : "View Past Laureates"}
+                </span>
+              </button>
+
+              {showHonoursArchive && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-2">
+                  {settings.monthlyHonoursHistory.map((item) => (
+                    <div
+                      key={item.month}
+                      className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs font-extrabold text-[#0F1E36]">
+                          {item.month}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+                          +{item.bonusXp} XP Awarded
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-700 font-semibold">
+                        ★ Laureates: {item.memberNames?.join(", ") || "Recorded"}
+                      </div>
+                      {item.citation && (
+                        <p className="text-[11px] text-slate-500 italic">
+                          &ldquo;{item.citation}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Active Crowned MOTM Card */}
           {crownedMotmMembers.length > 0 && (
             <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-2 border-amber-400/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
@@ -1571,6 +1681,107 @@ export default function AdminPointsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* MONTHLY CYCLE ROLLOVER MODAL */}
+      {rolloverModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-rise">
+            <div className="px-6 py-4 bg-gradient-to-r from-[#0B172A] via-[#132542] to-[#182C4E] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center font-bold text-sm">
+                  <RotateCcw className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="font-display font-extrabold text-sm sm:text-base">
+                    Rollover to New Month Cycle
+                  </h3>
+                  <p className="text-[11px] text-slate-300">
+                    Archive current laureates and initialize monthly scores for the new period.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRolloverModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-slate-700 space-y-1.5">
+                <p className="font-bold text-[#0F1E36]">What happens during monthly rollover?</p>
+                <ul className="list-disc list-inside space-y-1 text-slate-600 text-[11px]">
+                  <li>Current crowned laureates are archived into the <strong>Honours History</strong> registry.</li>
+                  <li>Active &ldquo;Member of the Month&rdquo; titles are cleared so the new month starts fresh.</li>
+                  <li><strong>Total XP (Lifetime rank)</strong> and <strong>Season XP</strong> are <strong>100% safe and untouched</strong>.</li>
+                  <li>Monthly XP (<code className="font-mono">xpMonth</code>) is re-initialized for the new month.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 block">
+                  Select Target New Month
+                </label>
+                <select
+                  value={rolloverTargetMonth}
+                  onChange={(e) => setRolloverTargetMonth(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[#F8FAFD] text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 cursor-pointer"
+                >
+                  {MONTH_OPTIONS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F8FAFD] border border-slate-200/80 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rolloverRecalculate}
+                    onChange={(e) => setRolloverRecalculate(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 text-[#0284C7] rounded cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      Recalculate scores from verified {rolloverTargetMonth} ledger entries
+                    </span>
+                    <span className="text-[11px] text-slate-500 block leading-relaxed">
+                      If checked, members who already earned points in {rolloverTargetMonth} will have their Monthly XP set to their verified ledger total. If unchecked, all members start at 0 XP.
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setRolloverModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    rolloverMonthlyCycle(rolloverTargetMonth, rolloverRecalculate);
+                    setSelectedMonth(rolloverTargetMonth);
+                    setRolloverModalOpen(false);
+                    setBanner(
+                      `🎉 Successfully rolled over to ${rolloverTargetMonth}! Active titles archived and monthly scores initialized.`
+                    );
+                  }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#0369A1] hover:brightness-110 text-white text-xs font-bold shadow-md transition cursor-pointer"
+                >
+                  Confirm Rollover to {rolloverTargetMonth}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
