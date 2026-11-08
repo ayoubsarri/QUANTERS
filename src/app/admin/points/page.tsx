@@ -4,8 +4,13 @@ import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   Award,
+  Bell,
+  Calendar,
   Check,
   CheckCircle2,
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
   Coins,
   Crown,
   Lock,
@@ -13,10 +18,14 @@ import {
   RotateCcw,
   Save,
   Scale,
+  Search,
   ShieldCheck,
   Sparkles,
+  Square,
+  Trash2,
   Trophy,
   UserCheck,
+  Users,
   X,
 } from "lucide-react";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
@@ -76,17 +85,48 @@ export default function AdminPointsPage() {
   );
 
   // Monthly Honours (MotM & 6 Department Champions) state
+  const MONTH_OPTIONS = [
+    "November 2026",
+    "October 2026",
+    "September 2026",
+    "December 2026",
+    "January 2027",
+    "February 2027",
+    "March 2027",
+    "April 2027",
+    "May 2027",
+    "June 2027",
+    "July 2027",
+    "August 2027",
+  ];
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    settings?.activeMotmMonth || "November 2026"
+  );
   const [qualitativeScores, setQualitativeScores] = useState<Record<string, number>>({});
   const [selectedMotmIds, setSelectedMotmIds] = useState<string[]>([]);
-  const [motmDirectMemberId, setMotmDirectMemberId] = useState<string>("");
   const [motmBonusXp, setMotmBonusXp] = useState<number>(50);
+  const [broadcastNotif, setBroadcastNotif] = useState<boolean>(true);
+  const [motmSearchQuery, setMotmSearchQuery] = useState<string>("");
+  const [memberPickerOpen, setMemberPickerOpen] = useState<boolean>(false);
   const [motmCitation, setMotmCitation] = useState<string>(
-    "Recognized for outstanding scientific dedication, peer collaboration, and exemplary club contribution."
+    `Recognized for outstanding scientific dedication, peer collaboration, and exemplary club contribution in ${settings?.activeMotmMonth || "November 2026"}.`
   );
 
   const crownedMotmMembers = members.filter((m) =>
     m.recognitionLabels?.includes("Member of the Month")
   );
+
+  const filteredMotmMembers = sortedMembers.filter((m) => {
+    if (!motmSearchQuery.trim()) return true;
+    const q = motmSearchQuery.toLowerCase();
+    const dept = departments.find((d) => d.id === m.departmentId);
+    return (
+      m.fullName.toLowerCase().includes(q) ||
+      m.quanterId.toLowerCase().includes(q) ||
+      (dept?.name && dept.name.toLowerCase().includes(q)) ||
+      (m.levelTitle && m.levelTitle.toLowerCase().includes(q))
+    );
+  });
 
   const pendingAppeals = ledger.filter((l) => l.appealStatus === "Pending");
 
@@ -115,7 +155,26 @@ export default function AdminPointsPage() {
 
   const toggleMotmSelect = (id: string) => {
     setSelectedMotmIds((prev) =>
-      prev.includes(id) ? (prev.length > 1 ? prev.filter((x) => x !== id) : prev) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllDeptChampions = () => {
+    const topIds = departments
+      .map((dept) => {
+        const deptMembers = assignableMembers
+          .filter((m) => m.departmentId === dept.id)
+          .sort((a, b) => b.xpMonth - a.xpMonth);
+        return deptMembers[0]?.id;
+      })
+      .filter(Boolean) as string[];
+    setSelectedMotmIds((prev) => Array.from(new Set([...prev, ...topIds])));
+  };
+
+  const handleMonthChange = (newMonth: string) => {
+    setSelectedMonth(newMonth);
+    setMotmCitation(
+      `Recognized for outstanding scientific dedication, peer collaboration, and exemplary club contribution in ${newMonth}.`
     );
   };
 
@@ -192,15 +251,11 @@ export default function AdminPointsPage() {
     setBanner("Reversal entry recorded.");
   };
 
-  const handlePublishMotm = (targetId?: string) => {
-    const candidateIds = targetId
-      ? [targetId]
-      : motmDirectMemberId
-      ? [motmDirectMemberId]
-      : selectedMotmIds;
+  const handlePublishMotm = (overrideIds?: string[]) => {
+    const candidateIds = overrideIds && overrideIds.length > 0 ? overrideIds : selectedMotmIds;
 
     if (candidateIds.length === 0) {
-      setBanner("Please choose a member from the dropdown or select candidate(s) from the table.");
+      setBanner("Please choose or select at least one member to crown.");
       return;
     }
 
@@ -214,11 +269,19 @@ export default function AdminPointsPage() {
       .filter(Boolean) as string[];
 
     const bonus = Number(motmBonusXp) || 50;
-    const note = motmCitation.trim() || "Published Monthly Club-Wide Member of the Month";
+    const note =
+      motmCitation.trim() ||
+      `Member of the Month — ${selectedMonth}: Recognized for outstanding scientific dedication and club contribution`;
 
-    candidateIds.forEach((id) => {
-      publishMonthlyHonours(id, championIds, bonus, note);
-    });
+    publishMonthlyHonours(
+      candidateIds,
+      championIds,
+      bonus,
+      note,
+      "HR Administration",
+      selectedMonth,
+      broadcastNotif
+    );
 
     const candidateNames = members
       .filter((m) => candidateIds.includes(m.id))
@@ -226,15 +289,19 @@ export default function AdminPointsPage() {
       .join(", ");
 
     setBanner(
-      `Crowned ${candidateNames} as Member of the Month (+${bonus} XP) and updated Department Champions.`
+      `🎉 Successfully crowned ${candidateNames} as Member(s) of the Month for ${selectedMonth} (+${bonus} XP each)!`
     );
     setSelectedMotmIds([]);
-    setMotmDirectMemberId("");
   };
 
   const handleClearMotm = (memberId?: string) => {
     removeMonthlyHonours(memberId);
-    setBanner("Member of the Month honours have been cleared.");
+    if (memberId) {
+      const m = members.find((x) => x.id === memberId);
+      setBanner(`Honours removed for ${m?.fullName || "member"}.`);
+    } else {
+      setBanner("All Member of the Month honours have been cleared.");
+    }
   };
 
   return (
@@ -725,25 +792,35 @@ export default function AdminPointsPage() {
                   <span className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shadow-sm">
                     <Crown className="w-5 h-5 fill-current" />
                   </span>
-                  <span>Active Member of the Month</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span>Active Member(s) of the Month</span>
+                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-900 border border-amber-300">
+                      {settings?.activeMotmMonth || selectedMonth}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleClearMotm()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-200 text-xs font-bold transition shadow-2xs cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset / Clear Title</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-amber-800">
+                    {crownedMotmMembers.length} {crownedMotmMembers.length === 1 ? "Laureate" : "Co-Laureates"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleClearMotm()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 hover:text-rose-800 border border-rose-200 text-xs font-bold transition shadow-2xs cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Clear All Honours</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {crownedMotmMembers.map((m) => {
                   const dept = departments.find((d) => d.id === m.departmentId);
                   return (
                     <div
                       key={m.id}
-                      className="bg-white/90 backdrop-blur rounded-xl p-3.5 border border-amber-200/90 flex items-center justify-between gap-3 shadow-xs"
+                      className="bg-white/90 backdrop-blur rounded-xl p-3.5 border border-amber-200/90 flex items-center justify-between gap-3 shadow-xs hover:border-amber-300 transition"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -754,23 +831,20 @@ export default function AdminPointsPage() {
                         />
                         <div className="min-w-0">
                           <div className="font-display font-extrabold text-slate-900 text-sm truncate flex items-center gap-1.5">
-                            <span>{m.fullName}</span>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+                            <span className="truncate">{m.fullName}</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">
                               ★ MOTM
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 font-medium truncate">
                             {dept?.name || "General"} · {m.quanterId}
                           </div>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
-                              Level {m.level} · {m.levelTitle}
+                              Lvl {m.level}
                             </span>
                             <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               +{m.xpMonth} XP Month
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-500">
-                              {m.xpTotal} XP Total
                             </span>
                           </div>
                         </div>
@@ -791,50 +865,48 @@ export default function AdminPointsPage() {
             </div>
           )}
 
-          {/* Configuration Card: Crown Any Member with Custom Reward XP & Citation */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+          {/* Configuration Card: Crown Multiple Members with Custom Target Month, XP & Citation */}
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-5">
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-sky-100 text-[#0284C7] flex items-center justify-center font-bold text-xs">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <span className="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shadow-2xs">
+                  <Crown className="w-4 h-4" />
                 </span>
-                <h3 className="font-display text-sm sm:text-base font-extrabold text-[#0F1E36]">
-                  Crown &amp; Configure Member of the Month
+                <h3 className="font-display text-base font-extrabold text-[#0F1E36]">
+                  Crown Member of the Month (Multi-Member &amp; Month Selection)
                 </h3>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5 ml-8">
-                Crown any active member from the roster, customize their bonus merit points, and attach an official commendation citation.
+              <p className="text-xs text-slate-500 mt-1 ml-9">
+                Select the target honour month, search and pick multiple student members simultaneously, configure bonus XP, and publish official recognition club-wide.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-1">
-              {/* Select Any Member */}
+            {/* Row 1: Target Month, XP Amount, and In-App Broadcast */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-1 bg-[#F8FAFD] p-3.5 rounded-xl border border-slate-200/70">
+              {/* Target Month Selector */}
               <div className="md:col-span-5 space-y-1">
-                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
-                  Select Member to Crown
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#0284C7]" />
+                  <span>Target Month / Honour Period</span>
                 </label>
                 <select
-                  value={motmDirectMemberId}
-                  onChange={(e) => setMotmDirectMemberId(e.target.value)}
-                  onKeyDown={(e) => handleMemberSelectKeyDown(e, sortedMembers, setMotmDirectMemberId)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 cursor-pointer"
+                  value={selectedMonth}
+                  onChange={(e) => handleMonthChange(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200/90 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 cursor-pointer shadow-2xs"
                 >
-                  <option value="">-- Choose any member ({sortedMembers.length} available) --</option>
-                  {sortedMembers.map((m) => {
-                    const dept = departments.find((d) => d.id === m.departmentId);
-                    return (
-                      <option key={m.id} value={m.id}>
-                        {m.fullName} ({dept?.name || "Member"} · Lvl {m.level} {m.levelTitle} · {m.xpMonth} XP month)
-                      </option>
-                    );
-                  })}
+                  {MONTH_OPTIONS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Reward Bonus XP */}
-              <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
-                  Reward XP Amount
+              <div className="md:col-span-4 space-y-1">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <Coins className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Bonus XP per Crowned Member</span>
                 </label>
                 <div className="flex items-center gap-1.5">
                   <input
@@ -844,18 +916,18 @@ export default function AdminPointsPage() {
                     step={5}
                     value={motmBonusXp}
                     onChange={(e) => setMotmBonusXp(Number(e.target.value))}
-                    className="w-24 px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-mono font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
+                    className="w-20 px-3 py-2 rounded-xl border border-slate-200/90 bg-white text-xs font-mono font-bold text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20 shadow-2xs"
                   />
                   <div className="flex items-center gap-1">
-                    {[50, 75, 100].map((preset) => (
+                    {[50, 75, 100, 150].map((preset) => (
                       <button
                         key={preset}
                         type="button"
                         onClick={() => setMotmBonusXp(preset)}
                         className={`px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
                           motmBonusXp === preset
-                            ? "bg-[#0284C7] text-white"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            ? "bg-[#0284C7] text-white shadow-2xs"
+                            : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/70"
                         }`}
                       >
                         +{preset}
@@ -865,31 +937,226 @@ export default function AdminPointsPage() {
                 </div>
               </div>
 
-              {/* Commendation Citation */}
-              <div className="md:col-span-4 space-y-1">
-                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
-                  Official Citation / Reason
+              {/* Broadcast Notification Toggle */}
+              <div className="md:col-span-3 flex items-end">
+                <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80 cursor-pointer w-full shadow-2xs hover:bg-slate-50 transition">
+                  <input
+                    type="checkbox"
+                    checked={broadcastNotif}
+                    onChange={(e) => setBroadcastNotif(e.target.checked)}
+                    className="w-4 h-4 text-[#0284C7] rounded cursor-pointer"
+                  />
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-slate-800 block truncate">
+                      Broadcast In-App Alert
+                    </span>
+                    <span className="text-[10px] text-slate-500 block truncate">
+                      Send to all members
+                    </span>
+                  </div>
                 </label>
-                <input
-                  type="text"
-                  value={motmCitation}
-                  onChange={(e) => setMotmCitation(e.target.value)}
-                  placeholder="e.g. Recognized for leading QSSC workshops..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
-                />
               </div>
             </div>
 
-            <div className="flex items-center justify-end pt-2 border-t border-slate-100">
+            {/* Row 2: Official Citation */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
+                Official Citation / Commendation Note
+              </label>
+              <input
+                type="text"
+                value={motmCitation}
+                onChange={(e) => setMotmCitation(e.target.value)}
+                placeholder="e.g. Recognized for outstanding scientific dedication and club contribution..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
+              />
+            </div>
+
+            {/* Row 3: Multi-Member Selection Desk & Staging Tray */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                    Selected Candidates ({selectedMotmIds.length})
+                  </span>
+                  {selectedMotmIds.length > 0 && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold">
+                      +{selectedMotmIds.length * motmBonusXp} XP total
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllDeptChampions}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-[#0284C7] border border-sky-200 text-xs font-bold transition shadow-2xs cursor-pointer"
+                  >
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span>Select All 6 Dept Champions</span>
+                  </button>
+                  {selectedMotmIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMotmIds([])}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Clear Selection</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Staging Chips Tray */}
+              {selectedMotmIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-200">
+                  {selectedMotmIds.map((id) => {
+                    const m = members.find((x) => x.id === id);
+                    if (!m) return null;
+                    const dept = departments.find((d) => d.id === m.departmentId);
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-900 shadow-2xs text-xs font-semibold"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={m.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=faces"}
+                          alt={m.fullName}
+                          className="w-5 h-5 rounded-full object-cover ring-1 ring-amber-400"
+                        />
+                        <span className="font-bold">{m.fullName}</span>
+                        <span className="text-[10px] text-slate-500 font-normal">
+                          ({dept?.name || "General"})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleMotmSelect(id)}
+                          className="text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          title="Remove from selection"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Search & Filter Roster for Multi-Selection */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={motmSearchQuery}
+                    onChange={(e) => setMotmSearchQuery(e.target.value)}
+                    placeholder="Search by member name, ID (e.g. QNT-001), or department..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200/90 bg-[#F8FAFD] text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/20"
+                  />
+                  {motmSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setMotmSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Scrollable Member Multi-Select List */}
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-200/90 divide-y divide-slate-100 bg-white">
+                  {filteredMotmMembers.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400">
+                      No members match &quot;{motmSearchQuery}&quot;
+                    </div>
+                  ) : (
+                    filteredMotmMembers.map((m) => {
+                      const isSelected = selectedMotmIds.includes(m.id);
+                      const isCrowned = m.recognitionLabels?.includes("Member of the Month");
+                      const dept = departments.find((d) => d.id === m.departmentId);
+
+                      return (
+                        <div
+                          key={m.id}
+                          onClick={() => toggleMotmSelect(m.id)}
+                          className={`flex items-center justify-between p-2.5 sm:px-3 hover:bg-slate-50 transition cursor-pointer select-none ${
+                            isSelected ? "bg-sky-50/70" : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="relative shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={m.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=faces"}
+                                alt={m.fullName}
+                                className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                              />
+                              {isCrowned && (
+                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 text-slate-900 rounded-full flex items-center justify-center text-[8px] font-black shadow-xs">
+                                  ★
+                                </span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-display font-extrabold text-xs text-[#0F1E36] flex items-center gap-1.5 truncate">
+                                <span className="truncate">{m.fullName}</span>
+                                {isCrowned && (
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 shrink-0">
+                                    MOTM
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-mono truncate">
+                                {dept?.name || "Member"} · {m.quanterId} · Lvl {m.level} {m.levelTitle}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="text-[11px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/70">
+                              +{m.xpMonth} XP
+                            </span>
+                            <div
+                              className={`w-5 h-5 rounded-md flex items-center justify-center border transition ${
+                                isSelected
+                                  ? "bg-[#0284C7] border-[#0284C7] text-white"
+                                  : "border-slate-300 bg-white"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Crowning CTA Button */}
+            <div className="flex items-center justify-between flex-wrap gap-2 pt-3 border-t border-slate-100">
+              <div className="text-xs text-slate-500">
+                {selectedMotmIds.length === 0 ? (
+                  <span>Select one or more members above to crown them.</span>
+                ) : (
+                  <span className="font-bold text-[#0F1E36]">
+                    Ready to crown {selectedMotmIds.length} laureate{selectedMotmIds.length > 1 ? "s" : ""} for {selectedMonth}
+                  </span>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => handlePublishMotm()}
-                disabled={!motmDirectMemberId && selectedMotmIds.length === 0}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFE500] hover:bg-[#FDE047] disabled:opacity-50 disabled:cursor-not-allowed text-[#09192F] font-display font-extrabold text-xs shadow-sm transition cursor-pointer"
+                disabled={selectedMotmIds.length === 0}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FFE500] hover:bg-[#FDE047] disabled:opacity-40 disabled:cursor-not-allowed text-[#09192F] font-display font-extrabold text-xs sm:text-sm shadow-md transition cursor-pointer"
               >
                 <Crown className="w-4 h-4" />
                 <span>
-                  Crown Member of the Month (+{motmBonusXp} XP)
+                  Crown {selectedMotmIds.length > 0 ? `${selectedMotmIds.length} Member(s)` : "Members"} for {selectedMonth} (+{motmBonusXp} XP each)
                 </span>
               </button>
             </div>
@@ -903,12 +1170,12 @@ export default function AdminPointsPage() {
                   Department Top Candidates &amp; Nominees
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Select candidate(s) directly to crown them alongside Department Champions.
+                  Select candidate(s) directly to crown them alongside Department Champions for {selectedMonth}.
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-semibold text-[#0284C7]">
-                  {selectedMotmIds.length} candidate(s) selected
+                  {selectedMotmIds.length} candidate(s) staged
                 </span>
                 {selectedMotmIds.length > 0 && (
                   <button
@@ -917,7 +1184,7 @@ export default function AdminPointsPage() {
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#FFE500] hover:bg-[#FDE047] text-[#09192F] font-bold text-[11px] shadow-2xs transition cursor-pointer"
                   >
                     <Trophy className="w-3.5 h-3.5" />
-                    <span>Publish ({selectedMotmIds.length})</span>
+                    <span>Crown Staged ({selectedMotmIds.length})</span>
                   </button>
                 )}
               </div>
@@ -1004,12 +1271,12 @@ export default function AdminPointsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
-                              onClick={() => handlePublishMotm(candidate.id)}
+                              onClick={() => handlePublishMotm([candidate.id])}
                               className="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold transition cursor-pointer"
                             >
-                              Crown
+                              Crown Solo
                             </button>
-                            <label className="inline-flex items-center gap-1 cursor-pointer">
+                            <label className="inline-flex items-center gap-1 cursor-pointer select-none">
                               <input
                                 type="checkbox"
                                 checked={isSelected}

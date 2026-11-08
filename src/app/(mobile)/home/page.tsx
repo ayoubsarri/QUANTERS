@@ -130,9 +130,11 @@ export default function MobileHomeHubPage() {
     return null;
   }, [member, settings, departments, teams, dept]);
 
-  const motmMember =
-    members.find((m) => m.recognitionLabels?.includes("Member of the Month")) ||
-    null;
+  const motmMembers = useMemo(
+    () => members.filter((m) => m.recognitionLabels?.includes("Member of the Month")),
+    [members]
+  );
+  const activeMotmMonth = settings?.activeMotmMonth || "November 2026";
 
   const unreadCount = messages.filter(
     (m) =>
@@ -669,8 +671,8 @@ export default function MobileHomeHubPage() {
           </div>
         )}
 
-        {/* Softened Cosmic Slate-Navy Editorial Honour Ribbon (Star of the Month) */}
-        {motmMember && (
+        {/* Softened Cosmic Slate-Navy Editorial Honour Ribbon (Star(s) of the Month) */}
+        {motmMembers.length > 0 && (
         <div
           className="rounded-xl bg-gradient-to-r from-[#12223D] via-[#182C4E] to-[#1D355E] text-white border border-[#2B4875]/65 border-l-[3px] border-l-[#38BDF8] px-3 py-2 shadow-[0_6px_18px_rgba(16,31,56,0.14)] animate-rise"
           style={{ animationDelay: "130ms" }}
@@ -697,15 +699,26 @@ export default function MobileHomeHubPage() {
                 />
               </svg>
               <span className="font-editorial italic text-base text-[#BAE6FD] shrink-0">
-                {isRtl ? "نجم الشهر" : <>Star<span className="hidden sm:inline"> of the Month</span></>}
+                {isRtl
+                  ? motmMembers.length > 1
+                    ? "نجوم الشهر"
+                    : "نجم الشهر"
+                  : motmMembers.length > 1
+                  ? "Stars of the Month"
+                  : "Star of the Month"}
+              </span>
+              <span className="text-[#38BDF8] font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#38BDF8]/15 border border-[#38BDF8]/30 shrink-0">
+                {activeMotmMonth}
               </span>
               <span className="text-white/30 text-xs">·</span>
-              <span className="text-xs font-display font-bold text-white">
-                {motmMember.fullName}
+              <span className="text-xs font-display font-bold text-white truncate">
+                {motmMembers.map((m) => m.fullName).join(", ")}
               </span>
-              <span className="font-mono text-xs font-bold text-[#7DD3FC] shrink-0">
-                +50 XP
-              </span>
+              {motmMembers.length > 1 && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold shrink-0">
+                  {motmMembers.length} Laureates
+                </span>
+              )}
             </div>
             {showMotmDetails ? (
               <ChevronUp className="w-4 h-4 text-slate-300 shrink-0" />
@@ -715,25 +728,44 @@ export default function MobileHomeHubPage() {
           </button>
 
           {showMotmDetails && (
-            <div className="mt-2 pt-2 border-t border-white/15 flex items-center justify-between gap-3 text-xs text-slate-200">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={motmMember.avatarUrl}
-                  alt={motmMember.fullName}
-                  className="w-7 h-7 rounded-lg object-cover border border-[#7DD3FC]/60"
-                />
-                <div>
-                  <p className="font-bold text-white">
-                    {motmMember.levelTitle} · {motmMember.xpMonth} XP this month
-                  </p>
-                  <p className="text-xs text-slate-300">
-                    96% workshop attendance &amp; scientific leadership
-                  </p>
-                </div>
+            <div className="mt-2.5 pt-2.5 border-t border-white/15 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#BAE6FD]">
+                <span>QUANTA Laureates of the Month · {activeMotmMonth}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Official Honours
+                </span>
               </div>
-              <span className="font-mono text-xs text-[#7DD3FC] uppercase tracking-wider shrink-0">
-                [Laureate]
-              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {motmMembers.map((m) => {
+                  const mDept = departments.find((d) => d.id === m.departmentId);
+                  return (
+                    <div
+                      key={m.id}
+                      className="bg-white/10 backdrop-blur rounded-lg p-2 border border-white/10 flex items-center justify-between gap-2.5 text-xs text-slate-200"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={m.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=faces"}
+                          alt={m.fullName}
+                          className="w-8 h-8 rounded-lg object-cover border border-[#7DD3FC]/60 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-bold text-white text-xs truncate">
+                            {m.fullName}
+                          </p>
+                          <p className="text-[10px] text-slate-300 truncate">
+                            {mDept?.shortName || mDept?.name || "General"} · Level {m.level} · {m.levelTitle}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-mono text-[10px] font-bold text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                        +{m.xpMonth} XP
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

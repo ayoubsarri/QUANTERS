@@ -909,6 +909,10 @@ export interface SystemSettings {
   // Extended Club Governance Controls
   examRetakeCooldownHours?: number;
   dailyQuizResetHour?: number;
+  // Monthly Honours (Member of the Month)
+  activeMotmMonth?: string;
+  activeMotmMemberIds?: string[];
+  activeMotmCitation?: string;
 }
 
 export interface RankLevelThreshold {

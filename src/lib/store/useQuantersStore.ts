@@ -433,11 +433,13 @@ interface QuantersStoreState {
   updatePointRule: (ruleId: string, updatesOrPoints: Partial<PointRule> | number, label?: string) => void;
   deletePointRule: (ruleId: string) => void;
   publishMonthlyHonours: (
-    motmMemberId: string,
+    motmMemberId: string | string[],
     championMemberIds: string[],
     bonusXp?: number,
     citation?: string,
-    actorName?: string
+    actorName?: string,
+    targetMonth?: string,
+    broadcastAnnouncement?: boolean
   ) => void;
   removeMonthlyHonours: (memberId?: string) => void;
 
@@ -4993,47 +4995,115 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     championMemberIds,
     bonusXp = 50,
     citation = "Published Monthly Club-Wide Member of the Month",
-    actorName = "HR Administration"
+    actorName = "HR Administration",
+    targetMonth,
+    broadcastAnnouncement = true
   ) => {
     const safeBonus = Math.max(0, Number(bonusXp) || 50);
+    const targetIds = Array.isArray(motmMemberId)
+      ? Array.from(new Set(motmMemberId.filter(Boolean)))
+      : motmMemberId
+      ? [motmMemberId]
+      : [];
+
+    if (targetIds.length === 0) return;
+
+    const currentMonthStr =
+      targetMonth?.trim() ||
+      new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+
     set((state) => {
-      const motm = state.members.find((m) => m.id === motmMemberId);
-      if (!motm) return state;
-      const newEntry: PointsLedgerEntry = {
-        id: `led-motm-${Date.now()}`,
-        memberId: motm.id,
-        memberName: motm.fullName,
+      const crownedMembers = state.members.filter((m) => targetIds.includes(m.id));
+      if (crownedMembers.length === 0) return state;
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      const newEntries: PointsLedgerEntry[] = crownedMembers.map((m, idx) => ({
+        id: `led-motm-${Date.now()}-${idx}`,
+        memberId: m.id,
+        memberName: m.fullName,
         amount: safeBonus,
         ruleLabel: "Member of the Month",
-        reason: citation || `Published Monthly Club-Wide Member of the Month (+${safeBonus} XP)`,
+        reason:
+          citation ||
+          `Member of the Month — ${currentMonthStr} (+${safeBonus} XP)`,
         source: "Monthly Honour",
         actorName,
-        date: new Date().toISOString().slice(0, 10),
+        date: dateStamp,
         appealStatus: "None",
-      };
+      }));
+
+      // Update members: all targetIds get "Member of the Month", champions get "Department Champion"
+      const updatedMembers = state.members.map((m) => {
+        const isMotm = targetIds.includes(m.id);
+        const isChamp = championMemberIds.includes(m.id);
+        const cleanLabels: RecognitionLabel[] = m.recognitionLabels.filter(
+          (l) => l !== "Member of the Month" && l !== "Department Champion"
+        );
+        if (isMotm) cleanLabels.push("Member of the Month");
+        if (isChamp) cleanLabels.push("Department Champion");
+        return {
+          ...m,
+          recognitionLabels: cleanLabels,
+          xpTotal: isMotm ? m.xpTotal + safeBonus : m.xpTotal,
+          xpSeason: isMotm ? m.xpSeason + safeBonus : m.xpSeason,
+          xpMonth: isMotm ? m.xpMonth + safeBonus : m.xpMonth,
+        };
+      });
+
+      const crownedNames = crownedMembers.map((m) => m.fullName).join(", ");
+      const celebrationTitle =
+        crownedMembers.length > 1
+          ? `Members of the Month · ${currentMonthStr}`
+          : `Member of the Month · ${currentMonthStr}`;
+      const celebrationSubtitle =
+        crownedMembers.length > 1
+          ? `${crownedNames} have been crowned QUANTA Members of the Month for ${currentMonthStr} (+${safeBonus} XP each)!`
+          : `${crownedNames} has been crowned QUANTA Member of the Month for ${currentMonthStr} (+${safeBonus} XP)!`;
+
+      // Optional Broadcast Message to all club members
+      const newMessages = [...state.messages];
+      if (broadcastAnnouncement) {
+        const broadcastMsg: ClubMessage = {
+          id: `msg-motm-${Date.now()}`,
+          senderLabel: "QUANTA Administration",
+          senderRole: "Executive",
+          recipientScope: "All Members",
+          priority: "Official notice",
+          title: `🌟 إعلان نجم الشهر (${currentMonthStr}) — تهانينا لفرسان كوانتا!`,
+          body: `تعلن إدارة نادي كوانتا بفخر واعتزاز عن تتويج نخبة من أعضائنا المتميزين بلقب نجم الشهر (${currentMonthStr}):\n\n${crownedMembers
+            .map((m) => `⭐ ${m.fullName} (${m.levelTitle || "عضو متميز"})`)
+            .join("\n")}\n\nتقديراً لجهودهم الاستثنائية، تفانيهم الأكاديمي والتقني، ومشاركتهم الفعالة في ورشات ومشاريع النادي، تم منح كل منهم مكافأة استحقاقية قدرها +${safeBonus} نقطة خبرة (XP).\n\nنتمنى لهم ولمزيد من أعضائنا دوام التألق والريادة!`,
+          timeAgo: "Just now",
+          unread: true,
+          archived: false,
+          channels: { inApp: true, email: false },
+          readMemberIds: [],
+          stats: {
+            totalRecipients: state.members.length,
+            inAppReadCount: 0,
+            emailSentCount: 0,
+            emailFailedCount: 0,
+          },
+          actionLink: "/home",
+        };
+        newMessages.unshift(broadcastMsg);
+      }
+
       return {
-        members: state.members.map((m) => {
-          const isMotm = m.id === motmMemberId;
-          const isChamp = championMemberIds.includes(m.id);
-          const cleanLabels: RecognitionLabel[] = m.recognitionLabels.filter(
-            (l) => l !== "Member of the Month" && l !== "Department Champion"
-          );
-          if (isMotm) cleanLabels.push("Member of the Month");
-          if (isChamp) cleanLabels.push("Department Champion");
-          return {
-            ...m,
-            recognitionLabels: cleanLabels,
-            xpTotal: isMotm ? m.xpTotal + safeBonus : m.xpTotal,
-            xpSeason: isMotm ? m.xpSeason + safeBonus : m.xpSeason,
-            xpMonth: isMotm ? m.xpMonth + safeBonus : m.xpMonth,
-          };
-        }),
-        ledger: [newEntry, ...state.ledger],
+        members: updatedMembers,
+        ledger: [...newEntries, ...state.ledger],
+        messages: newMessages,
+        settings: {
+          ...state.settings,
+          activeMotmMonth: currentMonthStr,
+          activeMotmMemberIds: targetIds,
+          activeMotmCitation: citation,
+        },
         celebration: {
           open: true,
           type: "motm",
-          title: "Member of the Month!",
-          subtitle: `${motm.fullName} has been crowned QUANTA Member of the Month (+${safeBonus} XP)!`,
+          title: celebrationTitle,
+          subtitle: celebrationSubtitle,
           xpEarned: safeBonus,
         },
       };
@@ -5043,8 +5113,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   removeMonthlyHonours: (memberId) => {
-    set((state) => ({
-      members: state.members.map((m) => {
+    set((state) => {
+      const nextMembers = state.members.map((m) => {
         if (memberId && m.id !== memberId) return m;
         return {
           ...m,
@@ -5052,8 +5122,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             (l) => l !== "Member of the Month" && l !== "Department Champion"
           ),
         };
-      }),
-    }));
+      });
+      const nextActiveIds = memberId
+        ? (state.settings.activeMotmMemberIds || []).filter((id) => id !== memberId)
+        : [];
+      return {
+        members: nextMembers,
+        settings: {
+          ...state.settings,
+          activeMotmMemberIds: nextActiveIds,
+          ...(nextActiveIds.length === 0
+            ? { activeMotmMonth: undefined, activeMotmCitation: undefined }
+            : {}),
+        },
+      };
+    });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
   },
