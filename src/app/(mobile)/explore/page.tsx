@@ -187,7 +187,7 @@ export default function MobileExplorePage() {
         map[q.id] = {
           optionId: selectedAnswers[q.id],
           correct: isCorr,
-          xpEarned: isCorr ? (q.xpReward || 15) : 0,
+          xpEarned: isCorr ? (typeof q.xpReward === "number" ? q.xpReward : 2) : 0,
         };
       }
     }

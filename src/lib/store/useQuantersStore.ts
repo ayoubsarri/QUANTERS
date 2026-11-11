@@ -5830,7 +5830,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     }
 
     const isCorrect = optionId === quiz.correctId;
-    const safeXp = isCorrect ? Math.min(50, Math.max(5, quiz.xpReward || 15)) : 0;
+    const safeXp = isCorrect ? Math.min(50, Math.max(1, typeof quiz.xpReward === "number" ? quiz.xpReward : 2)) : 0;
 
     const attemptRecord = {
       optionId,

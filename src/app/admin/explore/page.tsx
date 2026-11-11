@@ -2192,11 +2192,11 @@ export default function AdminExplorePage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    XP Reward (5-50 XP)
+                    XP Reward (1-50 XP)
                   </label>
                   <input
                     type="number"
-                    min={5}
+                    min={1}
                     max={50}
                     value={quizXpReward}
                     onChange={(e) => setQuizXpReward(Number(e.target.value))}
@@ -2762,7 +2762,7 @@ export default function AdminExplorePage() {
                             explanation: String(
                               q.explanation || q.rationale || q.verdictTitle || "Confirmed by verified scientific methodology."
                             ).trim(),
-                            xpReward: Math.max(5, Math.min(50, Number(q.xpReward || q.xp || q.points) || 15)),
+                            xpReward: Math.max(1, Math.min(50, Number(q.xpReward || q.xp || q.points) || 2)),
                             isPinnedToday: Boolean(q.isPinnedToday ?? q.pinned),
                             active: q.active !== false,
                           });

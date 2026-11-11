@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "updatedAt": "2026-11-01T14:24:38.164Z",
+  "updatedAt": "2026-11-11T00:08:04.696Z",
   "collectionVersions": {
     "settings": "2026-10-27T13:23:47.274Z",
     "departments": "2026-10-27T14:16:51.178Z",
@@ -7887,6 +7887,54 @@
   "proposals": [],
   "explorePosts": [
     {
+      "id": "exp-google-gemini-carbon",
+      "title": "Google Gemini 4 Carbon: The New Benchmark Champion in Deep Reasoning, SEC-bench Pro & Agentic Coding",
+      "summary": "Ranked #1 on the Artificial Analysis Intelligence Index with an 88.2% SEC-bench Pro score, Google's Gemini 4 Carbon sets a new milestone in test-time compute, long-horizon coding, and automated vulnerability verification.",
+      "content": "# Google Gemini 4 Carbon: Benchmarks & Deep Reasoning Architecture\n\n## 1. Breakthrough Across Frontier Industry Leaderboards\nGoogle announced **Gemini 4 Carbon**, establishing undisputed top rankings across major independent AI benchmarks. Most notably, Carbon secured the **#1 overall position on the Artificial Analysis Intelligence Index (v5.0)** with an index rating of **59**, surpassing all competitive frontier reasoning models in structured multi-step logical deduction and test-time compute scaling.\n\nAcross 17 rigorous evaluation suites, Carbon ranked first in 15 categories, marking an architectural leap in autonomous software verification, complex symbolic mathematics, and extended context synthesis.\n\n---\n\n## 2. Quantitative Cybersecurity Performance: SEC-bench Pro\nA defining characteristic of Carbon is its specialized capability in offensive and defensive cybersecurity evaluation, tested in partnership with Google's Fairwind Defense program:\n- **SEC-bench Pro (Vulnerability Discovery):** **88.2%** success rate identifying zero-day memory corruption, logic flaws, and authorization bypasses in production C/C++, Rust, and Go codebases.\n- **ExploitGym (Controlled Exploit Generation):** **54.8%**, demonstrating autonomous proof-of-concept construction under sandboxed environments.\n- **CWE-bench (Automated Patch Synthesis):** **71.0%**, synthesizing verified secure patches that eliminate root causes without causing regression failures in adjacent test suites.\n- **Secure Code Generation:** Generates verified vulnerability-free code at more than twice the success rate of the previous Argon architecture.\n\n> *\"Carbon was evaluated under rigorous safety guardrails through Google's Fairwind Program, partnering with cybersecurity defenders to stress-test automated vulnerability mitigation and formal verification.\"*\n\n---\n\n## 3. Agentic Software Engineering Leaderboard\n| Benchmark Suite | Metric | Gemini 4 Carbon | Prior SOTA Baseline |\n|:---|:---|:---|:---|\n| **Artificial Analysis Index (v5.0)** | Composite Score | **59 (#1)** | 58 |\n| **Terminal-Bench 4.0** | CLI Task Execution | **64.0%** | 52.4% |\n| **FrontierCode v1.1** | Complex Algorithmic Code | **51.0%** | 43.8% |\n| **SEC-bench Pro** | Bug & Vuln Identification | **88.2%** | 69.1% |\n| **CWE-bench** | Patching & Verification | **71.0%** | 56.5% |\n| **CursorBench 4.0** | Multi-File Agentic Coding | **#1 Globally** | Runner-up |\n\n---\n\n## 4. Architectural Significance for QUANTA Researchers\nFor the QUANTA AI, Modeling, and Cybersecurity divisions, Gemini 4 Carbon demonstrates that test-time search and iterative code self-verification are now essential paradigms. Autonomous coding agents are no longer just completion engines—they act as rigorous pair-programmers capable of compiling, executing, and auditing entire software architectures autonomously.",
+      "category": "Scientific News",
+      "tagLabel": "FRONTIER AI & REASONING",
+      "tagTone": "indigo",
+      "source": "Google DeepMind & Artificial Analysis",
+      "readTime": "5 min read",
+      "date": "Nov 11, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://blog.google"
+    },
+    {
+      "id": "exp-claude-fable-agentic-simulation",
+      "title": "Claude Fable & Multi-Agent Simulations: Long-Horizon Autonomy and Generative World-Building in 2026",
+      "summary": "Anthropic's Claude Fable 5.2 and Fable Studio's Showrunner platform redefine agentic computing—combining hours-long unattended codebase refactoring with persistent generative world-building.",
+      "content": "# Claude Fable & Multi-Agent Simulations: Long-Horizon Autonomy and Synthetic Worlds\n\n## 1. Long-Horizon Autonomy in Claude Fable 5.2\nAnthropic's announcement of **Claude Fable 5.2** represents a critical inflection point for autonomous systems. Engineered for demanding, long-horizon technical tasks, Fable is purpose-built to operate unattended for hours—and across complex workflows, for multiple days—while checking and correcting its own intermediate execution states.\n\nGenerating outputs up to **30% faster** than its predecessor with adaptive extended thinking modes, Fable 5.2 navigates massive multi-repository architectures, manages distributed sub-agents, and solves abstract physics and hardware problems without state drift.\n\n---\n\n## 2. The Dual Frontier: Claude Fable vs. Claude Mythos\nAnthropic introduced a dual-tier model release strategy:\n- **Claude Fable 5.2:** Built with industrial-grade cyber defense and biology safeguards, making it publicly available across major cloud providers (Amazon Bedrock, Google Cloud Vertex AI) and native APIs at optimized pricing ($8/M input tokens, $40/M output tokens).\n- **Claude Mythos 5.2:** Built on the identical core frontier architecture, but reserved for verified sovereign and research institutions through specialized Life Sciences and Cyber Verification programs.\n\n> *\"Fable is targeted squarely at developers, researchers, and enterprises tackling the hardest open-ended technical challenges that push standard LLMs past their limits.\"*\n\n---\n\n## 3. Fable Studio & The Showrunner Platform (SHOW-1 Model)\nIn parallel with frontier reasoning models, **Fable Studio** (backed by Amazon's Alexa Fund) has pioneered generative multi-agent simulation through its **Showrunner** platform. Often dubbed the *\"Netflix of AI\"*, Showrunner utilizes the proprietary **SHOW-1** model to orchestrate complete episodic productions from text prompts and directorial constraints.\n\nKey innovations in SHOW-1 include:\n- **Persistent Character Canon & Worlds:** Unlike traditional video generation tools that generate disconnected clips, Showrunner maintains continuous spatial memories, narrative arcs, and character styles across full multi-season series.\n- **Dynamic \"Playable\" Media:** Viewers can branch storylines in real time, with the simulation dynamically synthesizing dialogue, voice acting, camera angles, and animations on the fly.\n- **Theatrical Milestones (*Gods Don't Give Gifts*):** Fable's sci-fi feature film, produced in collaboration with human artists and voiced by Grimes, demonstrated the viability of AI-augmented cinematic pipelines.\n\n---\n\n## 4. Synthesis: The Complementary AI Frontier of 2026\n| Dimension | Google Gemini 4 Carbon | Anthropic Claude Fable 5.2 |\n|:---|:---|:---|\n| **Core Superpower** | Test-Time Compute & Formal Code Verification | Long-Horizon Autonomy & Asynchronous Sub-Agents |\n| **Top Benchmark** | #1 Artificial Analysis Index (Score 59) | SOTA in Multi-Day Software Migration |\n| **Cybersecurity** | SEC-bench Pro 88.2% / CWE-bench 71.0% | Adaptive Extended Thinking with Guardrails |\n| **Deployment** | Antigravity AI Engine / Google Cloud | Claude Platform / Bedrock / Vertex AI |\n\n---\n\n## 5. QUANTA Workshop Integration\nMembers of the QUANTA Computer Science & Creative Tech divisions will explore Claude Fable's agentic APIs and Fable simulation patterns in our upcoming **Agentic Architectures & World-Building Masterclass**.",
+      "category": "Scientific News",
+      "tagLabel": "AUTONOMOUS AGENTS & SIMULATION",
+      "tagTone": "cyan",
+      "source": "Anthropic Frontier Research & Fable Studio",
+      "readTime": "6 min read",
+      "date": "Nov 11, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://anthropic.com"
+    },
+    {
+      "id": "exp-top-10-developer-repositories-2026",
+      "title": "Top 10 Essential GitHub Repositories Every Developer & AI Engineer Should Star in 2026",
+      "summary": "From OpenHands and Langflow to Ollama and Scrapling: A curated, essential directory of open-source frameworks, visual builders, and developer resources accelerating AI engineering.",
+      "content": "# The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories\n\n## 1. Executive Overview\nIn modern software engineering and applied AI research, developer velocity depends heavily on selecting the right open-source foundation. Rather than reinventing distributed agents, custom scraping engines, or hosting budgets, engineering teams leverage battle-tested open-source repositories to accelerate production timelines.\n\nBelow is the official curated reference guide compiled by the **QUANTA Open Source & Developer Directorate**, detailing the ten most versatile repositories every student, software engineer, and researcher in the club should bookmark and leverage.\n\n---\n\n## 2. Core Repository Reference Matrix\n\n| Repository | What it does | Useful for |\n|:---|:---|:---|\n| [**OpenHands**](https://github.com/OpenHands/OpenHands) | A workspace for coding agents that can write code, run tests, fix errors, and automate development tasks. | **AI-assisted software development** |\n| [**Langflow**](https://github.com/langflow-ai/langflow) | A visual builder for AI agents and workflows. Supports RAG—answering questions using your documents—and publishing workflows through API or MCP. | **Building chatbots and AI workflows** |\n| [**Ollama**](https://github.com/ollama/ollama) | Runs supported language models locally and provides an API for your applications. Models need separate downloads. | **Local AI and experimenting without per-request API fees** |\n| [**Free-for-dev**](https://github.com/ripienaar/free-for-dev) | A directory of developer services offering free tiers, including hosting, databases, authentication, and APIs. | **Finding services for a low-budget project** |\n| [**Scrapling**](https://github.com/D4Vinci/Scrapling) | A Python framework for fetching webpages, extracting information, and building web crawlers. | **Collecting website data** |\n| [**Awesome**](https://github.com/sindresorhus/awesome) | A large directory of curated resource lists covering programming, science, design, and many other subjects. | **Discovering tools and learning resources** |\n| [**Awesome LLM Apps**](https://github.com/Shubhamsaboo/awesome-llm-apps) | A collection of example AI agents, skills, and RAG applications with source code. Individual examples may require paid APIs. | **Learning from working examples and adapting them** |\n| [**Open Design**](https://github.com/nexu-io/open-design) | An open-source AI design workspace for prototypes, websites, presentations, and other creative work. | **Combining design work with AI agents** |\n| [**Awesome MCP Servers**](https://github.com/punkpeye/awesome-mcp-servers) | A directory of MCP servers: connectors that let compatible AI assistants interact with tools and data sources. | **Finding integrations for AI assistants** |\n| [**Public APIs**](https://github.com/public-apis/public-apis) | A categorized directory of public APIs. Authentication requirements, free allowances, and restrictions vary by service. | **Finding data and services for an app** |\n\n---\n\n## 3. Deep-Dive: Architectural Breakdown\n\n### A. Autonomous Coding & Visual Pipelines (OpenHands & Langflow)\n- **OpenHands:** Integrates headless container execution with agentic reasoning loops. Coding assistants can spin up Docker environments, clone repositories, run unit tests, and iteratively rewrite code until all assertions pass.\n- **Langflow:** Democratizes multi-agent orchestration by providing a drag-and-drop ReactFlow canvas. It natively exposes endpoints compatible with the Model Context Protocol (MCP), allowing visual agent pipelines to be consumed as local CLI tools.\n\n### B. Local-First AI & Web Scraping (Ollama & Scrapling)\n- **Ollama:** The de facto gold standard for running quantization-efficient LLMs (Llama 3, Mistral, DeepSeek) locally on Apple Silicon and CUDA GPUs. It delivers an OpenAI-compatible HTTP endpoint for zero-latency, private offline development.\n- **Scrapling:** A cutting-edge Python library optimized for resilient scraping. It circumvents brittle XPath and CSS selectors by utilizing adaptive element matching and anti-fingerprinting stealth headers.\n\n### C. Zero-Cost Infrastructure & Integrations (Free-for-dev & Public APIs)\n- **Free-for-dev:** For student initiatives and club hackathons, this repository catalogues hundreds of IaaS, PaaS, DBaaS, and monitoring services providing generous persistent free tiers (Cloudflare, Supabase, Vercel, Neon).\n- **Public APIs:** An exhaustive, community-maintained collection of thousands of free REST endpoints spanning astronomy, weather, biology, economics, and sports.\n\n---\n\n## 4. QUANTA Club Recommendations\nAll project teams participating in the upcoming **QUANTA Open Innovation Challenge** are strongly encouraged to integrate these repositories into their foundational architecture. Direct links are provided in the matrix above for easy cloning and bookmarking.",
+      "category": "Opportunities",
+      "tagLabel": "DEVELOPER TOOLS & REPOS",
+      "tagTone": "sky",
+      "source": "QUANTA Open Source & Developer Directorate",
+      "readTime": "6 min read",
+      "date": "Nov 11, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://github.com/ripienaar/free-for-dev"
+    },
+    {
       "id": "exp-handy-offline-stt",
       "title": "Handy: Open-Source Local-First Speech-to-Text Built with Rust & Tauri",
       "summary": "A privacy-first cross-platform desktop application delivering instant, offline Whisper and Parakeet speech-to-text with global push-to-talk and zero cloud dependencies.",
@@ -7903,26 +7951,26 @@
       "externalUrl": "https://github.com/cjpais/handy"
     },
     {
-      "id": "exp-google-gemini-carbon",
-      "title": "Google Gemini 4 Carbon: Breakthrough SOTA in Cybersecurity, Agentic Coding & Reasoning",
-      "summary": "Debuting at #1 on the Artificial Analysis Intelligence Index with an 88.2% SEC-bench score, Google's Carbon architecture sets a new watermark for automated vulnerability discovery and long-horizon coding.",
-      "content": "# Google Gemini 4 Carbon: Benchmarks & Cybersecurity Evaluation\n\n## 1. Breakthrough Across Frontier Industry Leaderboards\nGoogle announced **Gemini 4 Carbon**, establishing top rankings across major independent AI benchmarks. Most notably, Carbon secured the **#1 overall position on the Artificial Analysis Intelligence Index (v5.0)** with an index rating of **59**, surpassing competitive frontier models in structured multi-step reasoning.\n\nAcross 17 rigorous evaluation suites, Carbon ranked first in 15 categories, marking an architectural leap in test-time compute scaling and autonomous software verification.\n\n## 2. Quantitative Cybersecurity Performance\nA defining characteristic of Carbon is its specialized capability in offensive and defensive cybersecurity evaluation:\n- **SEC-bench Pro (Vulnerability Discovery):** **88.2%** success rate identifying zero-day memory corruption, logic bugs, and authorization bypasses.\n- **ExploitGym (Controlled Exploit Generation):** **54.8%**, demonstrating autonomous proof-of-concept construction.\n- **CWE-bench (Automated Patch Synthesis):** **71.0%**, generating verified secure patches that resolve root causes without breaking test suites.\n- **Secure Code Generation:** Produces verified vulnerability-free code at more than twice the success rate of the Argon generation.\n\n> *\"Carbon was evaluated under rigorous safety guardrails through Google's Fairwind Program, partnering with cybersecurity defenders to stress-test automated vulnerability mitigation.\"*\n\n## 3. Agentic Software Engineering Leaderboard\n| Benchmark Suite | Metric | Gemini 4 Carbon | Prior SOTA Baseline |\n|---|---|---|---|\n| **Artificial Analysis Index (v5.0)** | Composite Score | **59 (#1)** | 58 |\n| **Terminal-Bench 4.0** | CLI Task Execution | **64.0%** | 52.4% |\n| **FrontierCode v1.1** | Complex Algorithmic Code | **51.0%** | 43.8% |\n| **SEC-bench Pro** | Bug Identification | **88.2%** | 69.1% |\n| **CWE-bench** | Patching Verified Fixes | **71.0%** | 56.5% |\n\n## 4. Architectural Significance for QUANTA Researchers\nThe emergence of agentic models capable of multi-hour terminal workflows without state drift validates our platform's emphasis on formal verification, typed sandboxes, and automated audit logging.",
-      "category": "Scientific News",
-      "tagLabel": "FRONTIER AI & BENCHMARKS",
-      "tagTone": "indigo",
-      "source": "Google DeepMind & Artificial Analysis",
-      "readTime": "5 min read",
+      "id": "exp-timimoun-short-film-festival-2026",
+      "title": "Timimoun International Short Film Festival 2026 (2nd Edition): Cinema, Gourara Lab & Media Masterclasses",
+      "summary": "The oasis city of Timimoun hosts its 2nd International Short Film Festival from Nov 26 to Dec 01, 2026, featuring the Gourara Media Lab and technical masterclasses for young Algerian creators.",
+      "content": "# Timimoun International Short Film Festival 2026 (2nd Edition)\n\n## 1. Cultural & Cinematographic Landmark in Gourara\nThe **Timimoun International Short Film Festival** returns for its second edition from **November 26 to December 01, 2026**, transforming the red oasis of the Algerian Sahara into a focal point for international cinema, digital media production, and cultural heritage.\n\n## 2. Core Pillars of the 2026 Edition\n- **Gourara Media Lab:** Intensive incubator workshops covering scriptwriting, sound design, visual editing, and color grading.\n- **International Competition:** 35 curated short films representing over 18 countries.\n- **Algerian Heritage in 4K:** Documenting traditional khattara water architecture and vernacular earthen architecture using modern cinematography.\n\n## 3. Student Participation\nQUANTA Audiovisual & Media Directorate is coordinating with festival organizers to sponsor delegate passes for student creators interested in masterclasses on drone cinematography and documentary sound recording.",
+      "category": "Events",
+      "tagLabel": "CULTURE & MEDIA",
+      "tagTone": "amber",
+      "source": "Algerian Ministry of Culture & Arts",
+      "readTime": "4 min read",
       "date": "Nov 04, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1200&q=80",
       "featuredInCarousel": true,
       "status": "Published",
-      "externalUrl": "https://blog.google"
+      "externalUrl": "https://www.m-culture.gov.dz"
     },
     {
       "id": "exp-optogenetics-senolytics-nature",
       "title": "Cellular Rejuvenation & Neural Circuit Control: Optogenetics and Targeted Senolytics in Nature",
       "summary": "Landmark papers published in Nature and Science showcase light-sensitive microbial channelrhodopsins restoring visual circuits, paired with selective senolytic clearing of inflammatory 'zombie' cells.",
-      "content": "# Cellular Rejuvenation & Precision Neural Control: 2026 Biology Milestones\n\n## 1. Optogenetics Enters Clinical Restoration\nWork recognized in contemporary biological physics has elevated **optogenetics**—the genetic insertion of light-activated algal opsins into mammalian neurons—from laboratory circuit mapping to direct therapeutic translation.\n\nRecent clinical milestones reported in *Nature* demonstrate targeted channelrhodopsin gene therapies restoring functional contrast perception and visual evoke potentials in patients with end-stage retinal degeneration. By optically pacing dormant retinal ganglion cells with micro-LED arrays, scientists achieve spatial resolution exceeding classical electrode implants by an order of magnitude.\n\n## 2. Targeting Senescent \"Zombie\" Cells\nConcurrently, research published in *Science* has detailed selective metabolic vulnerabilities in senescent cells—damaged cells that irreversibly arrest replication yet remain hypermetabolic, continuously secreting the destructive **Senescence-Associated Secretory Phenotype (SASP)**:\n- **Targeted Proteolysis:** New senolytic conjugates selectively trigger apoptosis in $p16^{\\text{INK4a}}$-positive cells while leaving healthy somatic neighbors intact.\n- **SASP Quenching:** Systemic clearance in mammalian models reduced circulating IL-6 and TNF-α, resulting in significant improvements in cardiovascular elasticity, osteogenic density, and cognitive stamina.\n\n> *\"Selective senolysis demonstrates that biological aging is not merely stochastic wear-and-tear, but an active biochemical signaling loop that can be therapeutically disrupted.\"*\n\n## 3. Label-Free Live-Cell Interferometric Nanoscopy\nComplementing these molecular therapies, breakthroughs in high-resolution label-free microscopy enable structural biologists to track macromolecular viral capsid self-assembly in real time. By measuring refractive index gradients rather than relying on phototoxic fluorescent dyes, scientists observed spontaneous trial-and-error pentameric clustering across living cell membranes without perturbing thermodynamic equilibrium.",
+      "content": "# Cellular Rejuvenation & Precision Neural Control: 2026 Biology Milestones\n\n## 1. Optogenetics Enters Clinical Restoration\nWork recognized in contemporary biological physics has elevated **optogenetics**—the genetic insertion of light-activated algal opsins into mammalian neurons—from laboratory circuit mapping to direct therapeutic translation.\n\nRecent clinical milestones reported in *Nature* demonstrate targeted channelrhodopsin gene therapies restoring functional contrast perception and visual evoke potentials in patients with end-stage retinal degeneration.\n\n## 2. Targeting Senescent \"Zombie\" Cells\nConcurrently, research published in *Science* has detailed selective metabolic vulnerabilities in senescent cells—damaged cells that irreversibly arrest replication yet remain hypermetabolic, continuously secreting the destructive **Senescence-Associated Secretory Phenotype (SASP)**.",
       "category": "Scientific News",
       "tagLabel": "BIOLOGY & MEDICINE",
       "tagTone": "sky",
@@ -7930,31 +7978,30 @@
       "readTime": "5 min read",
       "date": "Nov 04, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1200&q=80",
-      "featuredInCarousel": true,
+      "featuredInCarousel": false,
       "status": "Published",
       "externalUrl": "https://www.nature.com"
     },
     {
-      "id": "exp-timimoun-short-film-festival-2026",
-      "title": "Timimoun International Short Film Festival 2026 (2nd Edition): Cinema, Gourara Lab & Media Masterclasses",
-      "summary": "From November 5 to 10, the red oasis of Timimoun hosts 63 short films from 39 nations, featuring 6 professional masterclasses, the Anis Djaad script residency, and smartphone youth film awards.",
-      "content": "# 2nd Edition of the Timimoun International Short Film Festival (TISFF)\n\n## 1. The Red Oasis as a Global Cinematic Stage\nTaking place from **November 5 to 10, 2026**, the historic Gourara oasis of **Timimoun, Algeria**, hosts the second edition of the **Timimoun International Short Film Festival (TISFF)**. Selected from over a thousand global submissions, the festival convenes filmmakers from **39 countries** showcasing **63 selected short films**.\n\nThe official competition evaluates **37 films** across three dedicated categories:\n- **Fiction Shorts:** 16 international entries exploring contemporary narratives.\n- **Documentary Films:** 13 works chronicling indigenous heritage and environmental frontiers.\n- **Animated Works:** 8 animated shorts, highlighted by the opening screening of Alberto Segre's *\"La Question\"*.\n\n## 2. Six Professional Masterclasses for Southern Youth\nIn partnership with vocational training centers across southern Algerian wilayas, TISFF delivers intensive hands-on technical masterclasses:\n1. **Directing Actors & Scene Choreography:** Guiding authentic performances in naturalistic settings.\n2. **Desert Cinematography & Optical Lighting:** Managing extreme dynamic ranges and harsh Saharan sun without washing out skin tones.\n3. **Field Sound Engineering:** Wind suppression, boom handling, and spatial acoustics in open dune environments.\n4. **Cinematic Editing & Rhythm:** Pacing short-form storytelling under 15-minute runtime caps.\n5. **Color Grading & Digital Imaging Technician (DIT) Pipelines.**\n6. **Mobile Filmmaking (Ciné-Pocket Yamina Chouikh):** A dedicated competition empowering young local creators to shoot, cut, and premiere 5-minute films entirely on smartphones.\n\n## 3. Gourara Lab: The Anis Djaad Residency\nDedicated to the memory of Algerian screenwriter and director Anis Djaad, the **Gourara Lab** runs alongside the festival as a national fiction incubator. Selected young writers receive one-on-one mentorship from veteran script doctors and producers, refining screenplays before pitching to regional production funds.\n\n> *\"TISFF bridges heritage architecture with cutting-edge visual technology, proving that cinematic excellence thrives at the heart of the Sahara.\"*",
-      "category": "Events",
-      "tagLabel": "SAHARAN CINEMA & MEDIA",
-      "tagTone": "amber",
-      "source": "DZEvent & Timimoun Cultural Commission",
-      "readTime": "4 min read",
-      "date": "Nov 04, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200&q=80",
-      "featuredInCarousel": true,
+      "id": "exp-global-fellowships-grants-2027",
+      "title": "Global STEM Fellowships & Research Grants 2027: Application Windows Open for Algerian Students",
+      "summary": "Comprehensive roadmap for fully-funded international graduate fellowships: DAAD, Chevening, Fulbright STEM, Erasmus Mundus, and CERN Summer Student Program deadlines.",
+      "content": "# Global STEM Fellowships & Research Grants: 2027 Candidate Roadmap\n\n## 1. Strategic Timeline\nAlgerian undergraduate and master's students pursuing advanced research in artificial intelligence, biotechnology, quantum computing, and renewable energy can now access official application portals for major global research grants.\n\n## 2. Featured Fellowship Portfolios\n- **DAAD Research Internships in Science and Engineering (RISE):** Fully-funded 3-month research placements at leading German universities.\n- **Fulbright Science & Technology Awards:** Comprehensive graduate study funding in the United States.\n- **CERN Summer Student Programme (Geneva):** 8 to 13 weeks of hands-on experimental particle physics and computing work.\n- **Erasmus Mundus Joint Masters:** European Commission scholarships covering tuition, travel, and monthly living stipends.",
+      "category": "Opportunities",
+      "tagLabel": "FELLOWSHIPS & GRANTS",
+      "tagTone": "sky",
+      "source": "QUANTA Academic Affairs Directorate",
+      "readTime": "6 min read",
+      "date": "Nov 02, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80",
+      "featuredInCarousel": false,
       "status": "Published",
-      "externalUrl": "https://www.dzevent.com/events/timimoun-international-short-film-festival-2nd-edition-mvpy67ym"
+      "externalUrl": "https://www.daad.de/en/"
     },
     {
       "id": "exp-neural-operators-fluids",
       "title": "Fourier Neural Operators: Zero-Shot Super-Resolution in Non-Linear Fluid Dynamics",
       "summary": "Parametrizing partial differential equations directly in infinite-dimensional function space allows Fourier Neural Operators to simulate Navier-Stokes turbulence 10,000 times faster than classical mesh solvers.",
-      "content": "# Fourier Neural Operators: Zero-Shot Super-Resolution in Fluid Dynamics\n\n## 1. Escaping the Discrete Mesh Bottleneck\nClassical numerical simulation of turbulence and Navier-Stokes partial differential equations (PDEs) relies on fine spatial discretizations—finite difference (FDM), finite volume (FVM), or finite element (FEM) methods. As Reynolds numbers scale, mesh resolution must grow cubically, pushing computational requirements into petaflop regimes.\n\n> **Key Theoretical Breakthrough:** The **Fourier Neural Operator (FNO)** learns a continuous mapping between infinite-dimensional Hilbert spaces rather than approximating vector points on a fixed lattice.\n\n## 2. Mathematical Framework & Kernel Integral Formulation\nAn operator $\\mathcal{G}_\\theta: \\mathcal{A} \\to \\mathcal{U}$ is modeled through iterative kernel integration layers:\n\n$$v_{t+1}(x) = \\sigma \\left( W v_t(x) + \\left(\\mathcal{K} v_t\\right)(x) \\right)$$\n\nWhere the non-local kernel integral operator $\\mathcal{K}$ is computed directly in the frequency domain using the Fast Fourier Transform (FFT):\n\n$$\\left(\\mathcal{K} v_t\\right)(x) = \\mathcal{F}^{-1} \\left( R_\\phi \\cdot \\left(\\mathcal{F} v_t\\right) \\right)(x)$$\n\n- **Truncated Fourier Modes:** Higher frequencies above cutoff $k_{\\max}$ are filtered, achieving natural regularization.\n- **Mesh Invariance:** A model trained at a coarse $64 \\times 64$ resolution evaluates on a $512 \\times 512$ or continuous grid with **zero retraining** (zero-shot super-resolution).\n\n## 3. Practical Benchmark Metrics\n| Solver Architecture | Evaluation Time (s) | Relative $L_2$ Error | Memory Footprint |\n|---|---|---|---|\n| Classical Pseudo-Spectral | 2.45 s | Baseline (Exact) | High (Iterative) |\n| Standard U-Net ConvNet | 0.042 s | 8.92% (Mesh Tied) | Medium |\n| **Fourier Neural Operator (FNO)** | **0.003 s** | **1.14% (Zero-Shot)** | **Low (Cached)** |\n\n## 4. QUANTA Lab Implementation & Workshop Series\nWithin the QUANTA AI & Modeling track, students implement FNO architectures using PyTorch and benchmark vorticity fields on university GPU clusters. Practical sessions explore:\n1. Continuous parameter learning for Darcy flow and atmospheric advection.\n2. Physics-Informed Neural Operator (PINO) constraints penalizing mass conservation residual violations.",
       "category": "Scientific News",
       "tagLabel": "AI & COMPUTATIONAL PHYSICS",
       "tagTone": "cyan",
@@ -7962,450 +8009,340 @@
       "readTime": "5 min read",
       "date": "Oct 30, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
+      "featuredInCarousel": false,
+      "status": "Archived",
       "externalUrl": "https://arxiv.org/abs/2010.08895"
     },
     {
       "id": "exp-crispr-cas12a-diagnostics",
       "title": "CRISPR-Cas12a Electrochemical Aptasensors: Femtomolar Viral RNA Detection at Room Temperature",
       "summary": "Coupling collateral single-stranded DNA cleavage with gold nanoparticle microelectrodes yields ultra-portable, reagent-free diagnostic platforms for rapid infectious disease screening.",
-      "content": "# CRISPR-Cas12a Electrochemical Biosensors for Rapid Viral Detection\n\n## 1. Collateral Cleavage Transduction Mechanisms\nWhile CRISPR systems are historically celebrated for targeted gene editing, the discovery of **non-specific trans-cleavage activity** in Class 2 Cas12 and Cas13 endonucleases has revolutionized molecular diagnostics:\n- Upon specific guide-RNA (crRNA) hybridization with a target viral sequence, Cas12a undergoes an allosteric conformational shift.\n- This activates an indiscriminate single-stranded DNA (ssDNA) catalytic pocket that shreds adjacent non-target reporter probes at rates exceeding $10^4$ turnovers per minute.\n\n> *\"Collateral cleavage acts as a biological amplifier, turning a single target recognition event into millions of detectable electrochemical signals without requiring thermal PCR cycles.\"*\n\n## 2. Gold Microelectrode Architecture\nIn the QUANTA Biosensor setup, gold interdigitated microelectrodes (IDEs) are functionalized with methylene blue-conjugated hairpin oligonucleotides:\n1. In the absence of target pathogen, the stem-loop holds methylene blue close to the gold surface, facilitating fast electron transfer.\n2. In the presence of target viral cDNA, activated Cas12a rapidly cleaves the hairpin tether.\n3. The liberated redox reporter diffuses into the bulk solution, causing a sharp decrease in square-wave voltammetry (SWV) peak current.\n\n## 3. Key Analytical Parameters\n- **Limit of Detection (LoD):** $1.4 \\text{ fM}$ ($< 50$ copies/$\\mu\\text{L}$).\n- **Reaction Temperature:** Ambient room temperature ($22^{\\circ}\\text{C}$ to $28^{\\circ}\\text{C}$), eliminating bulky thermal cyclers.\n- **Assay Time:** Under 15 minutes from sample lysis to digital readout on a handheld smartphone interface.",
       "category": "Scientific News",
-      "tagLabel": "BIOTECHNOLOGY",
+      "tagLabel": "BIOMEDICAL ENGINEERING",
       "tagTone": "sky",
-      "source": "QUANTA Bio-Health Research",
-      "readTime": "4 min read",
+      "source": "QUANTA Biotechnology Division",
+      "readTime": "5 min read",
       "date": "Oct 29, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
-      "externalUrl": "https://www.nature.com/biomed/"
+      "imageUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1200&q=80",
+      "featuredInCarousel": false,
+      "status": "Archived",
+      "externalUrl": "https://www.nature.com/articles/s41587-020-00803-x"
     },
     {
       "id": "exp-polariton-halide-lasers",
       "title": "Bose-Einstein Condensation of Exciton-Polaritons in Perovskite Optical Microcavities",
-      "summary": "Strong light-matter coupling in 2D cesium lead bromide microcavities achieves non-equilibrium polariton condensation at room temperature, unlocking thresholdless coherent on-chip light sources.",
-      "content": "# Polariton Condensation in 2D Halide Perovskite Microcavities\n\n## 1. Strong Light-Matter Coupling Regimes\nWhen an optical cavity resonance is tuned to the excitonic transition of a semiconductor with sufficient oscillator strength, the energy exchange between photons and excitons exceeds their respective dissipation rates. The system enters the **strong coupling regime**:\n- The eigenstates of the Hamiltonian are no longer pure photons or excitons, but hybrid bosonic quasiparticles termed **exciton-polaritons**.\n- Polaritons inherit an effective mass $10^4$ to $10^5$ times lighter than free electrons from their photonic component, while retaining particle-particle interaction from their excitonic dipole.\n\n## 2. Room-Temperature Condensation Dynamics\nBecause the critical temperature for Bose-Einstein condensation scales inversely with effective mass:\n$$T_c \\propto \\frac{\\hbar^2}{m^* k_B} n^{2/3}$$\nThe ultra-light mass of polaritons elevates condensation thresholds from sub-Kelvin helium temperatures directly to room temperature ($300\\text{ K}$) in high-binding-energy materials such as $\\text{CsPbBr}_3$ perovskites.\n\n> **Observation:** Above threshold optical pump fluences, polaritons spontaneously condense into the ground state ($k_\\parallel = 0$), emitting directional, monochromatic coherent laser light with negligible population inversion requirements.\n\n## 3. Potential for Integrated Quantum Photonic Circuits\nThese devices enable ultra-low-energy optical switches, optical logic gates operating at terahertz frequencies, and on-chip topological simulators.",
+      "summary": "Demonstrating macroscopic quantum phase coherence at room temperature using all-inorganic lead-halide perovskite microcrystals paves the way for ultra-low threshold polariton lasers.",
       "category": "Scientific News",
-      "tagLabel": "QUANTUM PHOTONICS",
+      "tagLabel": "QUANTUM OPTICS & CONDENSED MATTER",
       "tagTone": "indigo",
-      "source": "Physical Review Letters · Condensed Matter",
+      "source": "QUANTA Photonics & Nanotech Lab",
       "readTime": "6 min read",
       "date": "Oct 27, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=1200&q=80",
       "featuredInCarousel": false,
-      "status": "Published",
-      "externalUrl": "https://journals.aps.org/prl/"
+      "status": "Archived",
+      "externalUrl": "https://www.science.org/doi/10.1126/science.aay6662"
     },
     {
       "id": "exp-jwst-exoplanet-coronagraphy",
       "title": "Atmospheric Methane & Carbon Isotopes in Directly Imaged Exoplanets with JWST NIRCam",
-      "summary": "High-contrast coronagraphic spectroscopy detects pristine methane and carbon-13 depletion in a young gas giant 120 parsecs away, constraining volatile inheritance during disk runaway accretion.",
-      "content": "# Direct Coronagraphic Imaging of Exoplanetary Atmospheres with JWST\n\n## 1. Disentangling Planetary Light from Stellar Glare\nDirectly detecting radiation from young gas giant exoplanets requires overcoming extreme contrast ratios—host stars typically shine $10^4$ to $10^6$ times brighter than their planetary companions at infrared wavelengths.\n\nThe James Webb Space Telescope NIRCam coronagraph utilizes Lyot masks and continuous wavefront sensing to null stellar diffraction rings, achieving raw contrasts of $10^{-5}$ at inner working angles of $0.4\\text{ arcseconds}$.\n\n## 2. Spectroscopic Signatures and Atmospheric Composition\nHigh-precision spectroscopy between $3.0\\text{ }\\mu\\text{m}$ and $5.0\\text{ }\\mu\\text{m}$ has resolved molecular bands with unprecedented signal-to-noise:\n- **Methane ($\\text{CH}_4$):** Clear absorption dips at $3.3\\text{ }\\mu\\text{m}$ rule out extreme disequilibrium chemistry and vertical convective quench zones.\n- **Carbon Monoxide ($\\text{CO}$) & Water Vapor ($\\text{H}_2\\text{O}$):** Carbon-to-oxygen ($C/O$) ratios measured at $0.58 \\pm 0.04$, indicating formation beyond the circumstellar water-ice snowline.\n- **Isotopic Ratios ($^{12}\\text{C}/^{13}\\text{C}$):** Elevated $^{12}\\text{C}$ suggests pebble accretion from pristine outer disk reservoirs.\n\n## 3. Implications for Giant Planet Migration\nComparing atmospheric metallicity across planetary mass regimes provides definitive test constraints against core accretion versus gravitational disk instability models.",
+      "summary": "Direct coronagraphic spectroscopy of young gas giants reveals non-equilibrium carbon chemistry and isotopic ratios constraining planet formation pathways beyond the snow line.",
       "category": "Scientific News",
-      "tagLabel": "ASTROPHYSICS",
+      "tagLabel": "ASTROPHYSICS & EXOPLANETS",
       "tagTone": "amber",
-      "source": "NASA Exoplanet Exploration & Nature Astronomy",
-      "readTime": "7 min read",
+      "source": "QUANTA Astrophysics Working Group",
+      "readTime": "5 min read",
       "date": "Oct 24, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80",
       "featuredInCarousel": false,
-      "status": "Published",
-      "externalUrl": "https://science.nasa.gov/mission/webb/"
+      "status": "Archived",
+      "externalUrl": "https://webbtelescope.org"
     },
     {
       "id": "exp-swarm-robotics-consensus",
       "title": "Decentralized Byzantine Consensus in Autonomous Aerial Robot Swarms via Asynchronous Gossip",
-      "summary": "Self-organizing micro-UAV swarms coordinate trajectory collision avoidance without centralized base-station telecommand, guaranteeing mission resilience under active jamming and GPS blackout.",
-      "content": "# Decentralized Swarm Consensus in GPS-Denied Environments\n\n## 1. Overcoming the Single-Point-of-Failure Vulnerability\nTraditional multi-agent drone fleets depend on a central ground control station (GCS) to broadcast waypoint trajectories and arbitrate flight path conflicts. In contested or obstacle-dense environments (such as search-and-rescue operations inside collapsed structures or dense canopies), centralized radio links suffer packet dropouts, multi-path fading, and latency spikes.\n\n## 2. Asynchronous Consensus & Collision Avoidance Protocols\nBy implementing an asynchronous Byzantine-resilient consensus algorithm, every UAV in the swarm exchanges state updates solely with immediate optical and Ultra-Wideband (UWB) mesh neighbors:\n- **Local Spatial Hash Grid:** Agents broadcast relative position covariance ellipsoids.\n- **Distributed Quadratic Programming (DQP):** Each drone locally solves reciprocal velocity obstacles (RVO) while maintaining topological swarm formation cohesion.\n- **Fault Tolerance:** The swarm dynamically isolates unresponsive or compromised nodes without aborting the overarching mission objective.\n\n```python\n# Example Decentralized Swarm Velocity Consensus Kernel\ndef compute_reciprocal_obstacle_avoidance(agent_state, neighbors):\n    optimal_velocity = agent_state.preferred_velocity\n    for neighbor in neighbors:\n        relative_pos = neighbor.pos - agent_state.pos\n        relative_vel = agent_state.vel - neighbor.vel\n        # Truncate velocity cone intersection\n        if inside_velocity_obstacle(relative_pos, relative_vel, safety_margin=0.8):\n            optimal_velocity = project_outside_cone(optimal_velocity, relative_pos)\n    return optimal_velocity\n```\n\n## 3. Field Trials and Real-Time Latencies\nHardware experiments utilizing sub-250g quadrotors with on-board neuromorphic vision sensors demonstrate collision-free formation flights at speeds up to $6.5\\text{ m/s}$ with inter-agent communication delays under $8\\text{ ms}$.",
+      "summary": "Novel distributed algorithms ensure collision-free formation flight and target tracking even when up to 30% of drones experience adversarial GPS spoofing or communication dropouts.",
       "category": "Opportunities",
-      "tagLabel": "ROBOTICS & EMBEDDED AI",
-      "tagTone": "sky",
-      "source": "IEEE Transactions on Robotics",
+      "tagLabel": "ROBOTICS & AUTONOMOUS SYSTEMS",
+      "tagTone": "cyan",
+      "source": "QUANTA Robotics & Control Group",
       "readTime": "5 min read",
       "date": "Oct 21, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&q=80",
       "featuredInCarousel": false,
-      "status": "Published",
-      "externalUrl": "https://ieeexplore.ieee.org/"
+      "status": "Archived",
+      "externalUrl": "https://ieeexplore.ieee.org"
     }
   ],
   "dailyQuizzes": [
     {
-      "id": "quiz-nov1-01",
-      "domain": "بيان أول نوفمبر 1954",
-      "icon": "legal-charter",
-      "question": "ما هو المبدأ الأساسي الذي أعلنه بيان أول نوفمبر 1954 كهدف أسمى للثورة التحريرية الجزائرية؟",
+      "id": "quiz-2026-11-11-01",
+      "domain": "الذكاء الاصطناعي ونماذج التفكير (Gemini 4 Carbon)",
+      "icon": "ai-ml",
+      "question": "ما هي الميزة التقنية الأبرز لنموذج Gemini 4 Carbon التي مكنته من تصدر مؤشرات التفكير البرمجي لعام 2026؟",
       "options": [
         {
           "id": "a",
-          "label": "إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية"
+          "label": "التفكير العميق والتحقق الذاتي واكتشاف الثغرات الأمنية بدقة 88.2% على SEC-bench Pro"
         },
         {
           "id": "b",
-          "label": "المطالبة بحكم ذاتي وإصلاحات إدارية محدودة مع البقاء تحت السيادة الاستعمارية"
+          "label": "العمل فقط كآلة حاسبة بسيطة للعمليات الحسابية المحدودة"
         },
         {
           "id": "c",
-          "label": "الاندماج السياسي المشروط في الجمعية الوطنية الفرنسية"
+          "label": "توليد ملفات صوتية فقط دون دعم الأكواد البرمجية"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "تأكيد مبادئ بيان أول نوفمبر 1954 الخالد",
-      "explanation": "نص بيان أول نوفمبر 1954 صراحة على إقامة الدولة الجزائرية الديمقراطية الاجتماعية ذات السيادة ضمن إطار المبادئ الإسلامية.",
-      "xpReward": 25,
+      "verdictTitle": "ريادة Gemini 4 Carbon في التفكير البرمجي والأمن السيبراني",
+      "explanation": "تصدر نموذج Gemini 4 Carbon مؤشر Artificial Analysis v5 بنتيجة 59 بفضل قدرته على التفكير المنطقي متعدد الخطوات والتحقق الذاتي من الكود وكشف الثغرات الأمنية المعقدة بنسبة 88.2%.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
       "isPinnedToday": true,
       "active": true
     },
     {
-      "id": "quiz-nov1-02",
-      "domain": "هندسة الاتصالات وشبكات الثورة",
-      "icon": "electronics",
-      "question": "كيف نجح مهندسو ومجاهدو الاتصالات في إطلاق إذاعة 'صوت الجزائر الحرة المكافحة' عام 1956 رغم التشويش الاستعماري؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "استخدام أجهزة إرسال لاسلكية متحركة على متن شاحنات وتقنية التنقل الترددي (Frequency Hopping)"
-        },
-        {
-          "id": "b",
-          "label": "الاعتماد الحصري على الكابلات البحرية السلكية بين الجزائر وفرنسا"
-        },
-        {
-          "id": "c",
-          "label": "استعمال أبراج البث التلفزيوني الاستعمارية العامة في العاصمة فقط"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "عبقرية هندسة الاتصالات اللاسلكية الثورية",
-      "explanation": "اعتمدت شبكة الاتصالات اللاسلكية لجبهة التحرير الوطني على أجهزة إرسال متنقلة عالية التردد لتفادي الرصد والتثليث الراديوي من قبل جيش الاحتلال.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-03",
-      "domain": "الطلبة والثورة التحريرية",
-      "icon": "scientific-writing",
-      "question": "ما هو التاريخ المفصلي الذي أعلن فيه الطلبة الجزائريون إضرابهم التاريخي والتحاقهم الجماعي بجيش التحرير الوطني؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "19 ماي 1956 تحت شعار: بشهادة واحدة لا نصنع وطناً، ولكن بوطن نصنع آلاف الشهادات"
-        },
-        {
-          "id": "b",
-          "label": "11 ديسمبر 1960 خلال المظاهرات الشعبية"
-        },
-        {
-          "id": "c",
-          "label": "05 جويلية 1962 يوم الاستقلال الوطني"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "نداء 19 ماي 1956: سلاح العلم في معركة التحرير",
-      "explanation": "أصدر الاتحاد العام للطلبة المسلمين الجزائريين (UGEMA) نداء الإضراب العام في 19 ماي 1956، ملتحقين بصفوف الثورة كأطباء، مهندسين، وإعلاميين.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-04",
-      "domain": "التنظيم العسكري والجغرافي",
-      "icon": "leadership",
-      "question": "كم كان عدد المناطق العسكرية (الولايات التاريخية) التي قُسمت إليها الجزائر في مؤتمر الصومام 1956؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "6 ولايات تاريخية بعد إضافة الولاية السادسة (الصحراء)"
-        },
-        {
-          "id": "b",
-          "label": "3 ولايات فقط (الشرق، الوسط، والغرب)"
-        },
-        {
-          "id": "c",
-          "label": "12 ولاية مستقلة دون قيادة موحدة"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "الهيكلة الاستراتيجية الموحدة للتراب الوطني",
-      "explanation": "قسم مؤتمر الصومام عام 1956 الوطن إلى ست ولايات تاريخية تحت قيادة أركان موحدة وتنظيم عسكري ولوجستي متكامل.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-05",
-      "domain": "التشفير والأمن السيبراني الثوري",
+      "id": "quiz-2026-11-11-02",
+      "domain": "الأنظمة المستقلة والوكلاء الأذكياء (Claude Fable)",
       "icon": "cybersecurity",
-      "question": "كيف كانت تُنقل الأوامر والرسائل الاستراتيجية السرية بين قيادة جيش التحرير والولايات التاريخية لتأمينها ضد فك الشفرات؟",
+      "question": "ما هي القدرة الأساسية التي تميز عائلة نماذج Claude Fable 5.2 المطورة للوكلاء البرمجيين؟",
       "options": [
         {
           "id": "a",
-          "label": "استخدام جداول استبدال مشفرة وشبكات فدائيين بريديين بنظام المسافات المتقطعة وحيدة الاستعمال"
+          "label": "العمل المستقل طويل الأمد وتنسيق الوكلاء عبر مستودعات برمجية ضخمة مع التفكير الممتد"
         },
         {
           "id": "b",
-          "label": "إرسالها عبر مكاتب البريد العادي الاستعماري دون أي حماية"
+          "label": "اقتصارها على كتابة رسائل بريد إلكتروني قصيرة جداً"
         },
         {
           "id": "c",
-          "label": "نشرها علناً في الصحف الفرنسية عبر إعلانات تجارية وهمية"
+          "label": "توقفها عن العمل بمجرد تجاوز الكود 10 أسطر"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "بروتوكول الأمان والتشفير البشري الثوري",
-      "explanation": "اعتمد جيش التحرير الوطني على شفرات أبجدية ورقمية معقدة يتم تغيير مفاتيحها دورياً مع شبكة بريديين فدائيين لا يعرف كل حلقة فيها سوى سابقتها.",
-      "xpReward": 25,
+      "verdictTitle": "الاستقلالية طويلة الأمد لنماذج Claude Fable 5.2",
+      "explanation": "صُممت عائلة Claude Fable لإنجاز المهام البرمجية والهندسية المعقدة متعددة الساعات (Long-Horizon Tasks) عبر مستودعات برمجية متعددة وتصحيح الأخطاء ذاتياً بدعم آليات التفكير التكيفي.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-06",
-      "domain": "الطب الثوري وإنقاذ الأرواح",
-      "icon": "health",
-      "question": "من هو الطبيب والمفكر الجزائري الذي وظّف الطب النفسي لتحليل آثار الاستعمار وكرّس قلمه وعلاجه لخدمة الثورة التحريرية؟",
+      "id": "quiz-2026-11-11-03",
+      "domain": "إدارة النسخ والمستودعات البرمجية (Git)",
+      "icon": "git-open-source",
+      "question": "ما هو الأمر المختصر في Git لإنشاء فرع برمجي جديد (Branch) والانتقال إليه فوراً؟",
       "options": [
         {
           "id": "a",
-          "label": "فرانز فانون (Frantz Fanon) في كتابه معذبو الأرض والطب النفسي في البليدة"
+          "label": "git checkout -b <branch-name>"
         },
         {
           "id": "b",
-          "label": "لويس باستور في أبحاث الجراثيم"
+          "label": "git reset --hard"
         },
         {
           "id": "c",
-          "label": "رينيه لاينك مخترع السماعة الطبية"
+          "label": "git commit -m \"delete\""
         }
       ],
       "correctId": "a",
-      "verdictTitle": "الطب النفسي التحرري وتفكيك الصدمات الاستعمارية",
-      "explanation": "انضم الدكتور فرانز فانون إلى جبهة التحرير الوطني وعالج مجاهدي جيش التحرير ووثق في مؤلفاته الفكرية الآثار النفسية العميقة للعنف الاستعماري.",
-      "xpReward": 25,
+      "verdictTitle": "إنشاء الفروع والانتقال المباشر في Git",
+      "explanation": "يُستخدم الأمر `git checkout -b <branch-name>` (أو `git switch -c <branch-name>`) لإنشاء فرع عمل جديد والتبديل إليه في خطوة واحدة، مما يتيح تجربة الميزات بأمان.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-07",
-      "domain": "الدبلوماسية وتدويل القضية",
-      "icon": "journal-club",
-      "question": "ما هو المؤتمر الدولي الأول الذي نجحت فيه جبهة التحرير الوطني في إدراج القضية الجزائرية على الساحة الدولية عام 1955؟",
+      "id": "quiz-2026-11-11-04",
+      "domain": "الفلك وعلوم الفضاء (Cosmology)",
+      "icon": "astronomy",
+      "question": "ما هو أقرب كوكب إلى الشمس في مجموعتنا الشمسية؟",
       "options": [
         {
           "id": "a",
-          "label": "مؤتمر باندونغ (Bandung) لحركة عدم الانحياز في إندونيسيا"
+          "label": "عطارد (Mercury)"
         },
         {
           "id": "b",
-          "label": "مؤتمر يالطا في القرم"
+          "label": "المريخ (Mars)"
         },
         {
           "id": "c",
-          "label": "قمة جنيف للسلام العالمي"
+          "label": "نبتون (Neptune)"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "الانتصار الدبلوماسي في مؤتمر باندونغ 1955",
-      "explanation": "حضر وفد جبهة التحرير الوطني مؤتمر باندونغ في أبريل 1955، مما مهد لطرح القضية رسمياً في الجمعية العامة للأمم المتحدة.",
-      "xpReward": 25,
+      "verdictTitle": "كوكب عطارد: الجار الأقرب لشمسنا",
+      "explanation": "عطارد هو الكوكب الأقرب للشمس ويدور حولها في 88 يوماً فقط، ويتميز بفارق حراري هائل بين نهاره الحارق وليله شديد البرودة لانعدام الغلاف الجوي الكثيف.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-08",
-      "domain": "الهندسة العكسية وتصنيع السلاح",
-      "icon": "circuit-design",
-      "question": "ما هي الورشات التقنية السرية التي أسسها جيش التحرير الوطني لتصنيع الأسلحة وتطوير القنابل والذخائر محلياً؟",
+      "id": "quiz-2026-11-11-05",
+      "domain": "البيولوجيا الجزيئية وعلم الوراثة (Genetics)",
+      "icon": "genetics",
+      "question": "ما هو الجزيء الحيوي الحامل للتعليمات الوراثية الأساسية داخل خلايا الكائنات الحية؟",
       "options": [
         {
           "id": "a",
-          "label": "مصانع الأسلحة السرية بقيادة عبد الحفيظ بوصوف ومسعود زقار عبر الحدود"
+          "label": "حمض الديوكسي ريبونوكليك (DNA)"
         },
         {
           "id": "b",
-          "label": "شراء الأسلحة الجاهزة بالكامل دون أي تعديل أو تصنيع محلي"
+          "label": "سكر الجلوكوز"
         },
         {
           "id": "c",
-          "label": "استيراد الذخائر حصراً عبر الطيران المدني الدولي"
+          "label": "بيكربونات الصوديوم"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "التصنيع الحربي والهندسة الميدانية للثورة",
-      "explanation": "أقامت قيادة الثورة ورشات ومصانع سرية أنتجت مدافع الهاون وقذائف 'البازوكا' والعبوات الموجهة بكفاءة تقنية عالية.",
-      "xpReward": 25,
+      "verdictTitle": "جزيء الـ DNA وسر الحياة الجينية",
+      "explanation": "يحمل جزيء الـ DNA الشفرة الوراثية على هيئة تتابعات من القواعد النيتروجينية الأربع (A, T, C, G) المشفرة لبناء البروتينات الحيوية واستمرار الوظائف الخلوية.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-09",
-      "domain": "مظاهرات الشعب والشرعية الدولية",
-      "icon": "leadership",
-      "question": "ما هي المظاهرات الشعبية التاريخية التي حسمت أمام لجان الأمم المتحدة رغبة الشعب الجزائري المطلقة في الاستقلال التام؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "مظاهرات 11 ديسمبر 1960 التي رفعت فيها الأعلام الوطنية في وجه الدبابات"
-        },
-        {
-          "id": "b",
-          "label": "مظاهرات 14 جويلية في باريس"
-        },
-        {
-          "id": "c",
-          "label": "مسيرات عيد العمال عام 1940"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "ملحمة 11 ديسمبر 1960 والاستفتاء الشعبي الميداني",
-      "explanation": "أثبتت مظاهرات 11 ديسمبر 1960 للعالم بأسره أن جبهة التحرير الوطني هي الممثل الشرعي والوحيد للشعب الجزائري.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-10",
-      "domain": "العلوم والرياضيات في الإمداد الثوري",
-      "icon": "mathematics",
-      "question": "كيف ساهمت الحسابات الرياضية والفيزيائية في اختراق خطي 'شارل' و'موريس' المكهربين على الحدود؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "حسابات المقاومة والجهد الكهربائي، وتوقيت الدوريات، وتفجير الفجوات بأنابيب البنغالور المتزامنة"
-        },
-        {
-          "id": "b",
-          "label": "المرور العشوائي دون دراسة للتيار والجهد الكهربائي للأسلاك الشائكة"
-        },
-        {
-          "id": "c",
-          "label": "انتظار انقطاع التيار الكهربائي الطبيعي في جميع أرجاء الخطوط"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "الهندسة الطبوغرافية والفيزيائية في اختراق الأسلاك المكهربة",
-      "explanation": "اعتمد مهندسو جيش التحرير على دراسة دقيقة لقيم الجهد والتيار ومجسات الاهتزاز لاختراق خطي موريس وشارل وتمرير قوافل السلاح.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-11",
-      "domain": "مفاوضات إيفيان ووحدة التراب الوطني",
-      "icon": "legal-charter",
-      "question": "ما هو المبدأ الجغرافي والسيادي الذي تمسك به الوفد الجزائري المفاوض في إيفيان ورفض المساومة عليه إطلاقاً؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "وحدة التراب الوطني ورفض فصل الصحراء الجزائرية عن شمال الوطن"
-        },
-        {
-          "id": "b",
-          "label": "التنازل عن الحقول النفطية والمناجم مقابل استقلال المدن الساحلية"
-        },
-        {
-          "id": "c",
-          "label": "تقسيم الجزائر إلى دويلات فيدرالية متباعدة"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "صلابة الوفد المفاوض: الجزائر كلٌ لا يتجزأ",
-      "explanation": "أصر الوفد المفاوض برئاسة كريم بلقاسم على أن الصحراء الجزائرية جزء لا يتجزأ من السيادة الوطنية، مما أحبط مخططات الاستعمار لفصل الجنوب وثرواته.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-12",
-      "domain": "أبطال الفكر والتضحية",
-      "icon": "leadership",
-      "question": "من هو الشهيد القائد الرمز الذي قال عبارته التاريخية: 'ألقوا بالثورة إلى الشارع يحتضنها الشعب'؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "الشهيد البطل العربي بن مهيدي"
-        },
-        {
-          "id": "b",
-          "label": "الشهيد زيغود يوسف"
-        },
-        {
-          "id": "c",
-          "label": "الشهيد ديدوش مراد"
-        }
-      ],
-      "correctId": "a",
-      "verdictTitle": "حكمة الشهيد العربي بن مهيدي الخالدة",
-      "explanation": "جسد العربي بن مهيدي فلسفة الثورة الشعبية الشاملة، مبيناً أن إرادة الشعب هي المحرك الأساسي والحاضن الأعظم للتحرر والاستقلال.",
-      "xpReward": 25,
-      "active": true
-    },
-    {
-      "id": "quiz-nov1-13",
-      "domain": "المرأة الجزائرية في الثورة",
+      "id": "quiz-2026-11-11-06",
+      "domain": "الفيزياء الكونية والثوابت الطبيعية (Physics)",
       "icon": "optics",
-      "question": "ما هو الدور الاستراتيجي الذي أدته المجاهدات والممرضات الجزائريات (مثل جميلة بوحيرد وفضيلة سعدان) في معركة الجزائر والجبال؟",
+      "question": "كم تبلغ سرعة الضوء القصوى في الفراغ الكوني (c) تقريباً؟",
       "options": [
         {
           "id": "a",
-          "label": "نقل الرسائل والأسلحة، التمريض الميداني، والتنسيق الاستخباراتي في قلب شبكات المدن والجبال"
+          "label": "300,000 كيلومتر في الثانية تقريباً (3 × 10⁸ م/ث)"
         },
         {
           "id": "b",
-          "label": "الاقتصار على الأدوار الإدارية المكتبية خارج أرض الوطن"
+          "label": "340 متر في الثانية فقط"
         },
         {
           "id": "c",
-          "label": "عدم المشاركة في العمليات الميدانية للثورة"
+          "label": "1,000 كيلومتر في الساعة"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "شجاعة وتضحيات المرأة الجزائرية المجاهدة",
-      "explanation": "كانت المجاهدة الجزائرية في طليعة الفدائيين، قادت شبكات الاتصال ونقلت التموين والأسلحة وشاركت في أصعب المواجهات البطولية.",
-      "xpReward": 25,
+      "verdictTitle": "سرعة الضوء: الحد الأقصى للسرعة الكونية",
+      "explanation": "تبلغ سرعة الضوء في الفراغ 299,792,458 م/ث، وهي ثابت فيزيائي أساسي يمثل أقصى سرعة يمكن أن تنتقل بها المعلومات أو الطاقة في الكون وفق النسبية الخاصة.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-14",
-      "domain": "السيادة العلمية بعد الاستقلال",
-      "icon": "energy",
-      "question": "ما هو القرار السيادي التاريخي المتخذ في 24 فيفري 1971 الذي رسخ الاستقلال الاقتصادي والعلمي للجزائر؟",
+      "id": "quiz-2026-11-11-07",
+      "domain": "بيئة بايثون والبرمجيات الحرة (Python Ecosystem)",
+      "icon": "python",
+      "question": "ما هو مدير الحزم الافتراضي والرسمي لتثبيت المكتبات الخارجية في لغة بايثون؟",
       "options": [
         {
           "id": "a",
-          "label": "تأميم المحروقات واسترجاع الثروات الطبيعية بسواعد المهندسين الجزائريين"
+          "label": "pip (Pip Installs Packages)"
         },
         {
           "id": "b",
-          "label": "توقيع اتفاقيات التبعية النفطية للشركات الأجنبية"
+          "label": "npm"
         },
         {
           "id": "c",
-          "label": "إلغاء الجامعات والمعاهد التكنولوجية الوطنية"
+          "label": "cargo"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "معركة تأميم المحروقات وبناء الإطارات الوطنية",
-      "explanation": "أعلن تأميم المحروقات في 24 فيفري 1971، مما أتاح للكوادر والمهندسين الجزائريين قيادة قطاع الطاقة والتصنيع الوطني بكفاءة واقتدار.",
-      "xpReward": 25,
+      "verdictTitle": "أداة pip لإدارة مكتبات بايثون",
+      "explanation": "تعتبر أداة pip مدير الحزم القياسي المدمج مع بايثون، ويتيح للمطورين تثبيت وإدارة آلاف الحزم مفتوحة المصدر مباشرة من مستودع PyPI الرسمي.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-nov1-15",
-      "domain": "مسؤولية جيل اليوم: علم وعمل",
-      "icon": "quantum",
-      "question": "كيف يُواصل الطالب والباحث الجزائري اليوم في نادي QUANTERS أمانة شهداء أول نوفمبر 1954؟",
+      "id": "quiz-2026-11-11-08",
+      "domain": "الخوارزميات وهياكل البيانات (Data Structures)",
+      "icon": "mathematics",
+      "question": "ما هو التعقيد الزمني (Time Complexity) للوصول إلى عنصر في مصفوفة (Array) عبر الفهرس (Index)؟",
       "options": [
         {
           "id": "a",
-          "label": "بالتفوق في العلوم المتقدمة، البرمجة، والبحث التطبيقي لبناء سيادة تكنولوجية واقتصادية متينة"
+          "label": "O(1) - وصول لحظي ثابت"
         },
         {
           "id": "b",
-          "label": "بالاكتفاء بالدراسة النظرية دون ابتكار أو خدمة للمجتمع"
+          "label": "O(n) - مسح خطي بطيء"
         },
         {
           "id": "c",
-          "label": "بالانتظار والاعتماد الدائم على التقنيات المستوردة دون تطوير محلي"
+          "label": "O(n²) - زمن تربيعي"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "عهد الشهداء: السيادة التكنولوجية بسواعد الباحثين والعلماء",
-      "explanation": "الثورة المعاصرة هي ثورة الذكاء، الفيزياء، البرمجيات، والابتكار الوطني لحماية استقلال الجزائر وصون مكانتها بين الأمم.",
-      "xpReward": 25,
+      "verdictTitle": "الوصول المباشر O(1) في المصفوفات",
+      "explanation": "تخزن المصفوفات عناصرها في خلايا ذاكرة متتالية، مما يتيح للمعالج حساب عنوان الذاكرة المباشر لأي فهرس في خطوة حسابية واحدة وثابتة O(1).",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
+      "active": true
+    },
+    {
+      "id": "quiz-2026-11-11-09",
+      "domain": "بنية وتطوير الويب الحديث (Web Platform)",
+      "icon": "web-dev",
+      "question": "ما هي اللغة القياسية المستخدمة لبناء وتوصيف الهيكل الأساسي لصفحات الويب؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "HTML (HyperText Markup Language)"
+        },
+        {
+          "id": "b",
+          "label": "SQL"
+        },
+        {
+          "id": "c",
+          "label": "Assembly"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "لغة HTML ركيزة صفحات الإنترنت",
+      "explanation": "تمثل HTML لغة التوصيف القياسية العالمية التي تحدد هيكل صفحات الويب من نصوص وعناوين وصور ونماذج وروابط تشعبية.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
+      "active": true
+    },
+    {
+      "id": "quiz-2026-11-11-10",
+      "domain": "رسالة ورؤية نادي QUANTA العلمي",
+      "icon": "leadership",
+      "question": "ما هو الهدف الاستراتيجي الأسمى لنادي QUANTA العلمي في جامعة البليدة 1 والساحة الجامعية؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "ترسيخ التميز العلمي والبحثي، وتمكين الطلبة تقنياً، وتطوير مشاريع وابتكارات مفتوحة المصدر"
+        },
+        {
+          "id": "b",
+          "label": "تنظيم المسابقات الترفيهية الفردية فقط دون محتوى علمي"
+        },
+        {
+          "id": "c",
+          "label": "إغلاق المعامل البحثية والورش التقنية"
+        }
+      ],
+      "correctId": "a",
+      "verdictTitle": "رسالة نادي QUANTA: المعرفة والابتكار والمجتمع",
+      "explanation": "يهدف نادي كوانتا منذ انطلاقته إلى بناء مجتمع طلابي وبحثي رائد يعتمد أعلى معايير النزاهة العلمية وتطوير الحلول التقنية المبتكرة التي تخدم الوطن والمجتمع العلمي.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-11",
+      "isPinnedToday": false,
       "active": true
     }
   ],
@@ -11331,7 +11268,26 @@
       "eraOrRole": ""
     }
   ],
-  "messages": [],
+  "messages": [
+    {
+      "id": "msg-launch-nov11-1794355684682",
+      "senderLabel": "QUANTA Executive Administration",
+      "senderRole": "Executive",
+      "recipientScope": "All Members",
+      "priority": "Official notice",
+      "title": "⚡ تحديات اليوم العلمية الميسرة (+2 XP) ومقالات الذكاء الاصطناعي (Carbon 4 & Fable) متاحة الآن!",
+      "body": "تحية علمية طيبة لجميع أعضاء وباحثي نادي كوانتا،\n\nيسر إدارة النادي الإعلان عن إطلاق حزمة التحديات اليومية الجديدة لليوم (11 نوفمبر 2026) بنظام مكافآت ميسر يمنح نقطتي خبرة (+2 XP) لكل إجابة صحيحة!\n\nلقد صُممت أسئلة اليوم لتكون ممتعة، ميسرة وتثقيفية، وتغطي ركائز الحوسبة والعلوم الأساسية:\n1. الذكاء الاصطناعي ونموذج Google Gemini 4 Carbon\n2. الأنظمة المستقلة ونموذج Claude Fable 5.2\n3. إدارة النسخ البرمجية باستخدام أداة Git\n4. علم الفلك وأقرب الكواكب للشمس\n5. البيولوجيا الجزيئية وحامل الشيفرة الوراثية (DNA)\n6. الفيزياء الكونية وسرعة الضوء في الفراغ\n7. بيئة بايثون ومدير الحزم pip\n8. الخوارزميات وهياكل البيانات وسرعة الوصول O(1)\n9. لغة الويب القياسية HTML\n10. رسالة ورؤية نادي QUANTA العلمي\n\nكما تم تحديث قسم الاستكشاف (Explore) بنشر مقالات تحليلية معمقة:\n- \"Google Gemini 4 Carbon: The New Benchmark Champion in Deep Reasoning, SEC-bench Pro & Agentic Coding\"\n- \"Claude Fable & Multi-Agent Simulations: Long-Horizon Autonomy and Generative World-Building in 2026\"\n- \"Top 10 Essential GitHub Repositories Every Developer & AI Engineer Should Star in 2026\" (OpenHands, Langflow, Ollama, Free-for-dev, Scrapling...)\n\nندعو كافة الأعضاء لخوض التحديات العلمية اليومية والمشاركة في النقاشات التقنية عبر المنصة!",
+      "timeAgo": "Just now",
+      "unread": true,
+      "archived": false,
+      "channels": {
+        "inApp": true,
+        "email": true
+      },
+      "actionLabel": "افتح الاستكشاف والتحديات",
+      "linkUrl": "/explore"
+    }
+  ],
   "invitations": [],
   "accessGrants": [],
   "auditLogs": [],
