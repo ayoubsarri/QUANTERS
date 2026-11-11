@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "updatedAt": "2026-11-11T00:08:04.696Z",
+  "updatedAt": "2026-11-11T17:38:02.871Z",
   "collectionVersions": {
     "settings": "2026-10-27T13:23:47.274Z",
     "departments": "2026-10-27T14:16:51.178Z",
@@ -7340,46 +7340,7 @@
       "projectsCompletedCount": 0
     }
   ],
-  "workshops": [
-    {
-      "id": "ws-timimoun-media-lab-2026",
-      "title": "Timimoun Film & Media Lab: Field Cinematography, Sound Engineering & Short-Form Storytelling",
-      "activityType": "Workshop",
-      "category": "Scientific",
-      "iconType": "audiovisual",
-      "level": "Intermediate",
-      "instructor": "TISFF Masterclass Mentors & QUANTA Media Guild",
-      "dateLabel": "Thu, 05 Nov 2026",
-      "timeRange": "10:00 - 18:00",
-      "eventDate": "2026-11-05",
-      "planningOpenDate": "2026-11-01",
-      "startTime": "10:00",
-      "endTime": "18:00",
-      "location": "Gourara Cultural Palace & Hotel Gourara, Timimoun, Algeria",
-      "capacity": 50,
-      "seatsLeft": 18,
-      "xpReward": 45,
-      "status": "Published",
-      "description": "Field masterclass session organized in coordination with the 2nd Edition of the Timimoun International Short Film Festival. Covers natural lighting cinematography, desert wind acoustic audio capture, and mobile Ciné-Pocket short editing.",
-      "objectives": [
-        "Master multi-track desert audio recording and wind suppression acoustics.",
-        "Direct actors in high-contrast natural Saharan lighting.",
-        "Participate in the Anis Djaad Gourara Lab script breakdown.",
-        "Produce an ultra-short film entry for the Ciné-Pocket competition."
-      ],
-      "materials": [
-        "Digital cinema cameras / smartphones",
-        "Directional shotgun microphones & deadcats",
-        "Storyboarding notebooks",
-        "Portable neutral density (ND) filters"
-      ],
-      "liveQrToken": "live-qr-timimoun-2026",
-      "liveSixDigitCode": "514206",
-      "registeredMemberIds": [],
-      "waitlistMemberIds": [],
-      "attendanceRecords": []
-    }
-  ],
+  "workshops": [],
   "tasks": [],
   "pointRules": [
     {
@@ -7938,7 +7899,6 @@
       "id": "exp-handy-offline-stt",
       "title": "Handy: Open-Source Local-First Speech-to-Text Built with Rust & Tauri",
       "summary": "A privacy-first cross-platform desktop application delivering instant, offline Whisper and Parakeet speech-to-text with global push-to-talk and zero cloud dependencies.",
-      "content": "# Handy: Local-First, Offline Speech-to-Text with Rust & Tauri\n\n## 1. The Architecture of Local Audio Inference\nIn an era where voice data is routinely routed through cloud APIs, **Handy** (`cjpais/handy`) presents a clean, open-source paradigm: completely offline, real-time speech transcription that never transmits audio packets off the local machine.\n\nBuilt with a lightweight **Rust backend** and **Tauri (TypeScript/React)** frontend, Handy bypasses heavy Chromium/Electron runtimes to deliver near-zero memory footprint and instantaneous global response.\n\n> *\"Your voice stays entirely on your computer. Zero cloud tokens, zero latency spikes, zero privacy compromises.\"*\n\n## 2. Core Technical Capabilities\n- **On-Device Whisper & Parakeet Models:** Evaluates multi-lingual acoustic and language models locally, leveraging CPU SIMD and GPU hardware acceleration (Metal, DirectML, CUDA).\n- **Global Push-to-Talk / Hotkey Listener:** Low-level OS hotkey hooks capture speech system-wide and automatically type/paste the recognized output into the active cursor context of any app (VS Code, Obsidian, Slack, Browser).\n- **LLM Cleanup Pipeline:** Optional post-processing hooks pipe raw transcriptions into local small language models to purge filler syllables, fix punctuation, and format code snippets in real time.\n- **Cross-Platform Compilation:** Native binaries for macOS, Linux, and Windows with minimal system footprint.\n\n## 3. Engineering Benchmark Summary\n| Metric | Cloud API (Whisper v3) | Handy (Local On-Device) |\n|---|---|---|\n| **Privacy / Data Egress** | Transmitted to 3rd party | **100% On-Device (Zero Egress)** |\n| **Median Latency** | 850 – 1400 ms | **180 – 320 ms (Local Buffer)** |\n| **Offline Reliability** | Requires Internet | **100% Functional Air-Gapped** |\n| **RAM Footprint** | Browser dependent | **< 65 MB base (Tauri/Rust)** |\n\n## 4. QUANTA Lab Deployment\nQUANTA Computer Science & AI members can inspect the repository, build custom phonetic dictionary extensions, and benchmark execution profiles during the upcoming Systems & Rust workshop track.",
       "category": "Scientific News",
       "tagLabel": "AI & OPEN SOURCE",
       "tagTone": "cyan",
@@ -7946,15 +7906,14 @@
       "readTime": "4 min read",
       "date": "Nov 04, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
+      "featuredInCarousel": false,
+      "status": "Archived",
       "externalUrl": "https://github.com/cjpais/handy"
     },
     {
       "id": "exp-timimoun-short-film-festival-2026",
       "title": "Timimoun International Short Film Festival 2026 (2nd Edition): Cinema, Gourara Lab & Media Masterclasses",
       "summary": "The oasis city of Timimoun hosts its 2nd International Short Film Festival from Nov 26 to Dec 01, 2026, featuring the Gourara Media Lab and technical masterclasses for young Algerian creators.",
-      "content": "# Timimoun International Short Film Festival 2026 (2nd Edition)\n\n## 1. Cultural & Cinematographic Landmark in Gourara\nThe **Timimoun International Short Film Festival** returns for its second edition from **November 26 to December 01, 2026**, transforming the red oasis of the Algerian Sahara into a focal point for international cinema, digital media production, and cultural heritage.\n\n## 2. Core Pillars of the 2026 Edition\n- **Gourara Media Lab:** Intensive incubator workshops covering scriptwriting, sound design, visual editing, and color grading.\n- **International Competition:** 35 curated short films representing over 18 countries.\n- **Algerian Heritage in 4K:** Documenting traditional khattara water architecture and vernacular earthen architecture using modern cinematography.\n\n## 3. Student Participation\nQUANTA Audiovisual & Media Directorate is coordinating with festival organizers to sponsor delegate passes for student creators interested in masterclasses on drone cinematography and documentary sound recording.",
       "category": "Events",
       "tagLabel": "CULTURE & MEDIA",
       "tagTone": "amber",
@@ -7962,15 +7921,14 @@
       "readTime": "4 min read",
       "date": "Nov 04, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
+      "featuredInCarousel": false,
+      "status": "Archived",
       "externalUrl": "https://www.m-culture.gov.dz"
     },
     {
       "id": "exp-optogenetics-senolytics-nature",
       "title": "Cellular Rejuvenation & Neural Circuit Control: Optogenetics and Targeted Senolytics in Nature",
       "summary": "Landmark papers published in Nature and Science showcase light-sensitive microbial channelrhodopsins restoring visual circuits, paired with selective senolytic clearing of inflammatory 'zombie' cells.",
-      "content": "# Cellular Rejuvenation & Precision Neural Control: 2026 Biology Milestones\n\n## 1. Optogenetics Enters Clinical Restoration\nWork recognized in contemporary biological physics has elevated **optogenetics**—the genetic insertion of light-activated algal opsins into mammalian neurons—from laboratory circuit mapping to direct therapeutic translation.\n\nRecent clinical milestones reported in *Nature* demonstrate targeted channelrhodopsin gene therapies restoring functional contrast perception and visual evoke potentials in patients with end-stage retinal degeneration.\n\n## 2. Targeting Senescent \"Zombie\" Cells\nConcurrently, research published in *Science* has detailed selective metabolic vulnerabilities in senescent cells—damaged cells that irreversibly arrest replication yet remain hypermetabolic, continuously secreting the destructive **Senescence-Associated Secretory Phenotype (SASP)**.",
       "category": "Scientific News",
       "tagLabel": "BIOLOGY & MEDICINE",
       "tagTone": "sky",
@@ -7979,14 +7937,13 @@
       "date": "Nov 04, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1200&q=80",
       "featuredInCarousel": false,
-      "status": "Published",
+      "status": "Archived",
       "externalUrl": "https://www.nature.com"
     },
     {
       "id": "exp-global-fellowships-grants-2027",
       "title": "Global STEM Fellowships & Research Grants 2027: Application Windows Open for Algerian Students",
       "summary": "Comprehensive roadmap for fully-funded international graduate fellowships: DAAD, Chevening, Fulbright STEM, Erasmus Mundus, and CERN Summer Student Program deadlines.",
-      "content": "# Global STEM Fellowships & Research Grants: 2027 Candidate Roadmap\n\n## 1. Strategic Timeline\nAlgerian undergraduate and master's students pursuing advanced research in artificial intelligence, biotechnology, quantum computing, and renewable energy can now access official application portals for major global research grants.\n\n## 2. Featured Fellowship Portfolios\n- **DAAD Research Internships in Science and Engineering (RISE):** Fully-funded 3-month research placements at leading German universities.\n- **Fulbright Science & Technology Awards:** Comprehensive graduate study funding in the United States.\n- **CERN Summer Student Programme (Geneva):** 8 to 13 weeks of hands-on experimental particle physics and computing work.\n- **Erasmus Mundus Joint Masters:** European Commission scholarships covering tuition, travel, and monthly living stipends.",
       "category": "Opportunities",
       "tagLabel": "FELLOWSHIPS & GRANTS",
       "tagTone": "sky",
@@ -7995,7 +7952,7 @@
       "date": "Nov 02, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80",
       "featuredInCarousel": false,
-      "status": "Published",
+      "status": "Archived",
       "externalUrl": "https://www.daad.de/en/"
     },
     {
@@ -8076,270 +8033,310 @@
   ],
   "dailyQuizzes": [
     {
-      "id": "quiz-2026-11-11-01",
-      "domain": "الذكاء الاصطناعي ونماذج التفكير (Gemini 4 Carbon)",
+      "id": "quiz-2026-11-11-v2-01",
+      "domain": "الذكاء الاصطناعي والتفكير المنطقي (Gemini 4 Carbon)",
       "icon": "ai-ml",
-      "question": "ما هي الميزة التقنية الأبرز لنموذج Gemini 4 Carbon التي مكنته من تصدر مؤشرات التفكير البرمجي لعام 2026؟",
+      "question": "ما هو التقييم القياسي المعتمد في اختبارات الأمن السيبراني الذي تفوق فيه نموذج Google Gemini 4 Carbon بنسبة نجاح بلغت 88.2%؟",
       "options": [
         {
           "id": "a",
-          "label": "التفكير العميق والتحقق الذاتي واكتشاف الثغرات الأمنية بدقة 88.2% على SEC-bench Pro"
+          "label": "معيار توليد الصور الواقعية ImageNet"
         },
         {
           "id": "b",
-          "label": "العمل فقط كآلة حاسبة بسيطة للعمليات الحسابية المحدودة"
+          "label": "معيار ضغط ملفات الفيديو الرقمية MP4"
         },
         {
           "id": "c",
-          "label": "توليد ملفات صوتية فقط دون دعم الأكواد البرمجية"
+          "label": "معيار SEC-bench Pro لاكتشاف الثغرات البرمجية والتصحيح الذاتي"
+        },
+        {
+          "id": "d",
+          "label": "معيار الترجمة الصوتية الفورية للنصوص القديمة"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "ريادة Gemini 4 Carbon في التفكير البرمجي والأمن السيبراني",
-      "explanation": "تصدر نموذج Gemini 4 Carbon مؤشر Artificial Analysis v5 بنتيجة 59 بفضل قدرته على التفكير المنطقي متعدد الخطوات والتحقق الذاتي من الكود وكشف الثغرات الأمنية المعقدة بنسبة 88.2%.",
+      "correctId": "c",
+      "verdictTitle": "تفوق Gemini 4 Carbon في معيار SEC-bench Pro",
+      "explanation": "حقق نموذج Gemini 4 Carbon نسبة نجاح استثنائية بلغت 88.2% على معيار SEC-bench Pro، متصدراً اختبارات كشف ثغرات الذاكرة والتصريح الأمني وتوليد الترقيعات الآمنة.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": true,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-02",
+      "id": "quiz-2026-11-11-v2-02",
       "domain": "الأنظمة المستقلة والوكلاء الأذكياء (Claude Fable)",
       "icon": "cybersecurity",
-      "question": "ما هي القدرة الأساسية التي تميز عائلة نماذج Claude Fable 5.2 المطورة للوكلاء البرمجيين؟",
+      "question": "ما هي الخاصية المعمارية الأساسية التي تميز عائلة نماذج Claude Fable 5.2 في بيئات التطوير الهندسي المعقدة؟",
       "options": [
         {
           "id": "a",
-          "label": "العمل المستقل طويل الأمد وتنسيق الوكلاء عبر مستودعات برمجية ضخمة مع التفكير الممتد"
+          "label": "اقتصار عملها على محادثات نصية قصيرة لا تتعدى بضعة أسطر"
         },
         {
           "id": "b",
-          "label": "اقتصارها على كتابة رسائل بريد إلكتروني قصيرة جداً"
+          "label": "الاستقلالية طويلة المدى (Long-Horizon) وإدارة الوكلاء الفرعيين مع التفكير التكيفي"
         },
         {
           "id": "c",
-          "label": "توقفها عن العمل بمجرد تجاوز الكود 10 أسطر"
+          "label": "عدم قدرتها على فحص الكود البرمجي أو التعامل مع الأدوات الخارجية"
+        },
+        {
+          "id": "d",
+          "label": "حظر التفاعل مع بيئات الـ Terminal والحوسبة السحابية"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "الاستقلالية طويلة الأمد لنماذج Claude Fable 5.2",
-      "explanation": "صُممت عائلة Claude Fable لإنجاز المهام البرمجية والهندسية المعقدة متعددة الساعات (Long-Horizon Tasks) عبر مستودعات برمجية متعددة وتصحيح الأخطاء ذاتياً بدعم آليات التفكير التكيفي.",
+      "correctId": "b",
+      "verdictTitle": "الاستقلالية طويلة الأمد في Claude Fable 5.2",
+      "explanation": "صُممت عائلة Claude Fable 5.2 لإنجاز المهام الهندسية متعددة الساعات والأيام (Long-Horizon) عبر مستودعات برمجية معقدة وتصحيح الأخطاء تلقائياً بدعم آليات التفكير الممتد التكيفي.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-03",
-      "domain": "إدارة النسخ والمستودعات البرمجية (Git)",
+      "id": "quiz-2026-11-11-v2-03",
+      "domain": "أدوات التطوير وإدارة المستودعات (Git & GitHub)",
       "icon": "git-open-source",
-      "question": "ما هو الأمر المختصر في Git لإنشاء فرع برمجي جديد (Branch) والانتقال إليه فوراً؟",
+      "question": "ما هو الأمر في Git الذي يُستخدم لاستعراض السجل الزمني للإيداعات (Commits) السابقة وتفاصيل مؤلفيها؟",
       "options": [
         {
           "id": "a",
-          "label": "git checkout -b <branch-name>"
+          "label": "git push --force-with-lease"
         },
         {
           "id": "b",
-          "label": "git reset --hard"
+          "label": "git branch -D main"
         },
         {
           "id": "c",
-          "label": "git commit -m \"delete\""
+          "label": "git stash drop"
+        },
+        {
+          "id": "d",
+          "label": "git log --oneline"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "إنشاء الفروع والانتقال المباشر في Git",
-      "explanation": "يُستخدم الأمر `git checkout -b <branch-name>` (أو `git switch -c <branch-name>`) لإنشاء فرع عمل جديد والتبديل إليه في خطوة واحدة، مما يتيح تجربة الميزات بأمان.",
+      "correctId": "d",
+      "verdictTitle": "استعراض سجل الإيداعات عبر git log",
+      "explanation": "يُستخدم الأمر git log (ومعه خيار --oneline للاختصار) لعرض التاريخ الزمني للمشروع، معرفات الـ Commits، وأسماء المساهمين ورسائل التعديل المعتمدة.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-04",
-      "domain": "الفلك وعلوم الفضاء (Cosmology)",
+      "id": "quiz-2026-11-11-v2-04",
+      "domain": "الفيزياء الفلكية وعلوم الفضاء (Astronomy)",
       "icon": "astronomy",
-      "question": "ما هو أقرب كوكب إلى الشمس في مجموعتنا الشمسية؟",
+      "question": "ما هو التفاعل الفيزيائي الذي يُنتج الطاقة الهائلة المشعة من قلب الشمس وباقي النجوم النشطة في الكون؟",
       "options": [
         {
           "id": "a",
-          "label": "عطارد (Mercury)"
+          "label": "الاندماج النووي الحراري (Nuclear Fusion) لأنوية الهيدروجين لتشكيل الهيليوم"
         },
         {
           "id": "b",
-          "label": "المريخ (Mars)"
+          "label": "الاحتراق الكيميائي المباشر للغاز الطبيعي والفحم"
         },
         {
           "id": "c",
-          "label": "نبتون (Neptune)"
+          "label": "الانشطار الإشعاعي لعنصر اليورانيوم والبلوتونيوم"
+        },
+        {
+          "id": "d",
+          "label": "الاحتكاك الميكانيكي بين جزيئات الغبار الكوني"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "كوكب عطارد: الجار الأقرب لشمسنا",
-      "explanation": "عطارد هو الكوكب الأقرب للشمس ويدور حولها في 88 يوماً فقط، ويتميز بفارق حراري هائل بين نهاره الحارق وليله شديد البرودة لانعدام الغلاف الجوي الكثيف.",
+      "verdictTitle": "الاندماج النووي: قلب الطاقة الشمسية",
+      "explanation": "تستمد الشمس طاقتها الجبارة من تفاعل الاندماج النووي الحراري، حيث تندمج بروتونات الهيدروجين لتكوين أنوية الهيليوم تحت ضغط فائق وحرارة تصل إلى 15 مليون كلفن.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-05",
+      "id": "quiz-2026-11-11-v2-05",
       "domain": "البيولوجيا الجزيئية وعلم الوراثة (Genetics)",
       "icon": "genetics",
-      "question": "ما هو الجزيء الحيوي الحامل للتعليمات الوراثية الأساسية داخل خلايا الكائنات الحية؟",
+      "question": "في لولب الـ DNA المزدوج، ما هي القاعدة النيتروجينية المكملة التي ترتبط دائماً بالأدنين (Adenine) برابطتين هيدروجينيتين؟",
       "options": [
         {
           "id": "a",
-          "label": "حمض الديوكسي ريبونوكليك (DNA)"
+          "label": "الجوانين (Guanine)"
         },
         {
           "id": "b",
-          "label": "سكر الجلوكوز"
+          "label": "الثايمين (Thymine)"
         },
         {
           "id": "c",
-          "label": "بيكربونات الصوديوم"
+          "label": "السيتوزين (Cytosine)"
+        },
+        {
+          "id": "d",
+          "label": "اليوراسيل (Uracil)"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "جزيء الـ DNA وسر الحياة الجينية",
-      "explanation": "يحمل جزيء الـ DNA الشفرة الوراثية على هيئة تتابعات من القواعد النيتروجينية الأربع (A, T, C, G) المشفرة لبناء البروتينات الحيوية واستمرار الوظائف الخلوية.",
+      "correctId": "b",
+      "verdictTitle": "التكامل الهيدروجيني: الأدنين والثايمين",
+      "explanation": "في الحمض النووي DNA، يرتبط الأدنين (A) حصرياً بالثايمين (T) بواسطة رابطتين هيدروجينيتين، بينما يرتبط الجوانين (G) بالسيتوزين (C) بثلاث روابط هيدروجينية وفق قواعد واطسون-كريك.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-06",
-      "domain": "الفيزياء الكونية والثوابت الطبيعية (Physics)",
+      "id": "quiz-2026-11-11-v2-06",
+      "domain": "الميكانيكا وقوانين الحركة الكلاسيكية (Physics)",
       "icon": "optics",
-      "question": "كم تبلغ سرعة الضوء القصوى في الفراغ الكوني (c) تقريباً؟",
+      "question": "وفقاً لقانون نيوتن الثاني للحركة، ما هي العلاقة الرياضية التي تربط القوة المحصلة (F) بكتلة الجسم (m) وتسارعه (a)؟",
       "options": [
         {
           "id": "a",
-          "label": "300,000 كيلومتر في الثانية تقريباً (3 × 10⁸ م/ث)"
+          "label": "F = m / a"
         },
         {
           "id": "b",
-          "label": "340 متر في الثانية فقط"
+          "label": "F = m + a"
         },
         {
           "id": "c",
-          "label": "1,000 كيلومتر في الساعة"
+          "label": "F = m × a"
+        },
+        {
+          "id": "d",
+          "label": "F = a / m²"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "سرعة الضوء: الحد الأقصى للسرعة الكونية",
-      "explanation": "تبلغ سرعة الضوء في الفراغ 299,792,458 م/ث، وهي ثابت فيزيائي أساسي يمثل أقصى سرعة يمكن أن تنتقل بها المعلومات أو الطاقة في الكون وفق النسبية الخاصة.",
+      "correctId": "c",
+      "verdictTitle": "قانون نيوتن الثاني للحركة: F = m × a",
+      "explanation": "ينص قانون نيوتن الثاني على أن القوة المحصلة المؤثرة على جسم تساوي حاصل ضرب كتلته في التسارع المكتسب (F = ma)، وهو المبدأ التأسيسي للميكانيكا الكلاسيكية.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-07",
+      "id": "quiz-2026-11-11-v2-07",
       "domain": "بيئة بايثون والبرمجيات الحرة (Python Ecosystem)",
       "icon": "python",
-      "question": "ما هو مدير الحزم الافتراضي والرسمي لتثبيت المكتبات الخارجية في لغة بايثون؟",
+      "question": "ما هو الأمر القياسي في بايثون لإنشاء بيئة افتراضية معزولة (Virtual Environment) مخصصة لمشروع معين؟",
       "options": [
         {
           "id": "a",
-          "label": "pip (Pip Installs Packages)"
+          "label": "python -m venv <env_name>"
         },
         {
           "id": "b",
-          "label": "npm"
+          "label": "pip delete --all"
         },
         {
           "id": "c",
-          "label": "cargo"
+          "label": "python purge system"
+        },
+        {
+          "id": "d",
+          "label": "venv create --global"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "أداة pip لإدارة مكتبات بايثون",
-      "explanation": "تعتبر أداة pip مدير الحزم القياسي المدمج مع بايثون، ويتيح للمطورين تثبيت وإدارة آلاف الحزم مفتوحة المصدر مباشرة من مستودع PyPI الرسمي.",
+      "verdictTitle": "إنشاء البيئات الافتراضية عبر venv",
+      "explanation": "تتيح وحدة venv المدمجة في بايثون إنشاء بيئات معزولة تماماً تمنع تضارب إصدارات المكتبات وحزم البرمجيات بين المشاريع المختلفة.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-08",
-      "domain": "الخوارزميات وهياكل البيانات (Data Structures)",
+      "id": "quiz-2026-11-11-v2-08",
+      "domain": "الخوارزميات وهياكل البيانات (Computer Science)",
       "icon": "mathematics",
-      "question": "ما هو التعقيد الزمني (Time Complexity) للوصول إلى عنصر في مصفوفة (Array) عبر الفهرس (Index)؟",
+      "question": "ما هو التعقيد الزمني لأسوأ حالة (Worst-case Time Complexity) لخوارزمية البحث الثنائي (Binary Search) في مصفوفة مرتبة؟",
       "options": [
         {
           "id": "a",
-          "label": "O(1) - وصول لحظي ثابت"
+          "label": "O(n²)"
         },
         {
           "id": "b",
-          "label": "O(n) - مسح خطي بطيء"
+          "label": "O(n)"
         },
         {
           "id": "c",
-          "label": "O(n²) - زمن تربيعي"
+          "label": "O(1)"
+        },
+        {
+          "id": "d",
+          "label": "O(log n)"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "الوصول المباشر O(1) في المصفوفات",
-      "explanation": "تخزن المصفوفات عناصرها في خلايا ذاكرة متتالية، مما يتيح للمعالج حساب عنوان الذاكرة المباشر لأي فهرس في خطوة حسابية واحدة وثابتة O(1).",
+      "correctId": "d",
+      "verdictTitle": "التعقيد اللوغاريتمي O(log n) للبحث الثنائي",
+      "explanation": "نظراً لأن خوارزمية البحث الثنائي تقسم نطاق البحث إلى النصف في كل خطوة مقارنة، فإن تعقيدها الزمني لوغاريتمي O(log n)، مما يضمن كفاءة فائقة على البيانات الضخمة.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-09",
-      "domain": "بنية وتطوير الويب الحديث (Web Platform)",
+      "id": "quiz-2026-11-11-v2-09",
+      "domain": "هندسة وتطوير واجهات الويب (Frontend Engineering)",
       "icon": "web-dev",
-      "question": "ما هي اللغة القياسية المستخدمة لبناء وتوصيف الهيكل الأساسي لصفحات الويب؟",
+      "question": "ما هي اللغة القياسية المستخدمة لتحديد التنسيق البصري، الألوان، الخطوط، وتجاوب صفحات الويب مع مختلف الشاشات؟",
       "options": [
         {
           "id": "a",
-          "label": "HTML (HyperText Markup Language)"
+          "label": "بروتوكول نقل الملفات FTP"
         },
         {
           "id": "b",
-          "label": "SQL"
+          "label": "لغة صفائح الأنماط الانسيابية CSS (Cascading Style Sheets)"
         },
         {
           "id": "c",
-          "label": "Assembly"
+          "label": "محرك قواعد البيانات SQLite"
+        },
+        {
+          "id": "d",
+          "label": "نظام التوزيع لشبكات DNS"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "لغة HTML ركيزة صفحات الإنترنت",
-      "explanation": "تمثل HTML لغة التوصيف القياسية العالمية التي تحدد هيكل صفحات الويب من نصوص وعناوين وصور ونماذج وروابط تشعبية.",
+      "correctId": "b",
+      "verdictTitle": "لغة CSS لتصميم وهندسة واجهات الويب",
+      "explanation": "تتحكم لغة CSS بالجانب البصري لصفحات الإنترنت وتفصل بين هيكل المحتوى (HTML) وتنسيقات الألوان والخطوط والأبعاد والتجاوب مع الهواتف والحواسيب.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-10",
-      "domain": "رسالة ورؤية نادي QUANTA العلمي",
+      "id": "quiz-2026-11-11-v2-10",
+      "domain": "رسالة وقيم نادي QUANTA العلمي",
       "icon": "leadership",
-      "question": "ما هو الهدف الاستراتيجي الأسمى لنادي QUANTA العلمي في جامعة البليدة 1 والساحة الجامعية؟",
+      "question": "ما هو المعيار الأساسي المعتمد في نادي QUANTA لحساب ترقيات الأعضاء واختيار عضو الشهر واستحقاق الشارات؟",
       "options": [
         {
           "id": "a",
-          "label": "ترسيخ التميز العلمي والبحثي، وتمكين الطلبة تقنياً، وتطوير مشاريع وابتكارات مفتوحة المصدر"
+          "label": "القرعة العشوائية والصدفة البحتة"
         },
         {
           "id": "b",
-          "label": "تنظيم المسابقات الترفيهية الفردية فقط دون محتوى علمي"
+          "label": "الأقدمية الزمنية فقط دون أي نشاط علمي أو تقني"
         },
         {
           "id": "c",
-          "label": "إغلاق المعامل البحثية والورش التقنية"
+          "label": "سجل النقاط الموثق والإنتاج العلمي المعتمد والمشاريع مفتوحة المصدر وحضور الفعاليات"
+        },
+        {
+          "id": "d",
+          "label": "عدد التفاعلات على شبكات التواصل الاجتماعي الشخصية"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "رسالة نادي QUANTA: المعرفة والابتكار والمجتمع",
-      "explanation": "يهدف نادي كوانتا منذ انطلاقته إلى بناء مجتمع طلابي وبحثي رائد يعتمد أعلى معايير النزاهة العلمية وتطوير الحلول التقنية المبتكرة التي تخدم الوطن والمجتمع العلمي.",
+      "correctId": "c",
+      "verdictTitle": "معايير الاستحقاق والنزاهة في QUANTA",
+      "explanation": "يرتكز نظام نادي كوانتا على سجل نقاط (Ledger) شفاف ومؤتمت يكافئ الجدارة الأكاديمية والعمل البحثي والبرمجي الجاد لضمان تكافؤ الفرص لجميع الأعضاء.",
       "xpReward": 2,
       "dateLabel": "2026-11-11",
       "isPinnedToday": false,
