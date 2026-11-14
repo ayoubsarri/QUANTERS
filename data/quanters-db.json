@@ -1,6 +1,6 @@
 {
   "version": "4.3.0",
-  "updatedAt": "2026-11-11T17:38:02.871Z",
+  "updatedAt": "2026-11-14T02:26:32.344Z",
   "collectionVersions": {
     "settings": "2026-10-27T13:23:47.274Z",
     "departments": "2026-10-27T14:16:51.178Z",
@@ -7848,26 +7848,73 @@
   "proposals": [],
   "explorePosts": [
     {
-      "id": "exp-google-gemini-carbon",
-      "title": "Google Gemini 4 Carbon: The New Benchmark Champion in Deep Reasoning, SEC-bench Pro & Agentic Coding",
-      "summary": "Ranked #1 on the Artificial Analysis Intelligence Index with an 88.2% SEC-bench Pro score, Google's Gemini 4 Carbon sets a new milestone in test-time compute, long-horizon coding, and automated vulnerability verification.",
-      "content": "# Google Gemini 4 Carbon: Benchmarks & Deep Reasoning Architecture\n\n## 1. Breakthrough Across Frontier Industry Leaderboards\nGoogle announced **Gemini 4 Carbon**, establishing undisputed top rankings across major independent AI benchmarks. Most notably, Carbon secured the **#1 overall position on the Artificial Analysis Intelligence Index (v5.0)** with an index rating of **59**, surpassing all competitive frontier reasoning models in structured multi-step logical deduction and test-time compute scaling.\n\nAcross 17 rigorous evaluation suites, Carbon ranked first in 15 categories, marking an architectural leap in autonomous software verification, complex symbolic mathematics, and extended context synthesis.\n\n---\n\n## 2. Quantitative Cybersecurity Performance: SEC-bench Pro\nA defining characteristic of Carbon is its specialized capability in offensive and defensive cybersecurity evaluation, tested in partnership with Google's Fairwind Defense program:\n- **SEC-bench Pro (Vulnerability Discovery):** **88.2%** success rate identifying zero-day memory corruption, logic flaws, and authorization bypasses in production C/C++, Rust, and Go codebases.\n- **ExploitGym (Controlled Exploit Generation):** **54.8%**, demonstrating autonomous proof-of-concept construction under sandboxed environments.\n- **CWE-bench (Automated Patch Synthesis):** **71.0%**, synthesizing verified secure patches that eliminate root causes without causing regression failures in adjacent test suites.\n- **Secure Code Generation:** Generates verified vulnerability-free code at more than twice the success rate of the previous Argon architecture.\n\n> *\"Carbon was evaluated under rigorous safety guardrails through Google's Fairwind Program, partnering with cybersecurity defenders to stress-test automated vulnerability mitigation and formal verification.\"*\n\n---\n\n## 3. Agentic Software Engineering Leaderboard\n| Benchmark Suite | Metric | Gemini 4 Carbon | Prior SOTA Baseline |\n|:---|:---|:---|:---|\n| **Artificial Analysis Index (v5.0)** | Composite Score | **59 (#1)** | 58 |\n| **Terminal-Bench 4.0** | CLI Task Execution | **64.0%** | 52.4% |\n| **FrontierCode v1.1** | Complex Algorithmic Code | **51.0%** | 43.8% |\n| **SEC-bench Pro** | Bug & Vuln Identification | **88.2%** | 69.1% |\n| **CWE-bench** | Patching & Verification | **71.0%** | 56.5% |\n| **CursorBench 4.0** | Multi-File Agentic Coding | **#1 Globally** | Runner-up |\n\n---\n\n## 4. Architectural Significance for QUANTA Researchers\nFor the QUANTA AI, Modeling, and Cybersecurity divisions, Gemini 4 Carbon demonstrates that test-time search and iterative code self-verification are now essential paradigms. Autonomous coding agents are no longer just completion engines—they act as rigorous pair-programmers capable of compiling, executing, and auditing entire software architectures autonomously.",
+      "id": "exp-ai4s-scientific-discovery-2026",
+      "title": "AI for Science (AI4S): How Autonomous Generalist Agents are Accelerating Molecular Discovery & Quantum Physics",
+      "summary": "The convergence of frontier reasoning models and physical sciences ushers in autonomous hypothesis generation, non-destructive quantum readouts, and automated enzyme design across global labs.",
+      "content": "# AI for Science (AI4S): The 2026 Frontier of Autonomous Scientific Discovery\n\n## 1. The Paradigm Shift from Text LLMs to Generalist Scientific Agents\nThe era of viewing Artificial Intelligence merely as a code assistant or conversational interface has given way to **AI for Science (AI4S)**. In late 2026, scientific discovery is governed by multi-modal scientific reasoning agents capable of parsing topological manifolds, processing cryo-EM protein density maps, and formulating falsifiable hypotheses with minimal human intervention.\n\nRather than relying on brute-force trial-and-error laboratory screening, research institutions leverage closed-loop co-scientist platforms that continuously coordinate literature synthesis, simulation kernel executions, and robotic experiment planning.\n\n---\n\n## 2. Key 2026 Breakthrough Pillars\n\n### A. Non-Destructive Quantum Sensor Readouts\nA historic barrier in quantum computing and quantum biology has been the wave-function collapse during state measurement. Recent breakthroughs in micro-supercurrent sensor arrays allow quantum states in diamond nitrogen-vacancy (NV) lattices to be read without annihilating fragile qubit coherences, opening new avenues for room-temperature quantum memory.\n\n### B. Generative Enzyme Design & Variant Lethality Mapping\nFollowing the maturation of structural co-folding engines, models such as **PopEVE** and next-generation generative sequence-to-structure diffusion networks are now capable of predicting disease variant lethality directly from raw genomic callsets, reducing early-stage oncology target discovery timelines from four years to six weeks.\n\n### C. Formal Mathematical Proof Synthesis\nFrontier reasoning models regularly achieve benchmark-topping results in formal mathematics, automatically translating informal human lemmas into verified Lean 4 and Isabelle/HOL proofs and discovering novel bounds in harmonic analysis.\n\n---\n\n## 3. Quantitative Impact on Experimental Pipelines\n| Scientific Domain | Classical Time-to-Result | AI4S Accelerated Pipeline (2026) | Primary Methodology |\n|:---|:---|:---|:---|\n| **Protein-Ligand Interaction** | 6 - 18 Months (Assay) | **4 - 8 Hours (Predicted & Scored)** | Diffusion PLIF & Co-folding |\n| **Material Bandgap Optimization** | 9 Months (Synthesis) | **48 Hours (DFT + Surrogates)** | Graph Neural Operators |\n| **Quantum Qubit Decoherence Modeling** | Weeks (Numerical PDE) | **Real-Time (< 500 ms)** | Physics-Informed Neural Nets |\n| **Zero-Day Code Vulnerability Discovery** | Months (Manual Audit) | **Minutes (SEC-bench 88.2%)** | Test-Time Compute Reasoning |\n\n---\n\n## 4. QUANTA Research Directorate Integration\nWithin QUANTA Scientific Club, the Modeling, AI, and Biotechnology tracks are launching dedicated co-scientist sandbox environments. Students and researchers can connect their computational notebooks directly to verified open-source models, running high-throughput molecular dynamics and quantum calculations on our university cluster.",
       "category": "Scientific News",
-      "tagLabel": "FRONTIER AI & REASONING",
-      "tagTone": "indigo",
-      "source": "Google DeepMind & Artificial Analysis",
+      "tagLabel": "AI FOR SCIENCE (AI4S)",
+      "tagTone": "cyan",
+      "source": "Nature, Science & Google DeepMind Research",
       "readTime": "5 min read",
-      "date": "Nov 11, 2026",
+      "date": "Nov 14, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://deepmind.google/technologies/gemini/"
+    },
+    {
+      "id": "exp-quantum-diamond-acoustic-readout",
+      "title": "Room-Temperature Quantum Systems: Acoustic Diamond Flaws and Non-Destructive Qubit Readouts",
+      "summary": "Physicists achieve coherent qubit preservation at ambient temperatures using microscopic vibrational memories in diamond lattices coupled with non-destructive supercurrent sensors.",
+      "content": "# Room-Temperature Quantum Systems: Diamond Acoustic Memories & Sensor Breakthroughs\n\n## 1. Overcoming the Cryogenic Bottleneck\nFor decades, practical quantum computation has been tethered to multimillion-dollar dilution refrigerators operating near absolute zero ($15\\text{ mK}$). In late 2026, experimental condensed matter physicists achieved a milestone in ambient quantum coherence by harnessing **optically active nitrogen-vacancy (NV) centers in diamond** coupled to microscopic acoustic resonators.\n\n> *\"By treating atomic lattice vibrations like the harmonic strings of an instrument, quantum information can be stored in mechanical phononic states that resist thermal noise at room temperature.\"*\n\n---\n\n## 2. Core Technological Architecture\n- **Acoustic Phonon Storage:** High-frequency surface acoustic wave (SAW) resonators fabricated directly onto ultra-pure synthetic diamond crystals trap phononic energy with quality factors exceeding $Q > 10^7$.\n- **Non-Destructive Supercurrent Probing:** Superconducting quantum interference devices (SQUIDs) engineered with sub-micron weak links probe the stray magnetic dipole of individual NV electron spins without inducing decoherence.\n- **Spin-Phonon Coherence Times:** Hyperfine coherence lifetimes ($T_2$) at room temperature have crossed the millisecond threshold, sufficient to execute thousands of fault-tolerant Clifford gate operations.\n\n---\n\n## 3. Implications for Quantum Sensing & Biology\n1. **Intra-Cellular Magnetic Metrology:** Nanodiamonds functionalized with biocompatible lipid bilayers can measure action potentials inside living neurons with nanometer spatial precision.\n2. **Decentralized Quantum Repeaters:** Ambient quantum memories eliminate cryogenic infrastructure from quantum key distribution (QKD) nodes, accelerating metropolitan quantum internet rollouts.",
+      "category": "Scientific News",
+      "tagLabel": "QUANTUM COMPUTING",
+      "tagTone": "indigo",
+      "source": "Physical Review Letters & ScienceDaily",
+      "readTime": "5 min read",
+      "date": "Nov 14, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://journals.aps.org/prl/"
+    },
+    {
+      "id": "exp-google-gemini-carbon",
+      "title": "Google Gemini 4 Carbon & Claude Fable 5.2: The Frontier Benchmark in Automated Verification & Long-Horizon Agents",
+      "summary": "Comparing the two landmark architectures defining late 2026 AI: Gemini 4 Carbon's 88.2% SEC-bench verification alongside Claude Fable's multi-day unattended codebase refactoring.",
+      "content": "# Google Gemini 4 Carbon & Claude Fable 5.2: The 2026 Frontier Comparison\n\n## 1. Executive Benchmark Overview\nNovember 2026 marks the consolidation of two distinct paradigms in frontier artificial intelligence:\n1. **Google Gemini 4 Carbon:** The undisputed champion of formal mathematical deduction, test-time compute scaling, and autonomous cybersecurity verification (#1 Artificial Analysis Index, Score 59).\n2. **Anthropic Claude Fable 5.2:** The premier long-horizon agentic orchestrator designed for multi-day, unattended software migrations and cross-repository engineering workflows.\n\n---\n\n## 2. Quantitative Performance Matrix\n\n| Evaluation Benchmark | Metric | Gemini 4 Carbon | Claude Fable 5.2 | Industry Baseline |\n|:---|:---|:---:|:---:|:---:|\n| **Artificial Analysis v5.0** | Composite Reasoning Index | **59 (#1)** | 58 | 52 |\n| **SEC-bench Pro** | Vulnerability Identification | **88.2%** | 76.4% | 61.2% |\n| **CWE-bench** | Verified Automated Patching | **71.0%** | 68.5% | 49.0% |\n| **Multi-Day Refactor Drift** | Context Fidelity over 72h | 94.2% | **98.6% (#1)** | 71.0% |\n| **CursorBench 4.0** | Agentic IDE Engineering | **#1 Globally** | Runner-up | Baseline |\n\n---\n\n## 3. Practical Guidance for QUANTA Developers\n- **For Formal Audits & Security:** Use Gemini 4 Carbon when writing unit tests, fuzzing network interfaces, or verifying smart contracts.\n- **For Large Monorepo Migrations:** Use Claude Fable when refactoring legacy libraries across dozens of microservices where contextual drift must be avoided.",
+      "category": "Scientific News",
+      "tagLabel": "FRONTIER REASONING",
+      "tagTone": "sky",
+      "source": "Google DeepMind & Anthropic Research",
+      "readTime": "5 min read",
+      "date": "Nov 14, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80",
       "featuredInCarousel": true,
       "status": "Published",
       "externalUrl": "https://blog.google"
     },
     {
+      "id": "exp-top-10-developer-repositories-2026",
+      "title": "Top 10 Essential GitHub Repositories Every Developer & AI Engineer Should Star in 2026",
+      "summary": "From OpenHands and Langflow to Ollama and Scrapling: A curated, essential directory of open-source frameworks, visual builders, and developer resources accelerating AI engineering.",
+      "content": "# The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories\n\n## 1. Executive Overview\nIn modern software engineering and applied AI research, developer velocity depends heavily on selecting the right open-source foundation. Rather than reinventing distributed agents, custom scraping engines, or hosting budgets, engineering teams leverage battle-tested open-source repositories to accelerate production timelines.\n\nBelow is the official curated reference guide compiled by the **QUANTA Open Source & Developer Directorate**, detailing the ten most versatile repositories every student, software engineer, and researcher in the club should bookmark and leverage.\n\n---\n\n## 2. Core Repository Reference Matrix\n\n| Repository | What it does | Useful for |\n|:---|:---|:---|\n| [**OpenHands**](https://github.com/OpenHands/OpenHands) | A workspace for coding agents that can write code, run tests, fix errors, and automate development tasks. | **AI-assisted software development** |\n| [**Langflow**](https://github.com/langflow-ai/langflow) | A visual builder for AI agents and workflows. Supports RAG—answering questions using your documents—and publishing workflows through API or MCP. | **Building chatbots and AI workflows** |\n| [**Ollama**](https://github.com/ollama/ollama) | Runs supported language models locally and provides an API for your applications. Models need separate downloads. | **Local AI and experimenting without per-request API fees** |\n| [**Free-for-dev**](https://github.com/ripienaar/free-for-dev) | A directory of developer services offering free tiers, including hosting, databases, authentication, and APIs. | **Finding services for a low-budget project** |\n| [**Scrapling**](https://github.com/D4Vinci/Scrapling) | A Python framework for fetching webpages, extracting information, and building web crawlers. | **Collecting website data** |\n| [**Awesome**](https://github.com/sindresorhus/awesome) | A large directory of curated resource lists covering programming, science, design, and many other subjects. | **Discovering tools and learning resources** |\n| [**Awesome LLM Apps**](https://github.com/Shubhamsaboo/awesome-llm-apps) | A collection of example AI agents, skills, and RAG applications with source code. Individual examples may require paid APIs. | **Learning from working examples and adapting them** |\n| [**Open Design**](https://github.com/nexu-io/open-design) | An open-source AI design workspace for prototypes, websites, presentations, and other creative work. | **Combining design work with AI agents** |\n| [**Awesome MCP Servers**](https://github.com/punkpeye/awesome-mcp-servers) | A directory of MCP servers: connectors that let compatible AI assistants interact with tools and data sources. | **Finding integrations for AI assistants** |\n| [**Public APIs**](https://github.com/public-apis/public-apis) | A categorized directory of public APIs. Authentication requirements, free allowances, and restrictions vary by service. | **Finding data and services for an app** |\n\n---\n\n## 3. QUANTA Club Recommendations\nAll project teams participating in the upcoming **QUANTA Open Innovation Challenge** are strongly encouraged to integrate these repositories into their foundational architecture. Direct links are provided in the matrix above for easy cloning and bookmarking.",
+      "category": "Opportunities",
+      "tagLabel": "DEVELOPER TOOLS & REPOS",
+      "tagTone": "sky",
+      "source": "QUANTA Open Source & Developer Directorate",
+      "readTime": "6 min read",
+      "date": "Nov 14, 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&q=80",
+      "featuredInCarousel": true,
+      "status": "Published",
+      "externalUrl": "https://github.com/ripienaar/free-for-dev"
+    },
+    {
       "id": "exp-claude-fable-agentic-simulation",
       "title": "Claude Fable & Multi-Agent Simulations: Long-Horizon Autonomy and Generative World-Building in 2026",
       "summary": "Anthropic's Claude Fable 5.2 and Fable Studio's Showrunner platform redefine agentic computing—combining hours-long unattended codebase refactoring with persistent generative world-building.",
-      "content": "# Claude Fable & Multi-Agent Simulations: Long-Horizon Autonomy and Synthetic Worlds\n\n## 1. Long-Horizon Autonomy in Claude Fable 5.2\nAnthropic's announcement of **Claude Fable 5.2** represents a critical inflection point for autonomous systems. Engineered for demanding, long-horizon technical tasks, Fable is purpose-built to operate unattended for hours—and across complex workflows, for multiple days—while checking and correcting its own intermediate execution states.\n\nGenerating outputs up to **30% faster** than its predecessor with adaptive extended thinking modes, Fable 5.2 navigates massive multi-repository architectures, manages distributed sub-agents, and solves abstract physics and hardware problems without state drift.\n\n---\n\n## 2. The Dual Frontier: Claude Fable vs. Claude Mythos\nAnthropic introduced a dual-tier model release strategy:\n- **Claude Fable 5.2:** Built with industrial-grade cyber defense and biology safeguards, making it publicly available across major cloud providers (Amazon Bedrock, Google Cloud Vertex AI) and native APIs at optimized pricing ($8/M input tokens, $40/M output tokens).\n- **Claude Mythos 5.2:** Built on the identical core frontier architecture, but reserved for verified sovereign and research institutions through specialized Life Sciences and Cyber Verification programs.\n\n> *\"Fable is targeted squarely at developers, researchers, and enterprises tackling the hardest open-ended technical challenges that push standard LLMs past their limits.\"*\n\n---\n\n## 3. Fable Studio & The Showrunner Platform (SHOW-1 Model)\nIn parallel with frontier reasoning models, **Fable Studio** (backed by Amazon's Alexa Fund) has pioneered generative multi-agent simulation through its **Showrunner** platform. Often dubbed the *\"Netflix of AI\"*, Showrunner utilizes the proprietary **SHOW-1** model to orchestrate complete episodic productions from text prompts and directorial constraints.\n\nKey innovations in SHOW-1 include:\n- **Persistent Character Canon & Worlds:** Unlike traditional video generation tools that generate disconnected clips, Showrunner maintains continuous spatial memories, narrative arcs, and character styles across full multi-season series.\n- **Dynamic \"Playable\" Media:** Viewers can branch storylines in real time, with the simulation dynamically synthesizing dialogue, voice acting, camera angles, and animations on the fly.\n- **Theatrical Milestones (*Gods Don't Give Gifts*):** Fable's sci-fi feature film, produced in collaboration with human artists and voiced by Grimes, demonstrated the viability of AI-augmented cinematic pipelines.\n\n---\n\n## 4. Synthesis: The Complementary AI Frontier of 2026\n| Dimension | Google Gemini 4 Carbon | Anthropic Claude Fable 5.2 |\n|:---|:---|:---|\n| **Core Superpower** | Test-Time Compute & Formal Code Verification | Long-Horizon Autonomy & Asynchronous Sub-Agents |\n| **Top Benchmark** | #1 Artificial Analysis Index (Score 59) | SOTA in Multi-Day Software Migration |\n| **Cybersecurity** | SEC-bench Pro 88.2% / CWE-bench 71.0% | Adaptive Extended Thinking with Guardrails |\n| **Deployment** | Antigravity AI Engine / Google Cloud | Claude Platform / Bedrock / Vertex AI |\n\n---\n\n## 5. QUANTA Workshop Integration\nMembers of the QUANTA Computer Science & Creative Tech divisions will explore Claude Fable's agentic APIs and Fable simulation patterns in our upcoming **Agentic Architectures & World-Building Masterclass**.",
       "category": "Scientific News",
       "tagLabel": "AUTONOMOUS AGENTS & SIMULATION",
       "tagTone": "cyan",
@@ -7875,25 +7922,9 @@
       "readTime": "6 min read",
       "date": "Nov 11, 2026",
       "imageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
+      "featuredInCarousel": false,
+      "status": "Archived",
       "externalUrl": "https://anthropic.com"
-    },
-    {
-      "id": "exp-top-10-developer-repositories-2026",
-      "title": "Top 10 Essential GitHub Repositories Every Developer & AI Engineer Should Star in 2026",
-      "summary": "From OpenHands and Langflow to Ollama and Scrapling: A curated, essential directory of open-source frameworks, visual builders, and developer resources accelerating AI engineering.",
-      "content": "# The Essential Developer & AI Builder Arsenal: Top 10 High-Impact GitHub Repositories\n\n## 1. Executive Overview\nIn modern software engineering and applied AI research, developer velocity depends heavily on selecting the right open-source foundation. Rather than reinventing distributed agents, custom scraping engines, or hosting budgets, engineering teams leverage battle-tested open-source repositories to accelerate production timelines.\n\nBelow is the official curated reference guide compiled by the **QUANTA Open Source & Developer Directorate**, detailing the ten most versatile repositories every student, software engineer, and researcher in the club should bookmark and leverage.\n\n---\n\n## 2. Core Repository Reference Matrix\n\n| Repository | What it does | Useful for |\n|:---|:---|:---|\n| [**OpenHands**](https://github.com/OpenHands/OpenHands) | A workspace for coding agents that can write code, run tests, fix errors, and automate development tasks. | **AI-assisted software development** |\n| [**Langflow**](https://github.com/langflow-ai/langflow) | A visual builder for AI agents and workflows. Supports RAG—answering questions using your documents—and publishing workflows through API or MCP. | **Building chatbots and AI workflows** |\n| [**Ollama**](https://github.com/ollama/ollama) | Runs supported language models locally and provides an API for your applications. Models need separate downloads. | **Local AI and experimenting without per-request API fees** |\n| [**Free-for-dev**](https://github.com/ripienaar/free-for-dev) | A directory of developer services offering free tiers, including hosting, databases, authentication, and APIs. | **Finding services for a low-budget project** |\n| [**Scrapling**](https://github.com/D4Vinci/Scrapling) | A Python framework for fetching webpages, extracting information, and building web crawlers. | **Collecting website data** |\n| [**Awesome**](https://github.com/sindresorhus/awesome) | A large directory of curated resource lists covering programming, science, design, and many other subjects. | **Discovering tools and learning resources** |\n| [**Awesome LLM Apps**](https://github.com/Shubhamsaboo/awesome-llm-apps) | A collection of example AI agents, skills, and RAG applications with source code. Individual examples may require paid APIs. | **Learning from working examples and adapting them** |\n| [**Open Design**](https://github.com/nexu-io/open-design) | An open-source AI design workspace for prototypes, websites, presentations, and other creative work. | **Combining design work with AI agents** |\n| [**Awesome MCP Servers**](https://github.com/punkpeye/awesome-mcp-servers) | A directory of MCP servers: connectors that let compatible AI assistants interact with tools and data sources. | **Finding integrations for AI assistants** |\n| [**Public APIs**](https://github.com/public-apis/public-apis) | A categorized directory of public APIs. Authentication requirements, free allowances, and restrictions vary by service. | **Finding data and services for an app** |\n\n---\n\n## 3. Deep-Dive: Architectural Breakdown\n\n### A. Autonomous Coding & Visual Pipelines (OpenHands & Langflow)\n- **OpenHands:** Integrates headless container execution with agentic reasoning loops. Coding assistants can spin up Docker environments, clone repositories, run unit tests, and iteratively rewrite code until all assertions pass.\n- **Langflow:** Democratizes multi-agent orchestration by providing a drag-and-drop ReactFlow canvas. It natively exposes endpoints compatible with the Model Context Protocol (MCP), allowing visual agent pipelines to be consumed as local CLI tools.\n\n### B. Local-First AI & Web Scraping (Ollama & Scrapling)\n- **Ollama:** The de facto gold standard for running quantization-efficient LLMs (Llama 3, Mistral, DeepSeek) locally on Apple Silicon and CUDA GPUs. It delivers an OpenAI-compatible HTTP endpoint for zero-latency, private offline development.\n- **Scrapling:** A cutting-edge Python library optimized for resilient scraping. It circumvents brittle XPath and CSS selectors by utilizing adaptive element matching and anti-fingerprinting stealth headers.\n\n### C. Zero-Cost Infrastructure & Integrations (Free-for-dev & Public APIs)\n- **Free-for-dev:** For student initiatives and club hackathons, this repository catalogues hundreds of IaaS, PaaS, DBaaS, and monitoring services providing generous persistent free tiers (Cloudflare, Supabase, Vercel, Neon).\n- **Public APIs:** An exhaustive, community-maintained collection of thousands of free REST endpoints spanning astronomy, weather, biology, economics, and sports.\n\n---\n\n## 4. QUANTA Club Recommendations\nAll project teams participating in the upcoming **QUANTA Open Innovation Challenge** are strongly encouraged to integrate these repositories into their foundational architecture. Direct links are provided in the matrix above for easy cloning and bookmarking.",
-      "category": "Opportunities",
-      "tagLabel": "DEVELOPER TOOLS & REPOS",
-      "tagTone": "sky",
-      "source": "QUANTA Open Source & Developer Directorate",
-      "readTime": "6 min read",
-      "date": "Nov 11, 2026",
-      "imageUrl": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&q=80",
-      "featuredInCarousel": true,
-      "status": "Published",
-      "externalUrl": "https://github.com/ripienaar/free-for-dev"
     },
     {
       "id": "exp-handy-offline-stt",
@@ -8033,312 +8064,312 @@
   ],
   "dailyQuizzes": [
     {
-      "id": "quiz-2026-11-11-v2-01",
-      "domain": "الذكاء الاصطناعي والتفكير المنطقي (Gemini 4 Carbon)",
+      "id": "quiz-2026-11-14-01",
+      "domain": "الذكاء الاصطناعي للعلوم (AI for Science)",
       "icon": "ai-ml",
-      "question": "ما هو التقييم القياسي المعتمد في اختبارات الأمن السيبراني الذي تفوق فيه نموذج Google Gemini 4 Carbon بنسبة نجاح بلغت 88.2%؟",
+      "question": "ما هو الهدف الاستراتيجي الأبرز لمنظومات 'AI for Science' الحديثة لعام 2026 في المعامل البحثية؟",
       "options": [
         {
           "id": "a",
-          "label": "معيار توليد الصور الواقعية ImageNet"
+          "label": "الاستغناء الكامل عن القوانين الفيزيائية والكيميائية المعتمدة"
         },
         {
           "id": "b",
-          "label": "معيار ضغط ملفات الفيديو الرقمية MP4"
+          "label": "أتمتة صياغة الفرضيات، تسريع تصميم الجزيئات واختصار مسارات التجارب المخبرية المعقدة"
         },
         {
           "id": "c",
-          "label": "معيار SEC-bench Pro لاكتشاف الثغرات البرمجية والتصحيح الذاتي"
+          "label": "توليد ملفات الفيديو الترفيهية الفردية فقط"
         },
         {
           "id": "d",
-          "label": "معيار الترجمة الصوتية الفورية للنصوص القديمة"
+          "label": "إغلاق المعامل الجامعية وقواعد البيانات العلمية"
         }
       ],
-      "correctId": "c",
-      "verdictTitle": "تفوق Gemini 4 Carbon في معيار SEC-bench Pro",
-      "explanation": "حقق نموذج Gemini 4 Carbon نسبة نجاح استثنائية بلغت 88.2% على معيار SEC-bench Pro، متصدراً اختبارات كشف ثغرات الذاكرة والتصريح الأمني وتوليد الترقيعات الآمنة.",
+      "correctId": "b",
+      "verdictTitle": "تسريع الاكتشاف العلمي عبر وكلاء الذكاء الاصطناعي",
+      "explanation": "تعتمد ثورة 'AI for Science' على وكلاء أذكياء متعددي النماذج قادرين على قراءة ملايين الأوراق البحثية، صياغة فرضيات كيميائية وفيزيائية واختبارها محاكاةً في ثوانٍ معدودة.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": true,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-02",
-      "domain": "الأنظمة المستقلة والوكلاء الأذكياء (Claude Fable)",
-      "icon": "cybersecurity",
-      "question": "ما هي الخاصية المعمارية الأساسية التي تميز عائلة نماذج Claude Fable 5.2 في بيئات التطوير الهندسي المعقدة؟",
+      "id": "quiz-2026-11-14-02",
+      "domain": "الحوسبة والفيزياء الكمية (Quantum Physics)",
+      "icon": "quantum",
+      "question": "ما هي الظاهرة الفيزيائية الكمية التي تتيح للبت الكمي (Qubit) التواجد في حالتي 0 و 1 معاً في نفس اللحظة؟",
       "options": [
         {
           "id": "a",
-          "label": "اقتصار عملها على محادثات نصية قصيرة لا تتعدى بضعة أسطر"
+          "label": "الانكسار الضوئي الكلاسيكي"
         },
         {
           "id": "b",
-          "label": "الاستقلالية طويلة المدى (Long-Horizon) وإدارة الوكلاء الفرعيين مع التفكير التكيفي"
+          "label": "التوصيل الحراري المباشر"
         },
         {
           "id": "c",
-          "label": "عدم قدرتها على فحص الكود البرمجي أو التعامل مع الأدوات الخارجية"
+          "label": "الاحتكاك الكهرومغناطيسي السطحي"
         },
         {
           "id": "d",
-          "label": "حظر التفاعل مع بيئات الـ Terminal والحوسبة السحابية"
-        }
-      ],
-      "correctId": "b",
-      "verdictTitle": "الاستقلالية طويلة الأمد في Claude Fable 5.2",
-      "explanation": "صُممت عائلة Claude Fable 5.2 لإنجاز المهام الهندسية متعددة الساعات والأيام (Long-Horizon) عبر مستودعات برمجية معقدة وتصحيح الأخطاء تلقائياً بدعم آليات التفكير الممتد التكيفي.",
-      "xpReward": 2,
-      "dateLabel": "2026-11-11",
-      "isPinnedToday": false,
-      "active": true
-    },
-    {
-      "id": "quiz-2026-11-11-v2-03",
-      "domain": "أدوات التطوير وإدارة المستودعات (Git & GitHub)",
-      "icon": "git-open-source",
-      "question": "ما هو الأمر في Git الذي يُستخدم لاستعراض السجل الزمني للإيداعات (Commits) السابقة وتفاصيل مؤلفيها؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "git push --force-with-lease"
-        },
-        {
-          "id": "b",
-          "label": "git branch -D main"
-        },
-        {
-          "id": "c",
-          "label": "git stash drop"
-        },
-        {
-          "id": "d",
-          "label": "git log --oneline"
+          "label": "التراكب الكمي (Quantum Superposition)"
         }
       ],
       "correctId": "d",
-      "verdictTitle": "استعراض سجل الإيداعات عبر git log",
-      "explanation": "يُستخدم الأمر git log (ومعه خيار --oneline للاختصار) لعرض التاريخ الزمني للمشروع، معرفات الـ Commits، وأسماء المساهمين ورسائل التعديل المعتمدة.",
+      "verdictTitle": "التراكب الكمي: قوة المعالجة الخارقة",
+      "explanation": "تتيح خاصية التراكب الكمي للكيوبت تمثيل حالات متعددة متزامنة، مما يمنح الحواسيب الكمية قدرة فائقة على حل معادلات التشفير والمحاكاة الجزيئية المعقدة.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-04",
-      "domain": "الفيزياء الفلكية وعلوم الفضاء (Astronomy)",
+      "id": "quiz-2026-11-14-03",
+      "domain": "الفلك والفيزياء الفضائية (JWST Astrophysics)",
       "icon": "astronomy",
-      "question": "ما هو التفاعل الفيزيائي الذي يُنتج الطاقة الهائلة المشعة من قلب الشمس وباقي النجوم النشطة في الكون؟",
+      "question": "في أي نطاق من الطيف الكهرومغناطيسي يرصد تلسكوب جيمس ويب (JWST) لاختراق سحب الغبار الكوني ورصد بدايات الكون؟",
       "options": [
         {
           "id": "a",
-          "label": "الاندماج النووي الحراري (Nuclear Fusion) لأنوية الهيدروجين لتشكيل الهيليوم"
+          "label": "الأشعة تحت الحمراء (Infrared Spectrum)"
         },
         {
           "id": "b",
-          "label": "الاحتراق الكيميائي المباشر للغاز الطبيعي والفحم"
+          "label": "أشعة غاما ذات الطاقة المدمرة"
         },
         {
           "id": "c",
-          "label": "الانشطار الإشعاعي لعنصر اليورانيوم والبلوتونيوم"
+          "label": "الموجات الصوتية الميكانيكية"
         },
         {
           "id": "d",
-          "label": "الاحتكاك الميكانيكي بين جزيئات الغبار الكوني"
+          "label": "الأشعة فوق البنفسجية القصيرة فقط"
         }
       ],
       "correctId": "a",
-      "verdictTitle": "الاندماج النووي: قلب الطاقة الشمسية",
-      "explanation": "تستمد الشمس طاقتها الجبارة من تفاعل الاندماج النووي الحراري، حيث تندمج بروتونات الهيدروجين لتكوين أنوية الهيليوم تحت ضغط فائق وحرارة تصل إلى 15 مليون كلفن.",
+      "verdictTitle": "رصد أعماق الكون بالأشعة تحت الحمراء",
+      "explanation": "صُمم تلسكوب جيمس ويب للرصد في نطاق الأشعة تحت الحمراء القريبة والمتوسطة، لأن أطوالها الموجية تنفذ عبر الغبار الفضائي وتكشف الضوء المنزاح نحو الأحمر من أقدم المجرات.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-05",
-      "domain": "البيولوجيا الجزيئية وعلم الوراثة (Genetics)",
+      "id": "quiz-2026-11-14-04",
+      "domain": "البيولوجيا الجزيئية وعلم الوراثة (PCR Diagnostics)",
       "icon": "genetics",
-      "question": "في لولب الـ DNA المزدوج، ما هي القاعدة النيتروجينية المكملة التي ترتبط دائماً بالأدنين (Adenine) برابطتين هيدروجينيتين؟",
+      "question": "ما هي التقنية المخبرية الثورية التي تتيح مضاعفة وتكبير قطعة محددة من الـ DNA ملايين المرات في وقت قياسي؟",
       "options": [
         {
           "id": "a",
-          "label": "الجوانين (Guanine)"
+          "label": "التقطير التجزيئي للبترول"
         },
         {
           "id": "b",
-          "label": "الثايمين (Thymine)"
+          "label": "التحليل الطيفي بالأشعة السينية"
         },
         {
           "id": "c",
-          "label": "السيتوزين (Cytosine)"
+          "label": "تفاعل البوليمراز المتسلسل (Polymerase Chain Reaction - PCR)"
         },
         {
           "id": "d",
-          "label": "اليوراسيل (Uracil)"
-        }
-      ],
-      "correctId": "b",
-      "verdictTitle": "التكامل الهيدروجيني: الأدنين والثايمين",
-      "explanation": "في الحمض النووي DNA، يرتبط الأدنين (A) حصرياً بالثايمين (T) بواسطة رابطتين هيدروجينيتين، بينما يرتبط الجوانين (G) بالسيتوزين (C) بثلاث روابط هيدروجينية وفق قواعد واطسون-كريك.",
-      "xpReward": 2,
-      "dateLabel": "2026-11-11",
-      "isPinnedToday": false,
-      "active": true
-    },
-    {
-      "id": "quiz-2026-11-11-v2-06",
-      "domain": "الميكانيكا وقوانين الحركة الكلاسيكية (Physics)",
-      "icon": "optics",
-      "question": "وفقاً لقانون نيوتن الثاني للحركة، ما هي العلاقة الرياضية التي تربط القوة المحصلة (F) بكتلة الجسم (m) وتسارعه (a)؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "F = m / a"
-        },
-        {
-          "id": "b",
-          "label": "F = m + a"
-        },
-        {
-          "id": "c",
-          "label": "F = m × a"
-        },
-        {
-          "id": "d",
-          "label": "F = a / m²"
+          "label": "التبريد المغناطيسي الفائق"
         }
       ],
       "correctId": "c",
-      "verdictTitle": "قانون نيوتن الثاني للحركة: F = m × a",
-      "explanation": "ينص قانون نيوتن الثاني على أن القوة المحصلة المؤثرة على جسم تساوي حاصل ضرب كتلته في التسارع المكتسب (F = ma)، وهو المبدأ التأسيسي للميكانيكا الكلاسيكية.",
+      "verdictTitle": "تقنية PCR لمضاعفة الحمض النووي",
+      "explanation": "تعتمد تقنية PCR على دورات حرارية متكررة وأنزيم بلمرة مقاوم للحرارة لمضاعفة تسلسلات جينية محددة أسيّاً، وتعد ركيزة التشخيص الفيروسي والبحث الجيني الحديث.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-07",
-      "domain": "بيئة بايثون والبرمجيات الحرة (Python Ecosystem)",
-      "icon": "python",
-      "question": "ما هو الأمر القياسي في بايثون لإنشاء بيئة افتراضية معزولة (Virtual Environment) مخصصة لمشروع معين؟",
+      "id": "quiz-2026-11-14-05",
+      "domain": "شبكات الحاسوب والإنترنت (Network Protocols)",
+      "icon": "web-dev",
+      "question": "ما هو بروتوكول طبقة النقل الذي يضمن وصول الحزم البرمجية بالترتيب الصحيح ودون أي فقدان للبيانات؟",
       "options": [
         {
           "id": "a",
-          "label": "python -m venv <env_name>"
+          "label": "بروتوكول UDP غير الموجه"
         },
         {
           "id": "b",
-          "label": "pip delete --all"
+          "label": "بروتوكول التحكم في النقل TCP (Transmission Control Protocol)"
         },
         {
           "id": "c",
-          "label": "python purge system"
+          "label": "بروتوكول ICMP للرسائل التشخيصية"
         },
         {
           "id": "d",
-          "label": "venv create --global"
+          "label": "بروتوكول ARP لعناوين الذاكرة"
         }
       ],
-      "correctId": "a",
-      "verdictTitle": "إنشاء البيئات الافتراضية عبر venv",
-      "explanation": "تتيح وحدة venv المدمجة في بايثون إنشاء بيئات معزولة تماماً تمنع تضارب إصدارات المكتبات وحزم البرمجيات بين المشاريع المختلفة.",
+      "correctId": "b",
+      "verdictTitle": "موثوقية نقل البيانات عبر TCP",
+      "explanation": "يضمن بروتوكول TCP عبر آلية المصافحة الثلاثية (Three-way Handshake) وإعادة الإرسال عند الفقدان وصول البيانات كاملة ومرتبة، وهو أساس تصفح الويب الآمن ونقل الملفات.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-08",
-      "domain": "الخوارزميات وهياكل البيانات (Computer Science)",
-      "icon": "mathematics",
-      "question": "ما هو التعقيد الزمني لأسوأ حالة (Worst-case Time Complexity) لخوارزمية البحث الثنائي (Binary Search) في مصفوفة مرتبة؟",
+      "id": "quiz-2026-11-14-06",
+      "domain": "النسبية الخاصة والفيزياء النظرية (Relativity)",
+      "icon": "optics",
+      "question": "وفقاً للنظرية النسبية الخاصة لآينشتاين، ماذا يحدث لتدفق الزمن لجسم يتحرك بسرعة تقترب من سرعة الضوء بالنسبة لراصد ساكن؟",
       "options": [
         {
           "id": "a",
-          "label": "O(n²)"
+          "label": "يتسارع الزمن بشكل لانهائي"
         },
         {
           "id": "b",
-          "label": "O(n)"
+          "label": "ينعكس الزمن ليعود للماضي فوراً"
         },
         {
           "id": "c",
-          "label": "O(1)"
+          "label": "لا يتأثر الزمن إطلاقاً ويبقى مطلقاً"
         },
         {
           "id": "d",
-          "label": "O(log n)"
+          "label": "يتباطأ تدفق الزمن (تمدد الزمن - Time Dilation)"
         }
       ],
       "correctId": "d",
-      "verdictTitle": "التعقيد اللوغاريتمي O(log n) للبحث الثنائي",
-      "explanation": "نظراً لأن خوارزمية البحث الثنائي تقسم نطاق البحث إلى النصف في كل خطوة مقارنة، فإن تعقيدها الزمني لوغاريتمي O(log n)، مما يضمن كفاءة فائقة على البيانات الضخمة.",
+      "verdictTitle": "تمدد الزمن النسبي عند السرعات العالية",
+      "explanation": "تثبت النسبية الخاصة أن الزمن ليس مطلقاً، فكلما اقتربت سرعة المراقب من سرعة الضوء c يتباطأ معدل مرور ساعته مقارنة بالمراقب الساكن نتيجة تمدد نسيج الزمكان.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-09",
-      "domain": "هندسة وتطوير واجهات الويب (Frontend Engineering)",
-      "icon": "web-dev",
-      "question": "ما هي اللغة القياسية المستخدمة لتحديد التنسيق البصري، الألوان، الخطوط، وتجاوب صفحات الويب مع مختلف الشاشات؟",
+      "id": "quiz-2026-11-14-07",
+      "domain": "هياكل البيانات والبرمجة (Data Structures)",
+      "icon": "competitive-programming",
+      "question": "أي من هياكل البيانات التالية يعمل بصرامة وفق مبدأ 'ما يدخل آخراً يخرج أولاً' (LIFO - Last In First Out)؟",
       "options": [
         {
           "id": "a",
-          "label": "بروتوكول نقل الملفات FTP"
+          "label": "المكدس البرمجي (Stack)"
         },
         {
           "id": "b",
-          "label": "لغة صفائح الأنماط الانسيابية CSS (Cascading Style Sheets)"
+          "label": "طابور الانتظار (Queue)"
         },
         {
           "id": "c",
-          "label": "محرك قواعد البيانات SQLite"
+          "label": "المصفوفة الدائرية (Ring Buffer)"
         },
         {
           "id": "d",
-          "label": "نظام التوزيع لشبكات DNS"
+          "label": "شجرة البحث الثنائية (Binary Search Tree)"
         }
       ],
-      "correctId": "b",
-      "verdictTitle": "لغة CSS لتصميم وهندسة واجهات الويب",
-      "explanation": "تتحكم لغة CSS بالجانب البصري لصفحات الإنترنت وتفصل بين هيكل المحتوى (HTML) وتنسيقات الألوان والخطوط والأبعاد والتجاوب مع الهواتف والحواسيب.",
+      "correctId": "a",
+      "verdictTitle": "المكدس البرمجي ومبدأ LIFO",
+      "explanation": "يعتمد هيكل المكدس (Stack) على مبدأ LIFO حيث تتم عمليتا الإضافة (Push) والحذف (Pop) من قمة المكدس فقط، وهو الهيكل المستخدم في سجل استدعاء الدوال (Call Stack) وتراجع التحرير (Undo).",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     },
     {
-      "id": "quiz-2026-11-11-v2-10",
-      "domain": "رسالة وقيم نادي QUANTA العلمي",
-      "icon": "leadership",
-      "question": "ما هو المعيار الأساسي المعتمد في نادي QUANTA لحساب ترقيات الأعضاء واختيار عضو الشهر واستحقاق الشارات؟",
+      "id": "quiz-2026-11-14-08",
+      "domain": "الأمن السيبراني والتشفير (Cryptography)",
+      "icon": "cybersecurity",
+      "question": "ما هو نمط التشفير الذي يستخدم زوجاً من المفاتيح: مفتاحاً عاماً للتشفير ومفتاحاً سرياً خاصاً لفك التشفير؟",
       "options": [
         {
           "id": "a",
-          "label": "القرعة العشوائية والصدفة البحتة"
+          "label": "التشفير التماثلي البسيط (Symmetric Cipher)"
         },
         {
           "id": "b",
-          "label": "الأقدمية الزمنية فقط دون أي نشاط علمي أو تقني"
+          "label": "خوارزمية قيصر للإزاحة الخطية"
         },
         {
           "id": "c",
-          "label": "سجل النقاط الموثق والإنتاج العلمي المعتمد والمشاريع مفتوحة المصدر وحضور الفعاليات"
+          "label": "التشفير غير المتماثل بالمفتاح العام (Asymmetric Public-Key Cryptography)"
         },
         {
           "id": "d",
-          "label": "عدد التفاعلات على شبكات التواصل الاجتماعي الشخصية"
+          "label": "دالة التجزئة أحادية الاتجاه (One-way Hash)"
         }
       ],
       "correctId": "c",
-      "verdictTitle": "معايير الاستحقاق والنزاهة في QUANTA",
-      "explanation": "يرتكز نظام نادي كوانتا على سجل نقاط (Ledger) شفاف ومؤتمت يكافئ الجدارة الأكاديمية والعمل البحثي والبرمجي الجاد لضمان تكافؤ الفرص لجميع الأعضاء.",
+      "verdictTitle": "التشفير بالمفتاح العام والخاص",
+      "explanation": "يعتمد التشفير غير المتماثل (مثل RSA ومنحنيات إهليلجية ECC) على زوج مفاتيح رياضي، مما يسمح بتبادل البيانات الآمن وإنشاء التوقيعات الرقمية عبر شبكات مفتوحة دون مشاركة المفتاح السري.",
       "xpReward": 2,
-      "dateLabel": "2026-11-11",
+      "dateLabel": "2026-11-14",
+      "isPinnedToday": false,
+      "active": true
+    },
+    {
+      "id": "quiz-2026-11-14-09",
+      "domain": "الكيمياء الحيوية والطاقة الخلوية (Biochemistry)",
+      "icon": "biotech",
+      "question": "ما هو الجزيء الحيوي الذي يُعد عملة الطاقة الأساسية لجميع العمليات الحيوية داخل خلايا الكائنات الحية؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "حمض الفوليك"
+        },
+        {
+          "id": "b",
+          "label": "الكيراتين"
+        },
+        {
+          "id": "c",
+          "label": "الهيموغلوبين"
+        },
+        {
+          "id": "d",
+          "label": "أدينوسين ثلاثي الفوسفات (ATP - Adenosine Triphosphate)"
+        }
+      ],
+      "correctId": "d",
+      "verdictTitle": "جزيء ATP: عملة الطاقة الحيوية",
+      "explanation": "يخزن جزيء ATP الطاقة الكيميائية في روابط الفوسفات عالية الطاقة، ويتم تحريرها عند تكسير رابطة لتغذية الانقباض العضلي، نقل الأيونات وتصنيع الجزيئات الحيوية.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-14",
+      "isPinnedToday": false,
+      "active": true
+    },
+    {
+      "id": "quiz-2026-11-14-10",
+      "domain": "رسالة ونشاطات نادي QUANTA العلمي",
+      "icon": "leadership",
+      "question": "ما الذي يميز نهج ورشات ومشاريع نادي QUANTA العلمي في إعداد الطلبة والباحثين؟",
+      "options": [
+        {
+          "id": "a",
+          "label": "الاكتفاء بالمحاضرات النظرية السمعية دون تطبيق حاسوبي أو تجريبي"
+        },
+        {
+          "id": "b",
+          "label": "العمل العملي المباشر، البرمجيات مفتوحة المصدر، وحل المشكلات الهندسية والبحثية الواقعية"
+        },
+        {
+          "id": "c",
+          "label": "حظر المشاركة في المسابقات العلمية والهاكاثونات الوطنية والدولية"
+        },
+        {
+          "id": "d",
+          "label": "منع تبادل الخبرات بين الأجيال والأعضاء القدامى"
+        }
+      ],
+      "correctId": "b",
+      "verdictTitle": "النهج التطبيقي الرائد لنادي QUANTA",
+      "explanation": "يتبنى نادي QUANTA منهجية التعلم بالأقران والتطبيق التقني الفعلي في مجالات الذكاء الاصطناعي، الروبوتات والعلوم الدقيقة لخلق جيل باحث قادر على الابتكار والمنافسة عالمياً.",
+      "xpReward": 2,
+      "dateLabel": "2026-11-14",
       "isPinnedToday": false,
       "active": true
     }
@@ -11266,6 +11297,24 @@
     }
   ],
   "messages": [
+    {
+      "id": "msg-launch-nov14-1794623192320",
+      "senderLabel": "QUANTA Executive Administration",
+      "senderRole": "Executive",
+      "recipientScope": "All Members",
+      "priority": "Official notice",
+      "title": "⚡ تحديات اليوم العلمية الجديدة (+2 XP) ومستجدات AI for Science والحوسبة الكمية متاحة الآن!",
+      "body": "تحية علمية طيبة لجميع أعضاء وباحثي نادي كوانتا،\n\nيسر إدارة النادي الإعلان عن إطلاق حزمة التحديات اليومية الجديدة لليوم (14 نوفمبر 2026) بنظام مكافآت ميسر يمنح نقطتي خبرة (+2 XP) لكل إجابة صحيحة مع خيارات متنوعة ومدروسة!\n\nتشمل مجالات التحدي لليوم:\n1. ثورة الذكاء الاصطناعي للعلوم (AI for Science)\n2. الحوسبة الكمية ومبدأ التراكب الكمي\n3. فيزياء الفضاء وتلسكوب جيمس ويب (JWST)\n4. البيولوجيا الجزيئية وتقنية PCR\n5. شبكات الحاسوب وموثوقية بروتوكول TCP\n6. النسبية الخاصة وتمدد الزمن\n7. هياكل البيانات والمكدس البرمجي (Stack)\n8. التشفير الحديث بالمفتاح العام (Asymmetric Cryptography)\n9. الكيمياء الحيوية وجزيء الطاقة الخلوية (ATP)\n10. منهجية الابتكار التطبيقي لنادي QUANTA\n\nكما تم تحديث قسم الاستكشاف (Explore) بنشر مقالات تحليلية جديدة:\n- \"AI for Science (AI4S): How Autonomous Generalist Agents are Accelerating Molecular Discovery & Quantum Physics\"\n- \"Room-Temperature Quantum Systems: Acoustic Diamond Flaws and Non-Destructive Qubit Readouts\"\n- \"Google Gemini 4 Carbon & Claude Fable 5.2: The Frontier Benchmark in Automated Verification & Long-Horizon Agents\"\n- \"Top 10 Essential GitHub Repositories Every Developer & AI Engineer Should Star in 2026\"\n\nندعو كافة الأعضاء لخوض التحديات العلمية اليومية والمشاركة في الفعاليات والبحث المستمر!",
+      "timeAgo": "Just now",
+      "unread": true,
+      "archived": false,
+      "channels": {
+        "inApp": true,
+        "email": true
+      },
+      "actionLabel": "افتح الاستكشاف والتحديات",
+      "linkUrl": "/explore"
+    },
     {
       "id": "msg-launch-nov11-1794355684682",
       "senderLabel": "QUANTA Executive Administration",
