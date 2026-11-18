@@ -16,7 +16,13 @@ import {
 } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useQuantersStore } from "@/lib/store/useQuantersStore";
-import { isFirestoreQuotaExhausted } from "@/lib/firebase/auth";
+import {
+  clearLastFirestorePushError,
+  getFirebaseAuth,
+  isFirestoreQuotaExhausted,
+  signInWithFirebaseGooglePopup,
+} from "@/lib/firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { SignOutConfirmModal } from "@/components/shared/SignOutConfirmModal";
 
@@ -39,6 +45,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [dismissedMobileNotice, setDismissedMobileNotice] = useState(false);
   const [showQuotaBanner, setShowQuotaBanner] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
+  const [fbAuthReady, setFbAuthReady] = useState(false);
+  const [fbAuthEmail, setFbAuthEmail] = useState<string | null>(null);
+  const [reauthingCloud, setReauthingCloud] = useState(false);
+
+  useEffect(() => {
+    const fbAuth = getFirebaseAuth();
+    if (!fbAuth) {
+      setFbAuthReady(true);
+      return;
+    }
+    const unsub = onAuthStateChanged(fbAuth, (user) => {
+      setFbAuthEmail(user?.email ? user.email.toLowerCase() : null);
+      setFbAuthReady(true);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -204,6 +226,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
         )}
+
+        {fbAuthReady &&
+          currentMember &&
+          fbAuthEmail !== currentMember.email.toLowerCase() && (
+            <div className="w-full bg-rose-50 border-b border-rose-200 text-rose-900 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs sticky top-0 z-40 shadow-sm">
+              <div className="flex items-center gap-2 min-w-0">
+                <ShieldCheck className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="leading-snug">
+                  <strong>Cloud Auth Mismatch:</strong> Viewing Admin Console as{" "}
+                  <code className="font-mono font-bold">{currentMember.email}</code>, while Firebase Cloud Auth is{" "}
+                  <code className="font-mono font-bold">{fbAuthEmail || "signed out"}</code>. HR approvals cannot save to Cloud until verified.
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={reauthingCloud}
+                onClick={async () => {
+                  setReauthingCloud(true);
+                  try {
+                    const popupRes = await signInWithFirebaseGooglePopup();
+                    if (popupRes.ok) {
+                      clearLastFirestorePushError();
+                      await useQuantersStore.getState().syncWithServer(true).catch(() => {});
+                    }
+                  } finally {
+                    setReauthingCloud(false);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-bold text-xs shadow-xs transition cursor-pointer shrink-0"
+              >
+                {reauthingCloud ? "Verifying..." : "Verify Google Cloud Session"}
+              </button>
+            </div>
+          )}
 
         {/* Top Header Bar matching Member App Style */}
         <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-6 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-[0_2px_10px_rgba(15,30,54,0.03)]">

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { isSuperAdminEmail } from "../firebase/config";
 import {
+  getLastFirestorePushError,
   isFirestoreQuotaExhausted,
   pullErpStateFromFirestore,
   pushErpStateToFirestore,
@@ -266,13 +267,13 @@ interface QuantersStoreState {
     memberId: string;
     actorName?: string;
     notes?: string;
-  }) => void;
+  }) => Promise<{ ok: boolean; message?: string; syncedToCloud?: boolean }>;
   ensureWelcomeMessageDelivered: (memberId: string) => void;
   rejectMemberAdmission: (payload: {
     memberId: string;
     actorName?: string;
     reason: string;
-  }) => void;
+  }) => Promise<{ ok: boolean; message?: string; syncedToCloud?: boolean }>;
   assignBuddyToMember: (traineeId: string, buddyId: string) => void;
   changeMemberStatus: (payload: {
     memberId: string;
@@ -808,14 +809,27 @@ function mergeRemoteWithUnsyncedLocal(
         ? new Date(remoteItem.updatedAt as string).getTime()
         : 0;
 
-      // Concurrency & Persistence: Newer local edit or diverging edit always wins
-      if (localTime > 0 && localTime >= remoteTime) {
+      // Never allow a stale Pending local cache to revert an HR-approved remote member record
+      const remoteTicks = (remoteItem as { onboardingTicks?: { hrApproved?: boolean } }).onboardingTicks;
+      const localTicks = (localItem as { onboardingTicks?: { hrApproved?: boolean } }).onboardingTicks;
+      const isStalePendingOverridingApproved =
+        key === "members" &&
+        remoteTicks?.hrApproved === true &&
+        localTicks?.hrApproved !== true &&
+        localItem.status === "Pending";
+
+      if (isStalePendingOverridingApproved) {
+        continue;
+      }
+
+      // Concurrency & Persistence: Strictly newer local edit or diverging edit wins
+      if (localTime > 0 && localTime > remoteTime) {
         mergedById.set(id, { ...remoteItem, ...localItem });
       } else if (prevMap) {
         const baselineJson = prevMap.get(id);
         const localJson = JSON.stringify(localItem);
-        // If local state diverged from baseline, keep local edit
-        if (baselineJson && baselineJson !== localJson) {
+        // If local state diverged from baseline and remote is not strictly newer, keep local edit
+        if (baselineJson && baselineJson !== localJson && remoteTime <= localTime) {
           mergedById.set(id, { ...remoteItem, ...localItem });
         }
       }
@@ -2709,6 +2723,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                   alumniPosition: payload.alumniPosition || m.alumniPosition,
                   alumniAccessEnabled: payload.alumniAccessEnabled ?? m.alumniAccessEnabled ?? true,
                   status: resolvedStatus,
+                  updatedAt: new Date().toISOString(),
                   roles: isAlumniTarget ? ["Alumni"] : m.roles,
                   levelTitle: targetSeniority.levelTitle,
                   level: targetSeniority.level,
@@ -2820,6 +2835,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         isBureauMember: false,
         status: newStatus,
         statusSince: new Date().toISOString().slice(0, 10),
+        updatedAt: new Date().toISOString(),
         traineeStartDate: new Date().toISOString().slice(0, 10),
         traineeDaysElapsed: isAlumniTarget || (autoApprove && isOldMember) ? 1000 : 1,
         outsideActivitiesAndVolunteering: payload.outsideActivitiesAndVolunteering || "",
@@ -3099,6 +3115,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 ...m,
                 status: "Active",
                 statusSince: new Date().toISOString().slice(0, 10),
+                updatedAt: new Date().toISOString(),
                 onboardingTicks: {
                   ...m.onboardingTicks,
                   hrApproved: true,
@@ -3192,28 +3209,57 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     });
   },
 
-  approveMemberAdmission: ({ memberId, actorName = "HR Directorate", notes }) => {
+  approveMemberAdmission: async ({ memberId, actorName = "HR Directorate", notes }) => {
+    const preState = get();
+    const currentActor = preState.members.find((m) => m.id === preState.currentMemberId);
+    const isPrivileged = Boolean(
+      currentActor &&
+        (currentActor.roles.some((r) =>
+          ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"].includes(r)
+        ) ||
+          isSuperAdminEmail(currentActor.email))
+    );
+    if (!isPrivileged) {
+      console.warn("[Security Guard] Unauthorized admission approval rejected.");
+      return {
+        ok: false,
+        syncedToCloud: false,
+        message: "Only Executive Bureau, HR Head, or Department Leadership accounts can approve admissions.",
+      };
+    }
+
+    const targetMember = preState.members.find((m) => m.id === memberId);
+    if (!targetMember) {
+      return {
+        ok: false,
+        syncedToCloud: false,
+        message: "Candidate record not found in directory.",
+      };
+    }
+
+    if (targetMember.onboardingTicks?.hrApproved && targetMember.status !== "Pending") {
+      return {
+        ok: true,
+        syncedToCloud: true,
+        message: `${targetMember.fullName} is already approved (${targetMember.status}).`,
+      };
+    }
+
+    const nowIso = new Date().toISOString();
+    const todayDate = nowIso.slice(0, 10);
+    const resolvedActorName = currentActor?.fullName ? `${currentActor.fullName} (${actorName})` : actorName;
+
     set((state) => {
-      const currentActor = state.members.find((m) => m.id === state.currentMemberId);
-      const isPrivileged = Boolean(
-        currentActor &&
-        (currentActor.roles.some((r) => ["Super Admin", "Executive", "HR Head"].includes(r)) ||
-        ["quantaclubdz@gmail.com", "ayoubsarri1@gmail.com", "hr.quanta@univ-alger.dz"].includes(currentActor.email.toLowerCase()))
-      );
-      if (!isPrivileged) {
-        console.warn("[Security Guard] Unauthorized admission approval rejected.");
-        return state;
-      }
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
 
-      const targetStatus: MemberStatus = (member.tenure?.toLowerCase().includes("alumni")
+      const targetStatus: MemberStatus = member.tenure?.toLowerCase().includes("alumni")
         ? "Alumni"
-        : "Trainee");
+        : "Trainee";
 
       const audit: AuditLogEntry = {
         id: `aud-adm-${Date.now()}`,
-        actorName,
+        actorName: resolvedActorName,
         actorRole: state.activeAdminRole,
         timestamp: nowStamp(),
         actionCategory: "Status Change",
@@ -3262,17 +3308,28 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newMessages = [admissionNotice, ...state.messages];
       }
 
-      const welcomeLedgerEntry: PointsLedgerEntry = {
-        id: `led-adm-${member.id}-${Date.now()}`,
-        memberId: member.id,
-        memberName: member.fullName,
-        amount: 50,
-        reason: "Welcome Admission Bonus · Official Induction into QUANTA (+50 XP)",
-        ruleLabel: "HR Induction XP Bonus",
-        source: "Manual",
-        actorName,
-        date: new Date().toISOString().slice(0, 10),
-      };
+      const alreadyHasBonus = state.ledger.some(
+        (l) => l.memberId === member.id && l.ruleLabel === "HR Induction XP Bonus"
+      );
+
+      const nextLedger = alreadyHasBonus
+        ? state.ledger
+        : [
+            {
+              id: `led-adm-${member.id}-${Date.now()}`,
+              memberId: member.id,
+              memberName: member.fullName,
+              amount: 50,
+              reason: "Welcome Admission Bonus · Official Induction into QUANTA (+50 XP)",
+              ruleLabel: "HR Induction XP Bonus",
+              source: "Manual",
+              actorName: resolvedActorName,
+              date: todayDate,
+            } as PointsLedgerEntry,
+            ...state.ledger,
+          ];
+
+      const xpDelta = alreadyHasBonus ? 0 : 50;
 
       return {
         members: state.members.map((m) =>
@@ -3280,14 +3337,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ? {
                 ...m,
                 status: targetStatus,
-                statusSince: new Date().toISOString().slice(0, 10),
-                xpTotal: (m.xpTotal || 0) + 50,
-                xpSeason: (m.xpSeason || 0) + 50,
+                statusSince: todayDate,
+                updatedAt: nowIso,
+                xpTotal: (m.xpTotal || 0) + xpDelta,
+                xpSeason: (m.xpSeason || 0) + xpDelta,
                 onboardingTicks: {
                   ...m.onboardingTicks,
                   hrApproved: true,
-                  hrApprovedAt: new Date().toISOString(),
-                  hrApprovedBy: actorName,
+                  hrApprovedAt: nowIso,
+                  hrApprovedBy: resolvedActorName,
                 },
                 statusHistory: [
                   {
@@ -3295,8 +3353,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                     fromStatus: m.status,
                     toStatus: targetStatus,
                     reason: notes ? `HR Admission Approved: ${notes}` : "HR Admission Approved",
-                    actorName,
-                    date: new Date().toISOString().slice(0, 10),
+                    actorName: resolvedActorName,
+                    date: todayDate,
                   },
                   ...m.statusHistory,
                 ],
@@ -3304,29 +3362,72 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             : m
         ),
         messages: newMessages,
-        ledger: [welcomeLedgerEntry, ...state.ledger],
+        ledger: nextLedger,
         auditLogs: [audit, ...state.auditLogs],
         celebration: {
           open: true,
           type: "confirmation",
           title: "Quanter Admitted!",
           subtitle: `${member.fullName} has been approved and inducted into QUANTA as ${targetStatus}.`,
-          xpEarned: 50,
+          xpEarned: xpDelta,
         },
       };
     });
+
     get().saveToLocalCache();
-    get().syncWithServer(true).catch(() => {});
+    await get().syncWithServer(true).catch(() => {});
+    const pushErr = getLastFirestorePushError();
+    if (pushErr) {
+      return {
+        ok: true,
+        syncedToCloud: false,
+        message:
+          pushErr.code === "permission-denied" || pushErr.code === "unauthenticated"
+            ? `Saved locally, but Cloud Firestore rejected sync (${pushErr.code}). Please verify your Google/Firebase sign-in matches your Admin email.`
+            : `Saved locally, but Cloud sync encountered an issue (${pushErr.code}).`,
+      };
+    }
+    return {
+      ok: true,
+      syncedToCloud: true,
+      message: `Approved admission for ${targetMember.fullName} and synced to cloud.`,
+    };
   },
 
-  rejectMemberAdmission: ({ memberId, actorName = "HR Directorate", reason }) => {
+  rejectMemberAdmission: async ({ memberId, actorName = "HR Directorate", reason }) => {
+    const preState = get();
+    const currentActor = preState.members.find((m) => m.id === preState.currentMemberId);
+    const isPrivileged = Boolean(
+      currentActor &&
+        (currentActor.roles.some((r) =>
+          ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager"].includes(r)
+        ) ||
+          isSuperAdminEmail(currentActor.email))
+    );
+    if (!isPrivileged) {
+      return {
+        ok: false,
+        syncedToCloud: false,
+        message: "Unauthorized: only HR/Executive leadership can decline admissions.",
+      };
+    }
+
+    const targetMember = preState.members.find((m) => m.id === memberId);
+    if (!targetMember) {
+      return { ok: false, syncedToCloud: false, message: "Candidate not found." };
+    }
+
+    const nowIso = new Date().toISOString();
+    const todayDate = nowIso.slice(0, 10);
+    const resolvedActorName = currentActor?.fullName ? `${currentActor.fullName} (${actorName})` : actorName;
+
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
 
       const audit: AuditLogEntry = {
         id: `aud-rej-${Date.now()}`,
-        actorName,
+        actorName: resolvedActorName,
         actorRole: state.activeAdminRole,
         timestamp: nowStamp(),
         actionCategory: "Status Change",
@@ -3343,7 +3444,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 ...m,
                 status: "Removed" as MemberStatus,
                 removalReason: reason,
-                statusSince: new Date().toISOString().slice(0, 10),
+                statusSince: todayDate,
+                updatedAt: nowIso,
                 onboardingTicks: {
                   ...m.onboardingTicks,
                   hrApproved: false,
@@ -3354,8 +3456,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                     fromStatus: m.status,
                     toStatus: "Removed" as MemberStatus,
                     reason,
-                    actorName,
-                    date: new Date().toISOString().slice(0, 10),
+                    actorName: resolvedActorName,
+                    date: todayDate,
                   },
                   ...m.statusHistory,
                 ],
@@ -3365,8 +3467,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         auditLogs: [audit, ...state.auditLogs],
       };
     });
+
     get().saveToLocalCache();
-    get().syncWithServer(true).catch(() => {});
+    await get().syncWithServer(true).catch(() => {});
+    const pushErr = getLastFirestorePushError();
+    return {
+      ok: true,
+      syncedToCloud: !pushErr,
+      message: pushErr
+        ? `Declined locally, but Cloud sync failed (${pushErr.code}).`
+        : `Declined application for ${targetMember.fullName}.`,
+    };
   },
 
   forceLogoutAllSessions: async (options) => {

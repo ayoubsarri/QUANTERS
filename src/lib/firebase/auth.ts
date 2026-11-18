@@ -573,7 +573,13 @@ export async function pullErpStateFromFirestore(): Promise<Record<string, any> |
     if (membersSnap && membersSnap.exists()) {
       const shardData = membersSnap.data() as Record<string, any>;
       if (Array.isArray(shardData.members)) {
-        data.members = mergeCollectionArraysById(shardData.members, data.members || [], undefined, "members", true);
+        const mainTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
+        const shardTime = shardData.updatedAt ? new Date(shardData.updatedAt).getTime() : 0;
+        if (shardTime > mainTime) {
+          data.members = mergeCollectionArraysById(data.members || [], shardData.members, undefined, "members", true);
+        } else {
+          data.members = mergeCollectionArraysById(shardData.members, data.members || [], undefined, "members", true);
+        }
       }
     }
 
@@ -723,6 +729,16 @@ function mergeCollectionArraysById(
           continue;
         }
 
+        // Prevent a stale Pending local member record from overwriting an HR-approved remote decision
+        if (
+          key === "members" &&
+          existingRemote.onboardingTicks?.hrApproved === true &&
+          lItem.onboardingTicks?.hrApproved !== true &&
+          !isAuthoritativeWrite
+        ) {
+          continue;
+        }
+
         if (key === "teams" && Array.isArray(existingRemote.memberIds) && Array.isArray(lItem.memberIds)) {
           map.set(lItem.id, {
             ...existingRemote,
@@ -772,8 +788,20 @@ function mergeCollectionArraysById(
   return ordered;
 }
 
+let erpPushQueue: Promise<any> = Promise.resolve();
+let lastFirestorePushError: { code: string; message: string; timestamp: number } | null = null;
+
+export function getLastFirestorePushError() {
+  return lastFirestorePushError;
+}
+
+export function clearLastFirestorePushError() {
+  lastFirestorePushError = null;
+}
+
 /**
  * Pushes delta or full ERP state changes to Cloud Firestore (`erp_state/main`) on quanters-d0312.
+ * - Serialized through an internal write queue so rapid successive admin edits never race or overwrite each other.
  * - Blocks anonymous writes (VULN-02).
  * - Strips any plaintext password fields (VULN-01).
  * - Merges item-level changes against the live cloud cache to eliminate Last-Write-Wins loss (ARCH-01).
@@ -785,170 +813,197 @@ export async function pushErpStateToFirestore(
   deletedIdsByCollection?: Record<string, string[]>
 ): Promise<Record<string, any> | null> {
   if (typeof window === "undefined" || !isFirebaseConfigured()) return null;
-  if (isFirestoreQuotaExhausted()) return null;
-  try {
-    let fbAuth = getFirebaseAuth();
-    if (!fbAuth) return null;
-    if (typeof (fbAuth as any).authStateReady === "function") {
-      await (fbAuth as any).authStateReady();
-    }
-    if (!fbAuth.currentUser) {
-      await ensureFirebaseAuthSession().catch(() => {});
-      fbAuth = getFirebaseAuth();
-    }
-
-    const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
-    const sanitizedPayload: Record<string, any> = { ...payload };
-
-    // Strip administrative governance keys ONLY if explicitly marked as restricted member write
-    const userEmail = (fbAuth?.currentUser?.email || payload._actorEmail || "").toLowerCase();
-    const isUserAdmin = isSuperAdminEmail(userEmail) || payload._isAdmin === true;
-    if (!isUserAdmin && payload._isRestrictedMemberWrite === true) {
-      delete sanitizedPayload.settings;
-      delete sanitizedPayload.accessGrants;
-      delete sanitizedPayload.pointRules;
-      delete sanitizedPayload.departments;
-      delete sanitizedPayload.auditLogs;
-    }
-
-    // 1. Strip plaintext passwords & cap oversized inline avatars (VULN-01 & LIMIT-01)
-    if (Array.isArray(sanitizedPayload.members)) {
-      sanitizedPayload.members = sanitizeMembersForCloud(sanitizedPayload.members);
-    }
-
-    // 2. Item-level concurrent merge against latest cloud snapshot + tombstone filtering (ARCH-01)
-    for (const key of MERGEABLE_ARRAY_KEYS) {
-      if (Array.isArray(sanitizedPayload[key])) {
-        const delIds = deletedIdsByCollection?.[key] || [];
-        const delSet = new Set(delIds);
-        const remoteArr = Array.isArray(lastReceivedCloudSnapshot?.[key])
-          ? lastReceivedCloudSnapshot![key]
-          : [];
-        sanitizedPayload[key] =
-          remoteArr.length > 0
-            ? mergeCollectionArraysById(remoteArr, sanitizedPayload[key], delSet, key, isUserAdmin)
-            : sanitizedPayload[key].filter(
-                (item: any) =>
-                  !item || !item.id || (!delSet.has(item.id) && !isRecentlyDeleted(item.id))
-              );
-      }
-    }
-
-    // 3. Enforce 1 MiB ceiling via active-window capping & overflow sharding (LIMIT-01)
-    const overflowShardPayload: Record<string, any> = {};
-    let hasOverflow = false;
-
-    if (
-      Array.isArray(sanitizedPayload.auditLogs) &&
-      sanitizedPayload.auditLogs.length > ACTIVE_AUDIT_LOG_WINDOW
-    ) {
-      overflowShardPayload.auditLogs = sanitizedPayload.auditLogs.slice(
-        ACTIVE_AUDIT_LOG_WINDOW,
-        ACTIVE_AUDIT_LOG_WINDOW + 1500
-      );
-      sanitizedPayload.auditLogs = sanitizedPayload.auditLogs.slice(0, ACTIVE_AUDIT_LOG_WINDOW);
-      hasOverflow = true;
-    }
-
-    if (
-      Array.isArray(sanitizedPayload.ledger) &&
-      sanitizedPayload.ledger.length > ACTIVE_LEDGER_WINDOW
-    ) {
-      overflowShardPayload.ledger = sanitizedPayload.ledger.slice(
-        ACTIVE_LEDGER_WINDOW,
-        ACTIVE_LEDGER_WINDOW + 2000
-      );
-      sanitizedPayload.ledger = sanitizedPayload.ledger.slice(0, ACTIVE_LEDGER_WINDOW);
-      hasOverflow = true;
-    }
-
-    const nowIso = new Date().toISOString();
-    const cleanPayload = JSON.parse(
-      JSON.stringify({
-        ...sanitizedPayload,
-        updatedAt: nowIso,
-      })
-    );
-
-    // Additional byte-budget check: if main payload still exceeds 600 KB, trim secondary history arrays
-    const serializedSize = JSON.stringify(cleanPayload).length;
-    if (serializedSize > MAIN_DOC_SAFE_BYTE_THRESHOLD) {
-      if (Array.isArray(cleanPayload.auditLogs) && cleanPayload.auditLogs.length > 200) {
-        overflowShardPayload.auditLogs = cleanPayload.auditLogs.slice(200, 1000);
-        cleanPayload.auditLogs = cleanPayload.auditLogs.slice(0, 200);
-        hasOverflow = true;
-      }
-      if (Array.isArray(cleanPayload.ledger) && cleanPayload.ledger.length > 120) {
-        overflowShardPayload.ledger = cleanPayload.ledger.slice(120, 1000);
-        cleanPayload.ledger = cleanPayload.ledger.slice(0, 120);
-        hasOverflow = true;
-      }
-    }
-
-    // Embed global tombstones in the Firestore document so ALL devices see deletions
-    // This is the only way deleted workshops/badges don't come back on fresh sessions
-    if (deletedIdsByCollection && Object.keys(deletedIdsByCollection).length > 0) {
-      const filteredTombstones: Record<string, string[]> = {};
-      for (const [col, ids] of Object.entries(deletedIdsByCollection)) {
-        if (Array.isArray(ids) && ids.length > 0) {
-          filteredTombstones[col] = ids;
-        }
-      }
-      if (Object.keys(filteredTombstones).length > 0) {
-        (cleanPayload as any).deletedIdsByCollection = filteredTombstones;
-      }
-    }
-
-    await setDoc(ref, cleanPayload, { merge: true });
-
-    // Always mirror members to partitioned members_shard (LIMIT-01)
-    if (Array.isArray(cleanPayload.members) && cleanPayload.members.length > 0) {
-      const membersShardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "members_shard");
-      setDoc(
-        membersShardRef,
-        JSON.parse(
-          JSON.stringify({
-            shardId: "members_shard",
-            updatedAt: nowIso,
-            members: cleanPayload.members,
-          })
-        ),
-        { merge: true }
-      ).catch(() => {});
-    }
-
-    // Update in-memory baseline with merged fields
-    lastReceivedCloudSnapshot = {
-      ...(lastReceivedCloudSnapshot || {}),
-      ...cleanPayload,
+  if (isFirestoreQuotaExhausted()) {
+    lastFirestorePushError = {
+      code: "resource-exhausted",
+      message: "Daily Firestore Spark quota limit reached.",
+      timestamp: Date.now(),
     };
-
-    if (hasOverflow) {
-      const shardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "history_shard");
-      await setDoc(
-        shardRef,
-        JSON.parse(
-          JSON.stringify({
-            shardId: "history_shard",
-            updatedAt: nowIso,
-            ...overflowShardPayload,
-          })
-        ),
-        { merge: true }
-      ).catch(() => {});
-    }
-
-    return cleanPayload;
-  } catch (err: any) {
-    const code = String(err?.code || "");
-    if (code.includes("resource-exhausted") || code.includes("quota")) {
-      markFirestoreQuotaExhausted();
-      console.warn("[Firestore Quota] Spark write quota reached for today. Tripping circuit breaker into local cache mode.");
-    } else {
-      console.warn("[Firestore Push Error]", err);
-    }
     return null;
   }
+
+  const runSerialized = async (): Promise<Record<string, any> | null> => {
+    try {
+      lastFirestorePushError = null;
+      let fbAuth = getFirebaseAuth();
+      if (!fbAuth) return null;
+      if (typeof (fbAuth as any).authStateReady === "function") {
+        await (fbAuth as any).authStateReady();
+      }
+      if (!fbAuth || !fbAuth.currentUser) {
+        await ensureFirebaseAuthSession().catch(() => {});
+        fbAuth = getFirebaseAuth();
+      }
+
+      if (!fbAuth || !fbAuth.currentUser) {
+        lastFirestorePushError = {
+          code: "unauthenticated",
+          message: "No active Firebase authentication session. Please sign in again.",
+          timestamp: Date.now(),
+        };
+        console.warn("[Firestore Push] Blocked: No active Firebase Auth user.");
+        return null;
+      }
+
+      const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
+      const sanitizedPayload: Record<string, any> = { ...payload };
+
+      // Strip administrative governance keys ONLY if explicitly marked as restricted member write
+      const userEmail = (fbAuth?.currentUser?.email || payload._actorEmail || "").toLowerCase();
+      const isUserAdmin = isSuperAdminEmail(userEmail) || payload._isAdmin === true;
+      if (!isUserAdmin && payload._isRestrictedMemberWrite === true) {
+        delete sanitizedPayload.settings;
+        delete sanitizedPayload.accessGrants;
+        delete sanitizedPayload.pointRules;
+        delete sanitizedPayload.departments;
+        delete sanitizedPayload.auditLogs;
+      }
+
+      // 1. Strip plaintext passwords & cap oversized inline avatars (VULN-01 & LIMIT-01)
+      if (Array.isArray(sanitizedPayload.members)) {
+        sanitizedPayload.members = sanitizeMembersForCloud(sanitizedPayload.members);
+      }
+
+      // 2. Item-level concurrent merge against latest cloud snapshot + tombstone filtering (ARCH-01)
+      for (const key of MERGEABLE_ARRAY_KEYS) {
+        if (Array.isArray(sanitizedPayload[key])) {
+          const delIds = deletedIdsByCollection?.[key] || [];
+          const delSet = new Set(delIds);
+          const remoteArr = Array.isArray(lastReceivedCloudSnapshot?.[key])
+            ? lastReceivedCloudSnapshot![key]
+            : [];
+          sanitizedPayload[key] =
+            remoteArr.length > 0
+              ? mergeCollectionArraysById(remoteArr, sanitizedPayload[key], delSet, key, isUserAdmin)
+              : sanitizedPayload[key].filter(
+                  (item: any) =>
+                    !item || !item.id || (!delSet.has(item.id) && !isRecentlyDeleted(item.id))
+                );
+        }
+      }
+
+      // 3. Enforce 1 MiB ceiling via active-window capping & overflow sharding (LIMIT-01)
+      const overflowShardPayload: Record<string, any> = {};
+      let hasOverflow = false;
+
+      if (
+        Array.isArray(sanitizedPayload.auditLogs) &&
+        sanitizedPayload.auditLogs.length > ACTIVE_AUDIT_LOG_WINDOW
+      ) {
+        overflowShardPayload.auditLogs = sanitizedPayload.auditLogs.slice(
+          ACTIVE_AUDIT_LOG_WINDOW,
+          ACTIVE_AUDIT_LOG_WINDOW + 1500
+        );
+        sanitizedPayload.auditLogs = sanitizedPayload.auditLogs.slice(0, ACTIVE_AUDIT_LOG_WINDOW);
+        hasOverflow = true;
+      }
+
+      if (
+        Array.isArray(sanitizedPayload.ledger) &&
+        sanitizedPayload.ledger.length > ACTIVE_LEDGER_WINDOW
+      ) {
+        overflowShardPayload.ledger = sanitizedPayload.ledger.slice(
+          ACTIVE_LEDGER_WINDOW,
+          ACTIVE_LEDGER_WINDOW + 2000
+        );
+        sanitizedPayload.ledger = sanitizedPayload.ledger.slice(0, ACTIVE_LEDGER_WINDOW);
+        hasOverflow = true;
+      }
+
+      const nowIso = new Date().toISOString();
+      const cleanPayload = JSON.parse(
+        JSON.stringify({
+          ...sanitizedPayload,
+          updatedAt: nowIso,
+        })
+      );
+
+      // Additional byte-budget check: if main payload still exceeds 600 KB, trim secondary history arrays
+      const serializedSize = JSON.stringify(cleanPayload).length;
+      if (serializedSize > MAIN_DOC_SAFE_BYTE_THRESHOLD) {
+        if (Array.isArray(cleanPayload.auditLogs) && cleanPayload.auditLogs.length > 200) {
+          overflowShardPayload.auditLogs = cleanPayload.auditLogs.slice(200, 1000);
+          cleanPayload.auditLogs = cleanPayload.auditLogs.slice(0, 200);
+          hasOverflow = true;
+        }
+        if (Array.isArray(cleanPayload.ledger) && cleanPayload.ledger.length > 120) {
+          overflowShardPayload.ledger = cleanPayload.ledger.slice(120, 1000);
+          cleanPayload.ledger = cleanPayload.ledger.slice(0, 120);
+          hasOverflow = true;
+        }
+      }
+
+      // Embed global tombstones in the Firestore document so ALL devices see deletions
+      // This is the only way deleted workshops/badges don't come back on fresh sessions
+      if (deletedIdsByCollection && Object.keys(deletedIdsByCollection).length > 0) {
+        const filteredTombstones: Record<string, string[]> = {};
+        for (const [col, ids] of Object.entries(deletedIdsByCollection)) {
+          if (Array.isArray(ids) && ids.length > 0) {
+            filteredTombstones[col] = ids;
+          }
+        }
+        if (Object.keys(filteredTombstones).length > 0) {
+          (cleanPayload as any).deletedIdsByCollection = filteredTombstones;
+        }
+      }
+
+      await setDoc(ref, cleanPayload, { merge: true });
+
+      // Always mirror members to partitioned members_shard synchronously within the queue (LIMIT-01)
+      if (Array.isArray(cleanPayload.members) && cleanPayload.members.length > 0) {
+        const membersShardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "members_shard");
+        await setDoc(
+          membersShardRef,
+          JSON.parse(
+            JSON.stringify({
+              shardId: "members_shard",
+              updatedAt: nowIso,
+              members: cleanPayload.members,
+            })
+          ),
+          { merge: true }
+        ).catch(() => {});
+      }
+
+      // Update in-memory baseline with merged fields
+      lastReceivedCloudSnapshot = {
+        ...(lastReceivedCloudSnapshot || {}),
+        ...cleanPayload,
+      };
+
+      if (hasOverflow) {
+        const shardRef = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "history_shard");
+        await setDoc(
+          shardRef,
+          JSON.parse(
+            JSON.stringify({
+              shardId: "history_shard",
+              updatedAt: nowIso,
+              ...overflowShardPayload,
+            })
+          ),
+          { merge: true }
+        ).catch(() => {});
+      }
+
+      return cleanPayload;
+    } catch (err: any) {
+      const code = String(err?.code || "unknown");
+      const message = String(err?.message || "Failed to write to Cloud Firestore.");
+      lastFirestorePushError = { code, message, timestamp: Date.now() };
+      if (code.includes("resource-exhausted") || code.includes("quota")) {
+        markFirestoreQuotaExhausted();
+        console.warn("[Firestore Quota] Spark write quota reached for today. Tripping circuit breaker into local cache mode.");
+      } else {
+        console.warn("[Firestore Push Error]", code, message);
+      }
+      return null;
+    }
+  };
+
+  const queued = erpPushQueue.then(runSerialized, runSerialized);
+  erpPushQueue = queued.catch(() => null);
+  return queued;
 }
 
 /**

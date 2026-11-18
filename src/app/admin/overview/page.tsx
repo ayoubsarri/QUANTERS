@@ -44,12 +44,14 @@ export default function AdminOverviewPage() {
     projectSubmissions,
     proposals,
     confirmTraineeToActive,
+    approveMemberAdmission,
     assignBuddyToMember,
     createTask,
     sendClubMessage,
   } = useQuantersStore();
 
   const [actionToast, setActionToast] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setActionToast(msg);
@@ -117,10 +119,22 @@ export default function AdminOverviewPage() {
     pendingTaskDeliveries + pendingBadgeProjects + pendingProposals;
 
   // Dynamic HR Action Queue lists derived from live members
+  const pendingAdmissions = members.filter(
+    (m) =>
+      !isSuperAdminAccount(m) &&
+      (m.status === "Pending" ||
+        (!m.onboardingTicks?.hrApproved &&
+          m.status !== "Active" &&
+          m.status !== "Alumni" &&
+          m.status !== "Removed" &&
+          m.status !== "Resigned"))
+  );
+
   const policyConflictMembers = currentMembers.filter(
     (m) => m.isBureauMember && m.declaresOtherStudentOrg
   );
   const totalHrActionCount =
+    pendingAdmissions.length +
     traineesReadyToConfirm.length +
     traineesWithoutFirstTask.length +
     membersAtRisk.length +
@@ -579,6 +593,54 @@ export default function AdminOverviewPage() {
               </div>
             ) : (
               <div className="divide-y divide-slate-100 mt-1">
+                {pendingAdmissions.map((applicant) => (
+                  <div
+                    key={`pending-adm-${applicant.id}`}
+                    className="py-3 flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-display text-xs font-extrabold text-[#0F1E36] truncate flex items-center gap-1.5">
+                        <span className="inline-block w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                        <span className="truncate">{applicant.fullName} · Pending HR Admission</span>
+                      </div>
+                      <div className="text-[11px] font-mono text-slate-500 truncate">
+                        {applicant.email} · {applicant.major || "Applicant"}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        href={`/admin/members/${applicant.id}`}
+                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#0F1E36] font-display text-xs font-bold transition"
+                      >
+                        Dossier
+                      </Link>
+                      <button
+                        type="button"
+                        disabled={approvingId === applicant.id}
+                        onClick={async () => {
+                          setApprovingId(applicant.id);
+                          try {
+                            const res = await approveMemberAdmission({
+                              memberId: applicant.id,
+                              actorName: "HR Directorate",
+                              notes: "Approved via Overview HR Action Queue",
+                            });
+                            showToast(
+                              res.message || `Approved admission for ${applicant.fullName}!`
+                            );
+                          } finally {
+                            setApprovingId(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-display text-xs font-bold transition cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{approvingId === applicant.id ? "Syncing..." : "Approve"}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
                 {traineesReadyToConfirm.map((trainee) => (
                   <div
                     key={`confirm-${trainee.id}`}

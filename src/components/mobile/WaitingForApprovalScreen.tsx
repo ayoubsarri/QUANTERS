@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Clock,
   Check,
@@ -28,6 +28,27 @@ export function WaitingForApprovalScreen() {
 
   const member = members.find((m) => m.id === currentMemberId);
   const dept = departments.find((d) => d.id === member?.departmentId);
+
+  // Automatically poll Cloud Firestore every 15s and on window focus/visibility while awaiting HR review
+  useEffect(() => {
+    const syncNow = () => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      pullExactUpdatesFromServer().catch(() => {});
+    };
+    syncNow();
+    const interval = setInterval(syncNow, 15000);
+    const onFocus = () => syncNow();
+    const onVis = () => {
+      if (document.visibilityState === "visible") syncNow();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [pullExactUpdatesFromServer]);
 
   const handleCheckStatus = async () => {
     setChecking(true);

@@ -70,10 +70,13 @@ export default function AdminMemberDetailCardPage() {
     badges,
     confirmTraineeToActive,
     approveMemberAdmission,
+    rejectMemberAdmission,
     awardBadgeManually,
     changeMemberStatus,
     pullExactUpdatesFromServer,
   } = useQuantersStore();
+
+  const [approvingAdmission, setApprovingAdmission] = useState(false);
 
   useEffect(() => {
     pullExactUpdatesFromServer().catch(() => {});
@@ -95,7 +98,9 @@ export default function AdminMemberDetailCardPage() {
       (member.status === "Pending" ||
         (!member.onboardingTicks?.hrApproved &&
           member.status !== "Active" &&
-          member.status !== "Alumni"))
+          member.status !== "Alumni" &&
+          member.status !== "Removed" &&
+          member.status !== "Resigned"))
   );
 
   const [activeTab, setActiveTab] = useState<TabId>("profile");
@@ -464,20 +469,58 @@ export default function AdminMemberDetailCardPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                approveMemberAdmission({
-                  memberId: member.id,
-                  actorName: "HR Directorate",
-                  notes: "Approved via Member Command Dossier",
-                });
-              }}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black shadow-sm transition cursor-pointer shrink-0 active:scale-95"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Approve Admission &amp; Grant Access</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={approvingAdmission}
+                onClick={async () => {
+                  setApprovingAdmission(true);
+                  try {
+                    const res = await approveMemberAdmission({
+                      memberId: member.id,
+                      actorName: "HR Directorate",
+                      notes: "Approved via Member Command Dossier",
+                    });
+                    setProfileToast(
+                      res.message ||
+                        (res.ok
+                          ? `Approved admission for ${member.fullName}!`
+                          : "Permission denied.")
+                    );
+                    setTimeout(() => setProfileToast(null), 5000);
+                  } finally {
+                    setApprovingAdmission(false);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60 text-white text-xs font-black shadow-sm transition cursor-pointer shrink-0 active:scale-95"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{approvingAdmission ? "Approving & Syncing..." : "Approve Admission & Grant Access"}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={approvingAdmission}
+                onClick={async () => {
+                  setApprovingAdmission(true);
+                  try {
+                    const res = await rejectMemberAdmission({
+                      memberId: member.id,
+                      actorName: "HR Directorate",
+                      reason: "Application declined during HR admission review.",
+                    });
+                    setProfileToast(res.message || `Declined application for ${member.fullName}.`);
+                    setTimeout(() => setProfileToast(null), 5000);
+                  } finally {
+                    setApprovingAdmission(false);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-black transition cursor-pointer shrink-0 active:scale-95"
+              >
+                <X className="w-4 h-4" />
+                <span>Decline</span>
+              </button>
+            </div>
           </div>
         )}
 

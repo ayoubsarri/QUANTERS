@@ -77,13 +77,24 @@ function AdminMembersContent() {
     deleteMember,
     createAdminMember,
     approveMemberAdmission,
+    rejectMemberAdmission,
   } = useQuantersStore();
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<"ACTIVE" | "FORMER" | "ALUMNI">("ACTIVE");
 
   const pendingCount = useMemo(
-    () => members.filter((m) => !isSuperAdminAccount(m) && (m.status === "Pending" || (!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni"))).length,
+    () =>
+      members.filter(
+        (m) =>
+          !isSuperAdminAccount(m) &&
+          (m.status === "Pending" ||
+            (!m.onboardingTicks?.hrApproved &&
+              m.status !== "Active" &&
+              m.status !== "Alumni" &&
+              m.status !== "Removed" &&
+              m.status !== "Resigned"))
+      ).length,
     [members]
   );
 
@@ -101,8 +112,84 @@ function AdminMembersContent() {
   const [freeSlot, setFreeSlot] = useState<TimeSlot | "ALL">("ALL");
 
   const [copiedToast, setCopiedToast] = useState<string | null>(null);
+  const [toastTone, setToastTone] = useState<"success" | "warning" | "error">("success");
+  const [approvingMemberId, setApprovingMemberId] = useState<string | null>(null);
+  const [bulkApproving, setBulkApproving] = useState(false);
   const [formLinkCopied, setFormLinkCopied] = useState(false);
   const [emailsCopied, setEmailsCopied] = useState(false);
+
+  const showActionToast = (msg: string, tone: "success" | "warning" | "error" = "success") => {
+    setToastTone(tone);
+    setCopiedToast(msg);
+    setTimeout(() => setCopiedToast(null), 5000);
+  };
+
+  const pendingApplicants = useMemo(
+    () =>
+      members.filter(
+        (m) =>
+          !isSuperAdminAccount(m) &&
+          (m.status === "Pending" ||
+            (!m.onboardingTicks?.hrApproved &&
+              m.status !== "Active" &&
+              m.status !== "Alumni" &&
+              m.status !== "Removed" &&
+              m.status !== "Resigned"))
+      ),
+    [members]
+  );
+
+  const handleApproveMember = async (m: Member) => {
+    if (approvingMemberId === m.id) return;
+    setApprovingMemberId(m.id);
+    try {
+      const res = await approveMemberAdmission({
+        memberId: m.id,
+        actorName: "HR Directorate",
+        notes: "Approved via Member Directory",
+      });
+      if (!res.ok) {
+        showActionToast(res.message || "Permission denied for admission approval.", "error");
+      } else if (res.syncedToCloud === false) {
+        showActionToast(res.message || `Approved ${m.fullName} locally, but Cloud Sync failed!`, "warning");
+      } else {
+        showActionToast(`Approved admission for ${m.fullName} & synced to Cloud!`, "success");
+      }
+    } finally {
+      setApprovingMemberId(null);
+    }
+  };
+
+  const handleBulkApprovePending = async () => {
+    if (bulkApproving || pendingApplicants.length === 0) return;
+    setBulkApproving(true);
+    let approvedCount = 0;
+    let syncWarning: string | null = null;
+    try {
+      for (const candidate of pendingApplicants) {
+        const res = await approveMemberAdmission({
+          memberId: candidate.id,
+          actorName: "HR Directorate",
+          notes: "Batch approved via HR Pending Review",
+        });
+        if (res.ok) {
+          approvedCount++;
+          if (res.syncedToCloud === false) {
+            syncWarning = res.message || "Cloud sync issue";
+          }
+        } else {
+          syncWarning = res.message || "Unauthorized";
+        }
+      }
+      if (syncWarning) {
+        showActionToast(`Approved ${approvedCount} applicant(s), warning: ${syncWarning}`, "warning");
+      } else if (approvedCount > 0) {
+        showActionToast(`Approved ${approvedCount} pending admission(s) & synced to Cloud!`, "success");
+      }
+    } finally {
+      setBulkApproving(false);
+    }
+  };
 
   // Add Member Modal State
   const [addMemberOpen, setAddMemberOpen] = useState(false);
@@ -525,8 +612,16 @@ function AdminMembersContent() {
 
         <div className="flex flex-wrap items-center gap-2">
           {copiedToast && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm animate-fade-in">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold shadow-sm animate-fade-in ${
+                toastTone === "error"
+                  ? "bg-rose-600"
+                  : toastTone === "warning"
+                  ? "bg-amber-600"
+                  : "bg-emerald-600"
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               <span>{copiedToast}</span>
             </div>
           )}
@@ -597,20 +692,33 @@ function AdminMembersContent() {
         </span>
 
         {pendingCount > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              setStatusFilter(statusFilter === "Pending" ? "ALL" : "Pending");
-            }}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold border transition shadow-xs cursor-pointer ${
-              statusFilter === "Pending"
-                ? "bg-amber-500 text-white border-amber-600 ring-2 ring-amber-400/30"
-                : "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 animate-pulse"
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>Pending Review ({pendingCount})</span>
-          </button>
+          <div className="inline-flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter(statusFilter === "Pending" ? "ALL" : "Pending");
+              }}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold border transition shadow-xs cursor-pointer ${
+                statusFilter === "Pending"
+                  ? "bg-amber-500 text-white border-amber-600 ring-2 ring-amber-400/30"
+                  : "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 animate-pulse"
+              }`}
+            >
+              <Clock className={`w-3.5 h-3.5 ${statusFilter === "Pending" ? "text-white" : "text-amber-600"}`} />
+              <span>Pending Review ({pendingCount})</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={bulkApproving}
+              onClick={handleBulkApprovePending}
+              title="Approve all pending applicants and sync to Cloud"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white shadow-xs transition cursor-pointer active:scale-95"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{bulkApproving ? "Approving..." : `Approve All (${pendingCount})`}</span>
+            </button>
+          </div>
         )}
 
         <Link
@@ -917,23 +1025,39 @@ function AdminMembersContent() {
                         {activeTab === "ACTIVE" || activeTab === "ALUMNI" ? (
                           <div className="inline-flex items-center justify-end gap-1.5">
                             {(m.status === "Pending" || (!m.onboardingTicks?.hrApproved && m.status !== "Active" && m.status !== "Alumni")) && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  approveMemberAdmission({
-                                    memberId: m.id,
-                                    actorName: "HR Directorate",
-                                    notes: "Approved via Member Directory",
-                                  });
-                                  setCopiedToast(`Approved admission for ${m.fullName}!`);
-                                  setTimeout(() => setCopiedToast(null), 3500);
-                                }}
-                                title="Approve applicant admission into QUANTA"
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Approve Admission</span>
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={approvingMemberId === m.id}
+                                  onClick={() => handleApproveMember(m)}
+                                  title="Approve applicant admission into QUANTA"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span className="hidden sm:inline">
+                                    {approvingMemberId === m.id ? "Approving..." : "Approve Admission"}
+                                  </span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const res = await rejectMemberAdmission({
+                                      memberId: m.id,
+                                      actorName: "HR Directorate",
+                                      reason: "Application declined during HR admission review.",
+                                    });
+                                    showActionToast(
+                                      res.message || `Declined admission for ${m.fullName}.`,
+                                      res.ok ? (res.syncedToCloud === false ? "warning" : "success") : "error"
+                                    );
+                                  }}
+                                  title="Decline pending admission application"
+                                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer active:scale-95"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span className="hidden lg:inline">Decline</span>
+                                </button>
+                              </>
                             )}
                             <Link
                               href={`/admin/members/${m.id}`}

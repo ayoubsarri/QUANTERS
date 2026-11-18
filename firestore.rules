@@ -56,6 +56,7 @@ rules_version = '2';
 //      - xpTotal: number (required, >= 0, privileged on update)
 //      - xpSeason: number (required, >= 0, privileged on update)
 //      - roles: list (required, 1..10 items, privileged on update)
+//      - updatedAt: string (optional, ISO-8601 / max 64 chars)
 //      - Safe self-editable profile fields: avatarUrl, bio, quote, availability,
 //        skills, githubUrl, linkedinUrl, portfolioUrl, cvUrl, commune, wilaya,
 //        housingType, commuteTime, canStayLate, hasLaptop, pcCapability,
@@ -179,12 +180,13 @@ service cloud.firestore {
         request.auth.token.role in allowedRoles;
     }
 
-    // Bootstrap Admin Email Allowlist (verified club & executive accounts from config.ts)
+    // Bootstrap Admin Email Allowlist (verified club, HR Head, executive & co-manager accounts)
     function isBootstrapAdmin() {
       return isAuthenticated() &&
         request.auth.token.email_verified == true &&
         ('email' in request.auth.token) &&
-        request.auth.token.email in [
+        request.auth.token.email is string &&
+        request.auth.token.email.lower() in [
           'ayoubsarri5@gmail.com',
           'quanta.algiers1@gmail.com',
           'admin@quanta.club',
@@ -195,7 +197,12 @@ service cloud.firestore {
           'quanta@univ-alger.dz',
           'hr@univ-alger.dz',
           'ayoubsarri1@gmail.com',
-          'bellilisamy0@gmail.com'
+          'bellilisamy0@gmail.com',
+          'benkacirkawthar18@gmail.com',
+          'ahfarah627@gmail.com',
+          'akramfd689@gmail.com',
+          'amiralahmar200@gmail.com',
+          'akrambettou.ab@gmail.com'
         ];
     }
 
@@ -399,7 +406,8 @@ service cloud.firestore {
         'projectsCompletedCount',
         'eventsAttendedCount',
         'statusHistory',
-        'placementHistory'
+        'placementHistory',
+        'updatedAt'
       ];
       let validStatuses = [
         'Trainee',
@@ -455,6 +463,7 @@ service cloud.firestore {
         isValidOptionalList('equipmentTags', 30) &&
         isValidOptionalList('badgeIds', 200) &&
         isValidOptionalString('preferredLanguage', 2, 5) &&
+        isValidOptionalString('updatedAt', 0, 64) &&
         (!('availability' in data) || data.availability is map);
     }
 
