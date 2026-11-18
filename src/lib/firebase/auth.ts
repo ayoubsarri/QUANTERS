@@ -743,9 +743,18 @@ function mergeCollectionArraysById(
           map.set(lItem.id, {
             ...existingRemote,
             ...lItem,
-            memberIds: Array.from(new Set([...lItem.memberIds, ...existingRemote.memberIds])),
+            memberIds: isAuthoritativeWrite
+              ? Array.from(new Set(lItem.memberIds))
+              : Array.from(new Set([...lItem.memberIds, ...existingRemote.memberIds])),
           });
         } else if (key === "workshops") {
+          const attMap = new Map<string, any>();
+          for (const rec of Array.isArray(existingRemote.attendanceRecords) ? existingRemote.attendanceRecords : []) {
+            if (rec && typeof rec.memberId === "string") attMap.set(rec.memberId, rec);
+          }
+          for (const rec of Array.isArray(lItem.attendanceRecords) ? lItem.attendanceRecords : []) {
+            if (rec && typeof rec.memberId === "string") attMap.set(rec.memberId, rec);
+          }
           map.set(lItem.id, {
             ...existingRemote,
             ...lItem,
@@ -755,12 +764,82 @@ function mergeCollectionArraysById(
                 ...(Array.isArray(existingRemote.registeredMemberIds) ? existingRemote.registeredMemberIds : []),
               ])
             ),
+            waitlistMemberIds: Array.from(
+              new Set([
+                ...(Array.isArray(lItem.waitlistMemberIds) ? lItem.waitlistMemberIds : []),
+                ...(Array.isArray(existingRemote.waitlistMemberIds) ? existingRemote.waitlistMemberIds : []),
+              ])
+            ),
             checkedInMemberIds: Array.from(
               new Set([
                 ...(Array.isArray(lItem.checkedInMemberIds) ? lItem.checkedInMemberIds : []),
                 ...(Array.isArray(existingRemote.checkedInMemberIds) ? existingRemote.checkedInMemberIds : []),
               ])
             ),
+            attendanceRecords: Array.from(attMap.values()),
+          });
+        } else if (key === "messages") {
+          map.set(lItem.id, {
+            ...existingRemote,
+            ...lItem,
+            readMemberIds: Array.from(
+              new Set([
+                ...(Array.isArray(existingRemote.readMemberIds) ? existingRemote.readMemberIds : []),
+                ...(Array.isArray(lItem.readMemberIds) ? lItem.readMemberIds : []),
+              ])
+            ),
+          });
+        } else if (key === "tasks" && Array.isArray(existingRemote.assignees) && Array.isArray(lItem.assignees)) {
+          const statusRank: Record<string, number> = {
+            "To do": 0,
+            "In progress": 1,
+            "Delivered": 2,
+            "Validated": 3,
+          };
+          const remoteByMember = new Map<string, any>();
+          for (const a of existingRemote.assignees) {
+            if (a && typeof a.memberId === "string") remoteByMember.set(a.memberId, a);
+          }
+          let mergedAssignees: any[];
+          if (isAuthoritativeWrite) {
+            mergedAssignees = lItem.assignees.map((la: any) => {
+              const ra = la?.memberId ? remoteByMember.get(la.memberId) : undefined;
+              if (!ra) return la;
+              const lRank = statusRank[la.status] ?? 0;
+              const rRank = statusRank[ra.status] ?? 0;
+              // Preserve a member's newer delivery/receipt when an admin edits task metadata concurrently
+              if (rRank > lRank && la.status !== "Validated") {
+                return {
+                  ...la,
+                  receiptConfirmed: Boolean(la.receiptConfirmed || ra.receiptConfirmed),
+                  status: ra.status,
+                  proofUrlOrNote: la.proofUrlOrNote || ra.proofUrlOrNote,
+                };
+              }
+              return { ...ra, ...la, receiptConfirmed: Boolean(la.receiptConfirmed || ra.receiptConfirmed) };
+            });
+          } else {
+            const localByMember = new Map<string, any>();
+            for (const a of lItem.assignees) {
+              if (a && typeof a.memberId === "string") localByMember.set(a.memberId, a);
+            }
+            mergedAssignees = existingRemote.assignees.map((ra: any) => {
+              const la = ra?.memberId ? localByMember.get(ra.memberId) : undefined;
+              if (!la) return ra;
+              const lRank = statusRank[la.status] ?? 0;
+              const rRank = statusRank[ra.status] ?? 0;
+              if (rRank > lRank) return ra;
+              return {
+                ...ra,
+                ...la,
+                receiptConfirmed: Boolean(ra.receiptConfirmed || la.receiptConfirmed),
+              };
+            });
+          }
+          map.set(lItem.id, {
+            ...existingRemote,
+            ...lItem,
+            assignees: mergedAssignees,
           });
         } else {
           map.set(lItem.id, { ...existingRemote, ...lItem });

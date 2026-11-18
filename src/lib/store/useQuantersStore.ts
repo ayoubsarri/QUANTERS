@@ -1571,6 +1571,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         departments: s.departments,
         teams: s.teams,
         members: sanitizedMembers,
+        invitations: s.invitations,
         workshops: s.workshops,
         workshopCategories: s.workshopCategories,
         tasks: s.tasks,
@@ -1579,6 +1580,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         badges: s.badges,
         badgeCategories: s.badgeCategories,
         exams: s.exams,
+        examCompletions: s.examCompletions,
         projectSubmissions: s.projectSubmissions,
         projectCategories: s.projectCategories,
         proposals: s.proposals,
@@ -1666,11 +1668,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           }
         );
         const customQuotes: DailyQuoteItem[] = Array.isArray(parsed.customDailyQuotes)
-          ? parsed.customDailyQuotes
+          ? (parsed.customDailyQuotes as DailyQuoteItem[]).filter(
+              (q) =>
+                !isPersistentDeletedId("dailyQuotes", q.id) &&
+                !isPersistentDeletedId("customDailyQuotes", q.id)
+            )
           : [];
         const mergedQuotes = [
           ...customQuotes,
-          ...SEED_DAILY_QUOTES_365.filter((sq) => !customQuotes.some((cq) => cq.id === sq.id)),
+          ...SEED_DAILY_QUOTES_365.filter(
+            (sq) =>
+              !customQuotes.some((cq) => cq.id === sq.id) &&
+              !isPersistentDeletedId("dailyQuotes", sq.id) &&
+              !isPersistentDeletedId("customDailyQuotes", sq.id)
+          ),
         ];
         const validAuth =
           Boolean(parsed.isAuthenticated) &&
@@ -1708,12 +1719,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           departments: parsed.departments || get().departments,
           teams: parsed.teams || get().teams,
           members: sanitizedHydratedMembers,
+          invitations: Array.isArray(parsed.invitations)
+            ? (parsed.invitations as Invitation[]).filter(
+                (inv) => !isPersistentDeletedId("invitations", inv.id)
+              )
+            : get().invitations,
           workshops: Array.isArray(parsed.workshops)
             ? (parsed.workshops as Workshop[]).filter((w) => !isPersistentDeletedId("workshops", w.id))
             : [],
           workshopCategories: parsed.workshopCategories || get().workshopCategories,
-          tasks: parsed.tasks || get().tasks,
-          pointRules: parsed.pointRules || get().pointRules,
+          tasks: Array.isArray(parsed.tasks)
+            ? (parsed.tasks as ClubTask[]).filter((t) => !isPersistentDeletedId("tasks", t.id))
+            : get().tasks,
+          pointRules: Array.isArray(parsed.pointRules)
+            ? (parsed.pointRules as PointRule[]).filter((r) => !isPersistentDeletedId("pointRules", r.id))
+            : get().pointRules,
           ledger: parsed.ledger || get().ledger,
           badges: Array.isArray(parsed.badges)
             ? (parsed.badges as Badge[]).filter((b) => !isPersistentDeletedId("badges", b.id))
@@ -1722,17 +1742,26 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           exams: Array.isArray(parsed.exams)
             ? (parsed.exams as BadgeExam[]).filter((e) => !isPersistentDeletedId("exams", e.id))
             : [],
+          examCompletions: Array.isArray(parsed.examCompletions)
+            ? (parsed.examCompletions as ExamCompletionRecord[])
+            : get().examCompletions,
           projectSubmissions: parsed.projectSubmissions || get().projectSubmissions,
           projectCategories: parsed.projectCategories || get().projectCategories,
           proposals: parsed.proposals || get().proposals,
-          explorePosts: parsed.explorePosts || get().explorePosts,
+          explorePosts: Array.isArray(parsed.explorePosts)
+            ? (parsed.explorePosts as ExplorePost[]).filter(
+                (p) => !isPersistentDeletedId("explorePosts", p.id)
+              )
+            : get().explorePosts,
           dailyQuizzes: Array.isArray(parsed.dailyQuizzes)
             ? (parsed.dailyQuizzes as DailyQuizItem[]).filter(
                 (q) => !isPersistentDeletedId("dailyQuizzes", q.id)
               )
             : [],
           dailyQuotes: mergedQuotes,
-          messages: parsed.messages || get().messages,
+          messages: Array.isArray(parsed.messages)
+            ? (parsed.messages as ClubMessage[]).filter((m) => !isPersistentDeletedId("messages", m.id))
+            : get().messages,
           accessGrants: parsed.accessGrants || get().accessGrants,
           auditLogs: parsed.auditLogs || get().auditLogs,
           grievances: parsed.grievances || get().grievances,
@@ -1863,10 +1892,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       hasArrayChanges = true;
     }
     if (Array.isArray(cloudData.customDailyQuotes)) {
-      const customQ = cloudData.customDailyQuotes as DailyQuoteItem[];
+      const customQ = (cloudData.customDailyQuotes as DailyQuoteItem[]).filter(
+        (q) =>
+          !isPersistentDeletedId("dailyQuotes", q.id) &&
+          !isPersistentDeletedId("customDailyQuotes", q.id)
+      );
       const mergedQ = [
         ...customQ,
-        ...SEED_DAILY_QUOTES_365.filter((sq) => !customQ.some((cq) => cq.id === sq.id)),
+        ...SEED_DAILY_QUOTES_365.filter(
+          (sq) =>
+            !customQ.some((cq) => cq.id === sq.id) &&
+            !isPersistentDeletedId("dailyQuotes", sq.id) &&
+            !isPersistentDeletedId("customDailyQuotes", sq.id)
+        ),
       ];
       if (JSON.stringify(current.dailyQuotes) !== JSON.stringify(mergedQ)) {
         patchState.dailyQuotes = mergedQ;
@@ -3162,7 +3200,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-    ensureWelcomeMessageDelivered: (memberId: string) => {
+  ensureWelcomeMessageDelivered: (memberId: string) => {
+    let delivered = false;
     set((state) => {
       if (state.settings.welcomeMessageEnabled === false) return state;
       const member = state.members.find((m) => m.id === memberId);
@@ -3215,10 +3254,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         actionLink: "/home",
       };
 
+      delivered = true;
       return {
         messages: [welcomeNotice, ...state.messages],
       };
     });
+    if (delivered) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
   },
 
   approveMemberAdmission: async ({ memberId, actorName = "HR Directorate", notes }) => {
@@ -3568,6 +3612,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deleteClubMessage: (messageId) => {
+    recordPersistentDeletedId("messages", messageId);
+    registerRecentDeletion(messageId);
     set((state) => ({
       messages: state.messages.filter((m) => m.id !== messageId),
     }));
@@ -3576,23 +3622,33 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
   },
 
   deleteAllClubMessages: () => {
+    const existingIds = get().messages.map((m) => m.id).filter(Boolean);
+    for (const id of existingIds) {
+      recordPersistentDeletedId("messages", id);
+      registerRecentDeletion(id);
+    }
     set({ messages: [] });
     get().saveToLocalCache();
     get().syncWithServer(true).catch(() => {});
   },
 
-  assignBuddyToMember: (traineeId, buddyId) =>
+  assignBuddyToMember: (traineeId, buddyId) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       members: state.members.map((m) =>
         m.id === traineeId
           ? {
               ...m,
               buddyId,
+              updatedAt: nowIso,
               onboardingTicks: { ...m.onboardingTicks, buddyAssigned: true },
             }
           : m
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   changeMemberStatus: ({
     memberId,
@@ -3603,6 +3659,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     graduationYear,
     suspensionEndDate,
   }) => {
+    const nowIso = new Date().toISOString();
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -3625,7 +3682,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ? {
                 ...m,
                 status: toStatus,
-                statusSince: new Date().toISOString().slice(0, 10),
+                statusSince: nowIso.slice(0, 10),
+                updatedAt: nowIso,
                 onboardingTicks:
                   toStatus === "Active"
                     ? {
@@ -4194,27 +4252,29 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  createInvitations: (emails, prefilledDepartmentId) =>
+  createInvitations: (emails, prefilledDepartmentId) => {
+    const cleanEmails = emails.map((e) => e.trim()).filter(Boolean);
+    if (cleanEmails.length === 0) return;
     set((state) => {
-      const newInvites: Invitation[] = emails
-        .map((e) => e.trim())
-        .filter(Boolean)
-        .map((email, idx) => ({
-          id: `inv-${Date.now()}-${idx}`,
-          email,
-          prefilledDepartmentId,
-          token: `INV-QT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-          state: "Sent",
-          sentAt: new Date().toISOString().slice(0, 10),
-          expiresAt: new Date(Date.now() + state.settings.invitationValidityDays * 86400000)
-            .toISOString()
-            .slice(0, 10),
-          invitedBy: "HR Administration",
-        }));
+      const newInvites: Invitation[] = cleanEmails.map((email, idx) => ({
+        id: `inv-${Date.now()}-${idx}`,
+        email,
+        prefilledDepartmentId,
+        token: `INV-QT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        state: "Sent",
+        sentAt: new Date().toISOString().slice(0, 10),
+        expiresAt: new Date(Date.now() + state.settings.invitationValidityDays * 86400000)
+          .toISOString()
+          .slice(0, 10),
+        invitedBy: "HR Administration",
+      }));
       return { invitations: [...newInvites, ...state.invitations] };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  resendInvitation: (invitationId) =>
+  resendInvitation: (invitationId) => {
     set((state) => ({
       invitations: state.invitations.map((inv) =>
         inv.id === invitationId
@@ -4225,14 +4285,20 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             }
           : inv
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  cancelInvitation: (invitationId) =>
+  cancelInvitation: (invitationId) => {
     set((state) => ({
       invitations: state.invitations.map((inv) =>
         inv.id === invitationId ? { ...inv, state: "Cancelled" } : inv
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   registerForWorkshop: (workshopId, memberId) => {
     set((state) => ({
@@ -4412,7 +4478,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     return { ok: true, message: `Checked in! +${ws.xpReward} XP added.` };
   },
 
-  correctAttendance: (workshopId, memberId, status, reason, actorName = "Check-in Operator") =>
+  correctAttendance: (workshopId, memberId, status, reason, actorName = "Check-in Operator") => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const ws = state.workshops.find((w) => w.id === workshopId);
       const member = state.members.find((m) => m.id === memberId);
@@ -4453,13 +4521,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             ...ws.attendanceRecords,
           ];
 
+      changed = true;
       return {
         workshops: state.workshops.map((w) =>
-          w.id === workshopId ? { ...w, attendanceRecords: updatedRecords } : w
+          w.id === workshopId
+            ? { ...w, attendanceRecords: updatedRecords, updatedAt: nowIso }
+            : w
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   createWorkshop: async (ws) => {
     const nowIso = new Date().toISOString();
@@ -4631,7 +4707,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     };
   },
 
-  rotateWorkshopQrCode: (workshopId) =>
+  rotateWorkshopQrCode: (workshopId) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       workshops: state.workshops.map((w) =>
         w.id === workshopId
@@ -4639,10 +4716,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               ...w,
               liveQrToken: `QUANTA-WS-${w.id.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
               liveSixDigitCode: String(Math.floor(100000 + Math.random() * 900000)),
+              updatedAt: nowIso,
             }
           : w
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   addWorkshopCategory: (category: string) => {
     const trimmed = category.trim();
@@ -4742,7 +4823,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  createTask: (task) =>
+  createTask: (task) => {
+    const nowIso = new Date().toISOString();
     set((state) => {
       const assignees = task.assigneeIds.map((id) => {
         const m = state.members.find((mem) => mem.id === id);
@@ -4770,7 +4852,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         checklist: [],
         assignees,
         matrixPublished: false,
-        createdAt: new Date().toISOString().slice(0, 10),
+        createdAt: nowIso.slice(0, 10),
+        updatedAt: nowIso,
       };
       return {
         tasks: [newTask, ...state.tasks],
@@ -4778,14 +4861,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           task.assigneeIds.includes(m.id)
             ? {
                 ...m,
+                updatedAt: nowIso,
                 onboardingTicks: { ...m.onboardingTicks, firstTaskBeforeDay30: true },
               }
             : m
         ),
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  updateTask: (taskId, updates) =>
+  updateTask: (taskId, updates) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       tasks: state.tasks.map((t) => {
         if (t.id !== taskId) return t;
@@ -4816,25 +4904,36 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           locationOrShift: updates.locationOrShift ?? t.locationOrShift,
           proposedScore: nextScore,
           assignees: nextAssignees,
+          updatedAt: nowIso,
         };
       }),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  confirmTaskReceipt: (taskId, memberId) =>
+  confirmTaskReceipt: (taskId, memberId) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       tasks: state.tasks.map((t) =>
         t.id === taskId
           ? {
               ...t,
+              updatedAt: nowIso,
               assignees: t.assignees.map((a) =>
                 a.memberId === memberId ? { ...a, receiptConfirmed: true, status: "In progress" } : a
               ),
             }
           : t
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  deliverTask: (taskId, memberId, proofUrlOrNote) =>
+  deliverTask: (taskId, memberId, proofUrlOrNote) => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const task = state.tasks.find((t) => t.id === taskId);
       if (!task) return state;
@@ -4843,11 +4942,13 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       if (assignee?.status === "Validated") {
         return state;
       }
+      changed = true;
       return {
         tasks: state.tasks.map((t) =>
           t.id === taskId
             ? {
                 ...t,
+                updatedAt: nowIso,
                 assignees: t.assignees.map((a) =>
                   a.memberId === memberId
                     ? { ...a, status: "Delivered", proofUrlOrNote, receiptConfirmed: true }
@@ -4857,7 +4958,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             : t
         ),
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   validateAndScoreTask: ({
     taskId,
@@ -4866,7 +4972,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     awardedScore,
     feedback,
     validatorName = "Department Head",
-  }) =>
+  }) => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const task = state.tasks.find((t) => t.id === taskId);
       const member = state.members.find((m) => m.id === memberId);
@@ -4907,7 +5015,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: `${task.title} — Feedback: ${feedback}`,
         source: "Task",
         actorName: validatorName,
-        date: new Date().toISOString().slice(0, 10),
+        date: nowIso.slice(0, 10),
         appealStatus: "None",
       };
 
@@ -4923,12 +5031,14 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: feedback,
       };
 
+      changed = true;
       return {
         tasks: state.tasks.map((t) =>
           t.id === taskId
             ? {
                 ...t,
                 urgencyLabel: "Completed",
+                updatedAt: nowIso,
                 assignees: t.assignees.map((a) =>
                   a.memberId === memberId
                     ? {
@@ -4938,7 +5048,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                         awardedScore: safeScore,
                         managerFeedback: feedback,
                         validatedBy: validatorName,
-                        validatedAt: new Date().toISOString().slice(0, 10),
+                        validatedAt: nowIso.slice(0, 10),
                       }
                     : a
                 ),
@@ -4953,40 +5063,70 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             xpTotal: Math.max(0, m.xpTotal + safeScore),
             xpSeason: newSeasonXp,
             xpMonth: Math.max(0, m.xpMonth + safeScore),
+            updatedAt: nowIso,
           };
         }),
         ledger: [newLedger, ...state.ledger],
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
-  publishTaskMatrix: (taskId) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, matrixPublished: true } : t)),
-    })),
-
-  archiveTask: (taskId) =>
+  publishTaskMatrix: (taskId) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       tasks: state.tasks.map((t) =>
-        t.id === taskId ? { ...t, archived: true, urgencyLabel: "Completed" } : t
+        t.id === taskId ? { ...t, matrixPublished: true, updatedAt: nowIso } : t
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  unarchiveTask: (taskId) =>
+  archiveTask: (taskId) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === taskId ? { ...t, archived: false } : t)),
-    })),
+      tasks: state.tasks.map((t) =>
+        t.id === taskId
+          ? { ...t, archived: true, urgencyLabel: "Completed", updatedAt: nowIso }
+          : t
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  archiveAllCompletedTasks: () =>
+  unarchiveTask: (taskId) => {
+    const nowIso = new Date().toISOString();
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        t.id === taskId ? { ...t, archived: false, updatedAt: nowIso } : t
+      ),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
+
+  archiveAllCompletedTasks: () => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
       tasks: state.tasks.map((t) =>
         t.urgencyLabel === "Completed" || t.assignees.every((a) => a.status === "Validated")
-          ? { ...t, archived: true, urgencyLabel: "Completed" }
+          ? { ...t, archived: true, urgencyLabel: "Completed", updatedAt: nowIso }
           : t
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  bulkScoreMembers: (memberIds, points, reason, actorName = "Department Head") =>
+  bulkScoreMembers: (memberIds, points, reason, actorName = "Department Head") => {
+    if (!memberIds || memberIds.length === 0) return;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const newEntries: PointsLedgerEntry[] = memberIds.map((id, idx) => {
         const m = state.members.find((mem) => mem.id === id);
@@ -4999,7 +5139,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           reason,
           source: "Task",
           actorName,
-          date: new Date().toISOString().slice(0, 10),
+          date: nowIso.slice(0, 10),
           appealStatus: "None",
         };
       });
@@ -5012,13 +5152,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
             xpTotal: Math.max(0, m.xpTotal + points),
             xpSeason: newSeasonXp,
             xpMonth: Math.max(0, m.xpMonth + points),
+            updatedAt: nowIso,
           };
         }),
         ledger: [...newEntries, ...state.ledger],
       };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  addManualPointsEntry: (memberId, amount, ruleLabel, reason, actorName = "HR Administration") =>
+  addManualPointsEntry: (memberId, amount, ruleLabel, reason, actorName = "HR Administration") => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const allowedRoles: RoleTemplateName[] = [
         "Super Admin",
@@ -5041,7 +5187,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason,
         source: "Manual",
         actorName,
-        date: new Date().toISOString().slice(0, 10),
+        date: nowIso.slice(0, 10),
         appealStatus: "None",
       };
       const audit: AuditLogEntry = {
@@ -5056,6 +5202,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: `${ruleLabel}: ${reason}`,
       };
       const newSeasonXp = Math.max(0, member.xpSeason + amount);
+      changed = true;
       return {
         ledger: [entry, ...state.ledger],
         members: state.members.map((m) =>
@@ -5065,14 +5212,22 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 xpTotal: Math.max(0, m.xpTotal + amount),
                 xpSeason: newSeasonXp,
                 xpMonth: Math.max(0, m.xpMonth + amount),
+                updatedAt: nowIso,
               }
             : m
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
-  reversePointsEntry: (entryId, reason, actorName = "HR Administration") =>
+  reversePointsEntry: (entryId, reason, actorName = "HR Administration") => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const target = state.ledger.find((l) => l.id === entryId);
       if (!target || target.reversedByEntryId || target.source === "Reversal") return state;
@@ -5089,7 +5244,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: `Reversed (${reason})`,
         source: "Reversal",
         actorName,
-        date: new Date().toISOString().slice(0, 10),
+        date: nowIso.slice(0, 10),
         appealStatus: "None",
       };
       const audit: AuditLogEntry = {
@@ -5108,6 +5263,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const newSeason = Math.max(0, member.xpSeason - target.amount);
       const newMonth = Math.max(0, member.xpMonth - target.amount);
 
+      changed = true;
       return {
         ledger: [
           reversalEntry,
@@ -5122,19 +5278,28 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 xpTotal: newTotal,
                 xpSeason: newSeason,
                 xpMonth: newMonth,
+                updatedAt: nowIso,
               }
             : m
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
-  submitPointsAppeal: (entryId, appealReason) =>
+  submitPointsAppeal: (entryId, appealReason) => {
     set((state) => ({
       ledger: state.ledger.map((l) =>
         l.id === entryId ? { ...l, appealStatus: "Pending", appealReason } : l
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   resolvePointsAppeal: (entryId, decision, reason) => {
     const entry = get().ledger.find((l) => l.id === entryId);
@@ -5147,6 +5312,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         l.id === entryId ? { ...l, appealStatus: decision } : l
       ),
     }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   createPointRule: (rule) => {
@@ -5489,7 +5656,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  createBadge: (badge) =>
+  createBadge: (badge) => {
     set((state) => ({
       badges: [
         {
@@ -5502,12 +5669,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         },
         ...state.badges,
       ],
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  awardBadgeManually: (badgeId, memberIds, reasonOrNote, actorName = "HR Administration") =>
+  awardBadgeManually: (badgeId, memberIds, reasonOrNote, actorName = "HR Administration") => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
-      if (!badge) return state;
+      if (!badge || !memberIds || memberIds.length === 0) return state;
 
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
@@ -5521,6 +5693,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: reasonOrNote,
       };
 
+      changed = true;
       return {
         badges: state.badges.map((b) =>
           b.id === badgeId
@@ -5541,6 +5714,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 xpTotal: m.xpTotal + badge.xpReward,
                 xpSeason: m.xpSeason + badge.xpReward,
                 xpMonth: m.xpMonth + badge.xpReward,
+                updatedAt: nowIso,
               }
             : m
         ),
@@ -5554,9 +5728,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           badgeName: badge.name,
         },
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
-  revokeBadge: (badgeId, memberId, reason, actorName = "HR Administration") =>
+  revokeBadge: (badgeId, memberId, reason, actorName = "HR Administration") => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
     set((state) => {
       const badge = state.badges.find((b) => b.id === badgeId);
       const member = state.members.find((m) => m.id === memberId);
@@ -5572,15 +5753,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: "Revoked",
         reason,
       };
+      changed = true;
       return {
         members: state.members.map((m) =>
           m.id === memberId
-            ? { ...m, badgeIds: m.badgeIds.filter((id) => id !== badgeId) }
+            ? {
+                ...m,
+                badgeIds: m.badgeIds.filter((id) => id !== badgeId),
+                updatedAt: nowIso,
+              }
             : m
         ),
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   updateBadge: (id, updates) => {
     set((state) => ({
@@ -5841,7 +6032,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  submitProposal: (proposal) =>
+  submitProposal: (proposal) => {
     set((state) => {
       const member = state.members.find((m) => m.id === state.currentMemberId);
       const reviewerScope =
@@ -5866,15 +6057,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         createdAt: new Date().toISOString().slice(0, 10),
       };
       return { proposals: [newProp, ...state.proposals] };
-    }),
+    });
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  reviewProposal: (proposalId, newState, comment, convertToWorkshop = false) =>
+  reviewProposal: (proposalId, newState, comment, convertToWorkshop = false) => {
+    let changed = false;
+    const nowIso = new Date().toISOString();
+    const ts = Date.now();
     set((state) => {
       const prop = state.proposals.find((p) => p.id === proposalId);
       if (!prop) return state;
 
       const audit: AuditLogEntry = {
-        id: `aud-${Date.now()}`,
+        id: `aud-${ts}`,
         actorName: "Executive / Head Reviewer",
         actorRole: state.activeAdminRole,
         timestamp: nowStamp(),
@@ -5885,36 +6082,40 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         reason: comment,
       };
 
-      const newWorkshops =
-        convertToWorkshop && newState === "Approved"
-          ? [
-              {
-                id: `ws-conv-${Date.now()}`,
-                title: prop.title,
-                category: "General" as const,
-                iconType: "python" as const,
-                level: (prop.specificFields.level as WorkshopLevel) || "Beginner",
-                instructor: prop.specificFields.instructor || prop.submitterName,
-                dateLabel: prop.expectedDate || "Upcoming",
-                timeRange: "14:00 - 17:00",
-                location: prop.location || "Faculty of Sciences",
-                capacity: Number(prop.specificFields.capacity) || 30,
-                seatsLeft: Number(prop.specificFields.capacity) || 30,
-                xpReward: 120,
-                status: "Published" as const,
-                description: prop.description,
-                objectives: [prop.specificFields.objectives || "Converted from approved member proposal"],
-                materials: [prop.specificFields.materialsNeeded || "Standard kit"],
-                liveQrToken: `QUANTA-PROP-${Date.now()}`,
-                liveSixDigitCode: String(Math.floor(100000 + Math.random() * 900000)),
-                registeredMemberIds: [],
-                waitlistMemberIds: [],
-                attendanceRecords: [],
-              },
-              ...state.workshops,
-            ]
-          : state.workshops;
+      const shouldConvert = convertToWorkshop && newState === "Approved";
+      const convertedWsId = `ws-conv-${ts}`;
+      const newWorkshops = shouldConvert
+        ? [
+            {
+              id: convertedWsId,
+              title: prop.title,
+              category: "General" as const,
+              iconType: "python" as const,
+              level: (prop.specificFields.level as WorkshopLevel) || "Beginner",
+              instructor: prop.specificFields.instructor || prop.submitterName,
+              dateLabel: prop.expectedDate || "Upcoming",
+              timeRange: "14:00 - 17:00",
+              location: prop.location || "Faculty of Sciences",
+              capacity: Number(prop.specificFields.capacity) || 30,
+              seatsLeft: Number(prop.specificFields.capacity) || 30,
+              xpReward: 120,
+              status: "Published" as const,
+              description: prop.description,
+              objectives: [prop.specificFields.objectives || "Converted from approved member proposal"],
+              materials: [prop.specificFields.materialsNeeded || "Standard kit"],
+              liveQrToken: `QUANTA-PROP-${ts}`,
+              liveSixDigitCode: String(Math.floor(100000 + Math.random() * 900000)),
+              registeredMemberIds: [],
+              waitlistMemberIds: [],
+              attendanceRecords: [],
+              createdAt: nowIso,
+              updatedAt: nowIso,
+            },
+            ...state.workshops,
+          ]
+        : state.workshops;
 
+      changed = true;
       return {
         proposals: state.proposals.map((p) =>
           p.id === proposalId
@@ -5922,14 +6123,19 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
                 ...p,
                 state: newState,
                 reviewerComment: comment,
-                convertedToId: convertToWorkshop ? `ws-conv` : p.convertedToId,
+                convertedToId: shouldConvert ? convertedWsId : p.convertedToId,
               }
             : p
         ),
         workshops: newWorkshops,
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   voteOnProposal: (proposalId, decision, comment) => {
     const state = get();
@@ -6047,6 +6253,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       nextLedger = [newEntry, ...state.ledger];
     }
 
+    const nowIso = new Date().toISOString();
     set((s) => ({
       members: s.members.map((m) =>
         m.id === curMember.id
@@ -6055,6 +6262,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
               xpTotal: isCorrect ? m.xpTotal + safeXp : m.xpTotal,
               xpSeason: isCorrect ? m.xpSeason + safeXp : m.xpSeason,
               xpMonth: isCorrect ? m.xpMonth + safeXp : m.xpMonth,
+              updatedAt: nowIso,
               quizAttempts: {
                 ...(m.quizAttempts || {}),
                 [quizId]: attemptRecord,
@@ -6076,7 +6284,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     };
   },
 
-  sendClubMessage: ({ recipientScope, priority, title, body, inApp, email, targetMemberId, targetDepartmentId, targetTeamId }) =>
+  sendClubMessage: ({ recipientScope, priority, title, body, inApp, email, targetMemberId, targetDepartmentId, targetTeamId }) => {
+    let changed = false;
     set((state) => {
       if (!title?.trim() && !body?.trim()) return state;
       const cleanTitle = (title || "").trim() || "Notification";
@@ -6115,11 +6324,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: `${title} [${inApp ? "In-App " : ""}${email ? "+ Email" : ""}]`,
         reason: `Priority: ${priority}`,
       };
+      changed = true;
       return {
         messages: [newMsg, ...state.messages],
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   markMessageRead: (messageId, memberId) => {
     set((state) => {
@@ -6181,19 +6396,25 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  unarchiveMessage: (messageId) =>
+  unarchiveMessage: (messageId) => {
     set((state) => ({
       messages: state.messages.map((m) =>
         m.id === messageId ? { ...m, archived: false, unread: true } : m
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
-  archiveAllReadMessages: () =>
+  archiveAllReadMessages: () => {
     set((state) => ({
       messages: state.messages.map((m) =>
         !m.unread ? { ...m, archived: true } : m
       ),
-    })),
+    }));
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
+  },
 
   createExplorePost: (post) => {
     set((state) => ({
@@ -6291,6 +6512,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateDailyQuote: (id, updates) => {
@@ -6300,10 +6522,12 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       ),
     }));
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteDailyQuote: (id) => {
     recordPersistentDeletedId("dailyQuotes", id);
+    recordPersistentDeletedId("customDailyQuotes", id);
     set((state) => ({
       dailyQuotes: state.dailyQuotes.filter((q) => q.id !== id),
       settings:
@@ -6324,9 +6548,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       },
     }));
     get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
-  grantAccess: ({ memberId, capability, level, scopeType, scopeLabel, expiresAt, reason }) =>
+  grantAccess: ({ memberId, capability, level, scopeType, scopeLabel, expiresAt, reason }) => {
+    let changed = false;
     set((state) => {
       const member = state.members.find((m) => m.id === memberId);
       if (!member) return state;
@@ -6353,11 +6579,17 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         newValue: `${capability} — ${level} on ${scopeLabel} (${expiresAt ? `until ${expiresAt}` : "Permanent"})`,
         reason,
       };
+      changed = true;
       return {
         accessGrants: [newGrant, ...state.accessGrants],
         auditLogs: [audit, ...state.auditLogs],
       };
-    }),
+    });
+    if (changed) {
+      get().saveToLocalCache();
+      get().syncWithServer(true).catch(() => {});
+    }
+  },
 
   revokeAccess: (grantId, reason) => {
     recordPersistentDeletedId("accessGrants", grantId);

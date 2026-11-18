@@ -528,6 +528,7 @@ export interface ClubTask {
   matrixPublished: boolean;
   archived?: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface PointRule {
