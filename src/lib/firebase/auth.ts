@@ -780,8 +780,8 @@ function mergeCollectionArraysById(
   }
   for (const [id, rItem] of map.entries()) {
     if (!localIds.has(id)) {
-      // If this write is authoritative (Admin explicitly managing catalog/deleting items), do NOT resurrect remote deleted items!
-      if (isAuthoritativeWrite) continue;
+      // Explicit deletions are strictly filtered via deletedIds / tombstones above.
+      // Never drop unseen live remote items (e.g. workshops or approvals created on another device).
       ordered.push(rItem);
     }
   }
@@ -848,15 +848,59 @@ export async function pushErpStateToFirestore(
       const ref = doc(db, FIRESTORE_COLLECTIONS.ERP_STATE, "main");
       const sanitizedPayload: Record<string, any> = { ...payload };
 
-      // Strip administrative governance keys ONLY if explicitly marked as restricted member write
+      // Enforce strict governance & admin-catalog isolation for non-admin writes
       const userEmail = (fbAuth?.currentUser?.email || payload._actorEmail || "").toLowerCase();
       const isUserAdmin = isSuperAdminEmail(userEmail) || payload._isAdmin === true;
-      if (!isUserAdmin && payload._isRestrictedMemberWrite === true) {
+      if (!isUserAdmin) {
         delete sanitizedPayload.settings;
         delete sanitizedPayload.accessGrants;
         delete sanitizedPayload.pointRules;
         delete sanitizedPayload.departments;
         delete sanitizedPayload.auditLogs;
+        delete sanitizedPayload.explorePosts;
+        delete sanitizedPayload.dailyQuizzes;
+        delete sanitizedPayload.badges;
+        delete sanitizedPayload.exams;
+        delete sanitizedPayload.invitations;
+        delete sanitizedPayload.workshopCategories;
+        delete sanitizedPayload.badgeCategories;
+        delete sanitizedPayload.projectCategories;
+        delete sanitizedPayload.customDailyQuotes;
+        // Also avoid overwriting workshops if non-admin payload has an empty array (stale cache)
+        if (Array.isArray(sanitizedPayload.workshops) && sanitizedPayload.workshops.length === 0) {
+          delete sanitizedPayload.workshops;
+        }
+      }
+
+      // Fetch the freshest live cloud snapshot inside the serialized queue before merging
+      // so stale tabs or parallel devices can NEVER wipe newly created workshops or approvals.
+      let liveRemoteData: Record<string, any> | null = lastReceivedCloudSnapshot;
+      try {
+        const latestSnap = await getDoc(ref);
+        if (latestSnap.exists()) {
+          liveRemoteData = latestSnap.data() as Record<string, any>;
+        }
+      } catch {
+        // Fallback to cached lastReceivedCloudSnapshot if transient read error occurs
+      }
+
+      // Merge live cloud tombstones with incoming local tombstones
+      const mergedTombstones: Record<string, string[]> = {};
+      const liveRemoteTombstones =
+        liveRemoteData?.deletedIdsByCollection && typeof liveRemoteData.deletedIdsByCollection === "object"
+          ? (liveRemoteData.deletedIdsByCollection as Record<string, string[]>)
+          : {};
+      for (const [col, ids] of Object.entries(liveRemoteTombstones)) {
+        if (Array.isArray(ids) && ids.length > 0) {
+          mergedTombstones[col] = Array.from(new Set(ids));
+        }
+      }
+      if (deletedIdsByCollection && typeof deletedIdsByCollection === "object") {
+        for (const [col, ids] of Object.entries(deletedIdsByCollection)) {
+          if (Array.isArray(ids) && ids.length > 0) {
+            mergedTombstones[col] = Array.from(new Set([...(mergedTombstones[col] || []), ...ids]));
+          }
+        }
       }
 
       // 1. Strip plaintext passwords & cap oversized inline avatars (VULN-01 & LIMIT-01)
@@ -864,13 +908,13 @@ export async function pushErpStateToFirestore(
         sanitizedPayload.members = sanitizeMembersForCloud(sanitizedPayload.members);
       }
 
-      // 2. Item-level concurrent merge against latest cloud snapshot + tombstone filtering (ARCH-01)
+      // 2. Item-level concurrent merge against fresh live cloud snapshot + tombstone filtering (ARCH-01)
       for (const key of MERGEABLE_ARRAY_KEYS) {
         if (Array.isArray(sanitizedPayload[key])) {
-          const delIds = deletedIdsByCollection?.[key] || [];
+          const delIds = mergedTombstones[key] || [];
           const delSet = new Set(delIds);
-          const remoteArr = Array.isArray(lastReceivedCloudSnapshot?.[key])
-            ? lastReceivedCloudSnapshot![key]
+          const remoteArr = Array.isArray(liveRemoteData?.[key])
+            ? liveRemoteData![key]
             : [];
           sanitizedPayload[key] =
             remoteArr.length > 0
@@ -933,18 +977,9 @@ export async function pushErpStateToFirestore(
         }
       }
 
-      // Embed global tombstones in the Firestore document so ALL devices see deletions
-      // This is the only way deleted workshops/badges don't come back on fresh sessions
-      if (deletedIdsByCollection && Object.keys(deletedIdsByCollection).length > 0) {
-        const filteredTombstones: Record<string, string[]> = {};
-        for (const [col, ids] of Object.entries(deletedIdsByCollection)) {
-          if (Array.isArray(ids) && ids.length > 0) {
-            filteredTombstones[col] = ids;
-          }
-        }
-        if (Object.keys(filteredTombstones).length > 0) {
-          (cleanPayload as any).deletedIdsByCollection = filteredTombstones;
-        }
+      // Embed merged global tombstones in the Firestore document (Admin writes only) so deletions propagate across devices
+      if (isUserAdmin && Object.keys(mergedTombstones).length > 0) {
+        (cleanPayload as any).deletedIdsByCollection = mergedTombstones;
       }
 
       await setDoc(ref, cleanPayload, { merge: true });

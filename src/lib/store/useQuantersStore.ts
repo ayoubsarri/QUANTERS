@@ -358,24 +358,31 @@ interface QuantersStoreState {
     instructor: string;
     dateLabel: string;
     timeRange: string;
+    eventDate?: string;
+    planningOpenDate?: string;
+    startTime?: string;
+    endTime?: string;
     location: string;
     capacity: number;
     xpReward: number;
     description: string;
     linkedBadgeId?: string;
     status?: WorkshopStatus;
-  }) => void;
+  }) => Promise<{ ok: boolean; workshop: Workshop; syncedToCloud: boolean; message?: string }>;
   updateWorkshop: (
     workshopId: string,
     updates: Partial<Omit<Workshop, "id">>,
     reason?: string
-  ) => void;
+  ) => Promise<{ ok: boolean; syncedToCloud: boolean; message?: string }>;
   deleteWorkshop: (
     workshopId: string,
     isPermanent?: boolean,
     reason?: string
   ) => void;
-  updateWorkshopStatus: (workshopId: string, status: WorkshopStatus) => void;
+  updateWorkshopStatus: (
+    workshopId: string,
+    status: WorkshopStatus
+  ) => Promise<{ ok: boolean; syncedToCloud: boolean; message?: string }>;
   rotateWorkshopQrCode: (workshopId: string) => void;
 
   // §M4: Tasks & Scoring
@@ -2067,11 +2074,16 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const currentSnap = get();
       const tombstones = getPersistentDeletedIds();
       const activeMember = currentSnap.members.find((m) => m.id === currentSnap.currentMemberId);
-      const isSuper =
-        currentSnap.activeAdminRole === "Super Admin" ||
-        currentSnap.activeAdminRole === "Executive" ||
-        currentSnap.activeAdminRole === "HR Head" ||
-        (activeMember && (isSuperAdminEmail(activeMember.email) || activeMember.roles.includes("Super Admin")));
+      const isSuper = Boolean(
+        ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "Workshop Organizer"].includes(
+          currentSnap.activeAdminRole
+        ) ||
+          (activeMember &&
+            (isSuperAdminEmail(activeMember.email) ||
+              activeMember.roles.some((r) =>
+                ["Super Admin", "Executive", "HR Head", "Department Head", "Co-Manager", "Workshop Organizer"].includes(r)
+              )))
+      );
 
       const sanitizeMemberList = (list: Member[]) =>
         list
@@ -4449,9 +4461,11 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     }),
 
-  createWorkshop: (ws) => {
+  createWorkshop: async (ws) => {
+    const nowIso = new Date().toISOString();
+    const ts = Date.now();
     const newWs: Workshop = {
-      id: `ws-${Date.now()}`,
+      id: `ws-${ts}`,
       title: ws.title,
       activityType: ws.activityType || "Workshop",
       category: ws.category,
@@ -4460,6 +4474,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       instructor: ws.instructor,
       dateLabel: ws.dateLabel,
       timeRange: ws.timeRange,
+      eventDate: ws.eventDate,
+      planningOpenDate: ws.planningOpenDate,
+      startTime: ws.startTime,
+      endTime: ws.endTime,
       location: ws.location,
       capacity: ws.capacity,
       seatsLeft: ws.capacity,
@@ -4469,19 +4487,56 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       objectives: ["Hands-on practical session", "Verified skill assessment"],
       materials: ["Laptop"],
       linkedBadgeId: ws.linkedBadgeId,
-      liveQrToken: `QUANTA-WS-${Date.now()}`,
+      liveQrToken: `QUANTA-WS-${ts}`,
       liveSixDigitCode: String(Math.floor(100000 + Math.random() * 900000)),
       registeredMemberIds: [],
       waitlistMemberIds: [],
       attendanceRecords: [],
+      createdAt: nowIso,
+      updatedAt: nowIso,
     };
-    set((state) => ({
-      workshops: [newWs, ...state.workshops],
-    }));
-    get().syncWithServer().catch(() => {});
+    set((state) => {
+      const currentActor = state.members.find((m) => m.id === state.currentMemberId);
+      const audit: AuditLogEntry = {
+        id: `aud-ws-create-${ts}`,
+        actorName: currentActor?.fullName || "Admin",
+        actorRole: state.activeAdminRole,
+        timestamp: nowStamp(),
+        actionCategory: "Status Change",
+        targetLabel: `Workshop: ${newWs.title}`,
+        oldValue: "None",
+        newValue: newWs.status,
+        reason: `Created ${newWs.activityType || "Workshop"} (${newWs.dateLabel})`,
+      };
+      return {
+        workshops: [newWs, ...state.workshops],
+        auditLogs: [audit, ...state.auditLogs],
+      };
+    });
+    get().saveToLocalCache();
+    await get().syncWithServer(true).catch(() => {});
+    const pushErr = getLastFirestorePushError();
+    if (pushErr) {
+      return {
+        ok: true,
+        workshop: newWs,
+        syncedToCloud: false,
+        message:
+          pushErr.code === "permission-denied" || pushErr.code === "unauthenticated"
+            ? `Saved locally, but Cloud Firestore rejected sync (${pushErr.code}). Please verify your Google Cloud Session at the top of Admin Console.`
+            : `Saved locally, but Cloud sync failed (${pushErr.code}).`,
+      };
+    }
+    return {
+      ok: true,
+      workshop: newWs,
+      syncedToCloud: true,
+      message: `Created '${newWs.title}' — Synced to Cloud & Live in Members App!`,
+    };
   },
 
-  updateWorkshop: (workshopId, updates, reason) => {
+  updateWorkshop: async (workshopId, updates, reason) => {
+    const nowIso = new Date().toISOString();
     set((state) => {
       const existing = state.workshops.find((w) => w.id === workshopId);
       if (!existing) return state;
@@ -4489,6 +4544,7 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       const updatedWs: Workshop = {
         ...existing,
         ...updates,
+        updatedAt: nowIso,
       };
 
       if (updates.capacity !== undefined) {
@@ -4496,9 +4552,10 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
         updatedWs.seatsLeft = Math.max(0, updates.capacity - regCount);
       }
 
+      const currentActor = state.members.find((m) => m.id === state.currentMemberId);
       const audit: AuditLogEntry = {
         id: `aud-${Date.now()}`,
-        actorName: "Admin",
+        actorName: currentActor?.fullName || "Admin",
         actorRole: state.activeAdminRole,
         timestamp: nowStamp(),
         actionCategory: "Status Change",
@@ -4514,7 +4571,15 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       };
     });
     get().saveToLocalCache();
-    get().syncWithServer(true).catch(() => {});
+    await get().syncWithServer(true).catch(() => {});
+    const pushErr = getLastFirestorePushError();
+    return {
+      ok: true,
+      syncedToCloud: !pushErr,
+      message: pushErr
+        ? `Updated locally, but Cloud sync failed (${pushErr.code}).`
+        : "Workshop updated and synced to Cloud!",
+    };
   },
 
   deleteWorkshop: (workshopId, isPermanent = false, reason) => {
@@ -4539,7 +4604,9 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
       return {
         workshops: isPermanent
           ? state.workshops.filter((w) => w.id !== workshopId)
-          : state.workshops.map((w) => (w.id === workshopId ? { ...w, status: "Archived" } : w)),
+          : state.workshops.map((w) =>
+              w.id === workshopId ? { ...w, status: "Archived", updatedAt: new Date().toISOString() } : w
+            ),
         auditLogs: [audit, ...state.auditLogs],
       };
     });
@@ -4547,11 +4614,21 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     get().syncWithServer(true).catch(() => {});
   },
 
-  updateWorkshopStatus: (workshopId, status) => {
+  updateWorkshopStatus: async (workshopId, status) => {
+    const nowIso = new Date().toISOString();
     set((state) => ({
-      workshops: state.workshops.map((w) => (w.id === workshopId ? { ...w, status } : w)),
+      workshops: state.workshops.map((w) =>
+        w.id === workshopId ? { ...w, status, updatedAt: nowIso } : w
+      ),
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    await get().syncWithServer(true).catch(() => {});
+    const pushErr = getLastFirestorePushError();
+    return {
+      ok: true,
+      syncedToCloud: !pushErr,
+      message: pushErr ? `Status updated locally, Cloud sync failed (${pushErr.code}).` : undefined,
+    };
   },
 
   rotateWorkshopQrCode: (workshopId) =>
@@ -5509,7 +5586,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set((state) => ({
       badges: state.badges.map((b) => (b.id === id ? { ...b, ...updates } : b)),
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteOrArchiveBadge: (badgeId, reason) => {
@@ -5553,7 +5631,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
     set((state) => ({
       exams: [...state.exams, newExam],
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   updateBadgeExam: (id, updates) => {
@@ -5568,7 +5647,8 @@ export const useQuantersStore = create<QuantersStoreState>((set, get) => ({
           : e
       ),
     }));
-    get().syncWithServer().catch(() => {});
+    get().saveToLocalCache();
+    get().syncWithServer(true).catch(() => {});
   },
 
   deleteBadgeExam: (id) => {

@@ -466,6 +466,8 @@ export interface Workshop {
   registeredMemberIds: string[];
   waitlistMemberIds: string[];
   attendanceRecords: AttendanceRecord[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type TaskCategory =

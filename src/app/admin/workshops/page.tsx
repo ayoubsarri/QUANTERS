@@ -82,7 +82,13 @@ export default function AdminWorkshopsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [statusToast, setStatusToast] = useState<string | null>(null);
+  const [statusToastWarning, setStatusToastWarning] = useState(false);
+  const [savingWorkshop, setSavingWorkshop] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+
+  useEffect(() => {
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
+  }, []);
   const [projectorWorkshopId, setProjectorWorkshopId] = useState<string | null>(
     null
   );
@@ -327,54 +333,67 @@ export default function AdminWorkshopsPage() {
     return ALL_FIELD_ICONS.find((f) => f.key === iconType) || ALL_FIELD_ICONS[0];
   }, [iconType]);
 
-  const handleStatusChange = (ws: Workshop, nextStatus: WorkshopStatus) => {
-    updateWorkshopStatus(ws.id, nextStatus);
+  const handleStatusChange = async (ws: Workshop, nextStatus: WorkshopStatus) => {
+    const res = await updateWorkshopStatus(ws.id, nextStatus);
     setStatusFilter(nextStatus);
+    setStatusToastWarning(!res.syncedToCloud);
     setStatusToast(
-      `Moved '${ws.title}' to ${nextStatus} case`
+      res.syncedToCloud
+        ? `Moved '${ws.title}' to ${nextStatus} case & synced to Cloud`
+        : res.message || `Moved '${ws.title}' to ${nextStatus} locally (Cloud sync failed)`
     );
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || savingWorkshop) return;
+    setSavingWorkshop(true);
 
-    let computedDateLabel = dateLabel.trim() || "Upcoming";
-    if (eventDate) {
-      try {
-        const parts = eventDate.split("-");
-        if (parts.length === 3) {
-          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-          computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    try {
+      let computedDateLabel = dateLabel.trim() || "Upcoming";
+      if (eventDate) {
+        try {
+          const parts = eventDate.split("-");
+          if (parts.length === 3) {
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          }
+        } catch {
+          computedDateLabel = eventDate;
         }
-      } catch {
-        computedDateLabel = eventDate;
       }
-    }
-    const computedTimeRange = startTime && endTime ? `${startTime} - ${endTime}` : (timeRange.trim() || "14:00 - 17:00");
+      const computedTimeRange = startTime && endTime ? `${startTime} - ${endTime}` : (timeRange.trim() || "14:00 - 17:00");
 
-    createWorkshop({
-      title: title.trim(),
-      activityType,
-      category,
-      iconType,
-      level,
-      instructor: instructor.trim() || "QUANTA Instructor",
-      dateLabel: computedDateLabel,
-      timeRange: computedTimeRange,
-      location: location.trim() || "Faculty of Sciences",
-      capacity: Number(capacity) || 25,
-      xpReward: Number(xpReward) || 120,
-      description:
-        description.trim() || "Scientific session with verified check-in.",
-      linkedBadgeId: linkedBadgeId || undefined,
-      status: "Published",
-    });
-    setCreateOpen(false);
-    setStatusFilter("Published");
-    setStatusToast(`Created '${title.trim()}' — Live in Members App!`);
-    setTitle("");
-    setDescription("");
+      const res = await createWorkshop({
+        title: title.trim(),
+        activityType,
+        category,
+        iconType,
+        level,
+        instructor: instructor.trim() || "QUANTA Instructor",
+        dateLabel: computedDateLabel,
+        timeRange: computedTimeRange,
+        eventDate,
+        planningOpenDate,
+        startTime,
+        endTime,
+        location: location.trim() || "Faculty of Sciences",
+        capacity: Number(capacity) || 25,
+        xpReward: Number(xpReward) || 120,
+        description:
+          description.trim() || "Scientific session with verified check-in.",
+        linkedBadgeId: linkedBadgeId || undefined,
+        status: "Published",
+      });
+      setCreateOpen(false);
+      setStatusFilter("Published");
+      setStatusToastWarning(!res.syncedToCloud);
+      setStatusToast(res.message || `Created '${title.trim()}' — Live in Members App!`);
+      setTitle("");
+      setDescription("");
+    } finally {
+      setSavingWorkshop(false);
+    }
   };
 
   const filteredEditIcons = useMemo(() => {
@@ -416,47 +435,57 @@ export default function AdminWorkshopsPage() {
     setEditIconSearch("");
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingWorkshop || !editTitle.trim()) return;
+    if (!editingWorkshop || !editTitle.trim() || savingWorkshop) return;
+    setSavingWorkshop(true);
 
-    let computedDateLabel = editingWorkshop.dateLabel;
-    if (editEventDate) {
-      try {
-        const parts = editEventDate.split("-");
-        if (parts.length === 3) {
-          const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-          computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    try {
+      let computedDateLabel = editingWorkshop.dateLabel;
+      if (editEventDate) {
+        try {
+          const parts = editEventDate.split("-");
+          if (parts.length === 3) {
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            computedDateLabel = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+          }
+        } catch {
+          computedDateLabel = editEventDate;
         }
-      } catch {
-        computedDateLabel = editEventDate;
       }
+      const computedTimeRange = `${editStartTime} - ${editEndTime}`;
+
+      const res = await updateWorkshop(editingWorkshop.id, {
+        title: editTitle.trim(),
+        activityType: editActivityType,
+        category: editCategory,
+        iconType: editIconType,
+        level: editLevel,
+        instructor: editInstructor.trim() || "QUANTA Instructor",
+        eventDate: editEventDate,
+        planningOpenDate: editPlanningOpenDate,
+        startTime: editStartTime,
+        endTime: editEndTime,
+        dateLabel: computedDateLabel,
+        timeRange: computedTimeRange,
+        location: editLocation.trim() || "Faculty of Sciences",
+        capacity: Number(editCapacity) || 25,
+        xpReward: Number(editXpReward) || 120,
+        description: editDescription.trim() || "Scientific session with verified check-in.",
+        linkedBadgeId: editLinkedBadgeId || undefined,
+        status: editStatus,
+      });
+
+      setStatusToastWarning(!res.syncedToCloud);
+      setStatusToast(
+        res.syncedToCloud
+          ? `Updated '${editTitle.trim()}' & synced to Cloud!`
+          : res.message || `Updated '${editTitle.trim()}' locally (Cloud sync failed).`
+      );
+      setEditingWorkshop(null);
+    } finally {
+      setSavingWorkshop(false);
     }
-    const computedTimeRange = `${editStartTime} - ${editEndTime}`;
-
-    updateWorkshop(editingWorkshop.id, {
-      title: editTitle.trim(),
-      activityType: editActivityType,
-      category: editCategory,
-      iconType: editIconType,
-      level: editLevel,
-      instructor: editInstructor.trim() || "QUANTA Instructor",
-      eventDate: editEventDate,
-      planningOpenDate: editPlanningOpenDate,
-      startTime: editStartTime,
-      endTime: editEndTime,
-      dateLabel: computedDateLabel,
-      timeRange: computedTimeRange,
-      location: editLocation.trim() || "Faculty of Sciences",
-      capacity: Number(editCapacity) || 25,
-      xpReward: Number(editXpReward) || 120,
-      description: editDescription.trim() || "Scientific session with verified check-in.",
-      linkedBadgeId: editLinkedBadgeId || undefined,
-      status: editStatus,
-    });
-
-    setStatusToast(`Updated '${editTitle.trim()}' successfully!`);
-    setEditingWorkshop(null);
   };
 
   const handleDeleteConfirm = () => {
@@ -667,9 +696,19 @@ export default function AdminWorkshopsPage() {
 
         {/* Status Transition Confirmation Toast */}
         {statusToast && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs font-bold flex flex-wrap items-center justify-between gap-2">
+          <div
+            className={`px-4 py-3 rounded-2xl text-xs font-bold flex flex-wrap items-center justify-between gap-2 border ${
+              statusToastWarning
+                ? "bg-amber-50 border-amber-300 text-amber-900"
+                : "bg-emerald-50 border-emerald-200 text-emerald-900"
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <CheckCircle2
+                className={`w-4 h-4 shrink-0 ${
+                  statusToastWarning ? "text-amber-600" : "text-emerald-600"
+                }`}
+              />
               <span>{statusToast}</span>
             </div>
             <div className="flex items-center gap-2">

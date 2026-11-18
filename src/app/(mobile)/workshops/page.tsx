@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -32,6 +32,10 @@ export default function MobileWorkshopsPage() {
   const cancelWorkshopRegistration = useQuantersStore(
     (s) => s.cancelWorkshopRegistration
   );
+
+  useEffect(() => {
+    useQuantersStore.getState().pullExactUpdatesFromServer().catch(() => {});
+  }, []);
 
   const [filter, setFilter] = useState<WorkshopFilter>("Upcoming");
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
